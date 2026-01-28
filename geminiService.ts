@@ -31,32 +31,27 @@ const CROSSWORD_SCHEMA = {
 export async function generateCrossword(categories: string[]): Promise<CrosswordData> {
   const theme = categories.join(', ');
   
-  const prompt = `Generate a high-quality connected crossword in Russian.
-Theme: ${theme}.
-STRICT LOGIC RULES:
-1. Exactly 3 words.
-2. All words must be nouns in Russian, uppercase.
-3. Every word MUST intersect with at least one other word.
-4. If Word A and Word B share a cell (row, col), the character at that position in BOTH words must be identical.
-5. Grid size 10x10. Coordinates row (0-9), col (0-9).
-6. Format as JSON. Direction: 'H' (horizontal) or 'V' (vertical).
-Example: 'КОТ' (0,0) H, 'ТОК' (0,2) V. Cell (0,2) is 'Т' for both. This is a valid intersection.`;
+  // Ультра-лаконичный промпт для мгновенной генерации
+  const prompt = `Сгенерируй кроссворд (3-4 слова) на тему: ${theme}. 
+Требования:
+1. Только существительные в ед.ч.
+2. Слова ОБЯЗАТЕЛЬНО пересекаются.
+3. Координаты 0-9.
+4. JSON: title, gridSize, items. Direction: 'H' или 'V'.`;
 
-  // Using gemini-3-pro-preview for complex reasoning tasks like crossword layout
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-preview',
+    model: 'gemini-3-flash-preview',
     contents: prompt,
     config: {
       responseMimeType: "application/json",
       responseSchema: CROSSWORD_SCHEMA,
-      temperature: 0.1,
+      temperature: 0, // Минимум для скорости
     },
   });
 
   try {
     const text = response.text.trim();
     const data = JSON.parse(text);
-    // Sanitize data
     data.items = data.items.map((item: any) => ({
       ...item,
       answer: item.answer.toUpperCase().replace(/[^А-ЯЁA-Z]/g, ''),
@@ -64,7 +59,7 @@ Example: 'КОТ' (0,0) H, 'ТОК' (0,2) V. Cell (0,2) is 'Т' for both. This i
     }));
     return data as CrosswordData;
   } catch (e) {
-    console.error("Failed to parse crossword data", e);
-    throw new Error("Ошибка генерации. Попробуйте еще раз.");
+    console.error("Quick generate failed", e);
+    throw new Error("Ошибка быстрого синтеза. Попробуйте снова.");
   }
 }

@@ -257,18 +257,23 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ categories, onComplete, o
     }
   };
 
-  const activeItem = getActiveItem();
+  // NEW: Highlight all words passing through the focused cell
   const highlightedCells = useMemo(() => {
-    if (!activeItem) return [];
-    const cells = [];
-    for (let i = 0; i < activeItem.answer.length; i++) {
-      cells.push({
-        r: activeItem.direction === Direction.HORIZONTAL ? activeItem.row : activeItem.row + i,
-        c: activeItem.direction === Direction.HORIZONTAL ? activeItem.col + i : activeItem.col
-      });
-    }
+    if (!focusedCell || !croppedData) return [];
+    const passingWords = getItemsForCell(focusedCell.r, focusedCell.c);
+    const cells: {r: number, c: number}[] = [];
+    passingWords.forEach(word => {
+      for (let i = 0; i < word.answer.length; i++) {
+        cells.push({
+          r: word.direction === Direction.HORIZONTAL ? word.row : word.row + i,
+          c: word.direction === Direction.HORIZONTAL ? word.col + i : word.col
+        });
+      }
+    });
     return cells;
-  }, [activeItem]);
+  }, [focusedCell, croppedData]);
+
+  const activeItem = getActiveItem();
 
   if (loading || !croppedData) {
     return (
@@ -312,7 +317,7 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ categories, onComplete, o
   return (
     <div className="flex flex-col xl:flex-row gap-12 items-stretch min-h-[70vh] pb-32">
       
-      {/* MOBILE FLOATING CLUE - NOW AT TOP */}
+      {/* MOBILE FLOATING CLUE */}
       <AnimatePresence>
         {activeItem && (
           <MotionDiv 
@@ -352,7 +357,6 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ categories, onComplete, o
           <button onClick={onCancel} className="p-4 bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 hover:text-slate-600 transition-all"><ArrowLeft className="w-6 h-6"/></button>
         </div>
 
-        {/* SMALLER GRID ON DESKTOP */}
         <div className="w-full max-w-lg">
           <div 
             className="bg-slate-900 p-5 md:p-8 rounded-[3.5rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] grid gap-2 md:gap-3 border-b-[12px] border-slate-950/80 transition-all"
@@ -363,7 +367,11 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ categories, onComplete, o
                 const isActive = getItemsForCell(r, c).length > 0;
                 const isFocused = focusedCell?.r === r && focusedCell?.c === c;
                 const isHighlighted = highlightedCells.some(cell => cell.r === r && cell.c === c);
-                const label = croppedData.items.find(i => i.row === r && i.col === c)?.id;
+                
+                // NEW: Handle multiple labels in one cell
+                const cellLabels = croppedData.items.filter(i => i.row === r && i.col === c).map(i => i.id);
+                const label = cellLabels.length > 1 ? cellLabels.join('/') : cellLabels[0];
+
                 const realR = r + croppedData.minR;
                 const realC = c + croppedData.minC;
                 const isLocked = lockedCells.has(`${realR},${realC}`);
@@ -383,7 +391,7 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ categories, onComplete, o
                         isHighlighted ? 'bg-indigo-600/30 border-indigo-500/40' : 'bg-white border-slate-300 shadow-sm'}
                     `}
                   >
-                    {label && <span className={`absolute top-1 left-2 text-[8px] md:text-xs font-black ${isFocused || isLocked || val !== '' ? 'text-white/40' : 'text-slate-400'}`}>{label}</span>}
+                    {label && <span className={`absolute top-0.5 left-1.5 text-[8px] md:text-[10px] leading-none font-black ${isFocused || isLocked || val !== '' ? 'text-white/40' : 'text-slate-400'}`}>{label}</span>}
                     <span className={`text-xl md:text-3xl font-extrabold uppercase ${isFocused || isLocked || val !== '' || solved ? 'text-white' : 'text-slate-800'}`}>
                       {val}
                     </span>
@@ -395,7 +403,6 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ categories, onComplete, o
           </div>
         </div>
 
-        {/* REVEALABLE ANSWERS */}
         <div className="w-full mt-20 pt-10 border-t border-slate-100">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.5em]">Архив Синапсов</h3>
@@ -423,7 +430,7 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ categories, onComplete, o
       </div>
 
       {/* RIGHT COLUMN: SIDEBAR */}
-      <div className="xl:flex-1 flex flex-col gap-8 h-full sticky top-36">
+      <div className="xl:flex-1 flex flex-col gap-8 h-full sticky top-36 overflow-visible">
         
         {/* ACTIVE CLUE PANEL */}
         <AnimatePresence mode="wait">
@@ -453,14 +460,15 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ categories, onComplete, o
           )}
         </AnimatePresence>
 
-        {/* LIST OF ALL CLUES */}
-        <div className="bg-white p-10 rounded-[4rem] border border-slate-200/50 shadow-2xl flex-1 flex flex-col overflow-hidden">
+        {/* LIST OF ALL CLUES - Fixed clipping issues */}
+        <div className="bg-white p-10 rounded-[4rem] border border-slate-200/50 shadow-2xl flex-1 flex flex-col relative z-0 overflow-visible">
           <div className="flex items-center gap-4 mb-10 border-b border-slate-100 pb-6 shrink-0">
              <ListFilter className="w-6 h-6 text-indigo-600" />
              <h3 className="text-lg font-extrabold text-slate-900 uppercase tracking-[0.2em]">Матрица заданий</h3>
           </div>
-          <div className="flex-1 overflow-y-auto pr-3 custom-scrollbar space-y-12">
-            <section>
+          {/* Added px-6 to prevent clipping of scaled items */}
+          <div className="flex-1 overflow-y-auto overflow-x-visible px-6 custom-scrollbar space-y-12 pb-10">
+            <section className="overflow-visible">
                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-6 flex items-center gap-3"><ArrowRight className="w-4 h-4" /> По Горизонтали</h4>
                {hClues.map(item => (
                  <div 
@@ -476,7 +484,7 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ categories, onComplete, o
                  </div>
                ))}
             </section>
-            <section>
+            <section className="overflow-visible">
                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-6 flex items-center gap-3"><ArrowDown className="w-4 h-4" /> По Вертикали</h4>
                {vClues.map(item => (
                  <div 
