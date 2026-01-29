@@ -1,7 +1,8 @@
 
-import React, { useState } from 'react';
-import { CATEGORIES } from '../types';
-import { BrainCircuit, CheckCircle2, Sparkles, Book, History, Palette, Film, Cpu, Globe, Trophy, Music, Leaf, Utensils, FlaskConical, User, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Category } from '../types';
+import { fetchCategories } from '../crosswordApi';
+import { BrainCircuit, Sparkles, Book, History, Palette, Film, Cpu, Globe, Trophy, Music, Leaf, Utensils, FlaskConical, ArrowLeft, RefreshCw, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const MotionDiv = motion.div as any;
@@ -12,24 +13,55 @@ interface OnboardingProps {
   onCancel: () => void;
 }
 
-const CATEGORY_CONFIG: Record<string, { icon: any, color: string, bg: string }> = {
-  'Наука': { icon: FlaskConical, color: 'text-blue-600', bg: 'bg-blue-100' },
-  'История': { icon: History, color: 'text-amber-700', bg: 'bg-amber-100' },
-  'Искусство': { icon: Palette, color: 'text-pink-600', bg: 'bg-pink-100' },
-  'Кино': { icon: Film, color: 'text-slate-700', bg: 'bg-slate-200' },
-  'Технологии': { icon: Cpu, color: 'text-cyan-600', bg: 'bg-cyan-100' },
-  'География': { icon: Globe, color: 'text-emerald-600', bg: 'bg-emerald-100' },
-  'Спорт': { icon: Trophy, color: 'text-orange-600', bg: 'bg-orange-100' },
-  'Литература': { icon: Book, color: 'text-violet-600', bg: 'bg-violet-100' },
-  'Музыка': { icon: Music, color: 'text-rose-600', bg: 'bg-rose-100' },
-  'Еда': { icon: Utensils, color: 'text-red-600', bg: 'bg-red-100' },
-  'Природа': { icon: Leaf, color: 'text-green-600', bg: 'bg-green-100' }
+const CATEGORY_ICONS: Record<string, any> = {
+  'Наука': FlaskConical,
+  'История': History,
+  'Искусство': Palette,
+  'Кино': Film,
+  'Технологии': Cpu,
+  'География': Globe,
+  'Спорт': Trophy,
+  'Литература': Book,
+  'Музыка': Music,
+  'Еда': Utensils,
+  'Природа': Leaf
 };
+
+// Резервный список на случай ошибки сервера
+const FALLBACK_CATEGORIES: Category[] = [
+  { name: 'Наука', word_count: 150 },
+  { name: 'История', word_count: 200 },
+  { name: 'Технологии', word_count: 120 },
+  { name: 'Спорт', word_count: 180 }
+];
 
 const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) => {
   const [step, setStep] = useState<1 | 2>(1);
   const [username, setUsername] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+
+  const loadCategories = async () => {
+    setLoading(true);
+    setError(false);
+    try {
+      const cats = await fetchCategories();
+      setCategories(cats);
+    } catch (err) {
+      console.error("Could not load categories from API, using fallback", err);
+      setError(true);
+      // Если сервер недоступен, показываем базовый список
+      setCategories(FALLBACK_CATEGORIES);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (step === 2) loadCategories();
+  }, [step]);
 
   const toggleCategory = (cat: string) => {
     setSelected(prev => 
@@ -108,36 +140,59 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) => {
                 <p className="text-slate-500 font-medium">Выбери темы для своих кроссвордов</p>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {CATEGORIES.map((cat) => {
-                  const isSelected = selected.includes(cat);
-                  const config = CATEGORY_CONFIG[cat] || { icon: Sparkles, color: 'text-indigo-500', bg: 'bg-indigo-50' };
-                  const Icon = config.icon;
-                  
-                  return (
-                    <MotionButton
-                      key={cat}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.96 }}
-                      onClick={() => toggleCategory(cat)}
-                      className={`
-                        p-4 rounded-[2rem] border-4 transition-all flex flex-col items-center justify-center gap-2 relative
-                        ${isSelected 
-                          ? 'border-indigo-500 bg-indigo-50 shadow-lg' 
-                          : 'border-slate-50 bg-slate-50 hover:bg-white hover:border-indigo-100'
-                        }
-                      `}
-                    >
-                      <div className={`p-3 rounded-2xl transition-colors ${isSelected ? 'bg-indigo-500 text-white' : `${config.bg} ${config.color}`}`}>
-                        <Icon className="w-5 h-5" />
-                      </div>
-                      <span className={`font-black text-[10px] uppercase tracking-wider ${isSelected ? 'text-indigo-700' : 'text-slate-500'}`}>
-                        {cat}
-                      </span>
-                    </MotionButton>
-                  );
-                })}
-              </div>
+              {loading ? (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-pulse">
+                  {[1,2,3,4,5,6,7,8].map(i => (
+                    <div key={i} className="h-24 bg-slate-100 rounded-2xl" />
+                  ))}
+                </div>
+              ) : (
+                <>
+                  {error && (
+                    <div className="flex items-center gap-2 justify-center bg-amber-50 text-amber-700 p-3 rounded-xl border border-amber-100 mb-4 text-xs font-bold">
+                      <AlertTriangle className="w-4 h-4" />
+                      Сервер временно недоступен. Используем базовые категории.
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {categories.map((cat) => {
+                      const isSelected = selected.includes(cat.name);
+                      const Icon = CATEGORY_ICONS[cat.name] || Sparkles;
+                      
+                      return (
+                        <MotionButton
+                          key={cat.name}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.96 }}
+                          onClick={() => toggleCategory(cat.name)}
+                          className={`
+                            p-4 rounded-[2rem] border-4 transition-all flex flex-col items-center justify-center gap-2 relative
+                            ${isSelected 
+                              ? 'border-indigo-500 bg-indigo-50 shadow-lg' 
+                              : 'border-slate-50 bg-slate-50 hover:bg-white hover:border-indigo-100'
+                            }
+                          `}
+                        >
+                          <div className={`p-3 rounded-2xl transition-colors ${isSelected ? 'bg-indigo-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+                            <Icon className="w-5 h-5" />
+                          </div>
+                          <span className={`font-black text-[10px] uppercase tracking-wider ${isSelected ? 'text-indigo-700' : 'text-slate-500'}`}>
+                            {cat.name}
+                          </span>
+                          <span className="text-[8px] font-bold text-slate-300">
+                            {cat.word_count} слов
+                          </span>
+                        </MotionButton>
+                      );
+                    })}
+                  </div>
+                  {error && (
+                    <button onClick={loadCategories} className="mt-4 flex items-center gap-2 mx-auto bg-slate-100 text-slate-600 px-6 py-2 rounded-full font-bold text-xs hover:bg-slate-200 transition-all">
+                      <RefreshCw className="w-3.5 h-3.5" /> Попробовать восстановить связь
+                    </button>
+                  )}
+                </>
+              )}
             </MotionDiv>
           )}
         </AnimatePresence>
@@ -147,10 +202,10 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleNext}
-            disabled={step === 1 ? !username.trim() : selected.length === 0}
+            disabled={step === 1 ? !username.trim() : selected.length === 0 || loading}
             className={`
               w-full sm:w-auto px-16 py-6 rounded-3xl font-black text-xl transition-all shadow-xl uppercase tracking-widest
-              ${(step === 1 ? username.trim() : selected.length > 0)
+              ${(step === 1 ? username.trim() : selected.length > 0) && !loading
                 ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white border-b-8 border-indigo-800' 
                 : 'bg-slate-200 text-slate-400 cursor-not-allowed border-b-8 border-slate-300'
               }

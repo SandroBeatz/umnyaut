@@ -1,30 +1,48 @@
-
 export enum Direction {
-  HORIZONTAL = 'H',
-  VERTICAL = 'V'
+  HORIZONTAL = 'horizontal',
+  VERTICAL = 'vertical'
 }
 
-export interface CrosswordItem {
-  id: string;
+export interface Word {
+  word: string;
   clue: string;
-  answer: string;
-  row: number;
-  col: number;
+  hint: string;
+  startRow: number;
+  startCol: number;
   direction: Direction;
+  length: number;
+}
+
+export interface CrosswordMetadata {
+  word_count: number;
+  grid_size: { rows: number; cols: number };
+  generation_time_ms: number;
+  attempts: number;
 }
 
 export interface CrosswordData {
-  title: string;
-  gridSize: number;
-  items: CrosswordItem[];
+  id: string;
+  grid: string[][];
+  words: Word[];
+  difficulty: 'easy' | 'medium' | 'hard';
+  category: string;
+  metadata?: CrosswordMetadata;
 }
 
 export interface GameHistoryEntry {
   id: string;
+  crosswordId: string;
   date: string;
   title: string;
   score: number;
-  categories: string[];
+  timeSeconds: number;
+  wordsSolved: number;
+  category: string;
+}
+
+export interface Category {
+  name: string;
+  word_count: number;
 }
 
 export interface UserStats {
@@ -35,17 +53,21 @@ export interface UserStats {
   totalSolved: number;
 }
 
-export interface UserProfile {
-  username: string;
-  categories: string[];
-  stats: UserStats;
-  history: GameHistoryEntry[];
+export interface ThemeProgress {
+  [categoryName: string]: {
+    completedWords: string[];
+    totalWords: number;
+  };
 }
 
-export const CATEGORIES = [
-  'Наука', 'История', 'Искусство', 'Кино', 'Технологии', 
-  'География', 'Спорт', 'Литература', 'Музыка', 'Еда', 'Природа'
-];
+export interface UserProfile {
+  username: string;
+  selectedCategories: string[];
+  stats: UserStats;
+  history: GameHistoryEntry[];
+  solvedCrosswordIds: string[];
+  themeProgress: ThemeProgress;
+}
 
 export const getLevelTitle = (level: number): string => {
   if (level < 5) return 'Эрудит-стажер';

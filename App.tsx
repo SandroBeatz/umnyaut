@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { UserProfile, UserStats, GameHistoryEntry } from './types';
 import Onboarding from './components/Onboarding';
@@ -27,8 +26,19 @@ const App: React.FC = () => {
   useEffect(() => {
     const saved = localStorage.getItem('intellect_crossword_profile');
     if (saved) {
-      setProfile(JSON.parse(saved));
-      setView('DASHBOARD');
+      try {
+        const parsed = JSON.parse(saved);
+        // Migration check for new fields
+        if (!parsed.solvedCrosswordIds) parsed.solvedCrosswordIds = [];
+        if (!parsed.themeProgress) parsed.themeProgress = {};
+        if (parsed.categories && !parsed.selectedCategories) {
+          parsed.selectedCategories = parsed.categories;
+        }
+        setProfile(parsed);
+        setView('DASHBOARD');
+      } catch (e) {
+        console.error("Profile parse error", e);
+      }
     } else {
       setView('LANDING');
     }
@@ -43,15 +53,20 @@ const App: React.FC = () => {
   const handleOnboardingComplete = (data: { username: string; categories: string[] }) => {
     const newProfile: UserProfile = {
       username: data.username,
-      categories: data.categories,
+      selectedCategories: data.categories,
+      themeProgress: data.categories.reduce((acc, cat) => {
+        acc[cat] = { completedWords: [], totalWords: 100 };
+        return acc;
+      }, {} as any),
       stats: INITIAL_STATS,
-      history: []
+      history: [],
+      solvedCrosswordIds: []
     };
     saveProfile(newProfile);
     setView('DASHBOARD');
   };
 
-  const handleGameComplete = (score: number, title: string) => {
+  const handleGameComplete = (score: number, crosswordId: string, title: string, timeSeconds: number, wordsSolved: number, category: string, solvedWords: string[]) => {
     if (!profile) return;
 
     const today = new Date().toISOString().split('T')[0];
@@ -63,26 +78,40 @@ const App: React.FC = () => {
     } else {
       const lastDate = new Date(lastPlayed);
       const diffDays = Math.floor((new Date().getTime() - lastDate.getTime()) / (1000 * 3600 * 24));
-      if (diffDays === 1) {
-        newStreak += 1;
-      } else if (diffDays > 1) {
-        newStreak = 1;
-      }
+      if (diffDays === 1) newStreak += 1;
+      else if (diffDays > 1) newStreak = 1;
     }
 
     const newPoints = profile.stats.points + score;
-    const newLevel = Math.floor(newPoints / 500) + 1;
+    const newLevel = Math.floor(newPoints / 1000) + 1; // Updated level calculation
+
+    // Update theme progress
+    const currentProgress = profile.themeProgress[category] || { completedWords: [], totalWords: 100 };
+    const newCompletedWords = Array.from(new Set([...currentProgress.completedWords, ...solvedWords]));
+    
+    const updatedThemeProgress = {
+      ...profile.themeProgress,
+      [category]: {
+        ...currentProgress,
+        completedWords: newCompletedWords
+      }
+    };
 
     const historyEntry: GameHistoryEntry = {
       id: Math.random().toString(36).substr(2, 9),
+      crosswordId,
       date: today,
       title,
       score,
-      categories: profile.categories
+      timeSeconds,
+      wordsSolved,
+      category
     };
 
     const updatedProfile: UserProfile = {
       ...profile,
+      themeProgress: updatedThemeProgress,
+      solvedCrosswordIds: [...profile.solvedCrosswordIds, crosswordId].slice(-100),
       stats: {
         ...profile.stats,
         points: newPoints,
@@ -98,60 +127,50 @@ const App: React.FC = () => {
     setView('DASHBOARD');
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center font-game font-bold">Загрузка нейронной сети...</div>;
-
-  // Render Landing separately if no profile or explicitly on Landing
-  if (view === 'LANDING') {
-    return (
-      <Layout 
-        stats={profile?.stats} 
-        username={profile?.username} 
-        onLogoClick={() => setView('LANDING')}
-        onAccountClick={() => setView('DASHBOARD')}
-      >
-        <Landing 
-          isLoggedIn={!!profile} 
-          onStart={() => profile ? setView('DASHBOARD') : setView('ONBOARDING')} 
-        />
-      </Layout>
-    );
-  }
-
-  if (view === 'ONBOARDING' && !profile) {
-    return <Onboarding onComplete={handleOnboardingComplete} onCancel={() => setView('LANDING')} />;
-  }
-
-  if (!profile) return <Landing isLoggedIn={false} onStart={() => setView('ONBOARDING')} />;
+  if (loading) return <div className="min-h-screen flex items-center justify-center font-game font-bold">Загрузка КроссКвест...</div>;
 
   return (
     <Layout 
-      stats={profile.stats} 
-      username={profile.username}
+      stats={profile?.stats} 
+      username={profile?.username} 
       onLogoClick={() => setView('LANDING')}
       onAccountClick={() => setView('DASHBOARD')}
     >
-      <div className="pb-24 md:pb-8">
-        {view === 'DASHBOARD' && (
-          <Dashboard 
-            profile={profile} 
-            onStartGame={() => setView('GAME')} 
+      <div className="pb-24">
+        {view === 'LANDING' && (
+          <Landing 
+            isLoggedIn={!!profile} 
+            onStart={() => profile ? setView('DASHBOARD') : setView('ONBOARDING')} 
           />
         )}
-        {view === 'GAME' && (
-          <CrosswordGame 
-            categories={profile.categories} 
-            onComplete={handleGameComplete}
-            onCancel={() => setView('DASHBOARD')}
-          />
+        {view === 'ONBOARDING' && !profile && (
+          <Onboarding onComplete={handleOnboardingComplete} onCancel={() => setView('LANDING')} />
         )}
-        {view === 'SETTINGS' && (
-          <Settings 
-            profile={profile}
-            onSave={(updated) => {
-              saveProfile(updated);
-              setView('DASHBOARD');
-            }}
-          />
+        {profile && (
+          <>
+            {view === 'DASHBOARD' && (
+              <Dashboard 
+                profile={profile} 
+                onStartGame={() => setView('GAME')} 
+              />
+            )}
+            {view === 'GAME' && (
+              <CrosswordGame 
+                profile={profile}
+                onComplete={handleGameComplete}
+                onCancel={() => setView('DASHBOARD')}
+              />
+            )}
+            {view === 'SETTINGS' && (
+              <Settings 
+                profile={profile}
+                onSave={(updated) => {
+                  saveProfile(updated);
+                  setView('DASHBOARD');
+                }}
+              />
+            )}
+          </>
         )}
       </div>
       <BottomNav 
