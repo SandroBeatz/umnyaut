@@ -1,6 +1,9 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-game: 'Comfortaa', cursive;
+}
 
 body {
   font-family: 'Plus Jakarta Sans', sans-serif;
