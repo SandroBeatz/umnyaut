@@ -1,6 +1,8 @@
+'use client';
+
 
 import React, { useState } from 'react';
-import { UserProfile, CATEGORIES } from '../types';
+import { UserProfile, CATEGORIES } from '@/types';
 import { BrainCircuit, CheckCircle2, User, Save, ListFilter, Sparkles, Book, History, Palette, Film, Cpu, Globe, Trophy, Music, Leaf, Utensils, FlaskConical } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

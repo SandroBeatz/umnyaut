@@ -1,6 +1,8 @@
+'use client';
+
 
 import React from 'react';
-import { UserStats, getLevelTitle } from '../types';
+import { UserStats, getLevelTitle } from '@/types';
 import { BrainCircuit, Flame, Trophy, User, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 

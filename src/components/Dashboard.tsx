@@ -1,6 +1,8 @@
+'use client';
+
 
 import React from 'react';
-import { UserProfile, getLevelTitle } from '../types';
+import { UserProfile, getLevelTitle } from '@/types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Play, History, TrendingUp, Award, Calendar, ChevronRight, Trophy, Star, Target, Brain, Cpu, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';

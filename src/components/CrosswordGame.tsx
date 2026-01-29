@@ -1,7 +1,9 @@
+'use client';
+
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { generateCrossword } from '../geminiService';
-import { CrosswordData, Direction } from '../types';
+import { generateCrossword } from '@/lib/geminiService';
+import { CrosswordData, Direction } from '@/types';
 import { XCircle, ArrowLeft, ListFilter, ArrowDown, ArrowRight, Zap, Eye, EyeOff, Lock, Brain, Cpu, Sparkles, ChevronRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -352,7 +354,7 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({ categories, onComplete, o
              <div className="p-4 bg-indigo-50 rounded-2xl">
                 <Sparkles className="w-7 h-7 text-indigo-600" />
              </div>
-             <h2 className="text-3xl font-extrabold text-slate-900 uppercase tracking-tight">{data.title}</h2>
+             <h2 className="text-3xl font-extrabold text-slate-900 uppercase tracking-tight">{data?.title}</h2>
           </div>
           <button onClick={onCancel} className="p-4 bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 hover:text-slate-600 transition-all"><ArrowLeft className="w-6 h-6"/></button>
         </div>
