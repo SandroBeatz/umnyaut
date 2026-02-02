@@ -43,6 +43,9 @@ export interface GameHistoryEntry {
 export interface Category {
   name: string;
   word_count: number;
+  guessed_count?: number;
+  guessed_percent?: number;
+  available?: boolean;
 }
 
 export interface UserStats {

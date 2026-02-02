@@ -38,9 +38,10 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, onStartGame }) => {
     try {
       const category = profile.selectedCategories[Math.floor(Math.random() * profile.selectedCategories.length)];
       const difficulty = calculateDifficulty(stats.level);
-      const excludedIds = profile.solvedCrosswordIds;
+      const categoryProgress = themeProgress[category];
+      const excludedWords = categoryProgress?.completedWords || [];
 
-      const crosswordData = await generateCrossword(category, difficulty, excludedIds);
+      const crosswordData = await generateCrossword(category, difficulty, excludedWords);
       onStartGame(crosswordData);
     } catch (err: any) {
       if (err.message === 'CATEGORY_NOT_FOUND') {

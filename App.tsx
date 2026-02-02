@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserProfile, UserStats, GameHistoryEntry } from './types';
+import { UserProfile, UserStats, GameHistoryEntry, CrosswordData } from './types';
 import Onboarding from './components/Onboarding';
 import Dashboard from './components/Dashboard';
 import CrosswordGame from './components/CrosswordGame';
@@ -22,6 +22,7 @@ const App: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [view, setView] = useState<ViewState>('LANDING');
   const [loading, setLoading] = useState(true);
+  const [currentCrossword, setCurrentCrossword] = useState<CrosswordData | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('intellect_crossword_profile');
@@ -149,14 +150,18 @@ const App: React.FC = () => {
         {profile && (
           <>
             {view === 'DASHBOARD' && (
-              <Dashboard 
-                profile={profile} 
-                onStartGame={() => setView('GAME')} 
+              <Dashboard
+                profile={profile}
+                onStartGame={(data) => {
+                  setCurrentCrossword(data);
+                  setView('GAME');
+                }}
               />
             )}
             {view === 'GAME' && (
-              <CrosswordGame 
+              <CrosswordGame
                 profile={profile}
+                crosswordData={currentCrossword}
                 onComplete={handleGameComplete}
                 onCancel={() => setView('DASHBOARD')}
               />

@@ -179,9 +179,19 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) => {
                           <span className={`font-black text-[10px] uppercase tracking-wider ${isSelected ? 'text-indigo-700' : 'text-slate-500'}`}>
                             {cat.name}
                           </span>
-                          <span className="text-[8px] font-bold text-slate-300">
-                            {cat.word_count} слов
-                          </span>
+                          <div className="w-full mt-1">
+                            <div className="flex justify-between text-[8px] font-bold mb-1">
+                              <span className={isSelected ? 'text-indigo-400' : 'text-slate-400'}>
+                                {cat.guessed_percent || 0}%
+                              </span>
+                            </div>
+                            <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all ${isSelected ? 'bg-indigo-500' : 'bg-slate-300'}`}
+                                style={{ width: `${cat.guessed_percent || 0}%` }}
+                              />
+                            </div>
+                          </div>
                         </MotionButton>
                       );
                     })}

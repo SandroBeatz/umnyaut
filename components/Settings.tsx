@@ -26,7 +26,14 @@ const Settings: React.FC<SettingsProps> = ({ profile, onSave }) => {
   const loadCategories = async () => {
     setLoading(true);
     try {
-      const cats = await fetchCategories();
+      // Формируем guessedWords из themeProgress
+      const guessedWords: Record<string, string[]> = {};
+      Object.entries(profile.themeProgress).forEach(([category, progress]) => {
+        if (progress.completedWords.length > 0) {
+          guessedWords[category] = progress.completedWords;
+        }
+      });
+      const cats = await fetchCategories(guessedWords);
       setCategories(cats);
     } catch (e) {
       console.error(e);
@@ -85,7 +92,19 @@ const Settings: React.FC<SettingsProps> = ({ profile, onSave }) => {
                   ${isSelected ? 'border-indigo-500 bg-indigo-50 shadow-md' : 'border-slate-50 bg-slate-50 hover:border-indigo-100'}
                 `}>
                 <span className={`font-black text-[10px] uppercase tracking-wider ${isSelected ? 'text-indigo-700' : 'text-slate-500'}`}>{cat.name}</span>
-                <span className="text-[8px] text-slate-300">{cat.word_count} слов</span>
+                <div className="w-full mt-1">
+                  <div className="flex justify-between text-[8px] font-bold mb-1">
+                    <span className={isSelected ? 'text-indigo-400' : 'text-slate-400'}>
+                      {cat.guessed_percent || 0}%
+                    </span>
+                  </div>
+                  <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${isSelected ? 'bg-indigo-500' : 'bg-slate-300'}`}
+                      style={{ width: `${cat.guessed_percent || 0}%` }}
+                    />
+                  </div>
+                </div>
                 {isSelected && <div className="absolute top-1 right-1 bg-indigo-600 rounded-full p-1 border-2 border-white"><CheckCircle2 className="w-2 h-2 text-white" /></div>}
               </MotionButton>
             );
