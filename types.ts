@@ -1,6 +1,6 @@
 export enum Direction {
   HORIZONTAL = 'horizontal',
-  VERTICAL = 'vertical'
+  VERTICAL = 'vertical',
 }
 
 export interface Word {

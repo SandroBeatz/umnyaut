@@ -1,5 +1,4 @@
-
-import { CrosswordData, Category } from "./types";
+import { CrosswordData, Category } from './types';
 
 const API_BASE_URL = 'https://cross-questpython-production.up.railway.app/api';
 
@@ -22,11 +21,11 @@ export async function fetchCategories(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Cache-Control': 'no-cache'
+          Accept: 'application/json',
+          'Cache-Control': 'no-cache',
         },
         body: JSON.stringify({ guessed_words: guessedWords || {} }),
-        signal: controller.signal
+        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
@@ -48,12 +47,14 @@ export async function fetchCategories(
       console.warn(`Attempt ${i + 1} to fetch categories failed: ${errorMessage}`);
 
       if (isLastRetry) {
-        console.error("Critical API Error: Could not connect to the crossword backend after multiple attempts.");
+        console.error(
+          'Critical API Error: Could not connect to the crossword backend after multiple attempts.'
+        );
         throw new Error('SERVER_UNREACHABLE');
       }
 
       // Задержка перед следующей попыткой: 2с, 4с, 6с...
-      await new Promise(resolve => setTimeout(resolve, 2000 * (i + 1)));
+      await new Promise((resolve) => setTimeout(resolve, 2000 * (i + 1)));
     }
   }
   throw new Error('FAILED_TO_FETCH_CATEGORIES');
@@ -72,7 +73,7 @@ export async function generateCrossword(
   const payload = {
     category,
     difficulty,
-    excluded_words: excludedWords
+    excluded_words: excludedWords,
   };
 
   for (let i = 0; i <= retries; i++) {
@@ -84,10 +85,10 @@ export async function generateCrossword(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          Accept: 'application/json',
         },
         body: JSON.stringify(payload),
-        signal: controller.signal
+        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
@@ -112,7 +113,7 @@ export async function generateCrossword(
       if (isLastRetry || isSpecificError) throw error;
 
       // Задержка перед повтором
-      await new Promise(resolve => setTimeout(resolve, 3000 * (i + 1)));
+      await new Promise((resolve) => setTimeout(resolve, 3000 * (i + 1)));
     }
   }
   throw new Error('GENERATION_TIMEOUT');

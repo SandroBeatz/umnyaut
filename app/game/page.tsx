@@ -52,9 +52,7 @@ export default function GamePage() {
       newStreak = 1;
     } else {
       const lastDate = new Date(lastPlayed);
-      const diffDays = Math.floor(
-        (new Date().getTime() - lastDate.getTime()) / (1000 * 3600 * 24)
-      );
+      const diffDays = Math.floor((new Date().getTime() - lastDate.getTime()) / (1000 * 3600 * 24));
       if (diffDays === 1) newStreak += 1;
       else if (diffDays > 1) newStreak = 1;
     }

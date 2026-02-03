@@ -1,10 +1,26 @@
 'use client';
 
-
 import React, { useState, useEffect } from 'react';
 import { Category } from '../types';
 import { fetchCategories } from '../crosswordApi';
-import { BrainCircuit, Sparkles, Book, History, Palette, Film, Cpu, Globe, Trophy, Music, Leaf, Utensils, FlaskConical, ArrowLeft, RefreshCw, AlertTriangle } from 'lucide-react';
+import {
+  BrainCircuit,
+  Sparkles,
+  Book,
+  History,
+  Palette,
+  Film,
+  Cpu,
+  Globe,
+  Trophy,
+  Music,
+  Leaf,
+  Utensils,
+  FlaskConical,
+  ArrowLeft,
+  RefreshCw,
+  AlertTriangle,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const MotionDiv = motion.div as any;
@@ -16,17 +32,17 @@ interface OnboardingProps {
 }
 
 const CATEGORY_ICONS: Record<string, any> = {
-  'Наука': FlaskConical,
-  'История': History,
-  'Искусство': Palette,
-  'Кино': Film,
-  'Технологии': Cpu,
-  'География': Globe,
-  'Спорт': Trophy,
-  'Литература': Book,
-  'Музыка': Music,
-  'Еда': Utensils,
-  'Природа': Leaf
+  Наука: FlaskConical,
+  История: History,
+  Искусство: Palette,
+  Кино: Film,
+  Технологии: Cpu,
+  География: Globe,
+  Спорт: Trophy,
+  Литература: Book,
+  Музыка: Music,
+  Еда: Utensils,
+  Природа: Leaf,
 };
 
 // Резервный список на случай ошибки сервера
@@ -34,7 +50,7 @@ const FALLBACK_CATEGORIES: Category[] = [
   { name: 'Наука', word_count: 150 },
   { name: 'История', word_count: 200 },
   { name: 'Технологии', word_count: 120 },
-  { name: 'Спорт', word_count: 180 }
+  { name: 'Спорт', word_count: 180 },
 ];
 
 const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) => {
@@ -52,7 +68,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) => {
       const cats = await fetchCategories();
       setCategories(cats);
     } catch (err) {
-      console.error("Could not load categories from API, using fallback", err);
+      console.error('Could not load categories from API, using fallback', err);
       setError(true);
       // Если сервер недоступен, показываем базовый список
       setCategories(FALLBACK_CATEGORIES);
@@ -66,9 +82,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) => {
   }, [step]);
 
   const toggleCategory = (cat: string) => {
-    setSelected(prev => 
-      prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
-    );
+    setSelected((prev) => (prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]));
   };
 
   const handleNext = () => {
@@ -96,16 +110,16 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) => {
         <div className="flex justify-center mb-6">
           <MotionDiv
             animate={{ y: [0, -8, 0], rotate: [0, -3, 3, 0] }}
-            transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+            transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
             className="w-24 h-24 rounded-[2rem] shadow-2xl overflow-hidden"
           >
             <img src="/logo.png" alt="Умняут" className="w-full h-full object-cover" />
           </MotionDiv>
         </div>
-        
+
         <AnimatePresence mode="wait">
           {step === 1 ? (
-            <MotionDiv 
+            <MotionDiv
               key="step1"
               initial={{ x: 20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
@@ -113,12 +127,14 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) => {
               className="space-y-8"
             >
               <div>
-                <h1 className="text-3xl sm:text-4xl font-game font-bold text-stone-800 mb-2">Привет! Я Умняут!</h1>
+                <h1 className="text-3xl sm:text-4xl font-game font-bold text-stone-800 mb-2">
+                  Привет! Я Умняут!
+                </h1>
                 <p className="text-stone-500 font-medium">Как тебя зовут?</p>
               </div>
 
               <div className="relative max-w-sm mx-auto">
-                <input 
+                <input
                   autoFocus
                   type="text"
                   value={username}
@@ -130,7 +146,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) => {
               </div>
             </MotionDiv>
           ) : (
-            <MotionDiv 
+            <MotionDiv
               key="step2"
               initial={{ x: 20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
@@ -138,13 +154,15 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) => {
               className="space-y-8"
             >
               <div>
-                <h1 className="text-3xl sm:text-4xl font-game font-bold text-stone-800 mb-2">Мяу, {username}! Отличное имя!</h1>
+                <h1 className="text-3xl sm:text-4xl font-game font-bold text-stone-800 mb-2">
+                  Мяу, {username}! Отличное имя!
+                </h1>
                 <p className="text-stone-500 font-medium">Выбери темы, которые тебе интересны</p>
               </div>
 
               {loading ? (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-pulse">
-                  {[1,2,3,4,5,6,7,8].map(i => (
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                     <div key={i} className="h-24 bg-slate-100 rounded-2xl" />
                   ))}
                 </div>
@@ -160,7 +178,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) => {
                     {categories.map((cat) => {
                       const isSelected = selected.includes(cat.name);
                       const Icon = CATEGORY_ICONS[cat.name] || Sparkles;
-                      
+
                       return (
                         <MotionButton
                           key={cat.name}
@@ -169,16 +187,21 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) => {
                           onClick={() => toggleCategory(cat.name)}
                           className={`
                             p-4 rounded-[2rem] border-4 transition-all flex flex-col items-center justify-center gap-2 relative
-                            ${isSelected 
-                              ? 'border-orange-500 bg-orange-50 shadow-lg' 
-                              : 'border-slate-50 bg-slate-50 hover:bg-white hover:border-orange-100'
+                            ${
+                              isSelected
+                                ? 'border-orange-500 bg-orange-50 shadow-lg'
+                                : 'border-slate-50 bg-slate-50 hover:bg-white hover:border-orange-100'
                             }
                           `}
                         >
-                          <div className={`p-3 rounded-2xl transition-colors ${isSelected ? 'bg-orange-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+                          <div
+                            className={`p-3 rounded-2xl transition-colors ${isSelected ? 'bg-orange-500 text-white' : 'bg-slate-200 text-slate-400'}`}
+                          >
                             <Icon className="w-5 h-5" />
                           </div>
-                          <span className={`font-black text-[10px] uppercase tracking-wider ${isSelected ? 'text-orange-700' : 'text-slate-500'}`}>
+                          <span
+                            className={`font-black text-[10px] uppercase tracking-wider ${isSelected ? 'text-orange-700' : 'text-slate-500'}`}
+                          >
                             {cat.name}
                           </span>
                           <div className="w-full mt-1">
@@ -199,7 +222,10 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) => {
                     })}
                   </div>
                   {error && (
-                    <button onClick={loadCategories} className="mt-4 flex items-center gap-2 mx-auto bg-slate-100 text-slate-600 px-6 py-2 rounded-full font-bold text-xs hover:bg-slate-200 transition-all">
+                    <button
+                      onClick={loadCategories}
+                      className="mt-4 flex items-center gap-2 mx-auto bg-slate-100 text-slate-600 px-6 py-2 rounded-full font-bold text-xs hover:bg-slate-200 transition-all"
+                    >
                       <RefreshCw className="w-3.5 h-3.5" /> Попробовать восстановить связь
                     </button>
                   )}
@@ -217,9 +243,10 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) => {
             disabled={step === 1 ? !username.trim() : selected.length === 0 || loading}
             className={`
               w-full sm:w-auto px-16 py-6 rounded-3xl font-black text-xl transition-all shadow-xl uppercase tracking-widest
-              ${(step === 1 ? username.trim() : selected.length > 0) && !loading
-                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white border-b-8 border-orange-700' 
-                : 'bg-slate-200 text-slate-400 cursor-not-allowed border-b-8 border-slate-300'
+              ${
+                (step === 1 ? username.trim() : selected.length > 0) && !loading
+                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white border-b-8 border-orange-700'
+                  : 'bg-slate-200 text-slate-400 cursor-not-allowed border-b-8 border-slate-300'
               }
             `}
           >
