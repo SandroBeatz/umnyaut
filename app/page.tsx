@@ -43,7 +43,7 @@ export default function HomePage() {
   // For non-logged-in users, show simple layout without sidebar
   return (
     <div className="min-h-screen bg-orange-50 text-stone-800">
-      <main className="max-w-7xl mx-auto px-6 py-6 md:py-12">
+      <main className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-12">
         <Landing isLoggedIn={false} onStart={handleStart} />
       </main>
     </div>
