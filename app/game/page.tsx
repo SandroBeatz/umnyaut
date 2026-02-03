@@ -3,10 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppContext } from '../AppContext';
-import CrosswordGame from '@/components/CrosswordGame';
+import CrosswordGame, { GameCompletionStats } from '@/components/CrosswordGame';
 import Layout from '@/components/Layout';
-import BottomNav from '@/components/BottomNav';
-import { CrosswordData, GameHistoryEntry } from '@/types';
+import Sidebar from '@/components/Sidebar';
+import { CrosswordData, GameHistoryEntry, calculateLevel, STREAK_MILESTONES } from '@/types';
 
 export default function GamePage() {
   const { profile, saveProfile, loading } = useAppContext();
@@ -33,16 +33,24 @@ export default function GamePage() {
     }
   }, [profile, loading, router]);
 
-  const handleGameComplete = (
-    score: number,
-    crosswordId: string,
-    title: string,
-    timeSeconds: number,
-    wordsSolved: number,
-    category: string,
-    solvedWords: string[]
-  ) => {
+  const handleGameComplete = (stats: GameCompletionStats) => {
     if (!profile) return;
+
+    const {
+      score,
+      crosswordId,
+      title,
+      timeSeconds,
+      wordsSolved,
+      category,
+      solvedWords,
+      grid,
+      difficulty,
+      hintsUsed,
+      lettersRevealed,
+      wordsWithoutHints,
+      perfectGame,
+    } = stats;
 
     const today = new Date().toISOString().split('T')[0];
     const lastPlayed = profile.stats.lastPlayed;
@@ -58,7 +66,43 @@ export default function GamePage() {
     }
 
     const newPoints = profile.stats.points + score;
-    const newLevel = Math.floor(newPoints / 1000) + 1;
+
+    // Calculate new average time
+    const oldAvgTime = profile.stats.averageTime || 0;
+    const oldTotal = profile.stats.totalSolved;
+    const newTotal = oldTotal + 1;
+    const newAverageTime = Math.round((oldAvgTime * oldTotal + timeSeconds) / newTotal);
+
+    // Track perfect games
+    const newPerfectGames = (profile.stats.perfectGames || 0) + (perfectGame ? 1 : 0);
+
+    // Track max streak
+    const newMaxStreak = Math.max(profile.stats.maxStreak || 0, newStreak);
+
+    // Check for new streak milestones
+    const existingMilestones = profile.stats.streakMilestones || [];
+    const newMilestones = [...existingMilestones];
+    for (const milestone of STREAK_MILESTONES) {
+      if (newStreak >= milestone && !existingMilestones.includes(milestone)) {
+        newMilestones.push(milestone);
+      }
+    }
+
+    // Build new stats for level calculation
+    const newStats = {
+      points: newPoints,
+      level: 1, // Will be calculated
+      streak: newStreak,
+      lastPlayed: today,
+      totalSolved: newTotal,
+      averageTime: newAverageTime,
+      perfectGames: newPerfectGames,
+      maxStreak: newMaxStreak,
+      streakMilestones: newMilestones,
+    };
+
+    // Calculate level using new formula
+    const newLevel = calculateLevel(newStats);
 
     // Update theme progress
     const currentProgress = profile.themeProgress[category] || {
@@ -86,6 +130,11 @@ export default function GamePage() {
       timeSeconds,
       wordsSolved,
       category,
+      grid,
+      difficulty,
+      hintsUsed,
+      lettersRevealed,
+      wordsWithoutHints,
     };
 
     const updatedProfile = {
@@ -93,12 +142,8 @@ export default function GamePage() {
       themeProgress: updatedThemeProgress,
       solvedCrosswordIds: [...profile.solvedCrosswordIds, crosswordId].slice(-100),
       stats: {
-        ...profile.stats,
-        points: newPoints,
+        ...newStats,
         level: newLevel,
-        streak: newStreak,
-        lastPlayed: today,
-        totalSolved: profile.stats.totalSolved + 1,
       },
       history: [historyEntry, ...profile.history].slice(0, 20),
     };
@@ -122,21 +167,25 @@ export default function GamePage() {
   }
 
   return (
-    <Layout
-      stats={profile.stats}
-      username={profile.username}
-      onLogoClick={() => router.push('/')}
-      onAccountClick={() => router.push('/dashboard')}
-    >
-      <div className="pb-24">
+    <>
+      <Sidebar
+        activeView="GAME"
+        onViewChange={(view) => {
+          if (view === 'SETTINGS') router.push('/settings');
+          if (view === 'DASHBOARD') router.push('/dashboard');
+        }}
+        onLogoClick={() => router.push('/')}
+        onAccountClick={() => router.push('/settings')}
+        avatar={profile.avatar}
+      />
+      <Layout stats={profile.stats}>
         <CrosswordGame
           profile={profile}
           crosswordData={currentCrossword}
           onComplete={handleGameComplete}
           onCancel={handleCancel}
         />
-      </div>
-      <BottomNav activeView="GAME" onViewChange={() => {}} />
-    </Layout>
+      </Layout>
+    </>
   );
 }

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAppContext } from '../AppContext';
 import Settings from '@/components/Settings';
 import Layout from '@/components/Layout';
-import BottomNav from '@/components/BottomNav';
+import Sidebar from '@/components/Sidebar';
 
 export default function SettingsPage() {
   const { profile, saveProfile, loading } = useAppContext();
@@ -35,22 +35,20 @@ export default function SettingsPage() {
   };
 
   return (
-    <Layout
-      stats={profile.stats}
-      username={profile.username}
-      onLogoClick={() => router.push('/')}
-      onAccountClick={() => router.push('/dashboard')}
-    >
-      <div className="pb-24">
-        <Settings profile={profile} onSave={handleSave} />
-      </div>
-      <BottomNav
+    <>
+      <Sidebar
         activeView="SETTINGS"
         onViewChange={(view) => {
           if (view === 'SETTINGS') router.push('/settings');
           if (view === 'DASHBOARD') router.push('/dashboard');
         }}
+        onLogoClick={() => router.push('/')}
+        onAccountClick={() => router.push('/settings')}
+        avatar={profile.avatar}
       />
-    </Layout>
+      <Layout stats={profile.stats}>
+        <Settings profile={profile} onSave={handleSave} />
+      </Layout>
+    </>
   );
 }

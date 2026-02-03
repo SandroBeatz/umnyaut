@@ -35,6 +35,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (parsed.categories && !parsed.selectedCategories) {
           parsed.selectedCategories = parsed.categories;
         }
+        if (parsed.soundEnabled === undefined) parsed.soundEnabled = true;
+        if (!parsed.defaultDifficulty) parsed.defaultDifficulty = 'medium';
+        if (!parsed.createdAt) parsed.createdAt = new Date().toISOString();
         setProfile(parsed);
       } catch (e) {
         console.error('Profile parse error', e);

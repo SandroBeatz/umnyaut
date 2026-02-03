@@ -4,10 +4,70 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Primary - Небесно-голубой (шлем космонавта) */
+  --color-primary: #4A90E2;
+  --color-primary-hover: #357ABD;
+  --color-primary-active: #2968A8;
+  --color-primary-disabled: #A8C9E8;
+
+  /* Secondary - Тёплый янтарный (окрас котика) */
+  --color-secondary: #F5A623;
+  --color-secondary-hover: #E09615;
+  --color-secondary-active: #C78510;
+  --color-secondary-disabled: #F7D195;
+
+  /* Accent - Нежно-розовый (ушки котика) */
+  --color-accent: #FF8B94;
+  --color-accent-hover: #FF6B77;
+  --color-accent-active: #FF4B5A;
+
+  /* Semantic Colors */
+  --color-success: #10B981;
+  --color-success-hover: #059669;
+  --color-success-bg: #D1FAE5;
+
+  --color-warning: #FBBF24;
+  --color-warning-hover: #F59E0B;
+  --color-warning-bg: #FEF3C7;
+
+  --color-error: #EF4444;
+  --color-error-hover: #DC2626;
+  --color-error-bg: #FEE2E2;
+
+  --color-info: #3B82F6;
+  --color-info-hover: #2563EB;
+  --color-info-bg: #DBEAFE;
+
+  /* UI Elements */
+  --color-bg-primary: #F8FBFD;
+  --color-bg-secondary: #FFFFFF;
+  --color-bg-tertiary: #F3F4F6;
+
+  --color-text-primary: #2C3E50;
+  --color-text-secondary: #6B7280;
+  --color-text-muted: #9CA3AF;
+  --color-text-inverse: #FFFFFF;
+
+  --color-border: #E5E7EB;
+  --color-border-strong: #D1D5DB;
+  --color-border-light: #F3F4F6;
+
+  /* Special */
+  --color-streak: #EF4444;
+  --color-level: #8B5CF6;
+  --color-xp: #F5A623;
+
+  /* Shadows */
+  --shadow-light: 0 1px 3px rgba(74, 144, 226, 0.1);
+  --shadow-medium: 0 4px 6px rgba(74, 144, 226, 0.1);
+  --shadow-heavy: 0 10px 15px rgba(74, 144, 226, 0.15);
+}
+
 body {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  background-color: #fff7ed;
-  color: #292524;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
   overflow-x: hidden;
 }
 
@@ -19,7 +79,7 @@ body {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 8px 32px 0 rgba(234, 88, 12, 0.07);
+  box-shadow: 0 8px 32px 0 rgba(74, 144, 226, 0.07);
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -31,26 +91,52 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #fed7aa;
+  background: var(--color-primary-disabled);
   border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #fdba74;
+  background: var(--color-primary);
 }
 
 @keyframes subtle-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4);
+    box-shadow: 0 0 0 0 rgba(74, 144, 226, 0.4);
   }
   70% {
-    box-shadow: 0 0 0 10px rgba(249, 115, 22, 0);
+    box-shadow: 0 0 0 10px rgba(74, 144, 226, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0);
+    box-shadow: 0 0 0 0 rgba(74, 144, 226, 0);
   }
 }
 
 .pulse-active {
   animation: subtle-pulse 2s infinite;
+}
+
+/* Gradients from spec */
+.gradient-hero {
+  background: linear-gradient(135deg, #F8FBFD 0%, #E0F2FE 100%);
+}
+
+.gradient-success {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+}
+
+.gradient-premium {
+  background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+}
+
+.gradient-warm {
+  background: linear-gradient(135deg, #F5A623 0%, #FF8B94 100%);
+}
+
+.gradient-streak {
+  background: linear-gradient(135deg, #F59E0B 0%, #EF4444 100%);
+}
+
+/* Progress bar gradient */
+.progress-gradient {
+  background: linear-gradient(90deg, var(--color-secondary) 0%, var(--color-accent) 100%);
 }

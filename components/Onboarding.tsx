@@ -144,6 +144,22 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) => {
                   className="w-full bg-slate-50 border-4 border-slate-100 rounded-3xl px-8 py-6 text-2xl font-black text-stone-800 outline-none focus:border-orange-400 transition-all text-center"
                 />
               </div>
+
+              {/* Info block about progress saving */}
+              <div className="max-w-md mx-auto space-y-3">
+                <div className="flex items-start gap-3 bg-sky-50 rounded-2xl p-4 border border-sky-100">
+                  <span className="text-lg">📌</span>
+                  <p className="text-sm text-sky-700 font-medium">
+                    Ваш прогресс сохраняется в браузере
+                  </p>
+                </div>
+                <div className="flex items-start gap-3 bg-amber-50 rounded-2xl p-4 border border-amber-100">
+                  <span className="text-lg">💡</span>
+                  <p className="text-sm text-amber-700 font-medium">
+                    Хотите играть на разных устройствах? Скоро можно будет создать аккаунт!
+                  </p>
+                </div>
+              </div>
             </MotionDiv>
           ) : (
             <MotionDiv

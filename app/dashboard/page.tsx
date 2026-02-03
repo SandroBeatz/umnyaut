@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAppContext } from '../AppContext';
 import Dashboard from '@/components/Dashboard';
 import Layout from '@/components/Layout';
-import BottomNav from '@/components/BottomNav';
+import Sidebar from '@/components/Sidebar';
 import { CrosswordData } from '@/types';
 
 export default function DashboardPage() {
@@ -39,22 +39,20 @@ export default function DashboardPage() {
   };
 
   return (
-    <Layout
-      stats={profile.stats}
-      username={profile.username}
-      onLogoClick={() => router.push('/')}
-      onAccountClick={() => router.push('/dashboard')}
-    >
-      <div className="pb-24">
-        <Dashboard profile={profile} onStartGame={handleStartGame} />
-      </div>
-      <BottomNav
+    <>
+      <Sidebar
         activeView="DASHBOARD"
         onViewChange={(view) => {
           if (view === 'SETTINGS') router.push('/settings');
           if (view === 'DASHBOARD') router.push('/dashboard');
         }}
+        onLogoClick={() => router.push('/')}
+        onAccountClick={() => router.push('/settings')}
+        avatar={profile.avatar}
       />
-    </Layout>
+      <Layout stats={profile.stats}>
+        <Dashboard profile={profile} onStartGame={handleStartGame} />
+      </Layout>
+    </>
   );
 }

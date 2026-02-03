@@ -6,6 +6,7 @@ import {
   ListFilter,
   ArrowDown,
   ArrowRight,
+  ArrowLeft,
   Sparkles,
   Clock,
   HelpCircle,
@@ -14,24 +15,34 @@ import {
   Lightbulb,
   Pause,
   Play,
+  AlertTriangle,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const MotionDiv = motion.div as any;
 
+export interface GameCompletionStats {
+  score: number;
+  crosswordId: string;
+  title: string;
+  timeSeconds: number;
+  wordsSolved: number;
+  category: string;
+  solvedWords: string[];
+  grid: string[][];
+  difficulty: 'easy' | 'medium' | 'hard';
+  hintsUsed: number;
+  lettersRevealed: number;
+  wordsWithoutHints: number;
+  speedBonus: boolean;
+  perfectGame: boolean;
+}
+
 interface CrosswordGameProps {
   profile: UserProfile;
   crosswordData: CrosswordData | null;
-  onComplete: (
-    score: number,
-    crosswordId: string,
-    title: string,
-    timeSeconds: number,
-    wordsSolved: number,
-    category: string,
-    solvedWords: string[]
-  ) => void;
+  onComplete: (stats: GameCompletionStats) => void;
   onCancel: () => void;
 }
 
@@ -75,7 +86,7 @@ const HintPopup: React.FC<{
             onClick={onShowLetters}
             className="flex-1 py-4 bg-sky-100 text-sky-600 rounded-xl font-black"
           >
-            БУКВЫ
+            БУКВЫ (-25%)
           </button>
         )}
         <button
@@ -86,6 +97,19 @@ const HintPopup: React.FC<{
         </button>
       </div>
     </MotionDiv>
+  </motion.div>
+);
+
+// Score popup animation component
+const ScorePopup: React.FC<{ score: number; x: number; y: number }> = ({ score, x, y }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 0, scale: 0.5 }}
+    animate={{ opacity: [0, 1, 1, 0], y: -80, scale: [0.5, 1.2, 1, 0.8] }}
+    transition={{ duration: 1.5, ease: 'easeOut' }}
+    className="fixed pointer-events-none z-[400] font-black text-3xl text-emerald-500 drop-shadow-lg"
+    style={{ left: `${x}%`, top: `${y}%` }}
+  >
+    +{score}
   </motion.div>
 );
 
@@ -114,10 +138,27 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
   const [showHint, setShowHint] = useState<{
     hint: string;
     word: string;
+    wordIdx: number;
     showLetters: boolean;
   } | null>(null);
-  const [hintsUsed, setHintsUsed] = useState(0);
+  // Track penalty per word to avoid double-counting
+  const [wordPenalties, setWordPenalties] = useState<Map<number, { hint: boolean; letters: boolean }>>(
+    new Map()
+  );
   const [isPaused, setIsPaused] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [scorePopups, setScorePopups] = useState<{ id: number; score: number; x: number; y: number }[]>([]);
+  const [prevSolvedCount, setPrevSolvedCount] = useState(0);
+
+  // Calculate total penalty percentage
+  const totalPenaltyPercent = useMemo(() => {
+    let penalty = 0;
+    wordPenalties.forEach((p) => {
+      if (p.hint) penalty += 10; // -10% for hint
+      if (p.letters) penalty += 25; // -25% for showing letters
+    });
+    return Math.min(penalty, 90); // Cap at 90% penalty
+  }, [wordPenalties]);
 
   useEffect(() => {
     if (data) {
@@ -179,26 +220,78 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
     if (solvedWordIds.size === data.words.length && !solved) {
       setSolved(true);
       confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-      const score = Math.max(100, 500 - hintsUsed * 25);
+      // Base score depends on difficulty
+      const baseScore = data.difficulty === 'easy' ? 300 : data.difficulty === 'medium' ? 500 : 750;
+
+      // Calculate hint stats first (needed for accuracy bonus)
+      let hintsUsed = 0;
+      let lettersRevealed = 0;
+      wordPenalties.forEach((p) => {
+        if (p.hint) hintsUsed++;
+        if (p.letters) lettersRevealed++;
+      });
+      const wordsWithoutHints = data.words.length - wordPenalties.size;
+      const isPerfectGame = wordPenalties.size === 0;
+
+      // Check for speed bonus (+20% if faster than average)
+      const averageTime = profile.stats.averageTime;
+      const speedBonus = averageTime && timer < averageTime;
+      const speedMultiplier = speedBonus ? 1.2 : 1;
+
+      // Accuracy bonus (+30% for perfect game - no hints used)
+      const accuracyMultiplier = isPerfectGame ? 1.3 : 1;
+
+      // Apply penalty percentage, speed bonus, and accuracy bonus
+      const score = Math.max(50, Math.round(baseScore * (1 - totalPenaltyPercent / 100) * speedMultiplier * accuracyMultiplier));
+
       setTimeout(
         () =>
-          onComplete(
+          onComplete({
             score,
-            data.id,
-            `Кроссворд: ${data.category}`,
-            timer,
-            data.words.length,
-            data.category,
-            data.words.map((w) => w.word)
-          ),
+            crosswordId: data.id,
+            title: `Кроссворд: ${data.category}`,
+            timeSeconds: timer,
+            wordsSolved: data.words.length,
+            category: data.category,
+            solvedWords: data.words.map((w) => w.word),
+            grid: userGrid,
+            difficulty: data.difficulty,
+            hintsUsed,
+            lettersRevealed,
+            wordsWithoutHints,
+            speedBonus: !!speedBonus,
+            perfectGame: isPerfectGame,
+          }),
         2000
       );
     }
-  }, [data, solvedWordIds, solved, onComplete, timer, hintsUsed]);
+  }, [data, solvedWordIds, solved, onComplete, timer, totalPenaltyPercent, wordPenalties, userGrid, profile.stats.averageTime]);
 
   useEffect(() => {
     if (userGrid.length > 0) checkSolution();
   }, [userGrid, checkSolution]);
+
+  // Detect new word solved and show score popup
+  useEffect(() => {
+    if (!data) return;
+    const currentCount = solvedWordIds.size;
+    if (currentCount > prevSolvedCount && prevSolvedCount > 0) {
+      // A new word was solved - show score animation
+      const baseWordScore = data.difficulty === 'easy' ? 30 : data.difficulty === 'medium' ? 50 : 75;
+      const popup = {
+        id: Date.now(),
+        score: baseWordScore,
+        x: Math.random() * 60 + 20, // Random position 20-80%
+        y: Math.random() * 30 + 35, // Random position 35-65%
+      };
+      setScorePopups((prev) => [...prev, popup]);
+      // Remove popup after animation
+      setTimeout(() => {
+        setScorePopups((prev) => prev.filter((p) => p.id !== popup.id));
+      }, 1500);
+    }
+    setPrevSolvedCount(currentCount);
+  }, [solvedWordIds.size, data, prevSolvedCount]);
 
   const getWordsForCell = (r: number, c: number) => {
     if (!data) return [];
@@ -317,7 +410,17 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
 
   return (
     <div className="flex flex-col gap-6" onClick={handleOutsideClick}>
-      <div className="flex justify-center -mt-4" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-center justify-center gap-4 -mt-4" onClick={(e) => e.stopPropagation()}>
+        {/* Back button */}
+        <button
+          onClick={() => setShowExitConfirm(true)}
+          className="flex items-center gap-2 bg-white rounded-full px-4 py-3 shadow-lg border border-slate-100 text-slate-600 hover:text-slate-800 hover:border-slate-200 transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span className="font-bold text-sm hidden sm:inline">Выйти</span>
+        </button>
+
+        {/* Game info panel */}
         <div className="inline-flex items-center bg-white rounded-full px-6 py-3 shadow-lg border border-slate-100 divide-x divide-slate-100 gap-6">
           <div className="flex items-center gap-2.5 text-orange-600 font-bold text-xl">
             <Clock className="w-5 h-5" />
@@ -336,6 +439,11 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
           <div className="pl-6 text-slate-800 font-bold text-xs uppercase tracking-widest">
             {data.category} • {data.difficulty}
           </div>
+          {totalPenaltyPercent > 0 && (
+            <div className="pl-6 text-red-500 font-bold text-xs">
+              -{totalPenaltyPercent}%
+            </div>
+          )}
         </div>
       </div>
 
@@ -378,20 +486,34 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
                   );
 
                 return (
-                  <div
+                  <MotionDiv
                     key={`${r}-${c}`}
                     onClick={() => handleCellClick(r, c)}
-                    className={`relative aspect-square flex items-center justify-center rounded-lg transition-all border-b-2
+                    initial={false}
+                    animate={{
+                      scale: cellIsSolved ? [1, 1.15, 1] : 1,
+                      backgroundColor: cellIsSolved
+                        ? '#10b981'
+                        : isFocused
+                          ? '#f97316'
+                          : isHighlighted
+                            ? '#ffedd5'
+                            : val
+                              ? '#334155'
+                              : '#ffffff',
+                    }}
+                    transition={{ duration: 0.3 }}
+                    className={`relative aspect-square flex items-center justify-center rounded-lg border-b-2
                     ${
                       cellIsSolved
-                        ? `bg-emerald-500 border-emerald-700 ${cellHasUnsolved ? 'cursor-pointer' : 'cursor-not-allowed'}`
+                        ? `border-emerald-700 ${cellHasUnsolved ? 'cursor-pointer' : 'cursor-not-allowed'}`
                         : isFocused
-                          ? 'bg-orange-500 border-orange-600 z-10 shadow-lg scale-105 cursor-pointer ring-4 ring-orange-300'
+                          ? 'border-orange-600 z-10 shadow-lg cursor-pointer ring-4 ring-orange-300'
                           : isHighlighted
-                            ? 'bg-orange-100 border-orange-300 cursor-pointer'
+                            ? 'border-orange-300 cursor-pointer'
                             : val
-                              ? 'bg-slate-700 border-slate-800 cursor-pointer'
-                              : 'bg-white border-slate-200 cursor-pointer'
+                              ? 'border-slate-800 cursor-pointer'
+                              : 'border-slate-200 cursor-pointer'
                     }
                   `}
                   >
@@ -428,7 +550,7 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
                         onKeyDown={(e) => handleCellKeyDown(r, c, e)}
                       />
                     )}
-                  </div>
+                  </MotionDiv>
                 );
               })
             )}
@@ -455,16 +577,26 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
                   </div>
                   <button
                     onClick={() => {
+                      const wordIdx = activeWord.idx;
                       setShowHint({
                         hint: activeWord.hint,
                         word: activeWord.word,
+                        wordIdx,
                         showLetters: false,
                       });
-                      setHintsUsed((h) => h + 1);
+                      // Add hint penalty only if not already used for this word
+                      setWordPenalties((prev) => {
+                        const newMap = new Map(prev);
+                        const existing = newMap.get(wordIdx) || { hint: false, letters: false };
+                        if (!existing.hint) {
+                          newMap.set(wordIdx, { ...existing, hint: true });
+                        }
+                        return newMap;
+                      });
                     }}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 font-bold text-[9px]"
                   >
-                    <Lightbulb className="w-3.5 h-3.5" /> ПОДСКАЗКА
+                    <Lightbulb className="w-3.5 h-3.5" /> ПОДСКАЗКА (-10%)
                   </button>
                 </div>
                 <p className="text-xl font-bold text-slate-900 leading-snug">{activeWord.clue}</p>
@@ -537,12 +669,71 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
           letters={showHint.showLetters ? shuffleWord(showHint.word) : undefined}
           showLetters={showHint.showLetters}
           onShowLetters={() => {
+            const wordIdx = showHint.wordIdx;
             setShowHint({ ...showHint, showLetters: true });
-            setHintsUsed((h) => h + 1);
+            // Add letters penalty only if not already used for this word
+            setWordPenalties((prev) => {
+              const newMap = new Map(prev);
+              const existing = newMap.get(wordIdx) || { hint: false, letters: false };
+              if (!existing.letters) {
+                newMap.set(wordIdx, { ...existing, letters: true });
+              }
+              return newMap;
+            });
           }}
           onClose={() => setShowHint(null)}
         />
       )}
+
+      {/* Exit Confirmation Dialog */}
+      <AnimatePresence>
+        {showExitConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowExitConfirm(false)}
+          >
+            <MotionDiv
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center"
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            >
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-red-100">
+                <AlertTriangle className="w-8 h-8 text-red-500" />
+              </div>
+              <h3 className="text-xl font-black mb-2 uppercase">Выйти из игры?</h3>
+              <p className="text-slate-500 font-medium mb-8">
+                Ваш прогресс в этом кроссворде будет потерян.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowExitConfirm(false)}
+                  className="flex-1 py-4 bg-slate-100 text-slate-700 rounded-xl font-black hover:bg-slate-200 transition-colors"
+                >
+                  ПРОДОЛЖИТЬ
+                </button>
+                <button
+                  onClick={onCancel}
+                  className="flex-1 py-4 bg-red-500 text-white rounded-xl font-black shadow-lg hover:bg-red-600 transition-colors"
+                >
+                  ВЫЙТИ
+                </button>
+              </div>
+            </MotionDiv>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Score Popups */}
+      <AnimatePresence>
+        {scorePopups.map((popup) => (
+          <ScorePopup key={popup.id} score={popup.score} x={popup.x} y={popup.y} />
+        ))}
+      </AnimatePresence>
     </div>
   );
 };

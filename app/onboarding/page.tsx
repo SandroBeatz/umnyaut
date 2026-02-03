@@ -4,7 +4,6 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppContext, INITIAL_STATS } from '../AppContext';
 import Onboarding from '@/components/Onboarding';
-import Layout from '@/components/Layout';
 import { UserProfile } from '@/types';
 
 export default function OnboardingPage() {
@@ -42,8 +41,10 @@ export default function OnboardingPage() {
   }
 
   return (
-    <Layout onLogoClick={() => router.push('/')} onAccountClick={() => {}}>
-      <Onboarding onComplete={handleOnboardingComplete} onCancel={handleCancel} />
-    </Layout>
+    <div className="min-h-screen bg-orange-50 text-stone-800">
+      <main className="max-w-7xl mx-auto px-6 py-6 md:py-12">
+        <Onboarding onComplete={handleOnboardingComplete} onCancel={handleCancel} />
+      </main>
+    </div>
   );
 }

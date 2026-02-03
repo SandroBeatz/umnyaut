@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Brain, Zap, Target, Cpu, Sparkles, Trophy, Lightbulb, ShieldCheck } from 'lucide-react';
+import { Brain, Zap, Target, Cpu, Sparkles, Trophy, Lightbulb, ShieldCheck, Users, Star, Grid3X3 } from 'lucide-react';
 
 const MotionDiv = motion.div as any;
 const MotionButton = motion.button as any;
@@ -123,6 +123,71 @@ const Landing: React.FC<LandingProps> = ({ onStart, isLoggedIn }) => {
               <p className="text-orange-100 text-sm font-medium opacity-90">
                 15 минут в день повышают когнитивный тонус на 30%.
               </p>
+            </div>
+          </div>
+        </MotionDiv>
+      </section>
+
+      {/* Social Proof Section */}
+      <section className="text-center">
+        <MotionDiv
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="space-y-12"
+        >
+          <div>
+            <h2 className="text-3xl md:text-4xl font-game font-bold text-stone-800 mb-4">
+              Присоединяйся к <span className="text-orange-500">умникам</span>
+            </h2>
+            <p className="text-stone-500 font-medium max-w-lg mx-auto">
+              Тысячи игроков уже тренируют свой мозг вместе с Умняутом
+            </p>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
+            <div className="bg-white rounded-3xl p-8 shadow-lg border border-slate-100">
+              <div className="bg-orange-100 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Users className="w-7 h-7 text-orange-600" />
+              </div>
+              <div className="text-4xl font-black text-stone-800 mb-1">1,200+</div>
+              <div className="text-sm font-bold text-stone-400 uppercase tracking-wider">Игроков</div>
+            </div>
+            <div className="bg-white rounded-3xl p-8 shadow-lg border border-slate-100">
+              <div className="bg-amber-100 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Grid3X3 className="w-7 h-7 text-amber-600" />
+              </div>
+              <div className="text-4xl font-black text-stone-800 mb-1">5,000+</div>
+              <div className="text-sm font-bold text-stone-400 uppercase tracking-wider">Кроссвордов решено</div>
+            </div>
+            <div className="bg-white rounded-3xl p-8 shadow-lg border border-slate-100">
+              <div className="bg-emerald-100 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Star className="w-7 h-7 text-emerald-600" />
+              </div>
+              <div className="text-4xl font-black text-stone-800 mb-1">4.9</div>
+              <div className="text-sm font-bold text-stone-400 uppercase tracking-wider">Средняя оценка</div>
+            </div>
+          </div>
+
+          {/* Testimonial */}
+          <div className="max-w-2xl mx-auto bg-gradient-to-br from-slate-50 to-white rounded-3xl p-8 border border-slate-100 shadow-sm">
+            <div className="flex items-center gap-1 justify-center mb-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Star key={i} className="w-5 h-5 text-amber-400 fill-amber-400" />
+              ))}
+            </div>
+            <p className="text-lg text-stone-600 font-medium italic mb-6">
+              "Умняут — отличный способ провести время с пользой. Каждый день решаю по кроссворду, и чувствую как мозг работает лучше!"
+            </p>
+            <div className="flex items-center justify-center gap-3">
+              <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white font-black">
+                А
+              </div>
+              <div className="text-left">
+                <div className="font-bold text-stone-800">Анна К.</div>
+                <div className="text-xs text-stone-400">Играет 3 месяца</div>
+              </div>
             </div>
           </div>
         </MotionDiv>
