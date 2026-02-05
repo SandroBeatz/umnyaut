@@ -1,0 +1,218 @@
+{
+  "$schema": "https://claude.ai/code/project-schema.json",
+  "name": "Умняут (Umnyaut)",
+  "description": "Русскоязычная игра-кроссворд на Next.js 16 (App Router) и React 19. Приложение получает данные кроссвордов от внешнего Python API на Railway и хранит прогресс пользователя в localStorage.",
+  "version": "1.0.0",
+  "language": "ru",
+  "techStack": {
+    "framework": "Next.js 16 (App Router)",
+    "ui": "React 19",
+    "styling": "Tailwind CSS 3.4",
+    "testing": "Vitest + Testing Library",
+    "animations": "Framer Motion",
+    "charts": "Recharts",
+    "icons": "Lucide React"
+  },
+  "paths": {
+    "pages": "app/",
+    "components": "components/",
+    "types": "types.ts",
+    "api": "crosswordApi.ts",
+    "styles": "app/globals.css",
+    "tests": "**/*.test.ts"
+  },
+  "commands": {
+    "dev": {
+      "command": "npm run dev",
+      "description": "Запустить dev-сервер на localhost:3000"
+    },
+    "build": {
+      "command": "npm run build",
+      "description": "Собрать production-версию"
+    },
+    "lint": {
+      "command": "npm run lint",
+      "description": "Проверить код ESLint"
+    },
+    "format": {
+      "command": "npm run format",
+      "description": "Форматировать код Prettier"
+    },
+    "test": {
+      "command": "npm test",
+      "description": "Запустить Vitest тесты"
+    },
+    "test:ui": {
+      "command": "npm run test:ui",
+      "description": "Запустить тесты с UI"
+    },
+    "type-check": {
+      "command": "npx tsc --noEmit",
+      "description": "Проверить типы TypeScript"
+    }
+  },
+  "agents": {
+    "test-runner": {
+      "description": "Запускает тесты Vitest и анализирует результаты",
+      "trigger": "После написания кода или по запросу пользователя",
+      "actions": [
+        "Запустить npm test",
+        "Проанализировать упавшие тесты",
+        "Предложить исправления"
+      ]
+    },
+    "build-validator": {
+      "description": "Проверяет сборку проекта и выявляет ошибки",
+      "trigger": "Перед коммитом или по запросу",
+      "actions": [
+        "Запустить npm run build",
+        "Проверить типы TypeScript",
+        "Найти и исправить ошибки сборки"
+      ]
+    },
+    "lint-fixer": {
+      "description": "Проверяет и исправляет ошибки линтера",
+      "trigger": "После изменения кода",
+      "actions": [
+        "Запустить npm run lint",
+        "Автоматически исправить что возможно",
+        "Показать оставшиеся проблемы"
+      ]
+    },
+    "api-debugger": {
+      "description": "Отладка интеграции с Railway API",
+      "trigger": "При проблемах с API",
+      "actions": [
+        "Проверить crosswordApi.ts",
+        "Проанализировать таймауты и retry логику",
+        "Предложить улучшения обработки ошибок"
+      ]
+    },
+    "component-analyzer": {
+      "description": "Анализирует React компоненты на лучшие практики",
+      "trigger": "При создании/изменении компонентов",
+      "actions": [
+        "Проверить 'use client' директивы",
+        "Анализировать пропсы и state",
+        "Проверить accessibility",
+        "Оценить производительность"
+      ]
+    },
+    "state-inspector": {
+      "description": "Анализирует управление состоянием и localStorage",
+      "trigger": "При проблемах с данными",
+      "actions": [
+        "Проверить AppContext",
+        "Анализировать localStorage ключи",
+        "Проверить миграции профиля"
+      ]
+    }
+  },
+  "skills": {
+    "commit": {
+      "description": "Создать git коммит с описательным сообщением",
+      "usage": "/commit",
+      "steps": [
+        "Проверить git status",
+        "Проанализировать изменения",
+        "Создать коммит с осмысленным сообщением на русском"
+      ]
+    },
+    "new-component": {
+      "description": "Создать новый React компонент по шаблону проекта",
+      "usage": "/new-component <ComponentName>",
+      "template": {
+        "location": "components/",
+        "pattern": "'use client' + React FC + Tailwind стили"
+      }
+    },
+    "new-page": {
+      "description": "Создать новую страницу App Router",
+      "usage": "/new-page <route-name>",
+      "template": {
+        "location": "app/<route-name>/page.tsx",
+        "pattern": "Client component с Layout wrapper"
+      }
+    },
+    "add-test": {
+      "description": "Добавить Vitest тест для компонента или функции",
+      "usage": "/add-test <target>",
+      "template": {
+        "pattern": "describe/it блоки с Testing Library"
+      }
+    },
+    "fix-lint": {
+      "description": "Исправить все ошибки линтера автоматически",
+      "usage": "/fix-lint",
+      "command": "npm run lint -- --fix && npm run format"
+    },
+    "check-all": {
+      "description": "Полная проверка: lint + types + tests + build",
+      "usage": "/check-all",
+      "steps": [
+        "npm run lint",
+        "npx tsc --noEmit",
+        "npm test",
+        "npm run build"
+      ]
+    },
+    "analyze-component": {
+      "description": "Детальный анализ компонента",
+      "usage": "/analyze-component <ComponentName>",
+      "output": [
+        "Структура и пропсы",
+        "Использование состояния",
+        "Зависимости",
+        "Рекомендации по улучшению"
+      ]
+    }
+  },
+  "conventions": {
+    "components": {
+      "directive": "'use client' для всех интерактивных компонентов",
+      "naming": "PascalCase для компонентов",
+      "location": "components/ для переиспользуемых, app/ для страниц"
+    },
+    "styling": {
+      "framework": "Tailwind CSS",
+      "colors": "Оранжевый/янтарный primary, stone gray для текста",
+      "responsive": "Mobile-first (md: breakpoint = 768px)"
+    },
+    "state": {
+      "global": "AppContext для профиля пользователя",
+      "persistence": "localStorage с ключом umnyaut_profile",
+      "game": "sessionStorage для текущей игры"
+    },
+    "api": {
+      "client": "crosswordApi.ts с retry и timeout логикой",
+      "errors": "Обработка cold start delays Railway"
+    },
+    "testing": {
+      "framework": "Vitest + Testing Library",
+      "location": "*.test.ts рядом с исходным файлом",
+      "environment": "jsdom"
+    },
+    "git": {
+      "messages": "На русском, краткие и информативные",
+      "format": "тип: описание (feat:, fix:, refactor:, test:, docs:)"
+    }
+  },
+  "apiEndpoints": {
+    "base": "https://cross-questpython-production.up.railway.app/api",
+    "categories": {
+      "method": "POST",
+      "path": "/categories",
+      "timeout": 30000
+    },
+    "crossword": {
+      "method": "POST",
+      "path": "/crossword",
+      "timeout": 45000
+    }
+  },
+  "localStorage": {
+    "profile": "umnyaut_profile",
+    "currentGame": "umnyaut_current_game_state",
+    "sessionCrossword": "currentCrossword (sessionStorage)"
+  }
+}
