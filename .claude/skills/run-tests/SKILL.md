@@ -17,21 +17,25 @@ Run Vitest tests for the CrossQuest project.
 ## Instructions
 
 ### Run all tests:
+
 ```bash
 npx vitest run
 ```
 
 ### Run specific file:
+
 ```bash
 npx vitest run <file>
 ```
 
 ### Run with verbose output:
+
 ```bash
 npx vitest run --reporter=verbose
 ```
 
 ### Run specific file with verbose:
+
 ```bash
 npx vitest run <file> --reporter=verbose
 ```
@@ -43,6 +47,7 @@ npx vitest run <file> --reporter=verbose
 3. If all tests passed, confirm with a brief summary
 
 ## Notes
+
 - Config is in `/vitest.config.ts`
 - Environment: jsdom with globals enabled
 - Path alias: `@/*` maps to project root

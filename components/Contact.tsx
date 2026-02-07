@@ -51,7 +51,10 @@ const Contact: React.FC = () => {
             Контакты
           </div>
           <h1 className="text-5xl md:text-6xl font-game font-bold text-stone-800 leading-tight mb-6">
-            Свяжитесь <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">с нами</span>
+            Свяжитесь{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">
+              с нами
+            </span>
           </h1>
           <p className="text-xl text-stone-600 font-medium leading-relaxed max-w-3xl mx-auto">
             Связаться с администратором сайта можно по e-mail:{' '}
@@ -83,9 +86,7 @@ const Contact: React.FC = () => {
             <h2 className="text-3xl font-game font-bold text-stone-800 mb-2">
               Форма обратной связи
             </h2>
-            <p className="text-stone-600">
-              Задайте нам вопрос или поделитесь своими идеями
-            </p>
+            <p className="text-stone-600">Задайте нам вопрос или поделитесь своими идеями</p>
           </div>
 
           {isSubmitted ? (
@@ -97,21 +98,14 @@ const Contact: React.FC = () => {
               <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle2 className="w-10 h-10 text-emerald-600" />
               </div>
-              <h3 className="text-2xl font-black text-stone-800 mb-2">
-                Сообщение отправлено!
-              </h3>
-              <p className="text-stone-600">
-                Мы свяжемся с вами в ближайшее время.
-              </p>
+              <h3 className="text-2xl font-black text-stone-800 mb-2">Сообщение отправлено!</h3>
+              <p className="text-stone-600">Мы свяжемся с вами в ближайшее время.</p>
             </MotionDiv>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Name Field */}
               <div>
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-bold text-stone-700 mb-2"
-                >
+                <label htmlFor="name" className="block text-sm font-bold text-stone-700 mb-2">
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4" />
                     Имя
@@ -131,10 +125,7 @@ const Contact: React.FC = () => {
 
               {/* Email Field */}
               <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-bold text-stone-700 mb-2"
-                >
+                <label htmlFor="email" className="block text-sm font-bold text-stone-700 mb-2">
                   <div className="flex items-center gap-2">
                     <Mail className="w-4 h-4" />
                     Email
@@ -154,10 +145,7 @@ const Contact: React.FC = () => {
 
               {/* Message Field */}
               <div>
-                <label
-                  htmlFor="message"
-                  className="block text-sm font-bold text-stone-700 mb-2"
-                >
+                <label htmlFor="message" className="block text-sm font-bold text-stone-700 mb-2">
                   <div className="flex items-center gap-2">
                     <MessageSquare className="w-4 h-4" />
                     Сообщение

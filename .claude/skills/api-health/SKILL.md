@@ -13,6 +13,7 @@ Check the health and response times of the external CrossQuest Python API on Rai
 Run health checks against both API endpoints and report results.
 
 ### Check 1: Categories Endpoint
+
 ```bash
 curl -s -o /dev/null -w "HTTP %{http_code} in %{time_total}s" \
   -X POST \
@@ -22,6 +23,7 @@ curl -s -o /dev/null -w "HTTP %{http_code} in %{time_total}s" \
 ```
 
 ### Check 2: Full Categories Response
+
 ```bash
 curl -s -X POST \
   -H "Content-Type: application/json" \
@@ -49,10 +51,12 @@ API Health Check
 - **Timeout (no response in 30s)**: Note: "API unreachable. Check Railway deployment status."
 
 Also report:
+
 - Number of categories returned (from the JSON response)
 - Whether the response format is valid (`{ categories: [...] }`)
 
 ## Notes
+
 - The API is hosted on Railway and may have cold starts (15-30 seconds)
 - Do NOT test the `/crossword` endpoint in health check — it triggers expensive generation
 - The `/categories` endpoint is safe to call repeatedly

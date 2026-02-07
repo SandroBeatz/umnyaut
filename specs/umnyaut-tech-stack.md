@@ -11,12 +11,14 @@
 ### Основной фреймворк
 
 **Next.js**
+
 - Версия: Latest (App Router)
 - Рендеринг: Server-Side Rendering (SSR) + Client-Side Rendering (CSR)
 - Роутинг: App Router (app directory)
 - API Routes: Для легких операций и проксирования
 
 **Преимущества:**
+
 - SEO-оптимизация из коробки
 - Быстрая загрузка страниц
 - Встроенная оптимизация изображений
@@ -27,6 +29,7 @@
 ### Стилизация
 
 **Tailwind CSS**
+
 - Версия: Latest
 - Конфигурация: Кастомная палитра из `umnyaut-color-palette.md`
 - Плагины:
@@ -35,6 +38,7 @@
   - `tailwindcss-animate` - для анимаций
 
 **Структура:**
+
 ```
 styles/
 ├── globals.css          # Глобальные стили и CSS переменные
@@ -49,6 +53,7 @@ styles/
 ### UI Компоненты
 
 **shadcn/ui**
+
 - Подход: Copy-paste компоненты (не NPM пакет)
 - Кастомизация: Полный контроль над кодом
 - Базовые компоненты:
@@ -59,6 +64,7 @@ styles/
   - Sheet (для mobile меню)
 
 **Структура компонентов:**
+
 ```
 components/
 ├── ui/                  # shadcn компоненты
@@ -88,19 +94,23 @@ components/
 ### Дополнительные библиотеки
 
 **Анимации:**
+
 - `framer-motion` - для сложных анимаций и переходов
 - `react-confetti` - для celebration эффектов
 
 **Иконки:**
+
 - `lucide-react` - современные SVG иконки
 - Кастомные SVG для игровых элементов
 
 **Утилиты:**
+
 - `clsx` / `cn` - для условных классов
 - `date-fns` - для работы с датами
 - `zustand` - state management (легковесная альтернатива Redux)
 
 **Графики и визуализация:**
+
 - `recharts` - для статистики и графиков активности
 
 ---
@@ -110,12 +120,14 @@ components/
 ### Python API
 
 **Фреймворк:**
+
 - **FastAPI** (рекомендуется) или **Flask**
 - Асинхронная обработка запросов
 - Автоматическая генерация документации (Swagger UI)
 - Валидация данных через Pydantic
 
 **Структура API:**
+
 ```
 api/
 ├── main.py                 # Точка входа
@@ -142,6 +154,7 @@ api/
 ### API Endpoints (Кроссворд)
 
 **Генерация кроссворда:**
+
 ```
 POST /api/crossword/generate
 Body: {
@@ -163,6 +176,7 @@ Response: {
 ```
 
 **Получение категорий:**
+
 ```
 GET /api/crossword/categories
 Response: {
@@ -179,6 +193,7 @@ Response: {
 ```
 
 **Валидация ответа:**
+
 ```
 POST /api/crossword/validate
 Body: {
@@ -196,6 +211,7 @@ Response: {
 ```
 
 **Health check:**
+
 ```
 GET /api/health
 Response: {
@@ -270,6 +286,7 @@ interface SolvedCrosswords {
 ```
 
 **Ключи LocalStorage:**
+
 ```
 umnyaut_user_profile
 umnyaut_user_stats
@@ -280,13 +297,22 @@ umnyaut_current_game_state  // Для возобновления незавер�
 ```
 
 **Утилиты для работы с LocalStorage:**
+
 ```typescript
 // lib/storage.ts
 export const storage = {
-  get: <T>(key: string): T | null => { /* ... */ },
-  set: <T>(key: string, value: T): void => { /* ... */ },
-  remove: (key: string): void => { /* ... */ },
-  clear: (): void => { /* ... */ }
+  get: <T>(key: string): T | null => {
+    /* ... */
+  },
+  set: <T>(key: string, value: T): void => {
+    /* ... */
+  },
+  remove: (key: string): void => {
+    /* ... */
+  },
+  clear: (): void => {
+    /* ... */
+  },
 };
 ```
 
@@ -303,6 +329,7 @@ export const storage = {
 
 2. **Database (PostgreSQL)**
    - Таблицы:
+
      ```sql
      users (
        id uuid primary key,
@@ -311,7 +338,7 @@ export const storage = {
        avatar_url text,
        created_at timestamp
      )
-     
+
      user_stats (
        user_id uuid references users,
        total_games int,
@@ -320,7 +347,7 @@ export const storage = {
        streak int,
        last_played_date date
      )
-     
+
      game_history (
        id uuid primary key,
        user_id uuid references users,
@@ -333,7 +360,7 @@ export const storage = {
        completed_at timestamp,
        grid_state jsonb
      )
-     
+
      theme_progress (
        user_id uuid references users,
        theme_id text,
@@ -341,7 +368,7 @@ export const storage = {
        total_words int,
        primary key (user_id, theme_id)
      )
-     
+
      solved_crosswords (
        user_id uuid references users,
        crossword_id text,
@@ -359,6 +386,7 @@ export const storage = {
    - Таблица лидеров в реальном времени
 
 **Миграция с LocalStorage на Supabase:**
+
 ```typescript
 // lib/migrate.ts
 async function migrateToSupabase(userId: string) {
@@ -368,7 +396,7 @@ async function migrateToSupabase(userId: string) {
     history: storage.get('umnyaut_game_history'),
     progress: storage.get('umnyaut_theme_progress'),
   };
-  
+
   // Отправка данных в Supabase
   await supabase.from('users').insert(localData.profile);
   await supabase.from('user_stats').insert(localData.stats);
@@ -383,6 +411,7 @@ async function migrateToSupabase(userId: string) {
 ### Принцип модульности
 
 Каждая игра - **независимый модуль** с собственными:
+
 - Компонентами UI
 - Бизнес-логикой
 - API endpoints
@@ -390,6 +419,7 @@ async function migrateToSupabase(userId: string) {
 - Стейт-менеджментом
 
 **Структура игрового модуля:**
+
 ```
 components/games/crossword/
 ├── index.tsx                  # Точка входа модуля
@@ -413,6 +443,7 @@ components/games/crossword/
 ```
 
 **Интерфейс для всех игр:**
+
 ```typescript
 // types/game.types.ts
 interface Game {
@@ -439,6 +470,7 @@ interface GameModule {
 ```
 
 **Регистрация игр:**
+
 ```typescript
 // lib/games/registry.ts
 export const gameRegistry: Record<string, GameModule> = {
@@ -561,12 +593,14 @@ umnyaut/
 ### Frontend (Next.js)
 
 **Vercel** (рекомендуется)
+
 - Автоматический деплой из Git
 - Serverless functions для API routes
 - CDN для статических файлов
 - Автоматический SSL
 
 **Альтернативы:**
+
 - Netlify
 - Railway
 - Cloudflare Pages
@@ -576,11 +610,13 @@ umnyaut/
 ### Backend (Python API)
 
 **Railway** (рекомендуется)
+
 - Простой деплой Python приложений
 - Автоматический SSL
 - Легкая интеграция с GitHub
 
 **Альтернативы:**
+
 - Render
 - Fly.io
 - DigitalOcean App Platform
@@ -591,6 +627,7 @@ umnyaut/
 ### База данных (Supabase)
 
 **Supabase Cloud**
+
 - Бесплатный tier для старта
 - Автоматические бэкапы
 - Встроенный Auth и Storage
@@ -631,10 +668,10 @@ NODE_ENV=development
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    
+
     "api:dev": "cd python-api && uvicorn main:app --reload",
     "api:test": "cd python-api && pytest",
-    
+
     "dev:all": "concurrently \"npm run dev\" \"npm run api:dev\""
   }
 }
@@ -653,22 +690,22 @@ NODE_ENV=development
     "react": "^18.x",
     "react-dom": "^18.x",
     "typescript": "^5.x",
-    
+
     "tailwindcss": "^3.x",
     "@tailwindcss/forms": "^0.5.x",
     "@tailwindcss/typography": "^0.5.x",
     "tailwindcss-animate": "^1.x",
-    
+
     "framer-motion": "^10.x",
     "lucide-react": "^0.x",
     "clsx": "^2.x",
     "tailwind-merge": "^2.x",
-    
+
     "zustand": "^4.x",
     "date-fns": "^3.x",
     "recharts": "^2.x",
     "react-confetti": "^6.x",
-    
+
     "@radix-ui/react-dialog": "^1.x",
     "@radix-ui/react-dropdown-menu": "^2.x",
     "@radix-ui/react-tabs": "^1.x"
@@ -709,18 +746,21 @@ pytest-asyncio==0.21.0
 ## Безопасность
 
 ### Frontend
+
 - XSS защита через React
 - CSRF токены для форм
 - Content Security Policy (CSP)
 - Валидация на клиенте + сервере
 
 ### Backend
+
 - CORS настройки
 - Rate limiting
 - Input validation (Pydantic)
 - API key authentication
 
 ### LocalStorage
+
 - Шифрование чувствительных данных
 - Проверка целостности данных
 - Очистка при logout
@@ -730,11 +770,13 @@ pytest-asyncio==0.21.0
 ## Мониторинг и аналитика
 
 ### Текущий MVP
+
 - Google Analytics 4
 - Vercel Analytics
 - Console logs для отладки
 
 ### Будущее
+
 - Sentry для error tracking
 - PostHog для product analytics
 - Custom dashboard для метрик игр
@@ -744,11 +786,13 @@ pytest-asyncio==0.21.0
 ## Тестирование
 
 ### Frontend
+
 - **Jest** + **React Testing Library** для unit тестов
 - **Playwright** для E2E тестов
 - **Storybook** для UI компонентов (опционально)
 
 ### Backend
+
 - **pytest** для unit и integration тестов
 - Тестовое покрытие > 80%
 
@@ -757,6 +801,7 @@ pytest-asyncio==0.21.0
 ## Производительность
 
 ### Оптимизация
+
 - Next.js Image Optimization
 - Code splitting по роутам
 - Lazy loading для игровых модулей
@@ -764,6 +809,7 @@ pytest-asyncio==0.21.0
 - Service Worker для offline режима (PWA)
 
 ### Метрики
+
 - Lighthouse Score > 90
 - First Contentful Paint < 1.5s
 - Time to Interactive < 3s
@@ -773,16 +819,19 @@ pytest-asyncio==0.21.0
 ## Roadmap технологий
 
 ### MVP (v1.0) - Текущее
+
 - ✅ Next.js + Tailwind + shadcn
 - ✅ LocalStorage для данных
 - ✅ Python API для кроссвордов
 
 ### v1.1
+
 - 🔄 Supabase интеграция
 - 🔄 Google OAuth
 - 🔄 Миграция данных из LocalStorage
 
 ### v2.0
+
 - 📋 Новые игровые модули
 - 📋 Realtime features
 - 📋 PWA с offline режимом

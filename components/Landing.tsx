@@ -2,7 +2,19 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Brain, Zap, Target, Cpu, Sparkles, Trophy, Lightbulb, ShieldCheck, Users, Star, Grid3X3 } from 'lucide-react';
+import {
+  Brain,
+  Zap,
+  Target,
+  Cpu,
+  Sparkles,
+  Trophy,
+  Lightbulb,
+  ShieldCheck,
+  Users,
+  Star,
+  Grid3X3,
+} from 'lucide-react';
 
 const MotionDiv = motion.div as any;
 const MotionButton = motion.button as any;
@@ -119,7 +131,9 @@ const Landing: React.FC<LandingProps> = ({ onStart, isLoggedIn }) => {
             <Brain className="w-full h-full text-white/10 absolute rotate-12" />
             <div className="relative z-10 text-center text-white">
               <Trophy className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-3 md:mb-4 text-amber-200" />
-              <h3 className="text-lg md:text-xl font-game font-bold mb-2 uppercase">Доказано наукой</h3>
+              <h3 className="text-lg md:text-xl font-game font-bold mb-2 uppercase">
+                Доказано наукой
+              </h3>
               <p className="text-orange-100 text-xs md:text-sm font-medium opacity-90">
                 15 минут в день повышают когнитивный тонус на 30%.
               </p>
@@ -152,21 +166,27 @@ const Landing: React.FC<LandingProps> = ({ onStart, isLoggedIn }) => {
                 <Users className="w-6 h-6 md:w-7 md:h-7 text-orange-600" />
               </div>
               <div className="text-3xl md:text-4xl font-black text-stone-800 mb-1">1,200+</div>
-              <div className="text-xs md:text-sm font-bold text-stone-400 uppercase tracking-wider">Игроков</div>
+              <div className="text-xs md:text-sm font-bold text-stone-400 uppercase tracking-wider">
+                Игроков
+              </div>
             </div>
             <div className="bg-white rounded-3xl p-6 md:p-8 shadow-lg border border-slate-100">
               <div className="bg-amber-100 w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4">
                 <Grid3X3 className="w-6 h-6 md:w-7 md:h-7 text-amber-600" />
               </div>
               <div className="text-3xl md:text-4xl font-black text-stone-800 mb-1">5,000+</div>
-              <div className="text-xs md:text-sm font-bold text-stone-400 uppercase tracking-wider">Кроссвордов решено</div>
+              <div className="text-xs md:text-sm font-bold text-stone-400 uppercase tracking-wider">
+                Кроссвордов решено
+              </div>
             </div>
             <div className="bg-white rounded-3xl p-6 md:p-8 shadow-lg border border-slate-100">
               <div className="bg-emerald-100 w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4">
                 <Star className="w-6 h-6 md:w-7 md:h-7 text-emerald-600" />
               </div>
               <div className="text-3xl md:text-4xl font-black text-stone-800 mb-1">4.9</div>
-              <div className="text-xs md:text-sm font-bold text-stone-400 uppercase tracking-wider">Средняя оценка</div>
+              <div className="text-xs md:text-sm font-bold text-stone-400 uppercase tracking-wider">
+                Средняя оценка
+              </div>
             </div>
           </div>
 
@@ -178,7 +198,8 @@ const Landing: React.FC<LandingProps> = ({ onStart, isLoggedIn }) => {
               ))}
             </div>
             <p className="text-base md:text-lg text-stone-600 font-medium italic mb-4 md:mb-6">
-              "Умняут — отличный способ провести время с пользой. Каждый день решаю по кроссворду, и чувствую как мозг работает лучше!"
+              "Умняут — отличный способ провести время с пользой. Каждый день решаю по кроссворду, и
+              чувствую как мозг работает лучше!"
             </p>
             <div className="flex items-center justify-center gap-3">
               <div className="w-9 h-9 md:w-10 md:h-10 bg-orange-500 rounded-full flex items-center justify-center text-white font-black text-sm md:text-base">
@@ -196,7 +217,9 @@ const Landing: React.FC<LandingProps> = ({ onStart, isLoggedIn }) => {
       {/* Final CTA */}
       <section className="bg-stone-800 rounded-3xl p-8 md:p-16 text-center text-white relative overflow-hidden mx-4">
         <div className="relative z-10">
-          <h2 className="text-2xl md:text-5xl font-game font-bold mb-4 md:mb-6">Готовы к приключениям?</h2>
+          <h2 className="text-2xl md:text-5xl font-game font-bold mb-4 md:mb-6">
+            Готовы к приключениям?
+          </h2>
           <p className="text-base md:text-lg text-stone-400 mb-8 md:mb-10 max-w-lg mx-auto">
             Умняут уже ждёт тебя! Начни своё путешествие в мир знаний прямо сейчас.
           </p>
