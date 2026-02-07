@@ -45,7 +45,11 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* Unified Sidebar Wrapper */}
       <div className="h-full bg-white/70 backdrop-blur-md rounded-2xl shadow-lg border border-orange-100/50 p-4 flex flex-col">
         {/* Logo Section */}
-        <button onClick={onLogoClick} className="hover:opacity-80 transition-opacity">
+        <button
+          onClick={onLogoClick}
+          className="hover:opacity-80 transition-opacity"
+          aria-label="Умняут - На главную"
+        >
           <MotionDiv
             whileHover={{ scale: 1.05, rotate: 5 }}
             className="w-12 h-12 rounded-xl overflow-hidden shadow-lg shadow-orange-200/50"
