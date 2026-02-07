@@ -155,7 +155,9 @@ const Settings: React.FC<SettingsProps> = ({ profile, onSave }) => {
               onChange={handleAvatarChange}
               className="hidden"
             />
-            <span className="text-[9px] font-bold text-slate-400 uppercase">Нажмите для загрузки</span>
+            <span className="text-[9px] font-bold text-slate-400 uppercase">
+              Нажмите для загрузки
+            </span>
           </div>
 
           {/* Name */}
@@ -199,10 +201,14 @@ const Settings: React.FC<SettingsProps> = ({ profile, onSave }) => {
                     : 'bg-slate-50 border-2 border-slate-100 hover:border-orange-200'
                 }`}
               >
-                <div className={`font-black text-sm ${isSelected ? 'text-white' : 'text-stone-800'}`}>
+                <div
+                  className={`font-black text-sm ${isSelected ? 'text-white' : 'text-stone-800'}`}
+                >
                   {group.label}
                 </div>
-                <div className={`text-[10px] font-medium mt-0.5 ${isSelected ? 'text-white/80' : 'text-slate-400'}`}>
+                <div
+                  className={`text-[10px] font-medium mt-0.5 ${isSelected ? 'text-white/80' : 'text-slate-400'}`}
+                >
                   {group.description}
                 </div>
               </button>
@@ -329,9 +335,7 @@ const Settings: React.FC<SettingsProps> = ({ profile, onSave }) => {
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
               className={`w-full p-4 rounded-xl border-2 transition-all flex items-center justify-between ${
-                soundEnabled
-                  ? 'border-emerald-500 bg-emerald-50'
-                  : 'border-slate-200 bg-slate-50'
+                soundEnabled ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-slate-50'
               }`}
             >
               <div className="flex items-center gap-3">
@@ -340,7 +344,9 @@ const Settings: React.FC<SettingsProps> = ({ profile, onSave }) => {
                 ) : (
                   <VolumeX className="w-5 h-5 text-slate-400" />
                 )}
-                <span className={`font-bold ${soundEnabled ? 'text-emerald-700' : 'text-slate-500'}`}>
+                <span
+                  className={`font-bold ${soundEnabled ? 'text-emerald-700' : 'text-slate-500'}`}
+                >
                   {soundEnabled ? 'Включены' : 'Выключены'}
                 </span>
               </div>
@@ -375,9 +381,13 @@ const Settings: React.FC<SettingsProps> = ({ profile, onSave }) => {
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
             <div className="flex items-center gap-2 mb-2">
               <Calendar className="w-4 h-4 text-slate-400" />
-              <span className="text-[9px] font-black text-slate-400 uppercase">Дата регистрации</span>
+              <span className="text-[9px] font-black text-slate-400 uppercase">
+                Дата регистрации
+              </span>
             </div>
-            <span className="font-bold text-slate-700 text-sm">{formatDate(profile.createdAt)}</span>
+            <span className="font-bold text-slate-700 text-sm">
+              {formatDate(profile.createdAt)}
+            </span>
           </div>
 
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">

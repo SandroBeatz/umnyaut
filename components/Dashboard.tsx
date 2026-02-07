@@ -1,7 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { UserProfile, GameHistoryEntry, CrosswordData, SavedGameState, SAVED_GAME_KEY } from '../types';
+import {
+  UserProfile,
+  GameHistoryEntry,
+  CrosswordData,
+  SavedGameState,
+  SAVED_GAME_KEY,
+} from '../types';
 import { generateCrossword } from '../crosswordApi';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import {
@@ -25,7 +31,12 @@ const MotionButton = motion.button as any;
 
 type Difficulty = 'easy' | 'medium' | 'hard';
 
-const DIFFICULTY_OPTIONS: { value: Difficulty; label: string; description: string; color: string }[] = [
+const DIFFICULTY_OPTIONS: {
+  value: Difficulty;
+  label: string;
+  description: string;
+  color: string;
+}[] = [
   { value: 'easy', label: 'Легкий', description: '5×5, простые слова', color: 'emerald' },
   { value: 'medium', label: 'Средний', description: '7×7, средняя сложность', color: 'amber' },
   { value: 'hard', label: 'Сложный', description: '10×10, сложная лексика', color: 'red' },
@@ -86,7 +97,11 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, onStartGame, onContinueG
       const categoryProgress = themeProgress[selectedCategory];
       const excludedWords = categoryProgress?.completedWords || [];
 
-      const crosswordData = await generateCrossword(selectedCategory, selectedDifficulty, excludedWords);
+      const crosswordData = await generateCrossword(
+        selectedCategory,
+        selectedDifficulty,
+        excludedWords
+      );
       onStartGame(crosswordData);
     } catch (err: any) {
       if (err.message === 'CATEGORY_NOT_FOUND') {
@@ -189,7 +204,9 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, onStartGame, onContinueG
                 <span className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">
                   IQ Очки
                 </span>
-                <span className="text-xl md:text-2xl font-black text-slate-800">{stats.points}</span>
+                <span className="text-xl md:text-2xl font-black text-slate-800">
+                  {stats.points}
+                </span>
               </div>
               <Trophy className="w-5 h-5 md:w-6 md:h-6 text-amber-400" />
             </div>
@@ -198,7 +215,9 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, onStartGame, onContinueG
                 <span className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">
                   Решено игр
                 </span>
-                <span className="text-xl md:text-2xl font-black text-slate-800">{stats.totalSolved}</span>
+                <span className="text-xl md:text-2xl font-black text-slate-800">
+                  {stats.totalSolved}
+                </span>
               </div>
               <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-emerald-400" />
             </div>
@@ -221,7 +240,9 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, onStartGame, onContinueG
               </span>
               <div className="flex items-center gap-2">
                 <span className="text-xl md:text-2xl font-black">{stats.streak}</span>
-                <span className="text-orange-300 font-bold uppercase text-[8px] md:text-[9px]">Дней</span>
+                <span className="text-orange-300 font-bold uppercase text-[8px] md:text-[9px]">
+                  Дней
+                </span>
               </div>
             </div>
           </div>
@@ -359,9 +380,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, onStartGame, onContinueG
                         <div
                           key={`${r}-${c}`}
                           className={`w-5 h-5 md:w-6 md:h-6 flex items-center justify-center rounded text-[8px] md:text-[10px] font-bold ${
-                            cell
-                              ? 'bg-emerald-500 text-white'
-                              : 'bg-white/5'
+                            cell ? 'bg-emerald-500 text-white' : 'bg-white/5'
                           }`}
                         >
                           {cell}
@@ -379,7 +398,9 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, onStartGame, onContinueG
                     <Trophy className="w-4 h-4 text-orange-500" />
                     <span className="text-[9px] font-black text-orange-400 uppercase">Очки</span>
                   </div>
-                  <div className="text-2xl font-black text-orange-600">+{selectedHistory.score}</div>
+                  <div className="text-2xl font-black text-orange-600">
+                    +{selectedHistory.score}
+                  </div>
                 </div>
 
                 <div className="bg-sky-50 p-4 rounded-xl border border-sky-100">
@@ -388,14 +409,17 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, onStartGame, onContinueG
                     <span className="text-[9px] font-black text-sky-400 uppercase">Время</span>
                   </div>
                   <div className="text-2xl font-black text-sky-600">
-                    {Math.floor(selectedHistory.timeSeconds / 60)}:{(selectedHistory.timeSeconds % 60).toString().padStart(2, '0')}
+                    {Math.floor(selectedHistory.timeSeconds / 60)}:
+                    {(selectedHistory.timeSeconds % 60).toString().padStart(2, '0')}
                   </div>
                 </div>
 
                 <div className="bg-amber-50 p-4 rounded-xl border border-amber-100">
                   <div className="flex items-center gap-2 mb-1">
                     <Brain className="w-4 h-4 text-amber-500" />
-                    <span className="text-[9px] font-black text-amber-400 uppercase">Подсказки</span>
+                    <span className="text-[9px] font-black text-amber-400 uppercase">
+                      Подсказки
+                    </span>
                   </div>
                   <div className="text-2xl font-black text-amber-600">
                     {(selectedHistory.hintsUsed || 0) + (selectedHistory.lettersRevealed || 0)}
@@ -405,7 +429,9 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, onStartGame, onContinueG
                 <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
                   <div className="flex items-center gap-2 mb-1">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                    <span className="text-[9px] font-black text-emerald-400 uppercase">Без подсказок</span>
+                    <span className="text-[9px] font-black text-emerald-400 uppercase">
+                      Без подсказок
+                    </span>
                   </div>
                   <div className="text-2xl font-black text-emerald-600">
                     {selectedHistory.wordsWithoutHints !== undefined
@@ -419,22 +445,30 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, onStartGame, onContinueG
               <div className="bg-slate-50 rounded-xl p-4 mb-6">
                 <div className="flex justify-between items-center py-2 border-b border-slate-200">
                   <span className="text-xs font-bold text-slate-500">Слов решено</span>
-                  <span className="text-sm font-black text-slate-800">{selectedHistory.wordsSolved}</span>
+                  <span className="text-sm font-black text-slate-800">
+                    {selectedHistory.wordsSolved}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-slate-200">
                   <span className="text-xs font-bold text-slate-500">Категория</span>
-                  <span className="text-sm font-black text-slate-800">{selectedHistory.category}</span>
+                  <span className="text-sm font-black text-slate-800">
+                    {selectedHistory.category}
+                  </span>
                 </div>
                 {selectedHistory.hintsUsed !== undefined && (
                   <div className="flex justify-between items-center py-2 border-b border-slate-200">
                     <span className="text-xs font-bold text-slate-500">Текстовых подсказок</span>
-                    <span className="text-sm font-black text-amber-600">{selectedHistory.hintsUsed}</span>
+                    <span className="text-sm font-black text-amber-600">
+                      {selectedHistory.hintsUsed}
+                    </span>
                   </div>
                 )}
                 {selectedHistory.lettersRevealed !== undefined && (
                   <div className="flex justify-between items-center py-2">
                     <span className="text-xs font-bold text-slate-500">Показано букв</span>
-                    <span className="text-sm font-black text-amber-600">{selectedHistory.lettersRevealed}</span>
+                    <span className="text-sm font-black text-amber-600">
+                      {selectedHistory.lettersRevealed}
+                    </span>
                   </div>
                 )}
               </div>
@@ -503,9 +537,7 @@ const Dashboard: React.FC<DashboardProps> = ({ profile, onStartGame, onContinueG
                           >
                             {cat}
                           </span>
-                          {isSelected && (
-                            <CheckCircle2 className="w-4 h-4 text-orange-500" />
-                          )}
+                          {isSelected && <CheckCircle2 className="w-4 h-4 text-orange-500" />}
                         </div>
                         <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
                           <div

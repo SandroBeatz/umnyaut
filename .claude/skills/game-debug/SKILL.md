@@ -39,6 +39,7 @@ UserProfile {
 ```
 
 Note the migration logic in `AppContext.tsx`:
+
 - `solvedCrosswordIds` defaults to `[]` if missing
 - `themeProgress` defaults to `{}` if missing
 - `categories` renamed to `selectedCategories`
@@ -64,6 +65,7 @@ SavedGameState {
 ```
 
 Key points:
+
 - `wordPenalties` is a `Map<number, {...}>` at runtime, serialized as array of tuples
 - `userGrid` mirrors `crosswordData.grid` dimensions, empty cells are `""`
 - Auto-save triggers on state changes during gameplay
@@ -88,12 +90,14 @@ UserStats {
 ```
 
 **Scoring formula:**
+
 ```
 finalScore = baseScore × (1 - penaltyPercent) × speedBonus × accuracyBonus
 Minimum: 50 points
 ```
 
 **Level formula:**
+
 ```
 baseLevel = floor(points / 500)
 speedFactor = min(1.2, max(1, 300/averageTime))

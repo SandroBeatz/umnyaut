@@ -51,10 +51,13 @@ export default function DashboardPage() {
           if (view === 'SETTINGS') router.push('/settings');
           if (view === 'DASHBOARD') router.push('/dashboard');
           if (view === 'ABOUT') router.push('/about');
+          if (view === 'STATISTICS') router.push('/statistics');
+          if (view === 'GAME') router.push('/game');
         }}
         onLogoClick={() => router.push('/')}
         onAccountClick={() => router.push('/settings')}
         avatar={profile.avatar}
+        username={profile.username}
       />
       <Layout stats={profile.stats}>
         <Dashboard

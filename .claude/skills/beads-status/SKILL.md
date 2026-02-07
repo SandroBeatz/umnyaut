@@ -18,32 +18,41 @@ Quick wrapper for common `bd` (beads) issue tracking commands.
 ## Instructions
 
 ### For `list` (or no argument):
+
 ```bash
 bd list --status=open
 ```
+
 Show all open issues with their IDs, titles, priorities, and statuses.
 
 ### For `ready`:
+
 ```bash
 bd ready
 ```
+
 Show issues that are ready to work on (open status, no blocking dependencies). These are the issues an agent can pick up immediately.
 
 ### For `show <id>`:
+
 ```bash
 bd show <id>
 ```
+
 Show full details of a specific issue including description, dependencies, and history.
 
 ### For `stats`:
+
 ```bash
 bd stats
 ```
+
 Show project statistics: open/closed/blocked counts, priority distribution.
 
 ## Output
 
 Present the results in a clean, readable format. For `list` and `ready`, summarize:
+
 - Issue ID
 - Title
 - Priority (P0-P4)
@@ -51,6 +60,7 @@ Present the results in a clean, readable format. For `list` and `ready`, summari
 - Any blocking dependencies
 
 ## Notes
+
 - Beads data is stored in `.beads/` directory
 - Issues use the prefix from project initialization
 - Run `bd sync` to sync with git remote

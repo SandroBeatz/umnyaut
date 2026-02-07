@@ -13,26 +13,31 @@ Run the complete pre-commit/pre-push verification pipeline. Stops on first failu
 Execute each step in order. If any step fails, stop and report the failure.
 
 ### Step 1: TypeScript Type Check
+
 ```bash
 npx tsc --noEmit
 ```
 
 ### Step 2: ESLint
+
 ```bash
 npm run lint
 ```
 
 ### Step 3: Prettier Format Check
+
 ```bash
 npx prettier --check .
 ```
 
 ### Step 4: Tests
+
 ```bash
 npx vitest run
 ```
 
 ### Step 5: Production Build
+
 ```bash
 npm run build
 ```
@@ -60,6 +65,7 @@ Preflight Results
 - If all steps pass, congratulate — the code is ready to ship
 
 ## Notes
+
 - This is the same pipeline that should pass before any push to main
 - The build step is the most time-consuming (may take 30-60 seconds)
 - TypeScript check runs first because it catches the most fundamental issues

@@ -35,20 +35,28 @@ You write tests for the CrossQuest (Umnyaut) project using Vitest with jsdom env
 ## Mocking Patterns
 
 ### localStorage
+
 ```ts
 const localStorageMock = (() => {
   let store: Record<string, string> = {};
   return {
     getItem: vi.fn((key: string) => store[key] ?? null),
-    setItem: vi.fn((key: string, value: string) => { store[key] = value; }),
-    removeItem: vi.fn((key: string) => { delete store[key]; }),
-    clear: vi.fn(() => { store = {}; }),
+    setItem: vi.fn((key: string, value: string) => {
+      store[key] = value;
+    }),
+    removeItem: vi.fn((key: string) => {
+      delete store[key];
+    }),
+    clear: vi.fn(() => {
+      store = {};
+    }),
   };
 })();
 Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 ```
 
 ### fetch (for API tests)
+
 ```ts
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
@@ -68,6 +76,7 @@ mockFetch.mockResolvedValueOnce({
 ```
 
 ### next/navigation
+
 ```ts
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -81,6 +90,7 @@ vi.mock('next/navigation', () => ({
 ```
 
 ### AbortController (for timeout tests)
+
 ```ts
 vi.useFakeTimers();
 // ... trigger the fetch

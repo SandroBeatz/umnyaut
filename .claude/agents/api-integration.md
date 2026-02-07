@@ -17,6 +17,7 @@ Defined as `API_BASE_URL` constant in `/crosswordApi.ts`. Always use this consta
 ## Endpoints
 
 ### POST /categories
+
 - **Purpose**: Get list of available crossword categories with user's progress
 - **Timeout**: 30 seconds (Railway cold start can take 15-20s)
 - **Retries**: 3 attempts with exponential backoff (2s, 4s, 6s)
@@ -25,6 +26,7 @@ Defined as `API_BASE_URL` constant in `/crosswordApi.ts`. Always use this consta
 - **Category shape**: `{ name, word_count, guessed_count?, guessed_percent?, available? }`
 
 ### POST /crossword
+
 - **Purpose**: Generate a crossword puzzle for given category and difficulty
 - **Timeout**: 45 seconds (generation is computationally expensive)
 - **Retries**: 2 attempts with backoff (3s, 6s)
@@ -38,6 +40,7 @@ Defined as `API_BASE_URL` constant in `/crosswordApi.ts`. Always use this consta
 ## Implementation Patterns
 
 ### AbortController for Timeouts
+
 ```ts
 const controller = new AbortController();
 const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -52,19 +55,22 @@ try {
 ```
 
 ### Retry with Exponential Backoff
+
 ```ts
 for (let i = 0; i <= retries; i++) {
   try {
     // ... attempt
   } catch (error) {
     if (isLastRetry || isNonRetryableError) throw error;
-    await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+    await new Promise((resolve) => setTimeout(resolve, delay * (i + 1)));
   }
 }
 ```
 
 ### Response Validation
+
 Always validate response shape before returning:
+
 ```ts
 const data = await response.json();
 if (!data || !data.categories) {
@@ -85,6 +91,7 @@ if (!data || !data.categories) {
 ## Adding New Endpoints
 
 When adding a new API endpoint:
+
 1. Follow the existing pattern in `/crosswordApi.ts`
 2. Use AbortController with appropriate timeout
 3. Implement retry logic with backoff

@@ -131,7 +131,9 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
   onComplete,
   onCancel,
 }) => {
-  const [data, setData] = useState<CrosswordData | null>(savedState?.crosswordData || crosswordData);
+  const [data, setData] = useState<CrosswordData | null>(
+    savedState?.crosswordData || crosswordData
+  );
   const [userGrid, setUserGrid] = useState<string[][]>(savedState?.userGrid || []);
   const [focusedCell, setFocusedCell] = useState<{ r: number; c: number } | null>(null);
   const [activeDirection, setActiveDirection] = useState<Direction>(Direction.HORIZONTAL);
@@ -144,12 +146,14 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
     showLetters: boolean;
   } | null>(null);
   // Track penalty per word to avoid double-counting
-  const [wordPenalties, setWordPenalties] = useState<Map<number, { hint: boolean; letters: boolean }>>(
-    savedState?.wordPenalties ? new Map(savedState.wordPenalties) : new Map()
-  );
+  const [wordPenalties, setWordPenalties] = useState<
+    Map<number, { hint: boolean; letters: boolean }>
+  >(savedState?.wordPenalties ? new Map(savedState.wordPenalties) : new Map());
   const [isPaused, setIsPaused] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
-  const [scorePopups, setScorePopups] = useState<{ id: number; score: number; x: number; y: number }[]>([]);
+  const [scorePopups, setScorePopups] = useState<
+    { id: number; score: number; x: number; y: number }[]
+  >([]);
   const [prevSolvedCount, setPrevSolvedCount] = useState(0);
 
   // Calculate total penalty percentage
@@ -264,7 +268,12 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
       const accuracyMultiplier = isPerfectGame ? 1.3 : 1;
 
       // Apply penalty percentage, speed bonus, and accuracy bonus
-      const score = Math.max(50, Math.round(baseScore * (1 - totalPenaltyPercent / 100) * speedMultiplier * accuracyMultiplier));
+      const score = Math.max(
+        50,
+        Math.round(
+          baseScore * (1 - totalPenaltyPercent / 100) * speedMultiplier * accuracyMultiplier
+        )
+      );
 
       // Clear saved game state on completion
       clearSavedGame();
@@ -290,7 +299,18 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
         2000
       );
     }
-  }, [data, solvedWordIds, solved, onComplete, timer, totalPenaltyPercent, wordPenalties, userGrid, profile.stats.averageTime, clearSavedGame]);
+  }, [
+    data,
+    solvedWordIds,
+    solved,
+    onComplete,
+    timer,
+    totalPenaltyPercent,
+    wordPenalties,
+    userGrid,
+    profile.stats.averageTime,
+    clearSavedGame,
+  ]);
 
   useEffect(() => {
     if (userGrid.length > 0) checkSolution();
@@ -302,7 +322,8 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
     const currentCount = solvedWordIds.size;
     if (currentCount > prevSolvedCount && prevSolvedCount > 0) {
       // A new word was solved - show score animation
-      const baseWordScore = data.difficulty === 'easy' ? 30 : data.difficulty === 'medium' ? 50 : 75;
+      const baseWordScore =
+        data.difficulty === 'easy' ? 30 : data.difficulty === 'medium' ? 50 : 75;
       const popup = {
         id: Date.now(),
         score: baseWordScore,
@@ -435,7 +456,10 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
 
   return (
     <div className="flex flex-col gap-6" onClick={handleOutsideClick}>
-      <div className="flex items-center justify-center gap-4 -mt-4" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="flex items-center justify-center gap-4 -mt-4"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Back button */}
         <button
           onClick={() => setShowExitConfirm(true)}
@@ -465,9 +489,7 @@ const CrosswordGame: React.FC<CrosswordGameProps> = ({
             {data.category} • {data.difficulty}
           </div>
           {totalPenaltyPercent > 0 && (
-            <div className="pl-6 text-red-500 font-bold text-xs">
-              -{totalPenaltyPercent}%
-            </div>
+            <div className="pl-6 text-red-500 font-bold text-xs">-{totalPenaltyPercent}%</div>
           )}
         </div>
       </div>

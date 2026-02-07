@@ -26,17 +26,20 @@
 ## 🛠️ Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/SandroBeatz/Umnyaut.git
    cd Umnyaut
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Create environment file:
+
    ```bash
    cp .env.example .env.local
    ```
@@ -46,12 +49,15 @@
 ## 🚀 Running the Application
 
 ### Development Mode
+
 ```bash
 npm run dev
 ```
+
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Production Build
+
 ```bash
 npm run build
 npm start
@@ -60,11 +66,13 @@ npm start
 ## 🧪 Testing
 
 Run tests:
+
 ```bash
 npm test
 ```
 
 Run tests with UI:
+
 ```bash
 npm run test:ui
 ```
@@ -72,11 +80,13 @@ npm run test:ui
 ## 🎨 Code Quality
 
 Format code with Prettier:
+
 ```bash
 npm run format
 ```
 
 Lint code with ESLint:
+
 ```bash
 npm run lint
 ```
@@ -117,7 +127,7 @@ This project was successfully migrated from Vite to Next.js 16 with the followin
 ✅ **TypeScript**: Full type safety across the application  
 ✅ **Testing**: Vitest setup with example tests  
 ✅ **Code Quality**: ESLint and Prettier configured  
-✅ **Maintained Logic**: All business logic and user flows preserved  
+✅ **Maintained Logic**: All business logic and user flows preserved
 
 ## 📝 License
 

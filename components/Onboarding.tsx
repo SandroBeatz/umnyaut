@@ -2,10 +2,7 @@
 
 import React, { useState } from 'react';
 import { AgeGroupKey, AGE_GROUPS } from '../types';
-import {
-  Zap,
-  ArrowLeft,
-} from 'lucide-react';
+import { Zap, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const MotionDiv = motion.div as any;
@@ -72,17 +69,21 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) => {
   const [selectedGames, setSelectedGames] = useState<string[]>([]);
 
   const toggleGame = (gameId: string) => {
-    setSelectedGames((prev) => 
+    setSelectedGames((prev) =>
       prev.includes(gameId) ? prev.filter((id) => id !== gameId) : [...prev, gameId]
     );
   };
 
   const isStepValid = (): boolean => {
     switch (step) {
-      case 1: return username.trim().length > 0;
-      case 2: return ageGroup !== null;
-      case 3: return true; // difficulty always has a value
-      case 4: return selectedGames.length > 0;
+      case 1:
+        return username.trim().length > 0;
+      case 2:
+        return ageGroup !== null;
+      case 3:
+        return true; // difficulty always has a value
+      case 4:
+        return selectedGames.length > 0;
     }
   };
 

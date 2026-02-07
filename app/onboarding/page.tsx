@@ -41,7 +41,5 @@ export default function OnboardingPage() {
     return null;
   }
 
-  return (
-    <Onboarding onComplete={handleOnboardingComplete} onCancel={handleCancel} />
-  );
+  return <Onboarding onComplete={handleOnboardingComplete} onCancel={handleCancel} />;
 }
