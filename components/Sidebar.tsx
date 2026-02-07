@@ -5,7 +5,6 @@ import {
   Home,
   Settings as SettingsIcon,
   User,
-  Zap,
   BarChart3,
   Gamepad2,
   ChevronDown,
@@ -46,23 +45,14 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* Unified Sidebar Wrapper */}
       <div className="h-full bg-white/70 backdrop-blur-md rounded-2xl shadow-lg border border-orange-100/50 p-4 flex flex-col">
         {/* Logo Section */}
-        <div className="pb-4 border-b border-slate-100">
-          <button
-            onClick={onLogoClick}
-            className="flex flex-col items-center justify-center gap-1 hover:opacity-80 transition-opacity"
+        <button onClick={onLogoClick} className="hover:opacity-80 transition-opacity">
+          <MotionDiv
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            className="w-12 h-12 rounded-xl overflow-hidden shadow-lg shadow-orange-200/50"
           >
-            <MotionDiv
-              whileHover={{ scale: 1.05, rotate: 5 }}
-              className="w-12 h-12 rounded-xl overflow-hidden shadow-lg shadow-orange-200/50"
-            >
-              <img src="/logo.png" alt="Умняут" className="w-full h-full object-cover" />
-            </MotionDiv>
-            <div className="flex items-center gap-0.5 mt-1">
-              <span className="text-[8px] font-black text-slate-700 tracking-tight">УМНЯУТ</span>
-              <Zap className="w-2.5 h-2.5 text-orange-500 fill-orange-400" />
-            </div>
-          </button>
-        </div>
+            <img src="/logo.png" alt="Умняут" className="w-full h-full object-cover" />
+          </MotionDiv>
+        </button>
 
         {/* Menu Section */}
         <nav className="flex-1 py-6 flex flex-col items-center justify-center gap-3">
