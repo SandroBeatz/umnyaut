@@ -34,7 +34,7 @@ describe('Footer', () => {
     render(<Footer />);
     expect(screen.getByText('О проекте').closest('a')).toHaveAttribute('href', '/about');
     expect(screen.getByText('Блог').closest('a')).toHaveAttribute('href', '/blog');
-    expect(screen.getByText('Контакты').closest('a')).toHaveAttribute('href', '/contacts');
+    expect(screen.getByText('Контакты').closest('a')).toHaveAttribute('href', '/contact');
     expect(screen.getByText('Политика').closest('a')).toHaveAttribute('href', '/policy');
   });
 
