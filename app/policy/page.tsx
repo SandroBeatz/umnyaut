@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAppContext } from '../AppContext';
 import Sidebar from '@/components/Sidebar';
 import Layout from '@/components/Layout';
+import Header from '@/components/Header';
 
 export default function PolicyPage() {
   const { profile } = useAppContext();
@@ -322,6 +323,7 @@ export default function PolicyPage() {
   // For non-logged-in users, show without sidebar
   return (
     <div className="min-h-screen bg-orange-50 text-stone-800">
+      <Header />
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">{content}</main>
     </div>
   );
