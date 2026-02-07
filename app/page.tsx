@@ -6,6 +6,7 @@ import { useAppContext } from './AppContext';
 import Landing from '@/components/Landing';
 import Layout from '@/components/Layout';
 import Sidebar from '@/components/Sidebar';
+import Header from '@/components/Header';
 
 export default function HomePage() {
   const { profile } = useAppContext();
@@ -44,6 +45,7 @@ export default function HomePage() {
   // For non-logged-in users, show simple layout without sidebar
   return (
     <div className="min-h-screen bg-orange-50 text-stone-800">
+      <Header />
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-12">
         <Landing isLoggedIn={false} onStart={handleStart} />
       </main>
