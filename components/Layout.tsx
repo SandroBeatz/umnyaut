@@ -16,7 +16,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children, stats, showHeader = true }) => {
   return (
-    <div className="min-h-screen bg-orange-50 text-stone-800 pl-28">
+    <div className="min-h-screen bg-orange-50 text-stone-800 pl-28 flex flex-col">
       {showHeader && stats && (
         <div className="fixed top-4 right-4 z-40">
           <MotionDiv
@@ -55,7 +55,7 @@ const Layout: React.FC<LayoutProps> = ({ children, stats, showHeader = true }) =
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
-        className="max-w-7xl mx-auto px-6 py-6 md:py-12 pt-24"
+        className="flex-1 flex flex-col max-w-7xl mx-auto px-6 py-6 md:py-12 pt-24 w-full"
       >
         {children}
       </MotionMain>

@@ -3,10 +3,10 @@
 import React from 'react';
 import { Facebook, Instagram, Twitter, Mail } from 'lucide-react';
 
-const Footer: React.FC = () => {
+const PublicFooter: React.FC = () => {
   return (
     <footer className="border-t border-stone-200">
-      <div className="max-w-5xl mx-auto px-4 md:px-6 py-6">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Left: Logo, Name, and Copyright */}
           <div className="flex items-center gap-3">
@@ -17,11 +17,11 @@ const Footer: React.FC = () => {
             />
             <div className="flex flex-col">
               <span className="text-lg font-game font-bold text-stone-800">Умняут</span>
-              <span className="text-xs text-stone-500">© 2025 «Умняут». Все права защищены</span>
+              <span className="text-xs text-stone-500">&copy; 2025 &laquo;Умняут&raquo;. Все права защищены</span>
             </div>
           </div>
 
-          {/* Center: Navigation Links (horizontal) */}
+          {/* Center: Navigation Links */}
           <nav className="flex gap-6">
             <a
               href="/about"
@@ -30,19 +30,13 @@ const Footer: React.FC = () => {
               О проекте
             </a>
             <a
-              href="/blog"
-              className="text-stone-600 hover:text-orange-500 transition-colors text-sm"
-            >
-              Блог
-            </a>
-            <a
-              href="/contact"
+              href="/contacts"
               className="text-stone-600 hover:text-orange-500 transition-colors text-sm"
             >
               Контакты
             </a>
             <a
-              href="/policy"
+              href="/privacy"
               className="text-stone-600 hover:text-orange-500 transition-colors text-sm"
             >
               Политика
@@ -92,4 +86,4 @@ const Footer: React.FC = () => {
   );
 };
 
-export default Footer;
+export default PublicFooter;

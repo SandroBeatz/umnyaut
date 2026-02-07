@@ -27,7 +27,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Helper function to set authentication cookie
   const setAuthCookie = (isAuthenticated: boolean) => {
     if (typeof document !== 'undefined') {
-      document.cookie = `umnyaut_authenticated=${isAuthenticated}; path=/; max-age=${365 * 24 * 60 * 60}`;
+      document.cookie = `umnyaut_auth=${isAuthenticated}; path=/; max-age=${365 * 24 * 60 * 60}`;
     }
   };
 

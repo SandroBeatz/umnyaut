@@ -15,8 +15,8 @@ const MotionDiv = motion.div as any;
 const MotionButton = motion.button as any;
 
 interface SidebarProps {
-  activeView: 'DASHBOARD' | 'GAME' | 'SETTINGS' | 'ABOUT' | 'STATISTICS';
-  onViewChange: (view: 'DASHBOARD' | 'GAME' | 'SETTINGS' | 'ABOUT' | 'STATISTICS') => void;
+  activeView: 'DASHBOARD' | 'GAME' | 'SETTINGS' | 'STATISTICS';
+  onViewChange: (view: 'DASHBOARD' | 'GAME' | 'SETTINGS' | 'STATISTICS') => void;
   onLogoClick: () => void;
   onAccountClick: () => void;
   avatar?: string;

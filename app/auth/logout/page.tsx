@@ -14,7 +14,7 @@ export default function LogoutPage() {
     localStorage.removeItem('umnyaut_user_profile');
     
     // Clear authentication cookie
-    document.cookie = 'umnyaut_authenticated=false; path=/; max-age=0';
+    document.cookie = 'umnyaut_auth=false; path=/; max-age=0';
     
     // Redirect to home page
     router.push('/');
