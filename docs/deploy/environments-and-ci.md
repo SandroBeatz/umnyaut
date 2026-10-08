@@ -1,12 +1,12 @@
 ---
-version: 1.0
+version: 1.1
 date: 2026-10-08
 category: deploy
 ---
 
 # Environments and CI/CD
 
-> Version 1.0 · 2026-10-08 · [Deploy](../deploy/)
+> Version 1.1 · 2026-10-08 · [Deploy](../deploy/)
 
 ## Overview
 
@@ -35,7 +35,7 @@ Non-prod (`APP_ENV != production`): `X-Robots-Tag: noindex` on all responses, Me
 2. **Merge → `develop`**: Vercel deploys staging; migrations applied to `umnyaut-dev`.
 3. **PR `develop` → `main`**: same checks + manual pass of staging on a real phone.
 4. **Merge → `main`**: image tagged with commit SHA pushed to GHCR → migrations applied to `umnyaut-prod` → server pulls the image over SSH and starts the new container next to the old → after `/api/health` passes, Caddy switches traffic → external smoke test → IndexNow submission.
-5. **Rollback**: one command starts the previous tag. Migrations are backward compatible so old code runs against the new schema.
+5. **Rollback**: one command starts the previous tag — `ssh deploy@<host> /srv/umnyaut/deploy.sh rollback`, or run the **Deploy** workflow manually with `rollback: true`. Migrations are backward compatible so old code runs against the new schema.
 6. **Scheduled**: daily uptime check; weekly DB backup and link check in texts; monthly Renovate dependency updates.
 
 Turborepo rebuilds/tests only affected packages: editing a text does not run formula tests.
@@ -67,7 +67,19 @@ External check every 5 min of `/api/health` and a tool page from nodes in Russia
 Secrets: `APP_ENV`, `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `TELEGRAM_API_ROOT`, `ANTHROPIC_API_KEY`, `ANTHROPIC_BASE_URL`, `AI_ENABLED`, `AI_MONTHLY_BUDGET_USD`, `METRIKA_ID`, `INDEXNOW_KEY`.
 
 - Staging: Vercel project settings. Prod: env file on the server readable only by the deploy user.
-- GitHub secrets: deploy SSH key, registry token.
+- GitHub Actions configuration (steps are skipped until their variables exist, so workflows stay green before the VPS and Supabase are ready):
+
+| Kind | Name | Used by |
+|---|---|---|
+| Variable | `SUPABASE_DEV_PROJECT_REF` | `db-dev.yml` |
+| Variable | `SUPABASE_PROD_PROJECT_REF` | `deploy.yml` (migrate) |
+| Variable | `DEPLOY_HOST`, `PROD_URL` | `deploy.yml` (deploy, smoke test) |
+| Variable | `BACKUP_ENABLED` = `true` | `backup.yml` |
+| Secret | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DEV_DB_PASSWORD`, `SUPABASE_PROD_DB_PASSWORD` | migrations |
+| Secret | `DEPLOY_SSH_KEY` (private key of the `deploy` user), `DEPLOY_KNOWN_HOSTS` (`ssh-keyscan <host>`) | `deploy.yml` |
+| Secret | `SUPABASE_PROD_DB_URL`, `BACKUP_PASSPHRASE` | `backup.yml` |
+
+GHCR uses the built-in `GITHUB_TOKEN`; the server logs in for the pull and logs out right after. GitHub environments `production` and `development` hold the secrets and can require manual approval.
 - Repo: only `.env.example`. Zod validates env on startup.
 
 Plans: Vercel Hobby (non-commercial clause — staging has no ads/payments; fallback = second container on the VPS or Pro), Supabase Free × 2 projects.
@@ -96,12 +108,15 @@ If none passes everything: host the site where visitor reachability is best and 
 
 | Path | Description |
 |---|---|
-| `infra/compose.yml` | `web` + `caddy` services |
-| `infra/Caddyfile` | TLS, compression, headers, upstream switch |
+| `infra/compose.yml` | `caddy` + `web-blue` / `web-green` slots (profile `slots`) |
+| `infra/Caddyfile` | TLS, zstd/gzip, `www` → apex, security headers, IP-masked JSON logs, upstream imported from `state/upstream.caddy` |
 | `infra/bootstrap.sh` | Server provisioning |
-| `infra/deploy.sh` | Blue/green-ish container swap + health check |
-| `apps/web/Dockerfile` | Next standalone image |
-| `.github/workflows/ci.yml` | PR checks |
+| `infra/deploy.sh` | `deploy <tag>` / `rollback` / `status`: start idle slot → wait for Docker health → reload Caddy → stop old slot |
+| `infra/server.env.example` | Compose `.env` on the server (`DOMAIN`, `ACME_EMAIL`) |
+| `apps/web/Dockerfile` | Next standalone image (Node 24 alpine, non-root, `HEALTHCHECK` on `/api/health/`, `APP_VERSION` build arg) |
+| `.github/workflows/ci.yml` | PR checks: Biome, guard, Steiger, tsc, tests, build; Docker image + smoke test; infra lint (shellcheck, compose, caddy validate) |
 | `.github/workflows/deploy.yml` | `main` → GHCR → VPS |
-| `.github/workflows/scheduled.yml` | Backups, uptime, link check |
+| `.github/workflows/db-dev.yml` | Migrations → `umnyaut-dev` on merge to `develop` |
+| `.github/workflows/backup.yml` | Weekly encrypted `pg_dump` of prod as an Actions artifact (35 days) |
+| `renovate.json` | Monthly dependency PRs into `develop`, grouped |
 | `.env.example` | Variable names only |

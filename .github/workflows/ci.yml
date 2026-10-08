@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  TURBO_TELEMETRY_DISABLED: 1
+  NEXT_TELEMETRY_DISABLED: 1
+
+jobs:
+  check:
+    name: Lint, types, tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Biome
+        run: pnpm lint
+      - name: Boundary guard
+        run: pnpm guard
+      - name: Steiger
+        run: pnpm steiger
+      - name: Typecheck, test, build
+        run: pnpm turbo run typecheck test build
+
+  docker:
+    name: Docker image + smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          build-args: APP_VERSION=${{ github.sha }}
+          tags: umnyaut-web:ci
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Run container and check /api/health and /
+        run: |
+          docker run -d --name web -p 3000:3000 -e APP_ENV=preview umnyaut-web:ci
+          for i in $(seq 1 30); do
+            status=$(docker inspect --format '{{.State.Health.Status}}' web)
+            [ "$status" = healthy ] && break
+            [ "$status" = unhealthy ] && break
+            sleep 2
+          done
+          docker logs web
+          test "$status" = healthy
+          curl -fsS http://localhost:3000/api/health/ | tee /dev/stderr | grep -q '"version":"${{ github.sha }}"'
+          curl -fsS http://localhost:3000/ | grep -q '<h1>'
+      - name: Container refuses to boot with invalid env
+        run: |
+          code=0; timeout 60 docker run --rm -e APP_ENV=bogus umnyaut-web:ci || code=$?
+          test "$code" -ne 0 && test "$code" -ne 124
+
+  infra:
+    name: Infra config
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: infra
+    steps:
+      - uses: actions/checkout@v7
+      - name: shellcheck
+        run: shellcheck bootstrap.sh deploy.sh
+      - name: compose config
+        run: |
+          touch web.env
+          DOMAIN=example.com ACME_EMAIL=ops@example.com BLUE_TAG=ci GREEN_TAG=ci \
+            docker compose --profile slots config --quiet
+      - name: caddy validate
+        run: |
+          mkdir -p state && echo 'reverse_proxy web-blue:3000' > state/upstream.caddy
+          docker run --rm -e DOMAIN=example.com -e ACME_EMAIL=ops@example.com \
+            -v "$PWD/Caddyfile:/etc/caddy/Caddyfile:ro" -v "$PWD/state:/etc/caddy/state:ro" \
+            caddy:2.11-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile

@@ -9,10 +9,16 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "supabase": "supabase",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:types": "supabase gen types typescript --local --schema public > src/types.ts && biome format --write src/types.ts"
   },
   "devDependencies": {
     "@umnyaut/tsconfig": "workspace:*",
-    "@umnyaut/vitest-config": "workspace:*"
+    "@umnyaut/vitest-config": "workspace:*",
+    "supabase": "2.120.0"
   }
 }

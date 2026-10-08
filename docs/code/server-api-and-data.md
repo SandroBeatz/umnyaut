@@ -1,12 +1,12 @@
 ---
-version: 1.0
+version: 1.1
 date: 2026-10-08
 category: code
 ---
 
 # Server API and Data
 
-> Version 1.0 · 2026-10-08 · [Code](../code/)
+> Version 1.1 · 2026-10-08 · [Code](../code/)
 
 ## Overview
 
@@ -36,7 +36,7 @@ The server exists for four jobs only: **saved projects**, the **Telegram webhook
 - Atomic operations are SQL functions called via `rpc()`: `hit_limit(key, max, window)`, `ai_usage_add(...)`, `project_touch(id)`.
 - `projects.data` validated by Zod, capped at 32 KB; contains dimensions, materials, formula versions — no personal data (until master header in stage 3).
 - Project id: 8 random chars without look-alikes (`0/O`, `1/l`). Enumeration blocked by read limits.
-- Migrations: numbered SQL files in `packages/db/migrations`, applied by Supabase CLI from CI. TS types generated from schema and committed.
+- Migrations: numbered SQL files (`NNNN_<snake_name>.sql`, created by hand — not `supabase migration new`, which uses timestamps) in `packages/db/supabase/migrations` (Supabase CLI workdir = `packages/db`), applied by Supabase CLI from CI: `db-dev.yml` on merge to `develop`, `deploy.yml` on `main`. Baseline `0001_init.sql` enables `pgcrypto` and `pg_cron` and revokes default privileges for `anon`/`authenticated` in `public`. TS types generated from schema and committed.
 - Cleanup via `pg_cron` daily: projects unopened for 12 months, error reports > 1 year, expired limit windows.
 - Backup: weekly `pg_dump` from GitHub Actions to private storage while on the Free plan.
 - Region: Frankfurt. Two projects: `umnyaut-dev`, `umnyaut-prod`.
@@ -124,7 +124,8 @@ Later stages add without restructuring: `accounts`, `price_lists`, `clients`, `s
 
 | Path | Description |
 |---|---|
-| `packages/db/migrations/NNNN_*.sql` | Numbered migrations |
+| `packages/db/supabase/migrations/NNNN_*.sql` | Numbered migrations |
+| `packages/db/supabase/config.toml` | Local stack config (`pnpm --filter @umnyaut/db db:start`; auth, storage, realtime off) |
 | `packages/db/src/types.ts` | Generated DB types |
 | `packages/db/src/queries/` | Query functions |
 | `apps/web/server/db/` | Server-side DB access (only entry point) |

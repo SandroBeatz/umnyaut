@@ -1,0 +1,53 @@
+# Prod stack on the VPS: Caddy in front of two app slots (blue/green) for zero-downtime swaps.
+# Lives in /srv/umnyaut next to `.env` (DOMAIN, ACME_EMAIL), `web.env` (app secrets) and `state/`.
+# Slots are started only by deploy.sh; `docker compose up -d` alone starts nothing but Caddy.
+
+name: umnyaut
+
+x-web: &web
+  env_file: ./web.env
+  restart: unless-stopped
+  networks: [edge]
+  security_opt:
+    - no-new-privileges:true
+  logging: &logging
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: "7"
+
+services:
+  caddy:
+    image: caddy:2.11-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./state:/etc/caddy/state:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [edge]
+    logging: *logging
+
+  web-blue:
+    <<: *web
+    image: ${WEB_IMAGE:-ghcr.io/sandrobeatz/umnyaut-web}:${BLUE_TAG:-unset}
+    profiles: [slots]
+
+  web-green:
+    <<: *web
+    image: ${WEB_IMAGE:-ghcr.io/sandrobeatz/umnyaut-web}:${GREEN_TAG:-unset}
+    profiles: [slots]
+
+networks:
+  edge: {}
+
+volumes:
+  caddy_data: {}
+  caddy_config: {}

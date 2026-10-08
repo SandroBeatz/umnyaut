@@ -1,0 +1,38 @@
+name: DB migrations (dev)
+
+# Merge to develop → apply new migrations to the `umnyaut-dev` Supabase project.
+# Runs once vars.SUPABASE_DEV_PROJECT_REF and secrets SUPABASE_ACCESS_TOKEN, SUPABASE_DEV_DB_PASSWORD are set.
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - packages/db/supabase/migrations/**
+  workflow_dispatch:
+
+concurrency:
+  group: db-dev
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    if: ${{ vars.SUPABASE_DEV_PROJECT_REF != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: development
+    defaults:
+      run:
+        working-directory: packages/db
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DEV_DB_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.120.0
+      - run: supabase link --project-ref ${{ vars.SUPABASE_DEV_PROJECT_REF }}
+      - run: supabase db push
