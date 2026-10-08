@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Умняут — калькуляторы ремонта скоро</title>
+<meta name="description" content="Введите размеры комнаты один раз — получите список покупок в пачках, рулонах и мешках с итогом. Скоро открываемся.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" media="(prefers-color-scheme: light)">
+<link rel="icon" href="/favicon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --color-bg: #FFFFFF;
+    --color-surface: #FFFFFF;
+    --color-surface-sunken: #F4F6F8;
+    --color-surface-mint: #EDF9F8;
+    --color-border: #E2E7ED;
+    --color-text: #0F1E34;
+    --color-text-muted: #55627A;
+    --color-text-subtle: #6B778C;
+    --color-primary: #157779;
+    --color-primary-hover: #0F6466;
+    --color-primary-soft: #D5F0EC;
+    --color-accent-soft: #FFF3E5;
+    --color-accent-text: #B45305;
+    --shadow-md: 0 4px 16px rgb(15 30 52 / .08);
+    --shadow-lg: 0 12px 32px rgb(15 30 52 / .14);
+    --ease: cubic-bezier(0.2, 0, 0, 1);
+    --font: "Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font: 400 1rem/1.5 var(--font);
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+
+  header { height: 64px; display: flex; align-items: center; }
+  .logo { display: block; height: 32px; width: auto; transform: translateY(7%); }
+
+  main { flex: 1; }
+  .hero {
+    display: grid;
+    gap: 24px;
+    padding-top: 16px;
+    padding-bottom: 40px;
+    align-items: center;
+  }
+  .hero > * { min-width: 0; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 16px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: var(--color-accent-soft);
+    color: var(--color-accent-text);
+    font: 500 .75rem/1rem var(--font);
+    letter-spacing: .02em;
+  }
+  .badge::before {
+    content: "";
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  h1 {
+    margin: 0 0 16px;
+    font: 800 2rem/2.375rem var(--font);
+    letter-spacing: -.01em;
+  }
+  h1 em { font-style: normal; color: var(--color-primary); }
+  .lead { margin: 0 0 24px; max-width: 34rem; color: var(--color-text-muted); }
+
+  .example {
+    max-width: 30rem;
+    padding: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-md);
+  }
+  .example-label { margin: 0 0 4px; font: 400 .875rem/1.25rem var(--font); color: var(--color-text-muted); }
+  .example-room { margin: 0 0 12px; font: 700 1.125rem/1.5rem var(--font); }
+  .nums { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .result { display: flex; align-items: baseline; gap: 8px; margin: 0; }
+  .result-num { font: 800 2.5rem/2.75rem var(--font); font-variant-numeric: tabular-nums; }
+  .result-unit { font: 600 1.25rem/1.75rem var(--font); }
+  .example-note { margin: 8px 0 0; font: 400 .875rem/1.25rem var(--font); color: var(--color-text-muted); }
+
+  .mascot {
+    position: relative;
+    justify-self: center;
+    width: min(100%, 360px);
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+  }
+  .mascot::before {
+    content: "";
+    position: absolute;
+    inset: 6% 4% 4%;
+    border-radius: 48% 52% 46% 54% / 52% 44% 56% 48%;
+    background: var(--color-surface-mint);
+  }
+  .mascot picture { position: relative; width: 82%; }
+  .mascot img { display: block; width: 100%; height: auto; animation: fade 200ms var(--ease) both; }
+  .bubble {
+    position: absolute;
+    top: 2%;
+    right: 0;
+    max-width: 13rem;
+    padding: 10px 14px;
+    border-radius: 16px 16px 16px 4px;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-lg);
+    font: 600 .875rem/1.25rem var(--font);
+  }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+  .tools { padding: 40px 0 48px; background: var(--color-surface-sunken); }
+  h2 { margin: 0 0 8px; font: 700 1.375rem/1.75rem var(--font); }
+  .tools-sub { margin: 0 0 20px; color: var(--color-text-muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .chips li {
+    padding: 8px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-surface);
+    font: 600 .875rem/1.25rem var(--font);
+  }
+
+  footer { padding: 24px 0; border-top: 1px solid var(--color-border); }
+  footer p { margin: 0; font: 400 .875rem/1.25rem var(--font); color: var(--color-text-muted); }
+
+  @media (min-width: 640px) {
+    .container { padding: 0 24px; }
+  }
+  @media (min-width: 1024px) {
+    .container { padding: 0 32px; }
+    header { height: 80px; }
+    .logo { height: 40px; }
+    .hero { grid-template-columns: 7fr 5fr; gap: 48px; padding-top: 48px; padding-bottom: 64px; }
+    h1 { font-size: 3rem; line-height: 3.375rem; }
+    .lead { font-size: 1.125rem; line-height: 1.75rem; }
+    .result-num { font-size: 3rem; line-height: 3.25rem; }
+    .result-unit { font-size: 1.375rem; }
+    .mascot { width: 100%; max-width: 440px; }
+    .bubble { top: 6%; right: -4%; }
+    .tools { padding: 56px 0 64px; }
+    h2 { font-size: 1.625rem; line-height: 2rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mascot img { animation: none; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" aria-label="Умняут — на главную"><img class="logo" src="/img/logo.svg" alt="Умняут" width="221" height="68"></a>
+    </div>
+  </header>
+
+  <main>
+    <section class="container hero" aria-labelledby="title">
+      <div>
+        <p class="badge">Скоро открываемся</p>
+        <h1 id="title">Посчитаем ремонт <em>до последней пачки</em></h1>
+        <p class="lead">Введите размеры комнаты один раз — и получите список покупок в&nbsp;пачках, рулонах и мешках с&nbsp;итогом. Без регистрации и&nbsp;кнопки «Рассчитать». Готовим калькуляторы — откроемся в&nbsp;конце ноября.</p>
+
+        <div class="example" aria-label="Пример расчёта">
+          <p class="example-label">Пример: ламинат</p>
+          <p class="example-room">Комната <span class="nums">4,6 × 4,3 м</span> · <span class="nums">19,8 м²</span></p>
+          <p class="result"><span class="result-num">10</span><span class="result-unit">пачек</span></p>
+          <p class="example-note">С запасом на подрезку <span class="nums">7 %</span>, пачка <span class="nums">2,131 м²</span></p>
+        </div>
+      </div>
+
+      <div class="mascot">
+        <picture>
+          <source type="image/avif" srcset="/img/cat-hello-320.avif 320w, /img/cat-hello-640.avif 640w" sizes="(min-width: 1024px) 360px, 300px">
+          <source type="image/webp" srcset="/img/cat-hello-320.webp 320w, /img/cat-hello-640.webp 640w" sizes="(min-width: 1024px) 360px, 300px">
+          <img src="/img/cat-hello-320.webp" alt="" width="320" height="319" decoding="async">
+        </picture>
+        <p class="bubble" aria-hidden="true">Готовлю калькуляторы. Загляните в&nbsp;конце ноября</p>
+      </div>
+    </section>
+
+    <section class="tools" aria-labelledby="tools-title">
+      <div class="container">
+        <h2 id="tools-title">Первые калькуляторы</h2>
+        <p class="tools-sub">Начнём с отделки пола, стен и плитки.</p>
+        <ul class="chips">
+          <li>Площадь комнаты</li>
+          <li>Площадь стен</li>
+          <li>Обои</li>
+          <li>Краска</li>
+          <li>Ламинат</li>
+          <li>Линолеум</li>
+          <li>Плинтус</li>
+          <li>Плитка</li>
+          <li>Плиточный клей</li>
+          <li>Затирка</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>© 2026 Умняут · Россия, Казахстан, Беларусь, Кыргызстан</p>
+    </div>
+  </footer>
+</body>
+</html>
