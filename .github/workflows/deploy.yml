@@ -2,8 +2,9 @@ name: Deploy
 
 # main → GHCR image (SHA tag) → prod migrations → VPS blue/green swap → external smoke test.
 # Migrations and the VPS steps run only once repo variables are set (see docs/deploy/environments-and-ci.md):
-#   vars.SUPABASE_PROD_PROJECT_REF, vars.DEPLOY_HOST, vars.PROD_URL
-# and secrets SUPABASE_ACCESS_TOKEN, SUPABASE_PROD_DB_PASSWORD, DEPLOY_SSH_KEY, DEPLOY_KNOWN_HOSTS.
+#   vars.SUPABASE_PROJECT_REF, vars.DEPLOY_HOST, vars.PROD_URL
+# and secrets SUPABASE_ACCESS_TOKEN, SUPABASE_DB_PASSWORD, DEPLOY_SSH_KEY, DEPLOY_KNOWN_HOSTS.
+# There is one Supabase project (prod); local dev uses the Docker stack, staging/previews run without a DB.
 
 on:
   push:
@@ -59,7 +60,7 @@ jobs:
 
   migrate:
     needs: image
-    if: ${{ vars.SUPABASE_PROD_PROJECT_REF != '' }}
+    if: ${{ vars.SUPABASE_PROJECT_REF != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: production
@@ -68,13 +69,13 @@ jobs:
         working-directory: packages/db
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_PROD_DB_PASSWORD }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
     steps:
       - uses: actions/checkout@v7
       - uses: supabase/setup-cli@v3
         with:
           version: 2.120.0
-      - run: supabase link --project-ref ${{ vars.SUPABASE_PROD_PROJECT_REF }}
+      - run: supabase link --project-ref ${{ vars.SUPABASE_PROJECT_REF }}
       - run: supabase db push
 
   deploy:

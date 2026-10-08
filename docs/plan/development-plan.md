@@ -124,7 +124,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 - [x] P2.4 `.github/workflows/ci.yml`: pnpm cache → Biome, Steiger, tsc → tests → `next build` → Docker build + container smoke test.
 - [ ] P2.5 `.github/workflows/deploy.yml` (on `main`): build & push to GHCR with SHA tag → migrations to prod → SSH deploy → external smoke test.
 - [ ] P2.6 Vercel project (A14) for `develop` + PR previews; `APP_ENV` → `X-Robots-Tag: noindex` middleware/headers for non-prod.
-- [ ] P2.7 Supabase `umnyaut-dev` / `umnyaut-prod` (A12, A13); `supabase init` in `packages/db`; local stack runs; migration `0001_init.sql` (empty schema + extensions); CI applies migrations to dev on merge to `develop`.
+- [ ] P2.7 Supabase project `umnyaut` — one, Free, prod only (A12, A13); `supabase init` in `packages/db`; local stack runs; migration `0001_init.sql` (empty schema + extensions); CI applies migrations to prod on merge to `main` (no dev project; staging runs without a DB).
 - [ ] P2.8 DNS switch (A16): `umnyaut.com` → VPS (removes Lovable stub), `staging` → Vercel.
 - [ ] P2.9 Registry-driven routes with **one empty tool** (`generateStaticParams`, `dynamicParams = false`).
 - [ ] P2.10 Renovate (A18); weekly `pg_dump` workflow (A25 can wait until Phase 9).
@@ -242,7 +242,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 **Goal:** a calculation can be saved, reopened elsewhere, reported; four countries configured.
 
-**Needs:** A12 (dev/prod), C07. **Install:** `@supabase/supabase-js` (db), `supabase` dev (db).
+**Needs:** A12, C07. Staging/previews have no DB: DB features must degrade to “unavailable on staging”. **Install:** `@supabase/supabase-js` (db), `supabase` dev (db).
 
 **Tasks**
 

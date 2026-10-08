@@ -1,12 +1,12 @@
 ---
-version: 1.1
+version: 1.2
 date: 2026-10-08
 category: deploy
 ---
 
 # Environments and CI/CD
 
-> Version 1.1 · 2026-10-08 · [Deploy](../deploy/)
+> Version 1.2 · 2026-10-08 · [Deploy](../deploy/)
 
 ## Overview
 
@@ -23,18 +23,20 @@ Production runs in **Docker on a VPS in the CIS** (branch `main`); staging and P
 | Env | Branch | Runs on | DB | Bot |
 |---|---|---|---|---|
 | Local | — | `localhost` | Supabase in Docker | Test bot via tunnel |
-| Preview | PR | Vercel, URL per PR | `umnyaut-dev` | — |
-| Staging | `develop` | Vercel, `staging.umnyaut.com` | `umnyaut-dev` | Test |
-| Prod | `main` | VPS, `umnyaut.com` | `umnyaut-prod` | Prod |
+| Preview | PR | Vercel, URL per PR | none | — |
+| Staging | `develop` | Vercel, `staging.umnyaut.com` | none | Test |
+| Prod | `main` | VPS, `umnyaut.com` | Supabase `umnyaut` | Prod |
+
+**One database.** There is a single Supabase Free project, used by prod only. Local development runs Supabase in Docker. Preview and staging run **without a DB**: `SUPABASE_*` are unset, `/api/health/` reports `db: skipped`, calculators work fully, and DB features (save project, error report, counters) answer “unavailable on staging” (implemented with the features in Phase 7). Never point staging at the prod DB — test data would mix with real projects and metrics.
 
 Non-prod (`APP_ENV != production`): `X-Robots-Tag: noindex` on all responses, Metrika and own counters off, small AI budget.
 
 ### Pipeline (GitHub Actions + GitHub Container Registry)
 
 1. **PR → `develop`**: pnpm install (cached) → Biome, Steiger, `tsc --noEmit` → tests → `next build` → Docker image build + container smoke test → Playwright and Lighthouse CI against the Vercel preview.
-2. **Merge → `develop`**: Vercel deploys staging; migrations applied to `umnyaut-dev`.
+2. **Merge → `develop`**: Vercel deploys staging (no DB, no migrations).
 3. **PR `develop` → `main`**: same checks + manual pass of staging on a real phone.
-4. **Merge → `main`**: image tagged with commit SHA pushed to GHCR → migrations applied to `umnyaut-prod` → server pulls the image over SSH and starts the new container next to the old → after `/api/health` passes, Caddy switches traffic → external smoke test → IndexNow submission.
+4. **Merge → `main`**: image tagged with commit SHA pushed to GHCR → migrations applied to the Supabase project → server pulls the image over SSH and starts the new container next to the old → after `/api/health` passes, Caddy switches traffic → external smoke test → IndexNow submission.
 5. **Rollback**: one command starts the previous tag — `ssh deploy@<host> /srv/umnyaut/deploy.sh rollback`, or run the **Deploy** workflow manually with `rollback: true`. Migrations are backward compatible so old code runs against the new schema.
 6. **Scheduled**: daily uptime check; weekly DB backup and link check in texts; monthly Renovate dependency updates.
 
@@ -71,18 +73,17 @@ Secrets: `APP_ENV`, `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `TELEGRAM_BOT_TOKEN`,
 
 | Kind | Name | Used by |
 |---|---|---|
-| Variable | `SUPABASE_DEV_PROJECT_REF` | `db-dev.yml` |
-| Variable | `SUPABASE_PROD_PROJECT_REF` | `deploy.yml` (migrate) |
+| Variable | `SUPABASE_PROJECT_REF` | `deploy.yml` (migrate) |
 | Variable | `DEPLOY_HOST`, `PROD_URL` | `deploy.yml` (deploy, smoke test) |
 | Variable | `BACKUP_ENABLED` = `true` | `backup.yml` |
-| Secret | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DEV_DB_PASSWORD`, `SUPABASE_PROD_DB_PASSWORD` | migrations |
+| Secret | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD` | migrations |
 | Secret | `DEPLOY_SSH_KEY` (private key of the `deploy` user), `DEPLOY_KNOWN_HOSTS` (`ssh-keyscan <host>`) | `deploy.yml` |
-| Secret | `SUPABASE_PROD_DB_URL`, `BACKUP_PASSPHRASE` | `backup.yml` |
+| Secret | `SUPABASE_DB_URL`, `BACKUP_PASSPHRASE` | `backup.yml` |
 
-GHCR uses the built-in `GITHUB_TOKEN`; the server logs in for the pull and logs out right after. GitHub environments `production` and `development` hold the secrets and can require manual approval.
+GHCR uses the built-in `GITHUB_TOKEN`; the server logs in for the pull and logs out right after. The GitHub environment `production` holds the secrets and can require manual approval.
 - Repo: only `.env.example`. Zod validates env on startup.
 
-Plans: Vercel Hobby (non-commercial clause — staging has no ads/payments; fallback = second container on the VPS or Pro), Supabase Free × 2 projects.
+Plans: Vercel Hobby (non-commercial clause — staging has no ads/payments; fallback = second container on the VPS or Pro), Supabase Free × 1 project.
 
 ## Usage
 
@@ -116,7 +117,6 @@ If none passes everything: host the site where visitor reachability is best and 
 | `apps/web/Dockerfile` | Next standalone image (Node 24 alpine, non-root, `HEALTHCHECK` on `/api/health/`, `APP_VERSION` build arg) |
 | `.github/workflows/ci.yml` | PR checks: Biome, guard, Steiger, tsc, tests, build; Docker image + smoke test; infra lint (shellcheck, compose, caddy validate) |
 | `.github/workflows/deploy.yml` | `main` → GHCR → VPS |
-| `.github/workflows/db-dev.yml` | Migrations → `umnyaut-dev` on merge to `develop` |
 | `.github/workflows/backup.yml` | Weekly encrypted `pg_dump` of prod as an Actions artifact (35 days) |
 | `renovate.json` | Monthly dependency PRs into `develop`, grouped |
 | `.env.example` | Variable names only |

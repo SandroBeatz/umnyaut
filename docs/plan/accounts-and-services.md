@@ -1,12 +1,12 @@
 ---
-version: 1.0
+version: 1.1
 date: 2026-10-08
 category: plan
 ---
 
 # Accounts and Services Registry
 
-> Version 1.0 · 2026-10-08 · [Plan](../plan/)
+> Version 1.1 · 2026-10-08 · [Plan](../plan/)
 
 ## Overview
 
@@ -39,8 +39,8 @@ Rules:
 
 | ID | Service | Action | Produces | Stored in |
 |---|---|---|---|---|
-| A12 | Supabase | Create org; two projects `umnyaut-dev` and `umnyaut-prod`, region **Frankfurt (eu-central-1)**, Free plan | `SUPABASE_URL`, **secret key** (`sb_secret_…`) per project, DB password | Password manager → Vercel (dev), server env (prod) |
-| A13 | Supabase CLI access token | `supabase login`; create a personal access token for CI | `SUPABASE_ACCESS_TOKEN`, project refs | GitHub Actions secrets |
+| A12 | Supabase | Create org; **one** project `umnyaut`, region **Frankfurt (eu-central-1)**, Free plan (prod only; staging has no DB) | `SUPABASE_URL`, **secret key** (`sb_secret_…`), DB password, DB connection string | Password manager → server env (`web.env`), GitHub secrets (`SUPABASE_DB_PASSWORD`, `SUPABASE_DB_URL`) |
+| A13 | Supabase CLI access token | `supabase login`; create a personal access token for CI | `SUPABASE_ACCESS_TOKEN` (secret), `SUPABASE_PROJECT_REF` (variable) | GitHub Actions |
 | A14 | Vercel | Sign in with GitHub; import repo; root `apps/web`; production branch = `develop` (this Vercel project is staging only); Hobby plan; add domain `staging.umnyaut.com`; set `APP_ENV=staging` | Preview URL per PR, staging URL | Vercel |
 | A15 | GitHub Actions secrets | `VPS_HOST`, `VPS_SSH_KEY` (deploy user key), `VPS_USER`, `GHCR_TOKEN` (or use `GITHUB_TOKEN`), `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD_DEV/PROD`, `INDEXNOW_KEY` | CI/CD access | GitHub |
 | A16 | DNS records | `umnyaut.com` A/AAAA → VPS; `www` → apex redirect (Caddy); `staging` CNAME → Vercel | Live domains | Registrar |
@@ -90,7 +90,7 @@ Rules:
 
 | ID | Service | Action |
 |---|---|---|
-| A38 | Supabase Pro ($25/mo) | Upgrade `umnyaut-prod` with the first paying user (no pausing, managed backups) |
+| A38 | Supabase Pro ($25/mo) | Upgrade the `umnyaut` project with the first paying user (no pausing, managed backups) |
 | A39 | Supabase Auth | Email OTP provider + SMTP for codes (domain mailbox or transactional email service) |
 | A40 | Payment provider | Chosen after A37; implements `PaymentProvider` |
 | A41 | Vercel Pro (optional) | Only if Hobby non-commercial terms become a problem; alternative — second container on VPS |
@@ -102,8 +102,8 @@ Environment variables by environment (filled from the rows above):
 | Variable | Local | Preview / Staging (Vercel) | Prod (VPS env file) | Source |
 |---|---|---|---|---|
 | `APP_ENV` | `local` | `preview` / `staging` | `production` | — |
-| `SUPABASE_URL` | local Docker | dev project | prod project | A12 |
-| `SUPABASE_SECRET_KEY` | local | dev secret | prod secret | A12 |
+| `SUPABASE_URL` | local Docker | — (no DB) | project URL | A12 |
+| `SUPABASE_SECRET_KEY` | local | — (no DB) | secret key | A12 |
 | `METRIKA_ID` | — | — (analytics off) | counter id | A10 |
 | `INDEXNOW_KEY` | — | — | key | A22 |
 | `TELEGRAM_BOT_TOKEN` | test | test | prod | A27/A28 |

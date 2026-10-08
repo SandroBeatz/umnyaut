@@ -26,7 +26,7 @@ Keeps “the browser never touches the DB” true as the schema grows. Source sp
 5. **Personal data**: if the change stores names, phones or similar — stop and flag it (needs the lawyer's answer before stage 3; `master` block is kept separable).
 6. Apply locally (`pnpm --filter @umnyaut/db db:start`, then `pnpm --filter @umnyaut/db db:reset`), regenerate types (`pnpm --filter @umnyaut/db db:types`), update query functions, run API tests and `tsc`.
 7. Optionally run Supabase advisors (security/performance) on **dev only** and report.
-8. Never apply to `umnyaut-prod` from here — CI does that on merge to `main`.
+8. Never apply to the Supabase project from here — it is the prod DB; CI applies migrations on merge to `main`.
 
 ## Acceptance checklist
 

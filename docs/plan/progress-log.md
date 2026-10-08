@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-08
 
+- **—** Decision (owner): **one** Supabase Free project `umnyaut`, prod only. Local dev uses the Docker stack; preview/staging run without a DB (DB features answer “unavailable on staging” from Phase 7). `db-dev.yml` removed; variables renamed to `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`, `SUPABASE_DB_URL`.
+  - Where: `feature/phase-2-infra` · PR #138
+  - Deviation: docs planned two projects (`umnyaut-dev`, `umnyaut-prod`); environments, data, accounts docs, plan (P2.7, Phase 7 needs) and platform-engineer agent updated. RU tech spec still says two.
 - **P2.1, P2.3, P2.4** Prod Docker image (`apps/web/Dockerfile`: Node 24 alpine, `pnpm fetch` layer, standalone, user `node`, `HEALTHCHECK`, `APP_VERSION`), `GET /api/health/` (`{ ok, data: { version, env, db } }`; DB ping via Supabase REST, `skipped` until configured, 503 on failure; 4 tests), CI `ci.yml` (Biome, guard, Steiger, tsc, tests, build; Docker build + container smoke test incl. invalid-env refusal; infra lint).
   - Where: `feature/phase-2-infra`
   - Notes: the image was not built locally (Docker Desktop did not start); first real build and smoke test passed in CI on PR #138.
@@ -49,9 +52,9 @@ Each entry:
 - **P2.2, P2.5, P2.7, P2.10 (partly)** Code side done, account/server side open:
   - P2.2 `infra/compose.yml` (Caddy + blue/green slots), `Caddyfile` (TLS, zstd/gzip, `www`→apex, headers, IP-masked logs), `bootstrap.sh`, `deploy.sh deploy|rollback|status`. Left: run on a real VPS (needs P0.6).
   - P2.5 `deploy.yml`: GHCR push on every `main` push; migrate, SSH deploy, smoke test and manual rollback run once repo variables/secrets exist. Left: VPS, secrets, first deploy, one rollback test.
-  - P2.7 `supabase init` in `packages/db` (local auth/storage/realtime/edge/analytics off), `0001_init.sql` (`pgcrypto`, `pg_cron`, default privileges revoked from `anon`/`authenticated`), `db-dev.yml`, `db:*` scripts. Left: create `umnyaut-dev`/`umnyaut-prod` (A12, A13), set variables/secrets, run the local stack once (needs Docker), generate `src/types.ts`.
+  - P2.7 `supabase init` in `packages/db` (local auth/storage/realtime/edge/analytics off), `0001_init.sql` (`pgcrypto`, `pg_cron`, default privileges revoked from `anon`/`authenticated`), `db:*` scripts. Left: create the Supabase project (A12, A13), set variables/secrets, run the local stack once (needs Docker), generate `src/types.ts`.
   - P2.10 `renovate.json` (monthly, into `develop`, grouped, Node < 25) and `backup.yml` (weekly `pg_dump`, AES-encrypted artifact, 35 days). Left: install the Renovate app (A18), set backup variables/secrets.
-  - Deviation: migrations live in `packages/db/supabase/migrations/` (Supabase CLI requires `<workdir>/supabase/migrations`), not `packages/db/migrations` — data doc and `db-migration` skill updated; the RU tech spec still says the old path. The plan's `scheduled.yml` is split into `backup.yml` and `db-dev.yml`; uptime checks stay in Phase 9 (P9.9). Backups are GitHub artifacts encrypted with a passphrase because the repo is public.
+  - Deviation: migrations live in `packages/db/supabase/migrations/` (Supabase CLI requires `<workdir>/supabase/migrations`), not `packages/db/migrations` — data doc and `db-migration` skill updated; the RU tech spec still says the old path. The plan's `scheduled.yml` became `backup.yml`; uptime checks stay in Phase 9 (P9.9). Backups are GitHub artifacts encrypted with a passphrase because the repo is public.
 - **P1.1–P1.11** Phase 1 monorepo foundation: pnpm 12 workspaces + Turborepo 2.11, Node 24 pin, shared `tooling/{tsconfig,vitest}`, root `biome.json`, package skeletons `@umnyaut/{calc,catalog,ui,db}`, `apps/web` (Next 16.4 standalone, `trailingSlash`, React Compiler, Tailwind 4, FSD folders), `server/platform` (`env.ts` with Zod + tests, `client-ip.ts`, `after.ts`), boundary guard, `.env.example`, Claude permissions, `preflight` skill built. Exit gate passed: `pnpm check` green on a clean clone; importing `server/` from `src/` fails `pnpm guard`, Biome and `next build`.
   - Where: `feature/phase-1-foundation` · PR #137 · merged into `develop` (`8296f1a`)
   - Notes: spike result — TypeScript 7.0.2 works with Next 16.4, Vitest 5 and Steiger 0.7 (recorded in [Dependencies](./dependencies.md)). Vercel still serves `stub/` (root `vercel.json` has empty install/build commands).
