@@ -4,7 +4,7 @@ UmnyAut («Умняут») is a Russian-language renovation calculator service: 
 
 ## Status
 
-Repo reset on 2026-10-08 (previous crossword project removed). Only `docs/` exists; code starts with milestone 1.1 (see `docs/plan/development-plan.md`). Source specs (Russian) in `docs/specs/` are the source of truth; English digests in `docs/**`.
+Repo reset on 2026-10-08 (previous crossword project removed). Phase 1 monorepo skeleton is in place (`apps/web`, `packages/{calc,catalog,ui,db}`, `tooling/`); `pnpm check` runs every gate. Next: Phases 2–4 (see `docs/plan/development-plan.md`). Use Node 24 (`.nvmrc`) and pnpm 12 via corepack. Source specs (Russian) in `docs/specs/` are the source of truth; English digests in `docs/**`.
 
 ## Stack
 

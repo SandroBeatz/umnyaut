@@ -62,7 +62,7 @@ Each file in `skills/` is a **spec**: a versioned, host-neutral description of o
 | [Tool Content](./skills/tool-content.md) | 1.0 | built | claude-code |
 | [UI Component](./skills/ui-component.md) | 1.0 | built | claude-code |
 | [DB Migration](./skills/db-migration.md) | 1.0 | built | claude-code |
-| [Preflight](./skills/preflight.md) | 1.0 | draft | — |
+| [Preflight](./skills/preflight.md) | 1.1 | built | claude-code |
 
 ## Agent specifications
 

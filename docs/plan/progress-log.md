@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-08
 
+- **P1.1–P1.11** Phase 1 monorepo foundation: pnpm 12 workspaces + Turborepo 2.11, Node 24 pin, shared `tooling/{tsconfig,vitest}`, root `biome.json`, package skeletons `@umnyaut/{calc,catalog,ui,db}`, `apps/web` (Next 16.4 standalone, `trailingSlash`, React Compiler, Tailwind 4, FSD folders), `server/platform` (`env.ts` with Zod + tests, `client-ip.ts`, `after.ts`), boundary guard, `.env.example`, Claude permissions, `preflight` skill built. Exit gate passed: `pnpm check` green on a clean clone; importing `server/` from `src/` fails `pnpm guard`, Biome and `next build`.
+  - Where: `feature/phase-1-foundation`
+  - Notes: spike result — TypeScript 7.0.2 works with Next 16.4, Vitest 5 and Steiger 0.7 (recorded in [Dependencies](./dependencies.md)). Vercel still serves `stub/` (root `vercel.json` has empty install/build commands).
+  - Deviation: (1) Steiger 0.7 hardcodes FSD layer names and ignores `views`, so layer order (incl. `views`) is enforced by `tooling/scripts/check-boundaries.mjs` (`pnpm guard`) — [Architecture Overview](../architecture/overview.md) updated. (2) No `tooling/biome` package: one `biome.json` at the root is enough. (3) Biome, guard and Steiger run as root scripts, not Turborepo tasks (they scan the whole repo in milliseconds); Turborepo runs `typecheck`, `test`, `build`. (4) `zod` added to `calc`/`catalog` now (plan said Phase 4) so the allowed-deps rule is real from day one. (5) Turborepo 2.11 writes an agent-guidance block into `AGENTS.md`; disabled with `"agentGuidance": false` in `turbo.json`.
 - **P0.1** Reset the repo for UmnyAut: removed the old crossword project, added `docs/` (reference docs, skill and agent specs, plan), `AGENTS.md`, `CLAUDE.md`; built skills and agents.
   - Where: `develop` · `1b73084`
 - **—** Merged the legacy remote `develop` history into the new tree, keeping only the UmnyAut files, so no force-push is needed.
