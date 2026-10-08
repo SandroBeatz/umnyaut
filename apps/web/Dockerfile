@@ -13,7 +13,7 @@ WORKDIR /repo
 FROM base AS build
 # Fetch the store from the lockfile alone so this layer survives source edits.
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm fetch --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm fetch
 COPY . .
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --offline --frozen-lockfile --filter "web..."
 RUN pnpm --filter web build

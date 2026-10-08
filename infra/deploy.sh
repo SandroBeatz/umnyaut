@@ -73,8 +73,8 @@ start_slot() {
 
 cmd_deploy() {
   local tag=${1:?usage: deploy.sh deploy <image-tag>}
-  local next
-  next=$( [[ -z $ACTIVE ]] && echo blue || other "$ACTIVE" )
+  local next=blue
+  [[ -n $ACTIVE ]] && next=$(other "$ACTIVE")
   if [[ $next == blue ]]; then BLUE_TAG=$tag; else GREEN_TAG=$tag; fi
   log "starting $tag in web-$next"
   start_slot "$next"
