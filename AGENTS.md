@@ -26,7 +26,7 @@ pnpm workspaces + Turborepo, Node 24 · Next.js 16 App Router, React 19.2 + Comp
 
 ## Workflow
 
-Feature branch → PR into `develop` → staging → PR `develop` → `main` → prod. Before a PR run the CI chain locally (Biome, Steiger, tsc, tests, build, server-HTML guard). Verify current library APIs via Context7.
+Feature branch → PR into `develop` → staging → PR `develop` → `main` → prod. Every finished step: tick its task in `docs/plan/development-plan.md` and add an entry to `docs/plan/progress-log.md` in the same commit (rules inside the log). Before a PR run the CI chain locally (Biome, Steiger, tsc, tests, build, server-HTML guard). Verify current library APIs via Context7.
 
 ## Skills and agents
 

@@ -1,12 +1,12 @@
 ---
-version: 2.0
+version: 2.1
 date: 2026-10-08
 category: plan
 ---
 
 # Development Plan
 
-> Version 2.0 · 2026-10-08 · [Plan](../plan/)
+> Version 2.1 · 2026-10-08 · [Plan](../plan/)
 
 ## Overview
 
@@ -20,6 +20,8 @@ Every phase has the same structure:
 - **Tasks** — checkboxes with IDs (`P3.4`), each with a verifiable result;
 - **Exit gate** — objective conditions to move on;
 - **Who** — which agent / skill does the work (`.claude/agents`, `.claude/skills`).
+
+When a task is done, tick it here and add an entry to the [Progress Log](./progress-log.md) in the same commit.
 
 Capacity: 8–10 h/week. Rule from the tech spec: **one tool goes all the way to prod before the other nine are written** — “Wall area” must be live on `umnyaut.com` by **8 Nov 2026**.
 
@@ -445,6 +447,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 - [Accounts and Services](./accounts-and-services.md) — `A…` IDs
 - [Dependencies](./dependencies.md) — packages and versions
 - [Content and Assets Plan](./content-plan.md) — `C…`/`G…` IDs
+- [Progress Log](./progress-log.md) — what was actually done, when and where; every ticked task has an entry there
 - [Architecture Overview](../architecture/overview.md), [Calculation Engine](../code/calc-engine.md), [Calculator Shell](../ui/calculator-shell-and-pages.md), [Design System](../design/design-system.md), [Server API and Data](../code/server-api-and-data.md), [Environments and CI/CD](../deploy/environments-and-ci.md), [SEO and Analytics](../business/seo-and-analytics.md)
 - Agents and skills: [docs/README.md](../README.md)
 - Sources: business spec §4, §5, §14; tech spec §15, §19; design spec §18; `docs/specs/umnyaut-roadmap.mjs` (104 tasks; `node docs/specs/umnyaut-roadmap.mjs --md out.md`)

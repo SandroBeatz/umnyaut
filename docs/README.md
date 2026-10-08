@@ -41,11 +41,12 @@ UmnyAut («Умняут») — renovation calculators: enter room dimensions, ge
 | [Telegram Bot and Mini App](./integrations/telegram-bot.md) | 1.0 |
 | [AI Vision Features](./integrations/ai-vision.md) | 1.0 |
 | [Environments and CI/CD](./deploy/environments-and-ci.md) | 1.0 |
-| [Engineering Practices](./practices/engineering-practices.md) | 1.0 |
-| [Development Plan](./plan/development-plan.md) | 2.0 |
+| [Engineering Practices](./practices/engineering-practices.md) | 1.1 |
+| [Development Plan](./plan/development-plan.md) | 2.1 |
 | [Accounts and Services](./plan/accounts-and-services.md) | 1.0 |
 | [Dependencies](./plan/dependencies.md) | 1.0 |
 | [Content and Assets Plan](./plan/content-plan.md) | 1.0 |
+| [Progress Log](./plan/progress-log.md) | 1.0 |
 
 ## Skill specifications
 
