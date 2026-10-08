@@ -89,7 +89,7 @@ umnyaut/
 | `apps/web/server` | all packages | components from `src/` |
 | `apps/web/app` | `src/views`, `server` | business logic inside route files |
 
-Enforcement: Steiger checks FSD layers; package boundaries are enforced by `package.json` dependencies; every file in `server/` starts with `import "server-only"` so a browser import breaks the build.
+Enforcement: Steiger checks FSD slice structure; package boundaries are enforced by `package.json` dependencies; every file in `server/` starts with `import "server-only"` so a browser import breaks the build. `tooling/scripts/check-boundaries.mjs` (`pnpm guard`, also run before `next build`) checks all of the rules in this table plus FSD layer order — Steiger 0.7 hardcodes layer names and does not see `views`. Biome `noRestrictedImports` gives the same signal for `src → server` and `calc` imports in the editor.
 
 **Platform layer** (`server/platform/`) exposes exactly three things: validated env vars, client IP from the proxy header, and post-response work via Next `after()`. No Vercel-only APIs anywhere — prod (VPS) and staging (Vercel) both run Node.js; `APP_ENV` distinguishes them.
 

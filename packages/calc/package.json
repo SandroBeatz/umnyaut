@@ -1,0 +1,21 @@
+{
+  "name": "@umnyaut/calc",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@umnyaut/tsconfig": "workspace:*",
+    "@umnyaut/vitest-config": "workspace:*"
+  }
+}

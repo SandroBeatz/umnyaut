@@ -1,0 +1,87 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "includes": ["**", "!docs", "!stub", "!.claude", "!**/next-env.d.ts"]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 120
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "always",
+      "trailingCommas": "all"
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended"
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["apps/web/src/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "@umnyaut/db": "apps/web/src never touches the database; go through an API route."
+                },
+                "patterns": [
+                  {
+                    "group": ["@server/**", "**/server/**"],
+                    "message": "apps/web/src must not import server/ code."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["packages/calc/src/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["*", "!zod", "!vitest", "!fast-check", "!./**", "!../**"],
+                    "message": "packages/calc may import only zod."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

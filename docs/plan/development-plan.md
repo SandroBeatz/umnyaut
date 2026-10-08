@@ -92,17 +92,17 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 **Tasks**
 
-- [ ] P1.1 `pnpm-workspace.yaml` (`apps/*`, `packages/*`, `tooling/*`), `turbo.json` (lint, typecheck, test, build with correct `dependsOn`/outputs), `.nvmrc` = 24, `engines`.
-- [ ] P1.2 Version spike: TypeScript 7 with Next 16.4 + Vitest 5 + Steiger. Pin result in `dependencies.md`.
-- [ ] P1.3 `tooling/tsconfig` (strict, `noUncheckedIndexedAccess`), `tooling/biome` (`biome.json` at root), `tooling/vitest` shared config.
-- [ ] P1.4 Packages skeletons with `package.json` + `src/index.ts`: `@umnyaut/calc`, `@umnyaut/catalog`, `@umnyaut/ui`, `@umnyaut/db`. Enforce allowed deps (calc → zod only).
-- [ ] P1.5 `apps/web`: Next 16 with `output: "standalone"`, `trailingSlash: true`, React Compiler on; folders `app/`, `src/{views,widgets,features,entities,shared}`, `server/`, `content/`, `e2e/`.
-- [ ] P1.6 Steiger config with FSD plugin; `views` as pages layer.
-- [ ] P1.7 `server/platform/`: `env.ts` (Zod schema, fail fast), `client-ip.ts`, `after.ts`; rule `import "server-only"` (Biome/grep check in CI).
-- [ ] P1.8 Root scripts: `lint`, `format`, `typecheck`, `test`, `build`, `steiger`, `check` (all).
-- [ ] P1.9 `.env.example` with all variable names; `.gitignore` updated (`.next`, `.turbo`, `coverage`, `.env*`).
-- [ ] P1.10 Update `.claude/settings.json` permissions for pnpm/turbo/supabase (old npm/bd entries out).
-- [ ] P1.11 Build the `preflight` skill (spec status draft → ready → built).
+- [x] P1.1 `pnpm-workspace.yaml` (`apps/*`, `packages/*`, `tooling/*`), `turbo.json` (lint, typecheck, test, build with correct `dependsOn`/outputs), `.nvmrc` = 24, `engines`.
+- [x] P1.2 Version spike: TypeScript 7 with Next 16.4 + Vitest 5 + Steiger. Pin result in `dependencies.md`.
+- [x] P1.3 `tooling/tsconfig` (strict, `noUncheckedIndexedAccess`), `tooling/biome` (`biome.json` at root), `tooling/vitest` shared config.
+- [x] P1.4 Packages skeletons with `package.json` + `src/index.ts`: `@umnyaut/calc`, `@umnyaut/catalog`, `@umnyaut/ui`, `@umnyaut/db`. Enforce allowed deps (calc → zod only).
+- [x] P1.5 `apps/web`: Next 16 with `output: "standalone"`, `trailingSlash: true`, React Compiler on; folders `app/`, `src/{views,widgets,features,entities,shared}`, `server/`, `content/`, `e2e/`.
+- [x] P1.6 Steiger config with FSD plugin; `views` as pages layer.
+- [x] P1.7 `server/platform/`: `env.ts` (Zod schema, fail fast), `client-ip.ts`, `after.ts`; rule `import "server-only"` (Biome/grep check in CI).
+- [x] P1.8 Root scripts: `lint`, `format`, `typecheck`, `test`, `build`, `steiger`, `check` (all).
+- [x] P1.9 `.env.example` with all variable names; `.gitignore` updated (`.next`, `.turbo`, `coverage`, `.env*`).
+- [x] P1.10 Update `.claude/settings.json` permissions for pnpm/turbo/supabase (old npm/bd entries out).
+- [x] P1.11 Build the `preflight` skill (spec status draft → ready → built).
 
 **Exit gate:** `pnpm check` green on a clean clone; `import` of `server/` from `src/` fails the build.
 
