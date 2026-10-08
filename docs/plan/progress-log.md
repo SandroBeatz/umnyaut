@@ -44,7 +44,8 @@ Each entry:
 
 - **P2.1, P2.3, P2.4** Prod Docker image (`apps/web/Dockerfile`: Node 24 alpine, `pnpm fetch` layer, standalone, user `node`, `HEALTHCHECK`, `APP_VERSION`), `GET /api/health/` (`{ ok, data: { version, env, db } }`; DB ping via Supabase REST, `skipped` until configured, 503 on failure; 4 tests), CI `ci.yml` (Biome, guard, Steiger, tsc, tests, build; Docker build + container smoke test incl. invalid-env refusal; infra lint).
   - Where: `feature/phase-2-infra`
-  - Notes: the image was not built locally (Docker Desktop did not start); the CI `docker` job on the PR is the first real build.
+  - Notes: the image was not built locally (Docker Desktop did not start); first real build and smoke test passed in CI on PR #138.
+  - Open issue: Vercel deployments fail (0 s, before build) since PR #137 — every preview and the `develop` push. Prod on Vercel (`main` = stub) is unaffected. Logs need a Vercel login; likely cause is the new root `package.json` (`packageManager: pnpm@12`, `engines`), fix belongs to P2.6.
 - **P2.2, P2.5, P2.7, P2.10 (partly)** Code side done, account/server side open:
   - P2.2 `infra/compose.yml` (Caddy + blue/green slots), `Caddyfile` (TLS, zstd/gzip, `www`→apex, headers, IP-masked logs), `bootstrap.sh`, `deploy.sh deploy|rollback|status`. Left: run on a real VPS (needs P0.6).
   - P2.5 `deploy.yml`: GHCR push on every `main` push; migrate, SSH deploy, smoke test and manual rollback run once repo variables/secrets exist. Left: VPS, secrets, first deploy, one rollback test.
