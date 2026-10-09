@@ -78,12 +78,15 @@ export const kraska: ToolDef = {
     ceiling: "Потолок = {length} × {width} = {area} м²",
     area: "Всего = {walls} + {ceiling} = {area} м²",
     paint: "Краска = {area} × {coats} слоя / {coverage} м²/л = {litres} л",
+    cans_set: "Набор банок с наименьшим остатком: {bought} л на {litres} л, из равных — меньше банок",
     cans: "Банка {size} л — {count} шт.",
     primer: "Грунтовка = {area} × {rate} л/м² = {litres} л → {packs} × {size} л",
   },
   warnings: {
     opening_too_tall: "Проём {height} м выше стены {wall} м. Проверьте высоту проёма или потолка",
     openings_exceed_walls: "Окна и двери больше площади стен. Проверьте их размеры",
+    primer_small_need:
+      "Грунтовки нужно всего {need} л, а канистра {size} л. Посмотрите упаковку 1 л — поле «Объём канистры»",
   },
   norms: ["paint.coverage", "paint.coats", "primer.consumption"],
 };

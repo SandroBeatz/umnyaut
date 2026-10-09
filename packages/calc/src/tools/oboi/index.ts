@@ -156,10 +156,8 @@ export const oboi: ToolModule<OboiInput> = {
       if (cut.rolls > stripRolls) steps.push({ code: "pieces_rolls", values: { extra: cut.rolls - stripRolls } });
       steps.push({ code: "rolls", values: { rolls: cut.rolls, tail: mmToM(tailMm) } });
       // Strips that use the roll almost to the end: a roll shorter within the tolerance gives one strip less.
-      const lead = i.repeatMm > 0 ? i.repeatMm - 1 : 0;
-      const slackMm = i.rollLengthMm - lead - cut.perRoll * alignedMm + (alignedMm - stripMm);
-      if (cut.perRoll > 0 && slackMm < ROLL_TOLERANCE * i.rollLengthMm) {
-        warnings.push({ code: "roll_tight", level: "info", values: { slack: mmToM(Math.max(slackMm, 0)) } });
+      if (cut.perRoll > 0 && cut.perRollSlackMm < ROLL_TOLERANCE * i.rollLengthMm) {
+        warnings.push({ code: "roll_tight", level: "info", values: { slack: mmToM(cut.perRollSlackMm) } });
       }
     } else if (cut.tooLong === "piece") {
       warnings.push({ code: "piece_longer_than_roll", level: "warning", values: { roll: mmToM(i.rollLengthMm) } });

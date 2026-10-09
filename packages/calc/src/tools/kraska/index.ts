@@ -109,6 +109,8 @@ export const kraska: ToolModule<KraskaInput> = {
       i.cansMl.map((ml) => ml / 1000),
     );
     steps.push({ code: "paint", values: { area: areaM2, coats: i.coats, coverage: i.coverageM2PerL, litres: paintL } });
+    const boughtL = items.reduce((sum, line) => sum + line.bought.value, 0);
+    steps.push({ code: "cans_set", values: { litres: paintL, bought: boughtL } });
     for (const line of items) steps.push({ code: "cans", values: { count: line.packs, size: line.pack.size.value } });
 
     const summary: ToolResult["summary"][number][] = [
@@ -127,6 +129,10 @@ export const kraska: ToolModule<KraskaInput> = {
         },
       );
       items.push(primer);
+      // One canister size by owner's decision; say so when it is far more than the room needs.
+      if (primer.leftover.value > 4 * primerL) {
+        warnings.push({ code: "primer_small_need", level: "info", values: { need: primerL, size: i.primerPackL } });
+      }
       summary.push({ key: "primerLitres", value: primerL, unit: "l" });
       steps.push({
         code: "primer",

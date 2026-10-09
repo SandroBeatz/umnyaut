@@ -41,7 +41,7 @@ export const golden: GoldenFile<KraskaInput> = {
       name: "Ceiling only: 2.7 l + two 0.9 l cans",
       input: { surface: "ceiling" },
       expected: {
-        items: { paint: { bought: 4.5 }, primer: { packs: 1, need: 2.967 } },
+        items: { paint: { packs: 3, bought: 4.5 }, primer: { packs: 1, need: 2.967 } },
         summary: { paintLitres: 3.956, area: 19.78 },
       },
       source: {
@@ -53,7 +53,7 @@ export const golden: GoldenFile<KraskaInput> = {
       name: "Walls and ceiling: 9 + 2.7 + 2 × 0.9 l",
       input: { surface: "both" },
       expected: {
-        items: { paint: { bought: 13.5 }, primer: { packs: 1, need: 9.684 } },
+        items: { paint: { packs: 4, bought: 13.5 }, primer: { packs: 1, need: 9.684 } },
         summary: { paintLitres: 12.912, area: 64.56 },
       },
       source: {
@@ -64,7 +64,7 @@ export const golden: GoldenFile<KraskaInput> = {
     {
       name: "One coat",
       input: { coats: 1 },
-      expected: { items: { paint: { bought: 4.5 } }, summary: { paintLitres: 4.478 } },
+      expected: { items: { paint: { packs: 3, bought: 4.5 } }, summary: { paintLitres: 4.478 } },
       source: { kind: "manual", ref: "44,78 / 10 = 4,478 л → 4,5 л: 2,7 + 0,9 + 0,9" },
     },
     {
@@ -91,6 +91,7 @@ export const golden: GoldenFile<KraskaInput> = {
       expected: {
         items: { paint: { packs: 1, need: 0.51, bought: 0.9 }, primer: { packs: 1, need: 0.3825, bought: 1 } },
         summary: { area: 2.55 },
+        warnings: [],
       },
       source: {
         kind: "manual",
@@ -131,6 +132,18 @@ export const golden: GoldenFile<KraskaInput> = {
       source: {
         kind: "manual",
         ref: "37,8 − 0,9 × 2,8 = 35,28 м² × 2 / 10 = 7,056 л → 7,2 л = 2,7 + 2,7 + 0,9 + 0,9 (8,1 = 3 × 2,7 переплатит больше)",
+      },
+    },
+    {
+      name: "Tiny room 0.3 × 0.3 m: a 10 l canister for half a litre is flagged",
+      input: { lengthMm: 300, widthMm: 300, openings: [] },
+      expected: {
+        items: { paint: { packs: 1, need: 0.648 }, primer: { packs: 1, need: 0.486, leftover: 9.514 } },
+        warnings: ["primer_small_need"],
+      },
+      source: {
+        kind: "manual",
+        ref: "Стены 1,2 × 2,7 = 3,24 м² × 2 / 10 = 0,648 л → 0,9 л; грунт 0,486 л → канистра 10 л (решение владельца: один объём), остаток 9,5 л > 4 × нужного — подсказка про 1 л",
       },
     },
     {

@@ -27,6 +27,8 @@ export interface StripCut {
   rolls: number;
   /** Full strips a fresh roll gives. */
   perRoll: number;
+  /** What a fresh roll leaves after those strips, mm (for the tight-roll warning). */
+  perRollSlackMm: number;
   /** Unused tail of each roll, mm. */
   remnantsMm: number[];
 }
@@ -51,32 +53,53 @@ export function cutStrips(input: StripCutInput): StripCut {
   const phaseOf = (k: number) => (k % 2 === 1 ? half : 0);
   const anyPhase = half > 0 ? [0, half] : [0];
 
-  if ((strips > 0 && strip > roll) || !(roll > 0)) {
-    return { fits: false, tooLong: "strip", rolls: 0, perRoll: 0, remnantsMm: [] };
+  if (strip > roll || !(roll > 0)) {
+    return { fits: false, tooLong: "strip", rolls: 0, perRoll: 0, perRollSlackMm: 0, remnantsMm: [] };
   }
-  if (pieces.some((p) => p > roll)) return { fits: false, tooLong: "piece", rolls: 0, perRoll: 0, remnantsMm: [] };
+  if (pieces.some((p) => p > roll)) {
+    return { fits: false, tooLong: "piece", rolls: 0, perRoll: 0, perRollSlackMm: 0, remnantsMm: [] };
+  }
+
+  /**
+   * Each roll keeps its own pattern frame: the worst-case lead already reaches any phase, so the first cut of a
+   * roll is at 0 and `base` is the wall phase it lines up with. A later cut at wall phase `phase` must start
+   * where (position + base) ≡ phase (mod repeat).
+   */
+  interface Roll {
+    end: number;
+    base: number;
+  }
+  const local = (r: Roll, phase: number) => (repeat > 0 ? (((phase - r.base) % repeat) + repeat) % repeat : 0);
+  const next = (r: Roll, phase: number) => startAt(r.end, local(r, phase), repeat);
 
   let perRoll = 0;
-  for (let pos = 0; strip > 0; perRoll++) {
-    const start = startAt(pos, phaseOf(perRoll), repeat);
+  const fresh: Roll = { end: 0, base: 0 };
+  for (; strip > 0; perRoll++) {
+    const start = perRoll === 0 ? 0 : next(fresh, phaseOf(perRoll));
     if (start + strip > roll) break;
-    pos = start + strip;
+    fresh.end = start + strip;
   }
 
-  const ends: number[] = [];
+  const rolls: Roll[] = [];
   for (let k = 0; k < strips; k++) {
-    const last = ends.length - 1;
-    const start = last < 0 ? roll : startAt(ends[last] as number, phaseOf(k), repeat);
-    if (start + strip <= roll) ends[last] = start + strip;
-    else ends.push(startAt(0, phaseOf(k), repeat) + strip);
+    const last = rolls[rolls.length - 1];
+    const start = last ? next(last, phaseOf(k)) : roll;
+    if (last && start + strip <= roll) last.end = start + strip;
+    else rolls.push({ end: strip, base: phaseOf(k) });
   }
 
   for (const piece of [...pieces].sort((a, b) => b - a)) {
-    const earliest = (pos: number) => Math.min(...anyPhase.map((phase) => startAt(pos, phase, repeat)));
-    const i = ends.findIndex((end) => earliest(end) + piece <= roll);
-    if (i >= 0) ends[i] = earliest(ends[i] as number) + piece;
-    else ends.push(piece);
+    const earliest = (r: Roll) => Math.min(...anyPhase.map((phase) => next(r, phase)));
+    const target = rolls.find((r) => earliest(r) + piece <= roll);
+    if (target) target.end = earliest(target) + piece;
+    else rolls.push({ end: piece, base: 0 });
   }
 
-  return { fits: true, rolls: ends.length, perRoll, remnantsMm: ends.map((end) => (roll - end) / SCALE) };
+  return {
+    fits: true,
+    rolls: rolls.length,
+    perRoll,
+    perRollSlackMm: (roll - fresh.end) / SCALE,
+    remnantsMm: rolls.map((r) => (roll - r.end) / SCALE),
+  };
 }

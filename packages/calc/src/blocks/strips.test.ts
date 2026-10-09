@@ -6,7 +6,7 @@ const base = { rollLengthMm: 10_050, repeatMm: 0, offset: false, stripLengthMm: 
 describe("cutStrips", () => {
   it("without a pattern: floor(roll / strip) per roll, tails left over", () => {
     const cut = cutStrips({ ...base, strips: 7 });
-    expect(cut).toEqual({ fits: true, rolls: 3, perRoll: 3, remnantsMm: [1650, 1650, 7250] });
+    expect(cut).toEqual({ fits: true, rolls: 3, perRoll: 3, perRollSlackMm: 1650, remnantsMm: [1650, 1650, 7250] });
   });
 
   it("puts short pieces into roll tails before opening a new roll", () => {
@@ -29,10 +29,22 @@ describe("cutStrips", () => {
     expect(cutStrips({ ...base, repeatMm: 640, stripLengthMm: 3100, strips: 2 }).perRoll).toBe(2);
   });
 
-  it("offset match alternates phases 0 and repeat / 2, also across rolls", () => {
-    // Roll 1: 0–2800, 2880–5680, 5760–8560; strip 4 needs phase 320 → roll 2 starts at 320.
+  it("offset match alternates phases 0 and repeat / 2; a new roll pays the lead once, whatever the phase", () => {
+    // Roll 1: 0–2800, 2880–5680, 5760–8560; strip 4 (phase 320) opens roll 2 at 0 — the lead already reached it.
     const cut = cutStrips({ ...base, repeatMm: 640, offset: true, strips: 4 });
-    expect(cut).toEqual({ fits: true, rolls: 2, perRoll: 3, remnantsMm: [9411 - 8560, 9411 - 3120] });
+    expect(cut).toEqual({
+      fits: true,
+      rolls: 2,
+      perRoll: 3,
+      perRollSlackMm: 9411 - 8560,
+      remnantsMm: [9411 - 8560, 9411 - 2800],
+    });
+  });
+
+  it("offset with repeat 500: every roll, not only the first, gives 3 strips of 2900", () => {
+    // Usable 9551: 0–2900, 3250–6150, 6500–9400 — in each roll's own frame (the review's double-lead case).
+    const cut = cutStrips({ ...base, repeatMm: 500, offset: true, stripLengthMm: 2900, strips: 32 });
+    expect(cut).toMatchObject({ rolls: 11, perRoll: 3, perRollSlackMm: 151 });
   });
 
   it("an odd repeat keeps half a millimetre exact", () => {
