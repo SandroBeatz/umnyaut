@@ -34,6 +34,7 @@ const S = {
   S12: "ГОСТ 7251-2016 «Линолеум поливинилхлоридный…», https://docs.cntd.ru/document/1200141418",
   S13: "Arbiton, каталог плинтусов, https://arbiton.com/ru/plintus",
   S14: "IDEAL, каталог плинтусов, https://ideal.ru/product/plintusy/",
+  S17: "ARTSIMPLE (SURGAZ), инструкция по поклейке обоев, https://artsimple.ru/instruction",
 } as const;
 
 const norm = (value: number, unit: string, source: string, extra: Partial<Norm> = {}): Norm => ({
@@ -58,6 +59,7 @@ export const norms: Readonly<Record<string, Norm>> = {
   "tile.joint.floor": norm(3, "мм", S.S3, { note: "в источнике 2–3 мм для 33 × 33" }),
   "wallpaper.rollWidth": norm(0.53, "м", S.S5),
   "wallpaper.rollLength": norm(10.05, "м", S.S5),
+  "wallpaper.trimAllowance": norm(10, "см", S.S17, { note: "в источнике 4–5 см сверху и 4–5 см снизу" }),
   "wallpaperPaste.coverage": norm(30, "м² на 250 г", S.S6, {
     unconfirmed: true,
     note: "флизелиновые обои; цифра не сверена с пачкой",

@@ -1,12 +1,12 @@
 ---
-version: 1.1
+version: 1.2
 date: 2026-10-09
 category: code
 ---
 
 # Calculation Engine (`@umnyaut/calc`)
 
-> Version 1.1 · 2026-10-09 · [Code](../code/)
+> Version 1.2 · 2026-10-09 · [Code](../code/)
 
 ## Overview
 
@@ -14,7 +14,7 @@ category: code
 
 The package does not know about React, HTTP, or the database. Its only dependency is Zod. It is also the single biggest product risk (a wrong formula means a person buys the wrong amount), so it carries the strictest testing rules in the repo.
 
-> Status: core implemented (Phase 4): types, blocks `geometry`/`packs`/`waste`/`coverage`, golden harness, invariants, reviewer export, `ProjectData` v1 and a `mergeItems()` stub. No tool has a formula yet; engines `rows`, `grid`, `strips`, `frame`, `power` arrive with their tools.
+> Status: core implemented (Phase 4): types, blocks `geometry`/`packs`/`waste`/`coverage`, golden harness, invariants, reviewer export, `ProjectData` v1 and a `mergeItems()` stub. Live tools: room area, wall area (Phase 5), wallpaper (Phase 6) with the `strips` engine (`cutStrips`). Engines `rows`, `grid`, `frame`, `power` arrive with their tools.
 
 ## Architecture
 
@@ -130,7 +130,7 @@ Only three engines need new geometry: `rows`, `grid`, `strips`.
 |---|---|---|---|
 | Room area | `/osnova/ploshchad-komnaty/` | `geometry` | Rect; L = rect − cut; niches/protrusions signed. Writes “My room” |
 | Wall area | `/osnova/ploshchad-sten/` | `geometry` | Perimeter × height − Σ openings; ceiling = floor |
-| Wallpaper | `/steny/oboi/` | `strips`, `packs` | Strips around perimeter w/o openings; strips per roll = ⌊roll length ÷ (height + allowance + repeat)⌋; rolls = ⌈strips ÷ strips per roll⌉; glue by area |
+| Wallpaper | `/steny/oboi/` | `strips`, `packs` | Strips = ⌈(perimeter − door and window widths) ÷ roll width⌉, each height + 10 cm trim; `cutStrips` cuts them from rolls starting on the repeat (offset match: phases 0 and repeat/2 alternate) and puts pieces above doors and above/below windows into roll tails first; need = rolls × roll length − largest tail; paste by net wall area ÷ m² per pack. Implemented in v1; more precise than the spec's ⌊roll ÷ (height + allowance + repeat)⌋, which over-counts the repeat |
 | Paint | `/steny/kraska/` | `coverage`, `packs` | Area × label rate × layers × surface coef; can set by search with minimal overpay |
 | Laminate | `/pol/laminat/` | `rows`, `waste`, `packs` | Row by row: offset, trimming, offcut moves to next row if ≥ minimum. Diagonal/herringbone = waste % at launch |
 | Linoleum | `/pol/linoleum/` | `strips` | For each roll width × 2 directions: sheets, cut length, seams, waste, price; variants sorted |

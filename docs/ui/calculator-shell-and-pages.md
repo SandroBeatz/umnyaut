@@ -1,12 +1,12 @@
 ---
-version: 1.1
+version: 1.2
 date: 2026-10-09
 category: ui
 ---
 
 # Calculator Shell, Pages and Routing
 
-> Version 1.1 · 2026-10-09 · [UI](../ui/)
+> Version 1.2 · 2026-10-09 · [UI](../ui/)
 
 ## Overview
 
@@ -126,7 +126,9 @@ Variations are `catalog` entries (URL, titles, default overrides, own text). Fro
 | Invalid input | Out of range or empty → red message under the field, the result keeps the last valid input and shows «По прошлым значениям» |
 | Tools without items | Geometry tools return only `summary`; the first entry is the big number, the rest are tiles; labels in `ToolDef.summary`. Header reads «Получилось» instead of «Нужно купить» |
 | `?s=` | base64url (UTF-8) JSON of fields that differ from `defaults()`; decoded values go through the tool's Zod schema, garbage is ignored. Canonical is always the clean URL |
-| Phone budget | Asserted by Playwright: the main number ends at 643 px on wall area (390 × 844) |
+| Tools with items | The main item's name sits in the mascot header line (under «Нужно купить»), not above the number, so a purchase tool keeps the same height as a geometry tool; the number row is photo + count + «need · останется» caption |
+| Length units | A length field with `unit: "m"` follows the form's м/см switch; `cm` and `mm` fields keep their own unit (wallpaper repeat and trim in cm) |
+| Phone budget | Asserted by Playwright for every live tool: the main number ends at 643 px on wall area and wallpaper (390 × 844) |
 | Server-HTML guard | `pnpm --filter web html:check` after the build: title, one H1, canonical on every prerendered page, digits in `[data-result-value]` on tool pages |
 | Sheets | `ResponsiveSheet` (`packages/ui`): bottom sheet below 1024 px, centred 480 px dialog from 1024 px — RoomBar editor, report error |
 | Not yet | `calc_completed` event (Phase 9), «Сохранить» and report sending (Phase 7), per-tool code splitting of calc modules |

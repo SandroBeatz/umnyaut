@@ -42,6 +42,11 @@ Each entry:
 
 ### 2026-10-09
 
+- **P6.4 (partial)** Wallpaper calculator `oboi` v1 (`/steny/oboi/`, live): new `strips` block `cutStrips()` cuts full-height strips from rolls on the pattern repeat (offset match alternates phases 0 and repeat/2, also across rolls) and puts the pieces above doors and above/below windows into roll tails before opening a new roll. Strips = ⌈(perimeter − door and window widths) / roll width⌉, strip = height + 10 cm trim; need = rolls × roll length − largest tail; paste by net wall area / m² per pack. 12 golden examples derived by hand (all matched on the first run), 3 Qalculator benchmarks with explained differences (11 vs our 10 rolls: they glue full strips over windows; offset 17 vs 11: they add half a repeat to every strip). New norm `wallpaper.trimAllowance` 10 cm from source S17 (ARTSIMPLE/SURGAZ instruction); catalog test keeps calc defaults equal to the norms. Content page, Playwright journey (preset, repeat), first screen 643 px.
+  - Where: `feature/phase-6-wave-1`
+  - Notes: P6.4 stays open until the `formula-reviewer` pass and `calculator-release-check`; the content body gets its full pass in Phase 8 (`tool-content`). `nextSteps` points at wall area until paint and primer exist.
+  - Deviation: (1) the spec's strips per roll = ⌊roll / (height + allowance + repeat)⌋ is replaced by an exact cut simulation — fewer rolls with a repeat, same without one; [Calculation Engine](../code/calc-engine.md) v1.2 updated. (2) Shell: the main item's name moved into the result header line (the result was at 663 px, now 643 px); `cm`/`mm` length fields keep their unit regardless of the м/см switch — [Calculator Shell](../ui/calculator-shell-and-pages.md) v1.2.
+
 - **— (G05)** All 12 wave‑1 material photos in the image pipeline: 9 new sources (`wallpaper-glue`, `paint`, `primer`, `underlay`, `plinth`, `plinth-fittings`, `linoleum`, `tile`, `grout`) added to `docs/details/materials/` and `MATERIALS` in `apps/web/scripts/images.mjs`; AVIF/WebP at 64/96 (1×, 2×) rebuilt, every file within the 5 KB AVIF budget (`images:check` passes). Checked on light and navy backgrounds: no colour fringes after the alpha floor.
   - Where: `feature/phase-6-wave-1`
   - Notes: P8.6 stays open — category photos G06 and the brush mask are still to come.

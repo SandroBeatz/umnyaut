@@ -38,7 +38,7 @@ export function ResultPanel({ tool, view, example, stale, ref }: ResultPanelProp
           <p className="text-small font-semibold text-text">
             {example ? r.example : view.mode === "buy" ? r.buy : r.measure}
           </p>
-          {main && view.mode === "measure" ? <p className="text-small text-text-muted">{main.title}</p> : null}
+          {main ? <p className="text-small text-text-muted">{main.title}</p> : null}
         </div>
       </header>
 
@@ -48,9 +48,8 @@ export function ResultPanel({ tool, view, example, stale, ref }: ResultPanelProp
             <MaterialThumb image={photoOf(main.photo)} fallbackIcon={<CategoryIcon />} alt="" size={64} />
           ) : null}
           <div className="min-w-0" aria-live="polite" aria-atomic="true">
-            {view.mode === "buy" ? <p className="text-small text-text-muted">{main.title}</p> : null}
             <p className={cn("tabular-nums transition-opacity duration-150", stale && "opacity-60")}>
-              {view.mode === "measure" ? <span className="sr-only">{main.title}: </span> : null}
+              <span className="sr-only">{main.title}: </span>
               <span className="text-result" data-result-value>
                 {main.value}
               </span>{" "}

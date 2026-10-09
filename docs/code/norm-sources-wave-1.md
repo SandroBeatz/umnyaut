@@ -1,12 +1,12 @@
 ---
-version: 1.1
+version: 1.2
 date: 2026-10-09
 category: code
 ---
 
 # Norm Sources — Wave 1
 
-> Version 1.1 · 2026-10-09 · [Code](../code/)
+> Version 1.2 · 2026-10-09 · [Code](../code/)
 
 ## Overview
 
@@ -41,6 +41,7 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | S14 | Напольные плинтусы, каталог | IDEAL | https://ideal.ru/product/plintusy/ | 2026-10-09 |
 | S15 | СП 71.13330.2017 «Изоляционные и отделочные покрытия», п. 7.4.15 | Минстрой России | https://docs.cntd.ru/document/456082588 | 2026-10-09 |
 | S16 | ГЭСН 11‑01‑034‑04 (ламинат), ГЭСН 11‑01‑027‑02 (плитка) — cross-check only | Минстрой России | https://fsnb2022.ru/gesn/gesn11-01-034-04.html · https://fsnb2022.ru/gesn/gesn11-01-027-02.html | 2026-10-09 |
+| S17 | Инструкция по поклейке обоев (ARTSIMPLE) | SURGAZ (ООО «Фортпост»), manufacturer | https://artsimple.ru/instruction | 2026-10-09 |
 
 ## Norms
 
@@ -52,6 +53,7 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | `grout.density` | 1,6 | S3 | confirmed (owner: 1,6) | Mapei S4 implies ~1,5; we keep the larger value. S4 rows are golden cross-checks with that difference explained |
 | `grout.reserve` | 10% | S3 (10–15%) | confirmed | Lower bound of the range |
 | `wallpaper.rollWidth`, `wallpaper.rollLength` | 0,53 m / 10,05 m | S5 | confirmed | 1,06 × 10,05 and 1,06 × 25 m as market presets |
+| `wallpaper.trimAllowance` | 10 cm per strip | S17 (4–5 cm top and 4–5 cm bottom) | confirmed | Upper bound of the range; editable field «Припуск на подрезку» |
 | `wallpaperPaste.coverage` | 30 m² per 250 g (non-woven) | S6 | **default, unconfirmed** | Owner can't check a pack yet; shown with «проверьте по пачке», field editable |
 | `paint.coverage` | 10 m²/l per coat | S7 (12–14 m²/l) | confirmed (owner: conservative) | Below the datasheet on purpose: rough walls and colour changes |
 | `paint.coats` | 2 | S7 | confirmed | |

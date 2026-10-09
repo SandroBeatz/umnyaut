@@ -100,7 +100,20 @@ export const devUi = {
   },
   media: {
     mascotHello: "Кот Умняут машет лапой",
-    materials: { laminate: "Ламинат", wallpaper: "Обои", "tile-adhesive": "Плиточный клей" },
-    noPhoto: "Подложка",
+    materials: {
+      laminate: "Ламинат",
+      wallpaper: "Обои",
+      "tile-adhesive": "Плиточный клей",
+      "wallpaper-glue": "Обойный клей",
+      paint: "Краска",
+      primer: "Грунтовка",
+      underlay: "Подложка",
+      plinth: "Плинтус",
+      "plinth-fittings": "Фурнитура для плинтуса",
+      linoleum: "Линолеум",
+      tile: "Плитка",
+      grout: "Затирка",
+    },
+    noPhoto: "Без фото",
   },
 } as const;

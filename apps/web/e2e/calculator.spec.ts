@@ -2,6 +2,7 @@ import { expect, type Page, test } from "@playwright/test";
 
 const ROOM = "/osnova/ploshchad-komnaty/";
 const WALLS = "/osnova/ploshchad-sten/";
+const WALLPAPER = "/steny/oboi/";
 /** Visible area of Safari on a 390 × 844 iPhone (design spec §12). */
 const FIRST_SCREEN = 660;
 
@@ -14,8 +15,8 @@ async function type(page: Page, label: string, value: string) {
   await field.blur();
 }
 
-test("the result number is on the first phone screen of both tools", async ({ page }) => {
-  for (const path of [ROOM, WALLS]) {
+test("the result number is on the first phone screen of every tool", async ({ page }) => {
+  for (const path of [ROOM, WALLS, WALLPAPER]) {
     await page.goto(path);
     const box = await result(page).boundingBox();
     expect(box, path).not.toBeNull();
@@ -114,4 +115,20 @@ test.describe("without JavaScript", () => {
     await expect(page.locator("h1")).toHaveCount(1);
     await expect(result(page)).toHaveText("44,78");
   });
+});
+
+test("wallpaper: rolls by strips, roll preset and pattern repeat change the count", async ({ page }) => {
+  await page.goto(WALLPAPER);
+  // Mockup room: 30 strips of 2,8 m, 3 per 10,05 m roll → 10 rolls; paste 44,78 / 30 → 2 packs.
+  await expect(result(page)).toHaveText("10");
+  await expect(page.getByText("2 пачки")).toBeVisible();
+
+  await page.getByText("1,06 × 10 м").click();
+  await expect(result(page)).toHaveText("5");
+
+  await page.getByText("0,53 × 10 м").click();
+  await page.getByRole("button", { name: /Ещё параметры/ }).click();
+  await type(page, "Раппорт", "64");
+  // Each strip takes 3,2 m of the roll; pieces over the openings no longer fit the 0,85 m tails.
+  await expect(result(page)).toHaveText("11");
 });

@@ -42,6 +42,15 @@ describe("registry", () => {
     }
   });
 
+  it("calc defaults use the catalog norms (calc cannot import them)", () => {
+    const value = (id: string) => norms[id]?.value;
+    const oboi = toolModules.oboi.defaults({ country: "RU" });
+    expect(oboi.rollWidthMm / 1000).toBe(value("wallpaper.rollWidth"));
+    expect(oboi.rollLengthMm / 1000).toBe(value("wallpaper.rollLength"));
+    expect(oboi.trimMm / 10).toBe(value("wallpaper.trimAllowance"));
+    expect(oboi.pasteCoverageM2).toBe(value("wallpaperPaste.coverage"));
+  });
+
   it("active categories are exactly those with tools", () => {
     expect(activeCategories().map((c) => c.slug)).toEqual(
       categories.filter((c) => tools.some((t) => t.category === c.slug)).map((c) => c.slug),

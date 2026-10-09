@@ -12,4 +12,5 @@ export {
   wallAreaM2,
 } from "./geometry";
 export { bestPackSet, ceilPacks, PACK_EPSILON, type PackOption, type PackSet, purchase } from "./packs";
+export { cutStrips, type StripCut, type StripCutInput } from "./strips";
 export { type WasteRule, wastePct, withWaste } from "./waste";

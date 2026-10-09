@@ -65,7 +65,7 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
   const render = (field: FieldDef): ReactNode => {
     switch (field.kind) {
       case "length": {
-        const shown = field.unit === "mm" ? "mm" : unit;
+        const shown = field.unit === "m" ? unit : field.unit;
         const range = fill(f.range, {
           min: formatNumber(toDisplay(field.min, shown)),
           max: formatNumber(toDisplay(field.max, shown)),

@@ -1,5 +1,6 @@
 import type fc from "fast-check";
 import type { ToolId } from "../src/tools";
+import type { OboiInput } from "../src/tools/oboi";
 import type { PloshchadKomnatyInput } from "../src/tools/ploshchad-komnaty";
 import type { PloshchadStenInput } from "../src/tools/ploshchad-sten";
 
@@ -51,7 +52,33 @@ const ploshchadSten: ToolArbitrary<PloshchadStenInput> = {
   grow,
 };
 
+const oboi: ToolArbitrary<OboiInput> = {
+  input: (f) =>
+    f.record({
+      lengthMm: lengthMm(f),
+      widthMm: lengthMm(f),
+      heightMm: f.integer({ min: 1000, max: 10_000 }),
+      openings: f.array(
+        f.record({
+          type: f.constantFrom("door" as const, "window" as const),
+          widthMm: f.integer({ min: 100, max: 10_000 }),
+          heightMm: f.integer({ min: 100, max: 10_000 }),
+          count: f.integer({ min: 0, max: 50 }),
+        }),
+        { maxLength: 20 },
+      ),
+      rollWidthMm: f.integer({ min: 300, max: 1500 }),
+      rollLengthMm: f.integer({ min: 5000, max: 50_000 }),
+      repeatMm: f.integer({ min: 0, max: 1500 }),
+      match: f.constantFrom("straight" as const, "offset" as const),
+      trimMm: f.integer({ min: 0, max: 300 }),
+      pasteCoverageM2: f.double({ min: 1, max: 200, noNaN: true }),
+    }),
+  grow,
+};
+
 export const arbitraries: Partial<Record<ToolId, ToolArbitrary<never>>> = {
   "ploshchad-komnaty": ploshchadKomnaty as ToolArbitrary<never>,
   "ploshchad-sten": ploshchadSten as ToolArbitrary<never>,
+  oboi: oboi as ToolArbitrary<never>,
 };
