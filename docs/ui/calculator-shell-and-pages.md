@@ -1,12 +1,12 @@
 ---
-version: 1.2
-date: 2026-10-09
+version: 1.3
+date: 2026-10-10
 category: ui
 ---
 
 # Calculator Shell, Pages and Routing
 
-> Version 1.2 · 2026-10-09 · [UI](../ui/)
+> Version 1.3 · 2026-10-10 · [UI](../ui/)
 
 ## Overview
 
@@ -127,8 +127,10 @@ Variations are `catalog` entries (URL, titles, default overrides, own text). Fro
 | Tools without items | Geometry tools return only `summary`; the first entry is the big number, the rest are tiles; labels in `ToolDef.summary`. Header reads «Получилось» instead of «Нужно купить» |
 | `?s=` | base64url (UTF-8) JSON of fields that differ from `defaults()`; decoded values go through the tool's Zod schema, garbage is ignored. Canonical is always the clean URL |
 | Tools with items | The main item's name sits in the mascot header line (under «Нужно купить»), not above the number, so a purchase tool keeps the same height as a geometry tool; the number row is photo + count + «need · останется» caption |
+| Can sets | Lines of one item key are one purchase: the main figure is the total count («4 банки») with the sizes in the caption («1 × 9 л + 1 × 2,7 л + 2 × 0,9 л · останется 0,59 л»); a related item sold by volume or weight shows its size under the title («по 10 л») |
+| Select fields | Up to 4 options render as a full-width segment; `dropdown: true` puts the select in half a row (paint «Что красим» next to the height) |
 | Length units | A length field with `unit: "m"` follows the form's м/см switch; `cm` and `mm` fields keep their own unit (wallpaper repeat and trim in cm) |
-| Phone budget | Asserted by Playwright for every live tool: the main number ends at 643 px on wall area and wallpaper (390 × 844) |
+| Phone budget | Asserted by Playwright for every live tool: the main number ends at 643 px on wall area and wallpaper, 579 px on paint (390 × 844) |
 | Server-HTML guard | `pnpm --filter web html:check` after the build: title, one H1, canonical on every prerendered page, digits in `[data-result-value]` on tool pages |
 | Sheets | `ResponsiveSheet` (`packages/ui`): bottom sheet below 1024 px, centred 480 px dialog from 1024 px — RoomBar editor, report error |
 | Not yet | `calc_completed` event (Phase 9), «Сохранить» and report sending (Phase 7), per-tool code splitting of calc modules |

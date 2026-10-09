@@ -3,6 +3,7 @@ import { expect, type Page, test } from "@playwright/test";
 const ROOM = "/osnova/ploshchad-komnaty/";
 const WALLS = "/osnova/ploshchad-sten/";
 const WALLPAPER = "/steny/oboi/";
+const PAINT = "/steny/kraska/";
 /** Visible area of Safari on a 390 × 844 iPhone (design spec §12). */
 const FIRST_SCREEN = 660;
 
@@ -16,7 +17,7 @@ async function type(page: Page, label: string, value: string) {
 }
 
 test("the result number is on the first phone screen of every tool", async ({ page }) => {
-  for (const path of [ROOM, WALLS, WALLPAPER]) {
+  for (const path of [ROOM, WALLS, WALLPAPER, PAINT]) {
     await page.goto(path);
     const box = await result(page).boundingBox();
     expect(box, path).not.toBeNull();
@@ -119,16 +120,31 @@ test.describe("without JavaScript", () => {
 
 test("wallpaper: rolls by strips, roll preset and pattern repeat change the count", async ({ page }) => {
   await page.goto(WALLPAPER);
-  // Mockup room: 30 strips of 2,8 m, 3 per 10,05 m roll → 10 rolls; paste 44,78 / 30 → 2 packs.
-  await expect(result(page)).toHaveText("10");
+  // Mockup room: 32 strips of 2,8 m, 3 per 10,05 m roll → 11 rolls; paste 44,78 / 30 → 2 packs.
+  await expect(result(page)).toHaveText("11");
   await expect(page.getByText("2 пачки")).toBeVisible();
 
   await page.getByText("1,06 × 10 м").click();
-  await expect(result(page)).toHaveText("5");
+  await expect(result(page)).toHaveText("6");
 
   await page.getByText("0,53 × 10 м").click();
   await page.getByRole("button", { name: /Ещё параметры/ }).click();
   await type(page, "Раппорт", "64");
-  // Each strip takes 3,2 m of the roll; pieces over the openings no longer fit the 0,85 m tails.
-  await expect(result(page)).toHaveText("11");
+  // Each strip takes 3,2 m of the roll after the worst pattern start; the pieces need a 12th roll.
+  await expect(result(page)).toHaveText("12");
+});
+
+test("paint: a can set with sizes, ceiling switch, primer canister", async ({ page }) => {
+  await page.goto(PAINT);
+  // Walls 44,78 m² × 2 / 10 = 8,956 l → one 9 l can; primer 6,7 l → one 10 l canister.
+  await expect(result(page)).toHaveText("1");
+  await expect(page.getByText(/1\s×\s9\sл · останется/)).toBeVisible();
+  await expect(page.getByText(/^1\sканистра$/)).toBeVisible();
+  await expect(page.getByText(/^по 10\sл$/)).toBeVisible();
+
+  await page.getByRole("button", { name: "Что красим" }).click();
+  await page.getByRole("radio", { name: "Стены и потолок" }).click();
+  // + ceiling 19,78 → 12,912 l → 9 + 2,7 + 2 × 0,9
+  await expect(result(page)).toHaveText("4");
+  await expect(page.getByText(/1\s×\s9\sл \+ 1\s×\s2,7\sл \+ 2\s×\s0,9\sл/)).toBeVisible();
 });

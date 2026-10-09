@@ -1,5 +1,6 @@
 import type fc from "fast-check";
 import type { ToolId } from "../src/tools";
+import type { KraskaInput } from "../src/tools/kraska";
 import type { OboiInput } from "../src/tools/oboi";
 import type { PloshchadKomnatyInput } from "../src/tools/ploshchad-komnaty";
 import type { PloshchadStenInput } from "../src/tools/ploshchad-sten";
@@ -77,8 +78,36 @@ const oboi: ToolArbitrary<OboiInput> = {
   grow,
 };
 
+const opening = (f: typeof fc) =>
+  f.record({
+    type: f.constantFrom("door" as const, "window" as const),
+    widthMm: f.integer({ min: 100, max: 10_000 }),
+    heightMm: f.integer({ min: 100, max: 10_000 }),
+    count: f.integer({ min: 0, max: 50 }),
+  });
+
+const kraska: ToolArbitrary<KraskaInput> = {
+  input: (f) =>
+    f.record({
+      lengthMm: lengthMm(f),
+      widthMm: lengthMm(f),
+      heightMm: f.integer({ min: 1000, max: 10_000 }),
+      openings: f.array(opening(f), { maxLength: 20 }),
+      surface: f.constantFrom("walls" as const, "ceiling" as const, "both" as const),
+      coats: f.integer({ min: 1, max: 5 }),
+      coverageM2PerL: f.double({ min: 1, max: 30, noNaN: true }),
+      // Real can sizes; arbitrary integers would make the exact search slow without testing anything new.
+      cansMl: f.subarray([450, 900, 1000, 2500, 2700, 3000, 5000, 9000, 10_000], { minLength: 1, maxLength: 6 }),
+      primer: f.boolean(),
+      primerRateLPerM2: f.double({ min: 0.05, max: 1, noNaN: true }),
+      primerPackL: f.double({ min: 0.5, max: 50, noNaN: true }),
+    }),
+  grow,
+};
+
 export const arbitraries: Partial<Record<ToolId, ToolArbitrary<never>>> = {
   "ploshchad-komnaty": ploshchadKomnaty as ToolArbitrary<never>,
   "ploshchad-sten": ploshchadSten as ToolArbitrary<never>,
   oboi: oboi as ToolArbitrary<never>,
+  kraska: kraska as ToolArbitrary<never>,
 };

@@ -88,12 +88,16 @@ export const oboi: ToolDef = {
   steps: {
     perimeter: "Периметр = 2 × ({length} + {width}) = {perimeter} м",
     strip: "Полоса = высота {height} + припуск {trim} = {length} м",
-    repeat: "С подгонкой рисунка (раппорт {repeat} м) полоса занимает {length} м рулона",
+    repeat:
+      "С подгонкой рисунка (раппорт {repeat} м) полоса занимает {length} м рулона; в начале рулона до подгонки уходит до {repeat} м",
     repeat_offset:
       "С подгонкой рисунка (раппорт {repeat} м) полоса занимает {length} м рулона, каждая вторая — ещё до {half} м на смещение",
-    strips: "Полос = ({perimeter} − проёмы {openings}) / {width} = {strips}, округляем вверх",
+    strips:
+      "Полос = ({perimeter} − проёмы {openings}) / {width} = {strips}, округляем вверх. От проёма вычитаем только ширину, где полосу во всю высоту можно не клеить",
     pieces: "Над дверями и над и под окнами — {count} кусков, режем из остатков рулонов",
     per_roll: "Из рулона {roll} м выходит {perRoll} полос во всю высоту",
+    strip_rolls: "На {strips} полос по {perRoll} из рулона — {rolls} рулонов",
+    pieces_rolls: "Куски над и под проёмами не вошли в остатки: ещё {extra}",
     rolls: "Рулонов: {rolls}, самый большой остаток {tail} м",
     area: "Площадь оклейки = {gross} − {openings} = {area} м²",
     paste: "Клей = {area} / {coverage} м² на пачку → {packs}",
@@ -102,6 +106,10 @@ export const oboi: ToolDef = {
     opening_too_tall: "Проём {height} м выше стены {wall} м. Проверьте высоту проёма или потолка",
     openings_exceed_walls: "Окна и двери больше площади стен. Проверьте их размеры",
     strip_longer_than_roll: "Полоса {strip} м длиннее рулона {roll} м. Выберите рулон длиннее",
+    piece_longer_than_roll:
+      "Кусок над и под окном длиннее рулона {roll} м. Проверьте высоту окна или выберите рулон длиннее",
+    roll_tight:
+      "Полосы занимают рулон почти целиком: остаётся {slack} м. Рулон может быть короче на 1,5% — возьмите один про запас",
   },
-  norms: ["wallpaper.rollWidth", "wallpaper.trimAllowance", "wallpaperPaste.coverage"],
+  norms: ["wallpaper.rollWidth", "wallpaper.trimAllowance", "wallpaper.rollLengthTolerance", "wallpaperPaste.coverage"],
 };

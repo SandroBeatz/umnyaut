@@ -3,7 +3,9 @@
  * another; with a pattern each one must start where the pattern lines up with its neighbour: every `repeat`
  * for a straight match, alternating 0 and repeat / 2 for an offset (drop) match. Short pieces (above doors,
  * above and below windows) go into the tails of the rolls first, a new roll only when no tail fits.
- * The roll is assumed to start at pattern phase 0; tails shorter than a piece are waste.
+ * Where the pattern starts on a new roll is unknown, so with a repeat each roll is taken at the worst case:
+ * up to one repeat (repeat − 1 mm) is lost before its first cut. That matches the fitters' rule
+ * «высота + раппорт» per strip. Tails shorter than a piece are waste.
  */
 export interface StripCutInput {
   rollLengthMm: number;
@@ -18,8 +20,10 @@ export interface StripCutInput {
 }
 
 export interface StripCut {
-  /** False when a strip or a piece is longer than the roll; nothing is cut then. */
+  /** False when a strip or a piece is longer than the usable roll; nothing is cut then. */
   fits: boolean;
+  /** What did not fit, when `fits` is false. */
+  tooLong?: "strip" | "piece";
   rolls: number;
   /** Full strips a fresh roll gives. */
   perRoll: number;
@@ -37,8 +41,9 @@ function startAt(pos: number, phase: number, repeat: number): number {
 }
 
 export function cutStrips(input: StripCutInput): StripCut {
-  const roll = input.rollLengthMm * SCALE;
   const repeat = Math.max(input.repeatMm, 0) * SCALE;
+  // Usable length after the worst-case lead to the pattern; positions below count from its end.
+  const roll = input.rollLengthMm * SCALE - (repeat > 0 ? repeat - SCALE : 0);
   const half = input.offset && repeat > 0 ? repeat / 2 : 0;
   const strip = input.stripLengthMm * SCALE;
   const strips = Math.max(Math.trunc(input.strips), 0);
@@ -46,9 +51,10 @@ export function cutStrips(input: StripCutInput): StripCut {
   const phaseOf = (k: number) => (k % 2 === 1 ? half : 0);
   const anyPhase = half > 0 ? [0, half] : [0];
 
-  if ((strips > 0 && strip > roll) || pieces.some((p) => p > roll) || !(roll > 0)) {
-    return { fits: false, rolls: 0, perRoll: 0, remnantsMm: [] };
+  if ((strips > 0 && strip > roll) || !(roll > 0)) {
+    return { fits: false, tooLong: "strip", rolls: 0, perRoll: 0, remnantsMm: [] };
   }
+  if (pieces.some((p) => p > roll)) return { fits: false, tooLong: "piece", rolls: 0, perRoll: 0, remnantsMm: [] };
 
   let perRoll = 0;
   for (let pos = 0; strip > 0; perRoll++) {

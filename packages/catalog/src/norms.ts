@@ -59,6 +59,10 @@ export const norms: Readonly<Record<string, Norm>> = {
   "tile.joint.floor": norm(3, "мм", S.S3, { note: "в источнике 2–3 мм для 33 × 33" }),
   "wallpaper.rollWidth": norm(0.53, "м", S.S5),
   "wallpaper.rollLength": norm(10.05, "м", S.S5),
+  "wallpaper.rollLengthTolerance": norm(1.5, "%", S.S5, {
+    unconfirmed: true,
+    note: "±1,5% по вторичным копиям ГОСТ 6810; первоисточник не открылся",
+  }),
   "wallpaper.trimAllowance": norm(10, "см", S.S17, { note: "в источнике 4–5 см сверху и 4–5 см снизу" }),
   "wallpaperPaste.coverage": norm(30, "м² на 250 г", S.S6, {
     unconfirmed: true,

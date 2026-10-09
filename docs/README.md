@@ -35,10 +35,10 @@ UmnyAut («Умняут») — a connected renovation calculator: enter room dim
 | [Product and Domain](./business/product-and-domain.md) | 2.0 |
 | [Competitive Benchmark](./business/competitive-benchmark.md) | 1.0 |
 | [SEO and Analytics](./business/seo-and-analytics.md) | 1.1 |
-| [Calculation Engine](./code/calc-engine.md) | 1.2 |
-| [Norm Sources — Wave 1](./code/norm-sources-wave-1.md) | 1.2 |
+| [Calculation Engine](./code/calc-engine.md) | 1.3 |
+| [Norm Sources — Wave 1](./code/norm-sources-wave-1.md) | 1.3 |
 | [Server API and Data](./code/server-api-and-data.md) | 1.0 |
-| [Calculator Shell, Pages and Routing](./ui/calculator-shell-and-pages.md) | 1.2 |
+| [Calculator Shell, Pages and Routing](./ui/calculator-shell-and-pages.md) | 1.3 |
 | [Design System](./design/design-system.md) | 1.1 |
 | [Telegram Bot and Mini App](./integrations/telegram-bot.md) | 1.0 |
 | [AI Vision Features](./integrations/ai-vision.md) | 1.0 |

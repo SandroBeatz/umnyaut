@@ -122,3 +122,31 @@ export function bestPackSet(need: number, options: readonly PackOption[]): PackS
   }
   return result();
 }
+
+/**
+ * Purchase lines for the best set of different pack sizes (paint 0,9 / 2,7 / 9 л): one line per size used,
+ * largest first, all with the same `key`. The need is split largest first, so every line still goes
+ * through `ceilPacks`; the set is optimal, so no line could drop a pack. Nothing needed → no lines.
+ */
+export function purchaseSet(
+  key: string,
+  role: PurchaseItem["role"],
+  need: Quantity,
+  kind: Pack["kind"],
+  sizes: readonly number[],
+): PurchaseItem[] {
+  const set = bestPackSet(
+    need.value,
+    sizes.map((size) => ({ size })),
+  );
+  const lines = sizes
+    .map((size, i) => ({ size, count: set.counts[i] as number }))
+    .filter((line) => line.count > 0)
+    .sort((a, b) => b.size - a.size);
+  let rest = need.value;
+  return lines.map(({ size, count }, i) => {
+    const part = i === lines.length - 1 ? rest : Math.min(rest, count * size);
+    rest -= part;
+    return purchase(key, role, { value: part, unit: need.unit }, { kind, size: { value: size, unit: need.unit } });
+  });
+}

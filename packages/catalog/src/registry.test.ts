@@ -49,6 +49,10 @@ describe("registry", () => {
     expect(oboi.rollLengthMm / 1000).toBe(value("wallpaper.rollLength"));
     expect(oboi.trimMm / 10).toBe(value("wallpaper.trimAllowance"));
     expect(oboi.pasteCoverageM2).toBe(value("wallpaperPaste.coverage"));
+    const kraska = toolModules.kraska.defaults({ country: "RU" });
+    expect(kraska.coverageM2PerL).toBe(value("paint.coverage"));
+    expect(kraska.coats).toBe(value("paint.coats"));
+    expect(kraska.primerRateLPerM2).toBe(value("primer.consumption"));
   });
 
   it("active categories are exactly those with tools", () => {

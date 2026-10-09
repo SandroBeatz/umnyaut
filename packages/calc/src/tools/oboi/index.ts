@@ -29,21 +29,34 @@ const input = z.object({
 
 export type OboiInput = z.infer<typeof input>;
 
-/** Pieces above a door or above and below a window: one per roll width across the opening. */
+/** Shorter gaps above an opening are closed by the trim and the casing: no piece, no phantom roll. */
+const MIN_PIECE_MM = 50;
+/** Roll length tolerance of ГОСТ 6810 (norm `wallpaper.rollLengthTolerance`): warn when strips leave less. */
+const ROLL_TOLERANCE = 0.015;
+
+/**
+ * Width of an opening that a full-height strip can be left out of. A strip that only partly covers the
+ * opening still runs floor to ceiling, so on average only `width − roll width` is saved.
+ */
+const savedWidthMm = (o: OboiInput["openings"][number], rollWidthMm: number) => Math.max(o.widthMm - rollWidthMm, 0);
+
+/** Pieces above a door or above and below a window: one per strip left out across the opening. */
 function openingPieces(i: OboiInput, openings: OboiInput["openings"]): number[] {
   return openings.flatMap((o) => {
     const rest = i.heightMm - o.heightMm;
-    if (rest <= 0) return [];
+    if (rest < MIN_PIECE_MM) return [];
     const length = rest + (o.type === "window" ? 2 : 1) * i.trimMm;
-    return Array.from({ length: Math.ceil(o.widthMm / i.rollWidthMm) * o.count }, () => length);
+    const count = Math.ceil(savedWidthMm(o, i.rollWidthMm) / i.rollWidthMm) * o.count;
+    return Array.from({ length: count }, () => length);
   });
 }
 
 /**
- * Wallpaper by strips, not by area. Full-height strips cover the perimeter minus door and window widths;
- * each is height + trim, aligned to the pattern repeat. Pieces above doors and above/below windows are cut
- * from roll tails first (the above and below pieces of a window as one cut). Rolls come from `cutStrips`;
- * paste by net wall area and the pack's coverage. L-shaped rooms share the rectangle's perimeter.
+ * Wallpaper by strips, not by area. Full-height strips cover the perimeter minus, per opening, the width a
+ * whole strip can be left out of (width − roll width); each strip is height + trim, aligned to the pattern
+ * repeat with the worst-case start of every roll. Pieces above doors and above/below windows are cut from roll
+ * tails first (the above and below pieces of a window as one cut). Rolls come from `cutStrips`; paste by net
+ * wall area and the pack's coverage. L-shaped rooms share the rectangle's perimeter.
  */
 export const oboi: ToolModule<OboiInput> = {
   id: "oboi",
@@ -70,7 +83,7 @@ export const oboi: ToolModule<OboiInput> = {
     const room: Room = { shape: "rect", lengthMm: i.lengthMm, widthMm: i.widthMm, heightMm: i.heightMm, openings };
     const walls = wallAreaM2(room);
     const perimeterMm = 2 * (i.lengthMm + i.widthMm);
-    const openingsWidthMm = openings.reduce((sum, o) => sum + o.widthMm * o.count, 0);
+    const openingsWidthMm = openings.reduce((sum, o) => sum + savedWidthMm(o, i.rollWidthMm) * o.count, 0);
     const coveredMm = Math.max(perimeterMm - openingsWidthMm, 0);
     const strips = Math.ceil(coveredMm / i.rollWidthMm);
     const stripMm = i.heightMm + i.trimMm;
@@ -116,16 +129,16 @@ export const oboi: ToolModule<OboiInput> = {
     }
 
     const items: PurchaseItem[] = [];
-    const cut = cutStrips({
+    const stripsOnly = {
       rollLengthMm: i.rollLengthMm,
       repeatMm: i.repeatMm,
       offset: i.match === "offset",
       stripLengthMm: stripMm,
-      strips,
-      pieces,
-    });
+    };
+    const cut = cutStrips({ ...stripsOnly, strips, pieces });
     if (cut.fits) {
       const tailMm = Math.max(0, ...cut.remnantsMm);
+      const stripRolls = cutStrips({ ...stripsOnly, strips }).rolls;
       const needM = mmToM(cut.rolls * i.rollLengthMm - tailMm);
       items.push(
         purchase(
@@ -139,7 +152,17 @@ export const oboi: ToolModule<OboiInput> = {
         ),
       );
       steps.push({ code: "per_roll", values: { roll: mmToM(i.rollLengthMm), perRoll: cut.perRoll } });
+      steps.push({ code: "strip_rolls", values: { strips, perRoll: cut.perRoll, rolls: stripRolls } });
+      if (cut.rolls > stripRolls) steps.push({ code: "pieces_rolls", values: { extra: cut.rolls - stripRolls } });
       steps.push({ code: "rolls", values: { rolls: cut.rolls, tail: mmToM(tailMm) } });
+      // Strips that use the roll almost to the end: a roll shorter within the tolerance gives one strip less.
+      const lead = i.repeatMm > 0 ? i.repeatMm - 1 : 0;
+      const slackMm = i.rollLengthMm - lead - cut.perRoll * alignedMm + (alignedMm - stripMm);
+      if (cut.perRoll > 0 && slackMm < ROLL_TOLERANCE * i.rollLengthMm) {
+        warnings.push({ code: "roll_tight", level: "info", values: { slack: mmToM(Math.max(slackMm, 0)) } });
+      }
+    } else if (cut.tooLong === "piece") {
+      warnings.push({ code: "piece_longer_than_roll", level: "warning", values: { roll: mmToM(i.rollLengthMm) } });
     } else {
       warnings.push({
         code: "strip_longer_than_roll",

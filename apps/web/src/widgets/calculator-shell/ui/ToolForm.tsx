@@ -126,7 +126,7 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
         );
       }
       case "select":
-        return field.options.length <= 4 ? (
+        return field.options.length <= 4 && !field.dropdown ? (
           <div key={field.name} className="col-span-2 flex flex-col gap-1.5">
             <span className="text-small font-medium text-text">{label(field)}</span>
             <Segment

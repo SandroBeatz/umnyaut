@@ -90,7 +90,10 @@ export function ResultPanel({ tool, view, example, stale, ref }: ResultPanelProp
             {view.related.map((item) => (
               <li key={item.key} className="flex items-center gap-3 py-2">
                 <MaterialThumb image={photoOf(item.photo)} fallbackIcon={<CategoryIcon />} alt="" size={56} />
-                <span className="flex-1 text-body">{item.title}</span>
+                <span className="flex flex-1 flex-col">
+                  <span className="text-body">{item.title}</span>
+                  {item.detail ? <span className="text-small text-text-muted tabular-nums">{item.detail}</span> : null}
+                </span>
                 <span className="text-quantity tabular-nums" data-result-value>
                   {item.quantity}
                 </span>

@@ -1,12 +1,12 @@
 ---
-version: 1.2
-date: 2026-10-09
+version: 1.3
+date: 2026-10-10
 category: code
 ---
 
 # Norm Sources — Wave 1
 
-> Version 1.2 · 2026-10-09 · [Code](../code/)
+> Version 1.3 · 2026-10-10 · [Code](../code/)
 
 ## Overview
 
@@ -54,6 +54,7 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | `grout.reserve` | 10% | S3 (10–15%) | confirmed | Lower bound of the range |
 | `wallpaper.rollWidth`, `wallpaper.rollLength` | 0,53 m / 10,05 m | S5 | confirmed | 1,06 × 10,05 and 1,06 × 25 m as market presets |
 | `wallpaper.trimAllowance` | 10 cm per strip | S17 (4–5 cm top and 4–5 cm bottom) | confirmed | Upper bound of the range; editable field «Припуск на подрезку» |
+| `wallpaper.rollLengthTolerance` | ±1,5% of roll length | S5 | **default, unconfirmed** | Quoted by secondary copies of ГОСТ 6810 (docs.cntd.ru refused the connection on 2026-10-10); drives the «рулон почти целиком» warning only |
 | `wallpaperPaste.coverage` | 30 m² per 250 g (non-woven) | S6 | **default, unconfirmed** | Owner can't check a pack yet; shown with «проверьте по пачке», field editable |
 | `paint.coverage` | 10 m²/l per coat | S7 (12–14 m²/l) | confirmed (owner: conservative) | Below the datasheet on purpose: rough walls and colour changes |
 | `paint.coats` | 2 | S7 | confirmed | |

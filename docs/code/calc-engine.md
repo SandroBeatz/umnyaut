@@ -1,12 +1,12 @@
 ---
-version: 1.2
-date: 2026-10-09
+version: 1.3
+date: 2026-10-10
 category: code
 ---
 
 # Calculation Engine (`@umnyaut/calc`)
 
-> Version 1.2 · 2026-10-09 · [Code](../code/)
+> Version 1.3 · 2026-10-10 · [Code](../code/)
 
 ## Overview
 
@@ -14,7 +14,7 @@ category: code
 
 The package does not know about React, HTTP, or the database. Its only dependency is Zod. It is also the single biggest product risk (a wrong formula means a person buys the wrong amount), so it carries the strictest testing rules in the repo.
 
-> Status: core implemented (Phase 4): types, blocks `geometry`/`packs`/`waste`/`coverage`, golden harness, invariants, reviewer export, `ProjectData` v1 and a `mergeItems()` stub. Live tools: room area, wall area (Phase 5), wallpaper (Phase 6) with the `strips` engine (`cutStrips`). Engines `rows`, `grid`, `frame`, `power` arrive with their tools.
+> Status: core implemented (Phase 4): types, blocks `geometry`/`packs`/`waste`/`coverage`, golden harness, invariants, reviewer export, `ProjectData` v1 and a `mergeItems()` stub. Live tools: room area, wall area (Phase 5), wallpaper and paint (Phase 6) with the `strips` engine (`cutStrips`) and can sets (`purchaseSet`). A can set returns one line per size with the same key: golden expectations and the monotonic invariant compare the sum per key (total bought must not drop when the area grows). Engines `rows`, `grid`, `frame`, `power` arrive with their tools.
 
 ## Architecture
 
@@ -130,8 +130,8 @@ Only three engines need new geometry: `rows`, `grid`, `strips`.
 |---|---|---|---|
 | Room area | `/osnova/ploshchad-komnaty/` | `geometry` | Rect; L = rect − cut; niches/protrusions signed. Writes “My room” |
 | Wall area | `/osnova/ploshchad-sten/` | `geometry` | Perimeter × height − Σ openings; ceiling = floor |
-| Wallpaper | `/steny/oboi/` | `strips`, `packs` | Strips = ⌈(perimeter − door and window widths) ÷ roll width⌉, each height + 10 cm trim; `cutStrips` cuts them from rolls starting on the repeat (offset match: phases 0 and repeat/2 alternate) and puts pieces above doors and above/below windows into roll tails first; need = rolls × roll length − largest tail; paste by net wall area ÷ m² per pack. Implemented in v1; more precise than the spec's ⌊roll ÷ (height + allowance + repeat)⌋, which over-counts the repeat |
-| Paint | `/steny/kraska/` | `coverage`, `packs` | Area × label rate × layers × surface coef; can set by search with minimal overpay |
+| Wallpaper | `/steny/oboi/` | `strips`, `packs` | Strips = ⌈(perimeter − Σ max(opening width − roll width, 0)) ÷ roll width⌉ — a strip that only partly covers an opening is still full height; each strip is height + 10 cm trim. `cutStrips` cuts them on the repeat (offset match: phases 0 and repeat/2 alternate) after a worst-case lead of repeat − 1 mm per roll (the fitters' «высота + раппорт»), and puts the pieces above doors and above/below windows (none under 5 cm) into roll tails first; need = rolls × roll length − largest tail; paste by net wall area ÷ m² per pack; warning when strips use the roll within the ±1,5% length tolerance |
+| Paint | `/steny/kraska/` | `coverage`, `packs` | Area (walls without openings and/or ceiling) × coats ÷ coverage from the can; `purchaseSet` picks the 0,9 / 2,7 / 9 л set with the least overbuy, then the fewest cans, one purchase line per size with the same key; primer = area × rate in one canister size (a litre-based optimiser would buy 7 × 1 л instead of 10 л — needs prices) |
 | Laminate | `/pol/laminat/` | `rows`, `waste`, `packs` | Row by row: offset, trimming, offcut moves to next row if ≥ minimum. Diagonal/herringbone = waste % at launch |
 | Linoleum | `/pol/linoleum/` | `strips` | For each roll width × 2 directions: sheets, cut length, seams, waste, price; variants sorted |
 | Plinth | `/pol/plintus/` | `geometry`, `packs` | ⌈(perimeter − doors) ÷ plank length⌉; corners by shape, caps by doors, joiners by joints |
