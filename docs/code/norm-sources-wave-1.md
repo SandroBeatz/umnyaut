@@ -1,57 +1,82 @@
 ---
-version: 1.0
+version: 1.1
 date: 2026-10-09
 category: code
 ---
 
 # Norm Sources — Wave 1
 
-> Version 1.0 · 2026-10-09 · [Code](../code/)
+> Version 1.1 · 2026-10-09 · [Code](../code/)
 
 ## Overview
 
-Proposed primary sources for the norms of the eight wave‑1 tools (content plan C01). Nothing here enters `packages/catalog/src/norms.ts` until the owner confirms it; each confirmed row becomes a `Norm` with `source` and `checkedAt`. Qalculator is never a source.
+Primary sources for the norms of the eight wave‑1 tools (content plan C01). **Every norm in `packages/catalog/src/norms.ts` must have a row here with the full source link and the date it was checked**; the `source` field of a `Norm` names the same document. Qalculator is never a source.
 
-Status of every row: **proposed** — collected 2026-10-09, awaiting owner confirmation.
+Status values: **confirmed** — accepted by the owner (2026-10-09); **default, unconfirmed** — used with a visible «проверьте по этикетке» hint until a better source exists.
 
 ## Design decisions
 
-1. **Formula first, product second.** Where a manufacturer publishes a formula (grout) or a notch table (tile adhesive), the tool uses it; product-specific numbers become presets the user can change.
-2. **Manufacturer ranges → editable default.** Paint, primer and wallpaper paste are sold with a range on the label. The tool shows the default and the field «Расход по этикетке», so the user can type the number from their can.
-3. **ГЭСН (Minstroy estimate norms) are a sanity check, not a source.** They average waste over many jobs (e.g. 102,5 m² laminate per 100 m²), while our tools compute the layout. Used to cross-check golden examples only.
+1. **Formula first, product second.** Where a manufacturer publishes a formula (grout) or a notch table (tile adhesive), the tool uses it; product numbers become presets the user can change.
+2. **Label ranges → conservative editable default.** Paint, primer and wallpaper paste are sold with a range on the label. The tool uses the conservative default (owner decision: paint 10 m²/l) and offers the field «Расход по этикетке».
+3. **ГЭСН (Minstroy estimate norms) are a cross-check, not a source.** They average waste over many jobs; our tools compute the layout.
 4. **Standards give sizes and limits**, not consumption: ГОСТ 6810 (wallpaper roll), ГОСТ 7251 (linoleum roll), СП 71.13330 (adhesive layer within the manufacturer's limit).
 
-## Proposed norms
+## Sources
 
-| Tool | Norm id | Value | Source | Notes |
+| # | Document | Publisher | Link | Checked |
 |---|---|---|---|---|
-| Tile adhesive | `tileAdhesive.byNotch` | notch 4 → 2,0; 6 → 2,7; 8 → 3,2; 10 → 4,2 kg/m² (tile side 10/15/20/30 cm) | Ceresit, «Как рассчитать расход плиточного клея» — ceresit.ru/ru/blog/plitochnaya-oblicovka/raschet-kleya-dlya-plitki/ | Same page: V = S × Vст × h (kg/m² per 1 mm × layer mm); CM 11 Plus ≈ 1,2 kg/m² per 1 mm |
-| Tile adhesive | `tileAdhesive.bag` | 25 kg | Ceresit CM 11 Plus product page | Preset; 5 kg as second preset |
-| Grout | `grout.formula` | (A + B) / (A × B) × joint width × joint depth × 1,6 kg/m² | Ceresit, «Как рассчитать расход затирки» — ceresit.ru/ru/blog/plitochnaya-oblicovka/raschet-zatirki-dlya-plitki/ | Same page: add 10–15% reserve |
-| Grout | `grout.density.cement` | 1,6 (Ceresit); 1,5 implied by Mapei Keracolor FF table | Mapei Keracolor FF TDS, consumption table (e.g. 300 × 300 × 10, joint 3 → 0,3 kg/m²) — cdnmedia.mapei.com | Mapei rows become golden examples; the 1,5 vs 1,6 gap is within the table's rounding |
-| Grout | `grout.reserve` | 10% | Ceresit (10–15%) | Lower bound; user can raise |
-| Wallpaper | `wallpaper.roll` | 0,53 × 10,05 m; 1,06 × 10,05 m | ГОСТ 6810‑2002 «Обои. Технические условия» (preferred width 530 mm, length ≥ 10,05 m) | 1,06 × 25 m as a preset (common, not in the standard) |
-| Wallpaper paste | `wallpaperPaste.coverage` | ≈ 30 m² per 250 g pack (non-woven), 40–48 m² (paper) | Metylan product pages (metylan.ru) + pack tables | **Weak:** the site renders by JS, numbers taken from search snippets and retailers; owner to confirm from a pack |
-| Paint | `paint.coverage` | 12–14 m²/l per coat; 2 coats | PARADE Professional E2 PRO'LATEX2 — parade.ru | Default 10 m²/l (conservative between Parade 12–14 and Tikkurila 7–12) — owner decision |
-| Paint | `paint.cans` | 0,9 / 2,7 / 9 l | PARADE E2 (same page) | Can-set optimiser `bestPackSet` |
-| Primer | `primer.consumption` | 0,1–0,2 l/m², 1 coat | Ceresit CT 17 PRO — ceresit.ru | Default 0,15 l/m² |
-| Laminate | `laminate.minOffset` | 300 mm between end joints | Tarkett «Укладка ламината» (tarkett.ru/hub) and Quick-Step installation guide | Drives the `rows` engine and offcut reuse |
-| Laminate | `laminate.minLastRow` | 50 mm | Quick-Step installation guide (quick-step.ru/laminate/installation/) | Warning «последний ряд выйдет N см» |
-| Laminate | `laminate.expansionGap` | 10–15 mm | Tarkett | Reduces laid width per wall |
-| Laminate | `laminate.waste.diagonal` | 15% | — **no primary source found yet** | Content plan C04 says ~15%; needs a manufacturer guide or the master |
-| Linoleum | `linoleum.trim` | 3–5 cm overlap per seam; 0,5–1 cm off the wall | Tarkett «Укладка линолеума» (tarkett.ru/hub) | Allowance per side for the `strips` engine |
-| Linoleum | `linoleum.rollWidth` | 1,2–2,4 m (standard range), up to 3 m | ГОСТ 7251‑2016 | Presets 1,5 / 2 / 2,5 / 3 / 3,5 / 4 m from the market (C03) |
-| Plinth | `plinth.length` | 2,5 m (also 2,2 m) | Arbiton (arbiton.com/ru/plintus), IDEAL (ideal.ru) catalogues | Corners, caps, joiners counted by geometry |
-| Tile | `tile.joint` | 1,5–2 mm wall 15 × 15, 2–3 mm floor 33 × 33 | Ceresit grout guide (same page as grout) | Default joint by format |
-| Cross-check | ГЭСН 11‑01‑034‑04 (laminate 102,5 m² / 100 m²), ГЭСН 11‑01‑027‑02 (tile 102 m² / 100 m²) | — | ГЭСН‑2020, Minstroy | Sanity check only (decision 3) |
-| Limit | Adhesive layer thickness | ≤ manufacturer's value | СП 71.13330.2017, 7.4.15 | Warning when notch × format is outside the manufacturer table |
+| S1 | «Как рассчитать расход плиточного клея на 1 м²» | Ceresit (Henkel) | https://ceresit.ru/ru/blog/plitochnaya-oblicovka/raschet-kleya-dlya-plitki/ | 2026-10-09 |
+| S2 | Ceresit CM 11 Plus, product page | Ceresit (Henkel) | https://www.ceresit.ru/ru/products/tiling/tile-adhesives/cm_11_plus.html | 2026-10-09 |
+| S3 | «Как рассчитать расход затирки для плитки» | Ceresit (Henkel) | https://ceresit.ru/ru/blog/plitochnaya-oblicovka/raschet-zatirki-dlya-plitki/ | 2026-10-09 |
+| S4 | Keracolor FF, technical data sheet (consumption table) | Mapei | https://cdnmedia.mapei.com/docs/librariesprovider52/products-documents/1_00131_keracolor-ff-sg-23022023_29291268390942ceb2a0fe6a6616403b.pdf?sfvrsn=bf8c64e1_0 | 2026-10-09 |
+| S5 | ГОСТ 6810‑2002 «Обои. Технические условия» | Межгосударственный стандарт | https://docs.cntd.ru/document/1200032267 | 2026-10-09 |
+| S6 | Метилан Флизелин Ультра Премиум, product page | Metylan (Henkel) | https://www.metylan.ru/ru/katalog/oboynyy-kley-metylan/metilan-flizelin-ultra-premium.html | 2026-10-09 (page renders by JS; numbers from the search snippet, not read directly) |
+| S7 | PARADE Professional E2 PRO'LATEX2, product page | PARADE | https://parade.ru/catalog/professional/parade-professional-e2-pro-latex2/ | 2026-10-09 |
+| S8 | Ceresit CT 17 PRO, product page | Ceresit (Henkel) | https://www.ceresit.ru/ru/products/tiling/supplementary-materials/ct_17_pro/ | 2026-10-09 |
+| S9 | «Укладка ламината и уход» | Tarkett | https://www.tarkett.ru/hub/vidy-napolnykh-pokrytiy/ukladka-laminata-i-ukhod/ | 2026-10-09 |
+| S10 | «Монтаж ламината Quick-Step» | Quick-Step (Unilin) | https://www.quick-step.ru/laminate/installation/ | 2026-10-09 |
+| S11 | «Укладка линолеума и уход» | Tarkett | https://www.tarkett.ru/hub/vidy-napolnykh-pokrytiy/ukladka-linoleuma-i-ukhod/ | 2026-10-09 |
+| S12 | ГОСТ 7251‑2016 «Линолеум поливинилхлоридный на тканой и нетканой подоснове» | Межгосударственный стандарт | https://docs.cntd.ru/document/1200141418 | 2026-10-09 |
+| S13 | Плинтусы, каталог | Arbiton | https://arbiton.com/ru/plintus | 2026-10-09 |
+| S14 | Напольные плинтусы, каталог | IDEAL | https://ideal.ru/product/plintusy/ | 2026-10-09 |
+| S15 | СП 71.13330.2017 «Изоляционные и отделочные покрытия», п. 7.4.15 | Минстрой России | https://docs.cntd.ru/document/456082588 | 2026-10-09 |
+| S16 | ГЭСН 11‑01‑034‑04 (ламинат), ГЭСН 11‑01‑027‑02 (плитка) — cross-check only | Минстрой России | https://fsnb2022.ru/gesn/gesn11-01-034-04.html · https://fsnb2022.ru/gesn/gesn11-01-027-02.html | 2026-10-09 |
 
-## Open questions for the owner
+## Norms
 
-1. Paint default coverage: 10 m²/l (conservative) or the datasheet's 12 m²/l?
-2. Grout density: Ceresit's 1,6 (more grout, safer) or Mapei's ~1,5?
-3. Wallpaper paste: confirm the coverage from a real pack (Metylan / Quelyd / KLEO).
-4. Laminate diagonal / herringbone waste: we have no primary source — keep 15% marked «по опыту укладчиков» or wait for the master (A26)?
+| Norm id | Value used | Source | Status | Notes |
+|---|---|---|---|---|
+| `tileAdhesive.notch4`, `tileAdhesive.notch6`, `tileAdhesive.notch8`, `tileAdhesive.notch10` | 2,0 / 2,7 / 3,2 / 4,2 kg/m² for notch 4 / 6 / 8 / 10 mm | S1 | confirmed | Tile side 10 / 15 / 20 / 30 cm in the same table; S1 also gives V = S × Vст × h |
+| `tileAdhesive.perMm` | 1,2 kg/m² per 1 mm of layer | S2 | confirmed | For a user-entered layer thickness |
+| `tileAdhesive.bag` | 25 kg | S2 | confirmed | Preset; 5 kg second preset |
+| `grout.density` | 1,6 | S3 | confirmed (owner: 1,6) | Mapei S4 implies ~1,5; we keep the larger value. S4 rows are golden cross-checks with that difference explained |
+| `grout.reserve` | 10% | S3 (10–15%) | confirmed | Lower bound of the range |
+| `wallpaper.rollWidth`, `wallpaper.rollLength` | 0,53 m / 10,05 m | S5 | confirmed | 1,06 × 10,05 and 1,06 × 25 m as market presets |
+| `wallpaperPaste.coverage` | 30 m² per 250 g (non-woven) | S6 | **default, unconfirmed** | Owner can't check a pack yet; shown with «проверьте по пачке», field editable |
+| `paint.coverage` | 10 m²/l per coat | S7 (12–14 m²/l) | confirmed (owner: conservative) | Below the datasheet on purpose: rough walls and colour changes |
+| `paint.coats` | 2 | S7 | confirmed | |
+| `paint.cans` (preset, not a norm) | 0,9 / 2,7 / 9 l | S7 | confirmed | Can-set optimiser `bestPackSet`; lives in the tool's presets |
+| `primer.consumption` | 0,15 l/m², 1 coat | S8 (0,1–0,2) | confirmed | Middle of the range |
+| `laminate.minOffset` | 300 mm | S9, S10 | confirmed | `rows` engine, offcut reuse |
+| `laminate.minLastRow` | 50 mm | S10 | confirmed | Warning «последний ряд выйдет N см» |
+| `laminate.expansionGap` | 10 mm (10–15) | S9 | confirmed | Per wall |
+| `laminate.waste.diagonal` | 15% | — | **default, unconfirmed** (owner: keep with a note) | Labelled «по опыту укладчиков»; to be confirmed by the master (A26) |
+| `laminate.waste.herringbone` | 15% | — | **default, unconfirmed** | Same note |
+| `linoleum.seamOverlap` | 50 mm (3–5 cm) | S11 | confirmed | Pattern matching per seam |
+| `linoleum.wallTrim` | 10 mm (0,5–1 cm) | S11 | confirmed | |
+| `linoleum.rollWidthMin`, `linoleum.rollWidthMax` | 1,2 / 2,4 m (table 1 allows up to 3 m) | S12 | confirmed | Market presets 1,5 … 4 m (C03) |
+| `plinth.length` | 2,5 m (2,2 m preset) | S13, S14 | confirmed | |
+| `tile.joint.wall`, `tile.joint.floor` | 2 mm / 3 mm | S3 (1,5–2 wall 15 × 15; 2–3 floor 33 × 33) | confirmed | Upper bound of each range |
+| Adhesive layer limit | ≤ manufacturer's value | S15 | confirmed | Warning when notch × format leaves the S1 table |
+
+## Decisions log
+
+| Date | Question | Owner decision |
+|---|---|---|
+| 2026-10-09 | Paint default coverage | Conservative 10 m²/l |
+| 2026-10-09 | Grout density | 1,6 (Ceresit) |
+| 2026-10-09 | Wallpaper paste from a real pack | Not available yet → default, unconfirmed |
+| 2026-10-09 | Laminate diagonal / herringbone waste | 15% with the note «по опыту укладчиков» until the master confirms |
 
 ## Cross-references
 

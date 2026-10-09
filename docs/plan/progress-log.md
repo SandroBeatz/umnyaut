@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-09
 
+- **— (C01)** Owner decisions on wave‑1 norms: paint 10 m²/l (conservative), grout density 1,6, wallpaper paste stays a default without a confirmed pack, diagonal/herringbone laminate waste 15% «по опыту укладчиков». [Norm Sources — Wave 1](../code/norm-sources-wave-1.md) v1.1 lists 16 sources (S1–S16) with full links and check dates and every norm id with its status; 26 norms added to `packages/catalog/src/norms.ts` (`unconfirmed` flag for the 3 defaults). New test `norm-sources.test.ts`: every norm has a row in the doc, every confirmed norm links its source, every link is in the doc. Boundary guard lets catalog tests use `node:` built-ins.
+  - Where: `feature/phase-6-wave-1`
+  - Deviation: СП 71.13330 link corrected to docs.cntd.ru/document/456082588 after verification.
+
 - **— (C01, partial)** Proposed primary norm sources for the 8 wave‑1 tools in [Norm Sources — Wave 1](../code/norm-sources-wave-1.md): Ceresit notch table and grout formula, Mapei grout table, ГОСТ 6810 / 7251 sizes, Parade paint and Ceresit primer datasheets, Tarkett and Quick-Step laying rules, Arbiton/IDEAL plinth lengths; ГЭСН as a cross-check only. Nothing added to `norms.ts` yet.
   - Where: `feature/phase-6-wave-1`
   - Notes: awaiting owner confirmation of 4 open questions (paint default, grout density, paste coverage, diagonal laminate waste). tikkurila.ru did not resolve from the agent environment; metylan.ru renders by JS — those numbers are weak.
