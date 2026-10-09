@@ -35,7 +35,7 @@ UmnyAut («Умняут») — a connected renovation calculator: enter room dim
 | [Product and Domain](./business/product-and-domain.md) | 2.0 |
 | [Competitive Benchmark](./business/competitive-benchmark.md) | 1.0 |
 | [SEO and Analytics](./business/seo-and-analytics.md) | 1.1 |
-| [Calculation Engine](./code/calc-engine.md) | 1.0 |
+| [Calculation Engine](./code/calc-engine.md) | 1.1 |
 | [Server API and Data](./code/server-api-and-data.md) | 1.0 |
 | [Calculator Shell, Pages and Routing](./ui/calculator-shell-and-pages.md) | 1.0 |
 | [Design System](./design/design-system.md) | 1.1 |
@@ -46,7 +46,7 @@ UmnyAut («Умняут») — a connected renovation calculator: enter room dim
 | [Engineering Practices](./practices/engineering-practices.md) | 1.1 |
 | [Development Plan](./plan/development-plan.md) | 2.2 |
 | [Accounts and Services](./plan/accounts-and-services.md) | 1.0 |
-| [Dependencies](./plan/dependencies.md) | 1.0 |
+| [Dependencies](./plan/dependencies.md) | 1.2 |
 | [Content and Assets Plan](./plan/content-plan.md) | 1.2 |
 | [Progress Log](./plan/progress-log.md) | 1.1 |
 

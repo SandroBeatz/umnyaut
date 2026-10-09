@@ -1,4 +1,4 @@
 {
   "extends": "@umnyaut/tsconfig/library.json",
-  "include": ["src", "vitest.config.ts"]
+  "include": ["src", "test", "scripts", "vitest.config.ts"]
 }
