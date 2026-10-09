@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-09
 
+- **— (C01, partial)** Proposed primary norm sources for the 8 wave‑1 tools in [Norm Sources — Wave 1](../code/norm-sources-wave-1.md): Ceresit notch table and grout formula, Mapei grout table, ГОСТ 6810 / 7251 sizes, Parade paint and Ceresit primer datasheets, Tarkett and Quick-Step laying rules, Arbiton/IDEAL plinth lengths; ГЭСН as a cross-check only. Nothing added to `norms.ts` yet.
+  - Where: `feature/phase-6-wave-1`
+  - Notes: awaiting owner confirmation of 4 open questions (paint default, grout density, paste coverage, diagonal laminate waste). tikkurila.ru did not resolve from the agent environment; metylan.ru renders by JS — those numbers are weak.
+
 - **— (P5 review)** «Моя комната» and «Сообщить об ошибке» open as a centred 480 px dialog from 1024 px and stay a bottom sheet on the phone (owner request; design spec §11). New `ResponsiveSheet` in `packages/ui` (Dialog ≥ 1024, vaul Sheet below; server and first render use the sheet), 2 unit tests.
   - Where: `feature/phase-5-app-shell` · PR #150
 
