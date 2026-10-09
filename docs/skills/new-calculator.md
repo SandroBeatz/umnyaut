@@ -44,7 +44,8 @@ Exactly these files (scheme only when the tool needs one):
 | File | Content |
 |---|---|
 | `packages/calc/src/tools/<id>/index.ts` | `ToolModule`: Zod input with bounds, `defaults(ctx)`, `compute()` returning codes not text |
-| `packages/calc/src/tools/<id>/golden.ts` | ≥ 10 examples `{ name, input, ctx, expect, source }` |
+| `packages/calc/src/tools/<id>/golden.ts` | `GoldenFile`: ≥ 10 examples `{ name, input, ctx?, expected, source }` + optional Qalculator `benchmarks` |
+| `packages/calc/test/arbitraries.ts` (entry, not a file) | fast-check `input` generator within the schema bounds + `grow(input)` that enlarges the area — required by the invariants test |
 | `packages/catalog/src/tools/<id>.ts` | URL, category, titles, `FieldDef[]` (≤ 4 `main`), presets, next steps, warning/step texts, norms with `source` + `checkedAt`, `disclaimer` if electrical/heating/screed |
 | `apps/web/content/tools/<id>.md` | Frontmatter + placeholder body (full text via `tool-content`) |
 | `apps/web/src/widgets/layout-scheme/<id>.tsx` | Only if layout affects the result |

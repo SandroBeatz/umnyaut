@@ -1,12 +1,12 @@
 ---
-version: 1.1
-date: 2026-10-08
+version: 1.2
+date: 2026-10-09
 category: plan
 ---
 
 # Dependencies Manifest
 
-> Version 1.1 · 2026-10-08 · [Plan](../plan/)
+> Version 1.2 · 2026-10-09 · [Plan](../plan/)
 
 ## Overview
 
@@ -53,6 +53,8 @@ Every tool, CLI and npm package the stack in the technical spec requires, groupe
 |---|---|---|---|
 | `zod` | 4.6.5 | dependency | **Only** runtime dependency allowed |
 | `fast-check` | 4.10.2 | dev | Invariant/property tests |
+| `tsx` | 4.23.15 | dev | Runs `scripts/export-golden.ts` (`pnpm calc:export`); its `esbuild` postinstall is disabled via `allowBuilds` in `pnpm-workspace.yaml` (the platform binary ships as an optional package) |
+| `vitest`, `@vitest/coverage-v8` | 5.0.3 | dev | Tests with the 95% line gate (`vitest run --coverage`) |
 
 ### `packages/catalog` — Phase 4
 
@@ -100,7 +102,7 @@ shadcn/ui is not a dependency: components are generated with `pnpm dlx shadcn@la
 | `zod` | 4.6.5 | dep | 1 | Env, API bodies, frontmatter |
 | `@t3-oss/env-nextjs` | 0.13.11 | dep | 1 | *Optional* typed env on top of Zod; a plain Zod schema in `server/platform/env.ts` is equally fine |
 | `zustand` | 5.0.15 | dep | 5 | “My room” store with `persist` |
-| `gray-matter` | 4.0.3 | dev | 4 | Frontmatter parsing in the content build script |
+| `gray-matter` | 4.0.3 | dev | 4 | Frontmatter parsing at build (`server/content`) |
 | `unified`, `remark-parse`, `remark-rehype`, `rehype-sanitize`, `rehype-stringify` | 11.0.5 / 11.0.0 / 11.1.2 / 6.0.0 / 10.0.1 | dev | 4 | Markdown → sanitized HTML at build (no MDX by decision) |
 | `sharp` | 0.35.5 | dev | 3 | Build-time AVIF/WebP for mascot and material photos |
 | `schema-dts` | 2.1.0 | dev | 9 | Typed JSON-LD (`WebApplication`, `FAQPage`, `BreadcrumbList`) |

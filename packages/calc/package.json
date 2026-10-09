@@ -9,13 +9,18 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p .",
-    "test": "vitest run"
+    "test": "vitest run --coverage",
+    "export": "tsx scripts/export-golden.ts"
   },
   "dependencies": {
     "zod": "4.6.5"
   },
   "devDependencies": {
     "@umnyaut/tsconfig": "workspace:*",
-    "@umnyaut/vitest-config": "workspace:*"
+    "@umnyaut/vitest-config": "workspace:*",
+    "@vitest/coverage-v8": "5.0.3",
+    "fast-check": "4.10.2",
+    "tsx": "4.23.15",
+    "vitest": "5.0.3"
   }
 }

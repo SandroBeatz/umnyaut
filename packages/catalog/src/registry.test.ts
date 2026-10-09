@@ -1,30 +1,21 @@
 import { toolModules } from "@umnyaut/calc";
 import { describe, expect, it } from "vitest";
-import { categories, reservedSegments } from "./categories";
+import { type CategoryDef, categories, reservedSegments } from "./categories";
+import { norms } from "./norms";
 import { activeCategories, getTool, toolPath, tools } from "./registry";
+import type { ToolDef } from "./tools/types";
+import { type RegistryInput, validateRegistry } from "./validate";
 
-const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const real: RegistryInput = { categories, reservedSegments, tools, modules: toolModules, norms };
 
 describe("registry", () => {
-  it("category slugs are unique, well-formed and not reserved", () => {
-    const slugs = categories.map((c) => c.slug);
-    expect(new Set(slugs).size).toBe(slugs.length);
-    for (const slug of slugs) {
-      expect(slug).toMatch(SLUG);
-      expect(reservedSegments).not.toContain(slug);
-    }
+  it("passes every registry rule", () => {
+    expect(validateRegistry(real)).toEqual([]);
   });
 
-  it("tool ids and URLs are unique and well-formed", () => {
-    const ids = tools.map((t) => t.id);
-    expect(new Set(ids).size).toBe(ids.length);
-    for (const tool of tools) expect(tool.id).toMatch(SLUG);
+  it("tool URLs are unique", () => {
     const paths = tools.map(toolPath);
     expect(new Set(paths).size).toBe(paths.length);
-  });
-
-  it("every catalog tool has a calc module and every module is in the catalog", () => {
-    expect(tools.map((t) => t.id).sort()).toEqual(Object.keys(toolModules).sort());
   });
 
   it("looks tools up by category and id only", () => {
@@ -39,5 +30,72 @@ describe("registry", () => {
     expect(activeCategories().map((c) => c.slug)).toEqual(
       categories.filter((c) => tools.some((t) => t.category === c.slug)).map((c) => c.slug),
     );
+  });
+});
+
+describe("validateRegistry", () => {
+  /** Loose on purpose: broken ids and categories that the real types would reject. */
+  const tool = (over: Record<string, unknown>) =>
+    ({ category: "osnova", title: "T", status: "draft", fields: [], ...over }) as unknown as ToolDef;
+  const field = (name: string, main = true) => ({ kind: "toggle" as const, name, label: name, main });
+
+  it("catches every broken rule", () => {
+    const badCategories: CategoryDef[] = [
+      { slug: "osnova", title: "A" },
+      { slug: "osnova", title: "B" },
+      { slug: "Bad_Slug", title: "C" },
+      { slug: "api", title: "D" },
+    ];
+    const errors = validateRegistry({
+      categories: badCategories,
+      reservedSegments,
+      norms: { "x.y": { value: Number.NaN, unit: "%", source: " ", checkedAt: "09.10.2026" } },
+      modules: { a: { id: "a", version: 0 }, orphan: { id: "orphan", version: 1 } },
+      tools: [
+        tool({
+          id: "a",
+          status: "live",
+          category: "nope",
+          nextSteps: ["a", "ghost"],
+          fields: [
+            field("f1"),
+            field("f2"),
+            field("f3"),
+            field("f4"),
+            field("f1"),
+            { kind: "preset", label: "P", presets: ["p1", "missing"] },
+          ],
+          presets: [
+            { id: "p1", label: "P1", values: { f1: true, zz: 1 } },
+            { id: "p1", label: "P1 again", values: {} },
+          ],
+          norms: ["no.such"],
+        }),
+        tool({ id: "a" }),
+        tool({ id: "No_Module" }),
+      ],
+    });
+    expect(errors).toEqual([
+      "category osnova: duplicate slug",
+      "category Bad_Slug: malformed slug",
+      "category api: reserved URL segment",
+      "tool a: duplicate id (URL)",
+      "module orphan: missing from the catalog",
+      "tool a: unknown category nope",
+      "tool a: live without a formula (version 0)",
+      "tool a: next step points to itself",
+      "tool a: next step ghost does not exist",
+      "tool a: 5 main fields, at most 4",
+      "tool a: duplicate field f1",
+      "tool a: duplicate preset p1",
+      "tool a: unknown preset missing",
+      "tool a: preset p1 sets unknown field zz",
+      "tool a: unknown norm no.such",
+      "tool No_Module: malformed id",
+      "tool No_Module: no calc module",
+      "norm x.y: missing source",
+      "norm x.y: checkedAt must be YYYY-MM-DD",
+      "norm x.y: value is not a number",
+    ]);
   });
 });

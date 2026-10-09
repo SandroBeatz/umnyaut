@@ -4,5 +4,31 @@
  */
 export const CALC_PACKAGE = "@umnyaut/calc";
 
+export * from "./blocks";
+export type {
+  BenchmarkObservation,
+  ExpectedItem,
+  GoldenExample,
+  GoldenExpectation,
+  GoldenFile,
+  GoldenSource,
+} from "./golden";
+export * from "./project";
 export { type ToolId, toolModules } from "./tools";
-export type { CalcContext, Country, ToolModule, ToolResult } from "./types";
+export type {
+  CalcContext,
+  Cost,
+  Country,
+  Layout,
+  LayoutPiece,
+  Opening,
+  Pack,
+  PurchaseItem,
+  Quantity,
+  Room,
+  Step,
+  ToolModule,
+  ToolResult,
+  Unit,
+  Warning,
+} from "./types";

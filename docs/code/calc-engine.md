@@ -1,12 +1,12 @@
 ---
-version: 1.0
-date: 2026-10-08
+version: 1.1
+date: 2026-10-09
 category: code
 ---
 
 # Calculation Engine (`@umnyaut/calc`)
 
-> Version 1.0 · 2026-10-08 · [Code](../code/)
+> Version 1.1 · 2026-10-09 · [Code](../code/)
 
 ## Overview
 
@@ -14,7 +14,7 @@ category: code
 
 The package does not know about React, HTTP, or the database. Its only dependency is Zod. It is also the single biggest product risk (a wrong formula means a person buys the wrong amount), so it carries the strictest testing rules in the repo.
 
-> Status: planned, not yet implemented. Contracts below are fixed by the technical spec §5 and design spec §18.
+> Status: core implemented (Phase 4): types, blocks `geometry`/`packs`/`waste`/`coverage`, golden harness, invariants, reviewer export, `ProjectData` v1 and a `mergeItems()` stub. No tool has a formula yet; engines `rows`, `grid`, `strips`, `frame`, `power` arrive with their tools.
 
 ## Architecture
 
@@ -54,7 +54,16 @@ export interface PurchaseItem {
   shopQuery?: string;                  // query for "View material" (stage 3)
   nextTool?: ToolId;                   // detailed calc for this item
 }
+
+// As implemented (packages/calc/src/types.ts):
+interface Quantity { value: number; unit: 'mm' | 'm' | 'm2' | 'm3' | 'kg' | 'l' | 'pcs' }
+interface Pack { kind: 'pack' | 'roll' | 'bag' | 'bucket' | 'can' | 'box' | 'piece' | 'tube'; size: Quantity }
+interface Warning { code: string; level: 'info' | 'warning'; values?: Record<string, number> }
+interface Step { code: string; values: Record<string, number> }   // text per code lives in catalog
+// summary entries carry a key: { key: 'floorArea', value: 19.78, unit: 'm2' }
 ```
+
+Numbers of a warning sit in `values` (`{ code: 'narrow_last_row', level: 'warning', values: { widthMm: 50 } }`) rather than flat on the object, so the type stays closed.
 
 This contract covers standard requirements 1, 2, 4, 5, 6, 7 and 15. The planner merges `items` from several tools via `mergeItems()` without recomputing anything itself.
 
@@ -91,7 +100,7 @@ Engines return `Layout`; a single `LayoutScheme` component draws it as SVG. Abov
 | Topic | Rule |
 |---|---|
 | Units | Lengths inside the module are **integer millimetres**. Areas/volumes in m²/m³. The form converts m/cm → mm |
-| Rounding | Full precision until the end. Packages always round **up** via `ceilPacks()` with 1e‑9 tolerance (10.0000001 must not become 11) |
+| Rounding | Full precision until the end. Packages always round **up** via `ceilPacks()`. Its 1e‑9 tolerance is relative to the ratio and only absorbs float noise (0.1 × 3 / 0.1 → 3, not 4); a real excess such as 10.0000001 still buys 11. Any positive need buys at least one pack |
 | Display | Decimal places and formatting belong to the UI, not the formula |
 | Waste | `WasteRule`: default % depends on laying method and room shape; user can override |
 | Texts | The module returns **codes and numbers** only: `{ code: 'narrow_last_row', widthMm: 50 }`. Russian text lives in `catalog` |
@@ -149,8 +158,8 @@ const result = laminat.compute({ ...input, packAreaM2: 2.22 }, ctx);
 
 ### Tests (mandatory for every tool)
 
-1. **Golden examples** — `golden.ts` with ≥ 10 entries: input, expected result, source (manufacturer datasheet, manual calc, competitor cross-check). One shared test runs all tools; **the build fails if a tool has fewer than 10**.
-2. **Invariants via fast-check** — for any valid input: bought ≥ need; packs is an integer; more area never yields fewer packs; no `NaN`/`Infinity` in the result.
+1. **Golden examples** — `golden.ts` exports a `GoldenFile`: ≥ 10 examples, each with `input` (merged over `defaults()`), a partial `expected` (items by key, summary, warning codes, cost) and a `source` (datasheet, norm, manual derivation, reviewer). Competitor numbers go to `benchmarks`, never to `expected`; a benchmark that differs must carry an `explanation`. One shared test (`test/golden.test.ts`) runs every tool with `version ≥ 1`; **CI fails if a tool has fewer than 10**. Placeholders (`version: 0`) are skipped.
+2. **Invariants via fast-check** — for any valid input: bought ≥ need; packs is an integer; more area never yields fewer packs; no `NaN`/`Infinity` in the result. Each tool adds an entry to `test/arbitraries.ts` (input generator + `grow()`); a tool with a formula and no entry fails.
 3. **Coverage** ≥ 95% lines for `packages/calc`.
 4. **Reviewer export** — `pnpm calc:export` dumps a wave's golden examples into a table a master can read without code access; corrections come back as new golden examples.
 
@@ -174,6 +183,10 @@ Performance target: `compute()` < 5 ms; tile/laminate layout goes through `useDe
 | `packages/calc/src/blocks/{geometry,packs,waste,coverage,rows,grid,strips,frame,power}.ts` | Shared building blocks |
 | `packages/calc/src/tools/<id>/index.ts` | One tool module |
 | `packages/calc/src/tools/<id>/golden.ts` | Golden examples for the tool |
-| `packages/calc/src/project/` | `ProjectData` schema, `mergeItems()`, schema migrations |
+| `packages/calc/src/project/` | `ProjectData` v1 Zod schema (+ `roomSchema`), `migrateProject()`, `mergeItems()` (stub: sums same key + pack, first-seen order) |
+| `packages/calc/src/golden.ts` | `GoldenFile` types, `matchExpectation()`, `validateGolden()` |
+| `packages/calc/src/invariants.ts` | `resultViolations()`, `growthViolations()` |
 | `packages/calc/test/golden.test.ts` | Runs all golden files, enforces ≥ 10 |
-| `packages/calc/test/invariants.test.ts` | fast-check properties |
+| `packages/calc/test/invariants.test.ts` | fast-check properties per tool; generators in `test/arbitraries.ts` |
+| `packages/calc/test/harness.test.ts` | Self-test of the harness on a demo tool (`test/fixtures/demo-tool.ts`) |
+| `packages/calc/scripts/export-golden.ts` | `pnpm calc:export [--csv] [--out file] [ids…]` — reviewer table |

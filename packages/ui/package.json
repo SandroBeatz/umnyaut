@@ -8,6 +8,7 @@
   ],
   "exports": {
     ".": "./src/index.ts",
+    "./format": "./src/format/index.ts",
     "./theme.css": "./src/theme.css",
     "./fonts/onest-var.woff2": "./assets/fonts/onest-var.woff2"
   },

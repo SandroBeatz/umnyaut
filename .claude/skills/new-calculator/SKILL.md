@@ -20,7 +20,8 @@ Source spec: `docs/skills/new-calculator.md` (v1.0). Contract and rules: `docs/c
 | File | Content |
 |---|---|
 | `packages/calc/src/tools/<id>/index.ts` | `ToolModule`: Zod input with bounds, `defaults(ctx)`, `compute()` returning codes not text |
-| `packages/calc/src/tools/<id>/golden.ts` | ≥ 10 examples `{ name, input, ctx, expect, source }` (shape: `references/golden-template.ts`) |
+| `packages/calc/src/tools/<id>/golden.ts` | `GoldenFile`: ≥ 10 examples `{ name, input, ctx?, expected, source }` + optional Qalculator `benchmarks` (shape: `references/golden-template.ts`) |
+| `packages/calc/test/arbitraries.ts` (entry, not a file) | fast-check `input` generator within the schema bounds + `grow(input)` that enlarges the area — required by the invariants test |
 | `packages/catalog/src/tools/<id>.ts` | URL, category, titles, `FieldDef[]` (≤ 4 `main`), presets, next steps, warning/step texts (RU), norms with `source` + `checkedAt`, `disclaimer` for electrical/heating/screed |
 | `apps/web/content/tools/<id>.md` | Frontmatter + placeholder body (full text → `tool-content` skill) |
 | `apps/web/src/widgets/layout-scheme/<id>.tsx` | Only if the tool returns `layout` |
