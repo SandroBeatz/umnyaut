@@ -35,6 +35,10 @@ www.{$DOMAIN} {
 	import access_log
 	encode zstd gzip
 
+	# Only the canonical domain is indexable; a temporary DOMAIN (e.g. <ip>.sslip.io before DNS) is not.
+	@noncanonical expression {host} != "umnyaut.com"
+	header @noncanonical X-Robots-Tag "noindex, nofollow"
+
 	# Written by deploy.sh: `reverse_proxy web-blue:3000` or `reverse_proxy web-green:3000`.
 	import /etc/caddy/state/upstream.caddy
 }

@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-09
 
+- **P2.2, P2.5 (partly), P0.6 (partly)** First prod deploy: merge #139 → `main` → Deploy workflow green in 3.5 min; `/api/health/` → `version 09ff1765d14b`, `env production`, `db skipped`; slot `blue` healthy, app ≈ 43 MB of 768 MB, ≈ 1.3 GB RAM free. Caddyfile now sends `X-Robots-Tag: noindex, nofollow` for any host but `umnyaut.com` (temporary sslip.io domain is not indexable). Reachability via Globalping (17 probes): all 200; RU 0.20–0.39 s, BY 0.19–0.29 s, KG 0.46 s, KZ 0.45–1.67 s.
+  - Where: `main` · `09ff176` · prod (VPS, `129-101-115-71.sslip.io`); noindex on `feature/prod-followups`
+  - Notes: rollback test runs on the next release (this PR). P0.6 left: real testers on RU mobile operators (no Beeline/MegaFon/Tele2 probes), robot fetch in Webmaster/Search Console after DNS. DNS at Namecheap still points to Lovable (`185.158.133.1`); switch = P2.8.
 - **—** Decision (owner): AI features use an inexpensive **Gemini** model instead of Anthropic. Env `ANTHROPIC_API_KEY`/`ANTHROPIC_BASE_URL` → `GEMINI_API_KEY`/`GEMINI_BASE_URL` (`env.ts`, tests, `.env.example`); SDK `@google/genai` planned for P14.4; tiers fast = Flash-Lite, accurate = Flash, model ids verified at implementation.
   - Where: `feature/phase-2-infra`
   - Notes: Gemini API does not serve RU/BY, so prod (Timeweb, RU) still needs a relay outside RU via `GEMINI_BASE_URL`. Use a billing-enabled project (free-tier data may be used by Google). Account A31 changed to Google AI Studio.
