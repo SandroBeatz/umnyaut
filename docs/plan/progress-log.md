@@ -42,6 +42,12 @@ Each entry:
 
 ### 2026-10-09
 
+- **P2.8 (partly)** DNS switched at Namecheap: `@` and `www` A → prod VPS (TTL 5 min); Cloudflare, Google and Yandex resolvers return the new IP. Server `.env` `DOMAIN=umnyaut.com`; Caddy obtained certificates for `umnyaut.com` and `www.umnyaut.com`; `PROD_URL=https://umnyaut.com`. Checked: `/api/health/` 200 (`62299c73d3fc`), no `X-Robots-Tag` on the canonical host, `www` → apex 301, HTTP → HTTPS 308. The sslip.io host is no longer served.
+  - Where: prod (VPS) · Namecheap DNS · GitHub variable `PROD_URL`
+  - Notes: left — `staging` CNAME after adding the domain in Vercel; delete stray Namecheap records created with host `umnyaut.com` (they became `umnyaut.com.umnyaut.com`); raise TTL to 30 min once stable.
+- **—** Incident: prod VM froze 08:32–08:48 UTC (no SSH/HTTP/ICMP from anywhere), recovered by a reboot from the Timeweb panel. Previous-boot journal: repeated `bochs-drm` `[CRTC] vblank wait timed out` kernel warnings from 08:29, then the log stops at 08:32:56 — no panic, no OOM. Coincided with a Caddy restart but started 3 min before it; likely a hypervisor stall or the virtual display driver. No warnings after the reboot, CPU steal 0%.
+  - Where: prod (VPS)
+  - Notes: if it repeats — open a Timeweb ticket with the times, and consider `nomodeset`/blacklisting `bochs` (text console still works). Brings the external uptime check (P9.9) forward: a freeze must alert, not wait for a human.
 - **P2.5** Second release `62299c7` (#141) deployed to slot `green` in 54 s; `X-Robots-Tag: noindex` confirmed on the sslip.io host. Rollback tested: Deploy workflow with `rollback: true` → `blue` (`09ff1765d14b`), health confirmed; run again → back to `green` (`62299c73d3fc`). Exit gate "rollback tested once" met.
   - Where: `main` · `62299c7` · prod (VPS) · runs 37904457674, 37904554495
   - Notes: a second `rollback` swaps forward again (it always switches to the other slot). Phase 2 left: P2.6 staging domain, P2.7 Supabase, P2.8 DNS, P2.9, P2.10 Renovate app.
