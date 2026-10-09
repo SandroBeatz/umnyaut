@@ -63,7 +63,7 @@ jobs:
     if: ${{ vars.SUPABASE_PROJECT_REF != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    environment: production
+    environment: prod-vps
     defaults:
       run:
         working-directory: packages/db
@@ -84,7 +84,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
-      name: production
+      name: prod-vps
       url: ${{ vars.PROD_URL }}
     permissions:
       contents: read

@@ -41,7 +41,7 @@ Rules:
 |---|---|---|---|---|
 | A12 | Supabase | Create org; **one** project `umnyaut`, region **Frankfurt (eu-central-1)**, Free plan (prod only; staging has no DB) | `SUPABASE_URL`, **secret key** (`sb_secret_…`), DB password, DB connection string | Password manager → server env (`web.env`), GitHub secrets (`SUPABASE_DB_PASSWORD`, `SUPABASE_DB_URL`) |
 | A13 | Supabase CLI access token | `supabase login`; create a personal access token for CI | `SUPABASE_ACCESS_TOKEN` (secret), `SUPABASE_PROJECT_REF` (variable) | GitHub Actions |
-| A14 | Vercel | Sign in with GitHub; import repo; root `apps/web`; production branch = `develop` (this Vercel project is staging only); Hobby plan; add domain `staging.umnyaut.com`; set `APP_ENV=staging` | Preview URL per PR, staging URL | Vercel |
+| A14 | Vercel | Sign in with GitHub; import repo; root `apps/web`; production branch = `develop` (this Vercel project is staging only); Hobby plan; add domain `staging.umnyaut.com`; set `APP_ENV=staging` and `ENABLE_EXPERIMENTAL_COREPACK=1` | Preview URL per PR, staging URL | Vercel |
 | A15 | GitHub Actions secrets | `VPS_HOST`, `VPS_SSH_KEY` (deploy user key), `VPS_USER`, `GHCR_TOKEN` (or use `GITHUB_TOKEN`), `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD_DEV/PROD`, `INDEXNOW_KEY` | CI/CD access | GitHub |
 | A16 | DNS records | `umnyaut.com` A/AAAA → VPS; `www` → apex redirect (Caddy); `staging` CNAME → Vercel | Live domains | Registrar |
 | A17 | Docker + Docker Compose on VPS | Installed by `infra/bootstrap.sh` | Runtime | Server |
@@ -78,7 +78,7 @@ Rules:
 
 | ID | Service | Action | Produces | Stored in |
 |---|---|---|---|---|
-| A31 | Anthropic Console | Organization, workspace “umnyaut”; **spend limit** = AI ceiling (1–3k ₽/mo); separate keys for staging and prod; check that the VPS country can reach the API (else proxy via `ANTHROPIC_BASE_URL`) | `ANTHROPIC_API_KEY` | Server env / Vercel |
+| A31 | Google AI Studio (Gemini API) | Google Cloud project “umnyaut” with **billing on** (paid tier: free-tier prompts may be used by Google); **budget alert** = AI ceiling (1–3k ₽/mo); separate keys for staging and prod; the API does not serve RU/BY, so prod goes through a relay (`GEMINI_BASE_URL`) | `GEMINI_API_KEY` | Server env / Vercel |
 | A32 | Lawyer / accountant | One consultation (Feb 2027): Metrika before consent, operator duties in 4 countries, ad cookies, storage of client names/phones, 3% ad levy, ad marking | Written answers | `docs/` |
 | A33 | Yandex Advertising Network (РСЯ) | Apply as non-resident (KG sole proprietor) — check offer terms and payout threshold | Ad block IDs | catalog config |
 | A34 | Google AdSense | Apply for KZ/BY/KG traffic; compare with РСЯ | Publisher ID | catalog config |
@@ -109,8 +109,8 @@ Environment variables by environment (filled from the rows above):
 | `TELEGRAM_BOT_TOKEN` | test | test | prod | A27/A28 |
 | `TELEGRAM_WEBHOOK_SECRET` | random | random | random | A29 |
 | `TELEGRAM_API_ROOT` | default | default | default or proxy | A27 |
-| `ANTHROPIC_API_KEY` | staging key | staging key | prod key | A31 |
-| `ANTHROPIC_BASE_URL` | default | default | default or proxy | A31 |
+| `GEMINI_API_KEY` | staging key | staging key | prod key | A31 |
+| `GEMINI_BASE_URL` | default | default | relay outside RU/BY | A31 |
 | `AI_ENABLED` | `true` | `true` | `true` | — |
 | `AI_MONTHLY_BUDGET_USD` | small | small | ceiling | A31 |
 

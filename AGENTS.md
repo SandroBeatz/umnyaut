@@ -8,7 +8,7 @@ Repo reset on 2026-10-08 (previous crossword project removed). Phase 1 monorepo 
 
 ## Stack
 
-pnpm workspaces + Turborepo, Node 24 · Next.js 16 App Router, React 19.2 + Compiler · Tailwind CSS 4 tokens · shadcn/ui (Radix) in `packages/ui` · Zustand (room only) · Zod everywhere · Supabase Postgres (server-only) · grammY · Anthropic API behind `VisionProvider` · Vitest, fast-check, Playwright, Lighthouse CI · Biome, Steiger, `tsc`. Prod: Docker + Caddy on a CIS VPS (`main`). Staging: Vercel (`develop`, PR previews).
+pnpm workspaces + Turborepo, Node 24 · Next.js 16 App Router, React 19.2 + Compiler · Tailwind CSS 4 tokens · shadcn/ui (Radix) in `packages/ui` · Zustand (room only) · Zod everywhere · Supabase Postgres (server-only) · grammY · Gemini API (cheap Flash tiers) behind `VisionProvider` · Vitest, fast-check, Playwright, Lighthouse CI · Biome, Steiger, `tsc`. Prod: Docker + Caddy on a CIS VPS (`main`). Staging: Vercel (`develop`, PR previews).
 
 ## Hard rules
 

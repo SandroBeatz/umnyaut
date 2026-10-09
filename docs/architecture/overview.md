@@ -31,7 +31,7 @@ Three properties drive every architectural choice:
  Telegram app ─►│                              ├─ static pages (SSG, calc at build) │
  Widget iframe ►│                              ├─ /p/[id] (SSR, project by link)     │
                 │                              └─ /api/** route handlers ────────────┼─► Supabase Postgres (Frankfurt)
-                └────────────────────────────────────────────────────────────────────┘─► Anthropic API (vision)
+                └────────────────────────────────────────────────────────────────────┘─► Gemini API (vision, via relay)
                                                                                       ─► Telegram Bot API
  Staging & PR previews: Vercel (branch `develop` + every PR), always noindex.
 ```
@@ -47,7 +47,7 @@ The browser receives a finished page and **computes locally** after hydration. I
 | Room carried between tools | Browser, localStorage (Zustand persist) | No |
 | Share link `?s=` | Browser (base64url of non-default fields) | No |
 | Save/open project | Route handler → Supabase | Yes |
-| Photo recognition | Route handler → Anthropic API | Yes |
+| Photo recognition | Route handler → Gemini API | Yes |
 | Telegram “My calculations” | Route handler → Supabase | Yes |
 
 ### Monorepo layout (pnpm workspaces + Turborepo, Node.js 24 LTS)
@@ -111,7 +111,7 @@ Environment variables are validated by a Zod schema at server start (missing var
 | `APP_ENV` | `local` / `preview` / `staging` / `production`; non-prod adds `X-Robots-Tag: noindex`, disables analytics, uses a small AI budget |
 | `SUPABASE_URL`, `SUPABASE_SECRET_KEY` | Server-only DB access |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `TELEGRAM_API_ROOT` | Bot + webhook; API root overridable for a proxy |
-| `ANTHROPIC_API_KEY`, `ANTHROPIC_BASE_URL` | Vision provider; base URL overridable for a proxy |
+| `GEMINI_API_KEY`, `GEMINI_BASE_URL` | Vision provider (Gemini); base URL points to a relay outside RU/BY on prod |
 | `AI_ENABLED`, `AI_MONTHLY_BUDGET_USD` | Kill switch and monthly ceiling |
 | `METRIKA_ID`, `INDEXNOW_KEY` | Analytics and indexing |
 

@@ -67,7 +67,7 @@ Product sequencing is **depth before breadth**. Qalculator.ru is the mandatory b
 - [ ] P0.3 Domain mailbox `hello@`, `dev@` (A02); password vault (A03); 2FA + branch protection (A04); `gh auth` (A05).
 - [ ] P0.4 Webmaster, Search Console, Metrika counter (not installed), Wordstat (A08–A11).
 - [ ] P0.5 Research per business spec §5: 60 candidates → demand → SERP → competitors → scoring → first 30 ranked. Qalculator is the primary benchmark: record catalog/SEO/UX/monetization baseline and per-wave overlap; choose the first complete wall chain before unrelated breadth (owner; agents help with SERP/competitor analysis).
-- [ ] P0.6 **VPS measurement** (A06, A07): rent 1–2 KZ/KG servers; deploy a throwaway tool-weight page with Docker + Caddy; measure from RU (4 mobile operators, 2–3 ISPs, ≥ 2 regions), KZ, BY, KG; robot fetch in Webmaster/Search Console; outbound test to Supabase, Anthropic API, Telegram Bot API. Pass = < 5 s everywhere + all three outbound OK. Buy the winner.
+- [ ] P0.6 **VPS measurement** (A06, A07): rent 1–2 KZ/KG servers; deploy a throwaway tool-weight page with Docker + Caddy; measure from RU (4 mobile operators, 2–3 ISPs, ≥ 2 regions), KZ, BY, KG; robot fetch in Webmaster/Search Console; outbound test to Supabase, Gemini API, Telegram Bot API. Pass = < 5 s everywhere + all three outbound OK. Buy the winner.
 - [ ] P0.7 Norm sources + golden drafts for wave 1 (C01, C02): ≥ 3 shared Qalculator scenarios per overlapping tool, independently derived and with every result difference explained.
 - [ ] P0.8 Merge design-spec §18 amendments into the RU tech spec (`main` field flag, `question`, `photo`/`icon`, `sharp`, image budgets, one font, `via`, Telegram theme).
 - [ ] P0.9 Apply the decided home headline from C13; decide mascot pose candidates (G02) and confirm mp4 clips stay out of launch (G15). TypeScript 7 vs 5.x decided in P1.2.
@@ -399,14 +399,14 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 **Needs:** A31–A37, C09, C23, C24, G13, G14.
 
-**Install:** `@anthropic-ai/sdk` (web).
+**Install:** `@google/genai` (web).
 
 **Tasks**
 
 - [ ] P14.1 Wave 3 tools: Concrete, Lumber, Brick/blocks, Air conditioner, Underfloor heating, Cable cross-section (disclaimer), Drywall ceiling, PVC panels/lining, Decorative plaster/liquid wallpaper, Curtains; categories strojmaterialy, interer.
 - [ ] P14.2 Variations by the 3-condition rule (`[variant]` route, frontmatter guard).
 - [ ] P14.3 Light master mode: `MasterSheet` (work lines, `qtyFrom` room measures, header), client view on `/p/<id>`, print estimate; 5–10 master interviews; go/no-go metric (≥ 10% projects with work lines + ≥ 3 ready to pay).
-- [ ] P14.4 AI: migration `ai_usage`; `VisionProvider` (Anthropic, verify model ids: fast = `claude-haiku-4-5-20251001`, accurate = evaluate `claude-sonnet-5`); limits, monthly budget, kill switch; test set 30 labels + 10 plans, ≥ 90% field accuracy gate; label photo (site + bot), plan photo, text description; confirmation screen; mascot `think`, `camera`.
+- [ ] P14.4 AI: migration `ai_usage`; `VisionProvider` (Gemini API via relay `GEMINI_BASE_URL`; verify current model ids and prices: fast = Flash-Lite, accurate = Flash); limits, monthly budget, kill switch; test set 30 labels + 10 plans, ≥ 90% field accuracy gate; label photo (site + bot), plan photo, text description; confirmation screen; mascot `think`, `camera`.
 - [ ] P14.5 Planner v2: multiple rooms, polygon contour, wave‑2 works, CSV + PDF (print layout).
 - [ ] P14.6 Monetization tests on top‑3 pages: РСЯ/AdSense in `AdSlot` (consent category, ≤ 2 per page on phone), «Посмотреть материал» (`ShopConfig`, `rel="sponsored nofollow noopener"`, ad label + erid, `shop_clicked`).
 - [ ] P14.7 Lawyer consult (A32) before the first ad block; acquiring check (A37).
@@ -436,7 +436,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 | # | Item | Resolution / owner | Phase |
 |---|---|---|---|
 | 1 | `origin/develop` contains the old project | Archive as `legacy/develop`, force-push new `develop` after approval | P0.2 |
-| 2 | Tech spec names “Claude Sonnet 5.5” (not in current model list) | Evaluate `claude-haiku-4-5-20251001` / `claude-sonnet-5` on the test set | P14.4 |
+| 2 | Tech spec names Claude models; owner chose Gemini (2026-10-09) | Evaluate Gemini Flash-Lite / Flash on the test set; RU tech spec still says Claude | P14.4 |
 | 3 | Design §18 amendments not merged into RU tech spec | Merge | P0.8 |
 | 4 | Mascot poses exist at 1254 px (spec asked ≥ 2048) | Check hero 2× quality | P3.8 |
 | 5 | Mascot `.mp4` clips vs “no animation at launch” | Not at launch | P0.9 |

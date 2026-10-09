@@ -1,15 +1,19 @@
 #!/usr/bin/env bash
 # One-time provisioning of a fresh Ubuntu LTS VPS. Run as root:
-#   DEPLOY_SSH_KEY="ssh-ed25519 AAAA... deploy" bash bootstrap.sh
-# Creates the `deploy` user (SSH key only), firewall 22/80/443, unattended security
-# upgrades with a night reboot window, Docker Engine + Compose, and /srv/umnyaut.
+#   DEPLOY_SSH_KEY="$(cat gha.pub owner.pub)" bash bootstrap.sh
+# DEPLOY_SSH_KEY holds one or more public keys (one per line): the GitHub Actions key and the owner's.
+# Creates the `deploy` user (SSH key only), root login by key only, firewall 22/80/443, a swap file,
+# unattended security upgrades with a night reboot window, Docker Engine + Compose, and /srv/umnyaut.
+# Put your own key into root's authorized_keys first (ssh-copy-id), or you lock yourself out of root.
 set -euo pipefail
 
-: "${DEPLOY_SSH_KEY:?set DEPLOY_SSH_KEY to the public key used by GitHub Actions and the owner}"
+: "${DEPLOY_SSH_KEY:?set DEPLOY_SSH_KEY to the public keys of GitHub Actions and the owner}"
 DEPLOY_USER=${DEPLOY_USER:-deploy}
 APP_DIR=/srv/umnyaut
+SWAP_SIZE=${SWAP_SIZE:-2G}
 
 [[ $(id -u) -eq 0 ]] || { echo "run as root" >&2; exit 1; }
+[[ -s /root/.ssh/authorized_keys ]] || { echo "add your key to /root/.ssh/authorized_keys first (ssh-copy-id)" >&2; exit 1; }
 export DEBIAN_FRONTEND=noninteractive
 
 echo "== packages"
@@ -20,16 +24,20 @@ apt-get install -yq ca-certificates curl gnupg ufw unattended-upgrades fail2ban
 echo "== deploy user"
 id "$DEPLOY_USER" >/dev/null 2>&1 || adduser --disabled-password --gecos "" "$DEPLOY_USER"
 install -d -m 700 -o "$DEPLOY_USER" -g "$DEPLOY_USER" "/home/$DEPLOY_USER/.ssh"
-grep -qxF "$DEPLOY_SSH_KEY" "/home/$DEPLOY_USER/.ssh/authorized_keys" 2>/dev/null ||
-  echo "$DEPLOY_SSH_KEY" >>"/home/$DEPLOY_USER/.ssh/authorized_keys"
+touch "/home/$DEPLOY_USER/.ssh/authorized_keys"
+while IFS= read -r key; do
+  [[ -n $key ]] || continue
+  grep -qxF "$key" "/home/$DEPLOY_USER/.ssh/authorized_keys" ||
+    echo "$key" >>"/home/$DEPLOY_USER/.ssh/authorized_keys"
+done <<<"$DEPLOY_SSH_KEY"
 chown "$DEPLOY_USER:$DEPLOY_USER" "/home/$DEPLOY_USER/.ssh/authorized_keys"
 chmod 600 "/home/$DEPLOY_USER/.ssh/authorized_keys"
 
-echo "== sshd: keys only, no root login"
+echo "== sshd: keys only, root by key only"
 cat >/etc/ssh/sshd_config.d/10-umnyaut.conf <<'CONF'
 PasswordAuthentication no
 KbdInteractiveAuthentication no
-PermitRootLogin no
+PermitRootLogin prohibit-password
 CONF
 sshd -t
 systemctl reload ssh || systemctl reload sshd
@@ -42,6 +50,17 @@ ufw allow 80/tcp
 ufw allow 443/tcp
 ufw allow 443/udp
 ufw --force enable
+
+echo "== swap ($SWAP_SIZE): headroom while two app slots overlap during a deploy"
+if ! swapon --show | grep -q .; then
+  fallocate -l "$SWAP_SIZE" /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  grep -q '^/swapfile ' /etc/fstab || echo '/swapfile none swap sw 0 0' >>/etc/fstab
+  echo 'vm.swappiness=10' >/etc/sysctl.d/60-umnyaut-swap.conf
+  sysctl -q -p /etc/sysctl.d/60-umnyaut-swap.conf
+fi
 
 echo "== unattended security upgrades, reboot window 03:30"
 cat >/etc/apt/apt.conf.d/20auto-upgrades <<'CONF'

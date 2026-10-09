@@ -17,16 +17,16 @@ export const envSchema = z
     TELEGRAM_BOT_TOKEN: optionalString,
     TELEGRAM_WEBHOOK_SECRET: optionalString,
     TELEGRAM_API_ROOT: optionalUrl,
-    ANTHROPIC_API_KEY: optionalString,
-    ANTHROPIC_BASE_URL: optionalUrl,
+    GEMINI_API_KEY: optionalString,
+    GEMINI_BASE_URL: optionalUrl,
     AI_ENABLED: flag,
     AI_MONTHLY_BUDGET_USD: z.coerce.number().nonnegative().default(0),
     METRIKA_ID: optionalString,
     INDEXNOW_KEY: optionalString,
   })
   .superRefine((env, ctx) => {
-    if (env.AI_ENABLED && !env.ANTHROPIC_API_KEY) {
-      ctx.addIssue({ code: "custom", path: ["ANTHROPIC_API_KEY"], message: "required when AI_ENABLED" });
+    if (env.AI_ENABLED && !env.GEMINI_API_KEY) {
+      ctx.addIssue({ code: "custom", path: ["GEMINI_API_KEY"], message: "required when AI_ENABLED" });
     }
   });
 

@@ -14,7 +14,7 @@ describe("parseEnv", () => {
     const env = parseEnv({
       APP_ENV: "production",
       AI_ENABLED: "1",
-      ANTHROPIC_API_KEY: "k",
+      GEMINI_API_KEY: "k",
       AI_MONTHLY_BUDGET_USD: "20",
     });
     expect(env.AI_ENABLED).toBe(true);
@@ -26,7 +26,7 @@ describe("parseEnv", () => {
   });
 
   it("requires an API key when AI is enabled", () => {
-    expect(() => parseEnv({ AI_ENABLED: "true" })).toThrow(/ANTHROPIC_API_KEY/);
+    expect(() => parseEnv({ AI_ENABLED: "true" })).toThrow(/GEMINI_API_KEY/);
   });
 
   it("treats empty values as unset", () => {

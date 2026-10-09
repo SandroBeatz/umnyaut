@@ -1,12 +1,12 @@
 ---
-version: 1.0
-date: 2026-10-08
+version: 1.1
+date: 2026-10-09
 category: integrations
 ---
 
 # AI Vision Features
 
-> Version 1.0 · 2026-10-08 · [Integrations](../integrations/)
+> Version 1.1 · 2026-10-09 · [Integrations](../integrations/)
 
 ## Overview
 
@@ -45,7 +45,11 @@ interface VisionProvider {
 }
 ```
 
-The provider is swappable without touching features. Default implementation: Anthropic API.
+The provider is swappable without touching features. **Default implementation: Gemini API** (owner decision 2026-10-09: the cheapest model that passes the quality gate; SDK `@google/genai`).
+
+**Region:** the Gemini API does not serve Russia or Belarus, and the prod VPS is in Russia (Timeweb, Novosibirsk). Requests go through a small HTTPS relay outside RU/BY (e.g. a minimal VPS in KZ or the EU) set as `GEMINI_BASE_URL`, passed to the SDK as `httpOptions.baseUrl` — no code change between direct and relayed. Staging on Vercel calls the API directly.
+
+**Data:** use a paid (billing-enabled) Gemini API project, not the free tier — on the free tier Google may use prompts and images to improve its products, and these are users' photos.
 
 ### Models and cost (estimates from the spec)
 
@@ -56,7 +60,7 @@ The provider is swappable without touching features. Default implementation: Ant
 | Plan photo | accurate | ≈ 4,000 | ≈ 800 | ≈ $0.016 | 2 |
 | Estimate check (≤ 5 pages) | accurate | ≈ 12,000 | ≈ 2,500 | ≈ $0.05 | 1, then paid pack |
 
-The technical spec names “Claude Haiku 4.5” for the fast tier and “Claude Sonnet 5.5” for the accurate tier. **Verify model IDs before implementation** — current IDs are `claude-haiku-4-5-20251001` (fast) and `claude-sonnet-5` / `claude-opus-5-5` (accurate); “Sonnet 5.5” does not appear in the current model list. Pick the cheapest model that passes the quality gate below.
+Costs above are the spec's estimates for Claude models; Gemini Flash tiers are expected to be cheaper — recompute from current Gemini prices at P14.4. Tiers: **fast** = the current Gemini Flash-Lite model, **accurate** = the current Gemini Flash model (Pro only if Flash fails the gate). **Verify model IDs and prices before implementation** (Context7 / Gemini docs); the technical spec still names Claude Haiku/Sonnet. Pick the cheapest model that passes the quality gate below. Output uses structured JSON (`responseMimeType: application/json` + schema), validated again with Zod.
 
 ### Budget protection
 
@@ -82,7 +86,7 @@ The technical spec names “Claude Haiku 4.5” for the fast tier and “Claude 
 
 ## Configuration
 
-`ANTHROPIC_API_KEY`, `ANTHROPIC_BASE_URL` (proxy fallback if the VPS country can't reach the API), `AI_ENABLED`, `AI_MONTHLY_BUDGET_USD` (business ceiling 1–3k ₽/month). Non-prod environments get a small separate budget.
+`GEMINI_API_KEY`, `GEMINI_BASE_URL` (relay outside RU/BY — required on prod, empty on Vercel), `AI_ENABLED`, `AI_MONTHLY_BUDGET_USD` (business ceiling 1–3k ₽/month). Non-prod environments get a small separate budget.
 
 ## Usage
 
@@ -100,7 +104,7 @@ The technical spec names “Claude Haiku 4.5” for the fast tier and “Claude 
 | Path | Description |
 |---|---|
 | `apps/web/server/ai/provider.ts` | `VisionProvider` interface |
-| `apps/web/server/ai/anthropic.ts` | Anthropic implementation |
+| `apps/web/server/ai/gemini.ts` | Gemini implementation (`@google/genai`) |
 | `apps/web/server/ai/features/{label,plan,describe}.ts` | Instruction + schema per feature |
 | `apps/web/app/api/ai/*/route.ts` | Route handlers |
 | `apps/web/src/features/scan-label/` | Camera button, confirmation screen |

@@ -8,6 +8,9 @@ x-web: &web
   env_file: ./web.env
   restart: unless-stopped
   networks: [edge]
+  # Next standalone idles at 200–400 MB. Prod VPS has 2 GB RAM + 2 GB swap and both slots overlap
+  # for a few seconds during a swap, so the cap keeps a leak from starving Caddy and the other slot.
+  mem_limit: 768m
   security_opt:
     - no-new-privileges:true
   logging: &logging

@@ -10,8 +10,8 @@
 .github
 .claude
 docs
-stub
 infra
 **/e2e
 **/supabase/.temp
 **/.DS_Store
+apps/web/vercel.json
