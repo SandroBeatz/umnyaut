@@ -115,4 +115,4 @@ jobs:
         run: |
           curl -fsS --retry 5 --retry-delay 3 "${{ vars.PROD_URL }}/api/health/" | tee /dev/stderr \
             | grep -q '"version":"${{ needs.image.outputs.tag }}"'
-          curl -fsS "${{ vars.PROD_URL }}/" | grep -q '<h1>'
+          curl -fsS "${{ vars.PROD_URL }}/" | grep -qE '<h1[ >]'
