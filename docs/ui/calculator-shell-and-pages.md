@@ -102,7 +102,7 @@ Storage keys are versioned (`v1`); a version change runs a migration function. P
 | Mini app | `app/tg/page.tsx` | `/tg/` | Static shell | No |
 | API | `app/api/**/route.ts` | `/api/projects` | Server | No |
 
-Rules: `trailingSlash: true`; `generateStaticParams` from the registry with `dynamicParams = false` (unknown URL → 404); reserved first-level segments `remont`, `spravochnik`, `p`, `embed`, `tg`, `api` (registry test forbids them as categories); **no `cookies()`/`headers()` in indexable pages**; country is detected in the browser. Category slugs: `osnova`, `pol`, `steny`, `plitka`, `potolok`, `elektrika`, `klimat`, `strojmaterialy`, `interer`.
+Rules: `trailingSlash: true`; `generateStaticParams` from the registry with `dynamicParams = false` (unknown URL → 404); reserved first-level segments `remont`, `spravochnik`, `p`, `embed`, `tg`, `api`, `dev` (registry test forbids them as categories); **no `cookies()`/`headers()` in indexable pages**; country is detected in the browser. A category page is generated only once it has a tool; tools with catalog `status: 'draft'` (and categories with no `live` tool) are built but `noindex, nofollow`. Category slugs: `osnova`, `pol`, `steny`, `plitka`, `potolok`, `elektrika`, `klimat`, `strojmaterialy`, `interer`.
 
 Variations are `catalog` entries (URL, titles, default overrides, own text). Frontmatter must include its own example and ≥ 3 FAQ, or the build fails.
 
