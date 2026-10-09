@@ -1,9 +1,11 @@
 /* Design tokens — docs/design/design-system.md. Light by default; dark via data-theme="dark" on <html>. */
-@theme {
+/* static: emit every token, also those used only via var() or overridden by data-theme="dark". */
+@theme static {
   --color-*: initial;
   --color-white: #ffffff;
   --color-transparent: transparent;
   --color-current: currentColor;
+  --color-brand-navy: #0f1e34; /* fixed brand navy, same in both themes: background for the white logo */
 
   --color-bg: #ffffff;
   --color-surface: #ffffff;
@@ -85,4 +87,128 @@
   --shadow-sm: none;
   --shadow-md: none;
   --shadow-lg: none;
+}
+
+/* Type scale (phone / ≥ 1024). rem so the layout survives 200% font size. */
+@utility text-display {
+  font-size: 2rem;
+  line-height: 2.375rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  @media (width >= 1024px) {
+    font-size: 3rem;
+    line-height: 3.375rem;
+  }
+}
+@utility text-h1 {
+  font-size: 1.625rem;
+  line-height: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  @media (width >= 1024px) {
+    font-size: 2.25rem;
+    line-height: 2.625rem;
+  }
+}
+@utility text-h2 {
+  font-size: 1.375rem;
+  line-height: 1.75rem;
+  font-weight: 700;
+  @media (width >= 1024px) {
+    font-size: 1.625rem;
+    line-height: 2rem;
+  }
+}
+@utility text-h3 {
+  font-size: 1.125rem;
+  line-height: 1.5rem;
+  font-weight: 700;
+}
+@utility text-body {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 400;
+  @media (width >= 1024px) {
+    line-height: 1.625rem;
+  }
+}
+@utility text-body-strong {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 600;
+}
+@utility text-small {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 400;
+}
+@utility text-caption {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+}
+@utility text-result {
+  font-size: 2.5rem;
+  line-height: 2.75rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  @media (width >= 1024px) {
+    font-size: 3rem;
+    line-height: 3.25rem;
+  }
+}
+@utility text-result-unit {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 600;
+  @media (width >= 1024px) {
+    font-size: 1.375rem;
+  }
+}
+@utility text-quantity {
+  font-size: 1.25rem;
+  line-height: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+@utility text-input {
+  font-size: 1.125rem;
+  line-height: 1.5rem;
+  font-weight: 600;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+/* Reduced motion keeps opacity only (design system: motion). */
+@media (prefers-reduced-motion: reduce) {
+  @layer base {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 1ms;
+      animation-iteration-count: 1;
+      transition-duration: 1ms;
+      scroll-behavior: auto;
+    }
+  }
 }

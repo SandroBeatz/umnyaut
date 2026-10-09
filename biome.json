@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!docs", "!.claude", "!**/next-env.d.ts"]
+    "includes": ["**", "!docs", "!.claude", "!**/next-env.d.ts", "!**/*.gen.ts", "!packages/ui/assets"]
   },
   "formatter": {
     "enabled": true,

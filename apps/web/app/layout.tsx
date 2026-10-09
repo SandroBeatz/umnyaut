@@ -1,11 +1,8 @@
 import { site } from "@umnyaut/catalog";
 import type { Metadata, Viewport } from "next";
-import { Onest } from "next/font/google";
 import type { ReactNode } from "react";
+import { onest } from "./fonts";
 import "./globals.css";
-
-// Self-hosted at build time (no runtime requests to Google). P3.2 replaces it with a local subset.
-const onest = Onest({ subsets: ["latin", "cyrillic"], display: "swap", variable: "--font-onest" });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://umnyaut.com"),
