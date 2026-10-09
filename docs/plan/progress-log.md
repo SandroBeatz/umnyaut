@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-09
 
+- **P3.1 (partly)** Prod "coming soon" home in the project style: logo, badge «Скоро открытие», H1 «Одна комната — весь список покупок», promise line, three feature cards, mascot `hello` (blueprint pose) on a mint spot with a speech bubble; phone puts the mascot beside the bubble so the headline stays on the first screen. Design tokens (colours light + dark, radii, shadows, breakpoints, motion, z-index) in `packages/ui/src/theme.css`, imported by `globals.css`. Strings in `catalog` (`comingSoon`, `site.description`). Mascot exported to AVIF/WebP 320/640 (hero 2× AVIF 40 KB ≤ 60 KB budget); logo and favicon (`app/icon.svg`) from `docs/details/`.
+  - Where: `feature/coming-soon-stub`
+  - Notes: Onest comes from `next/font/google` (self-hosted at build, no runtime Google requests) until the P3.2 local subset; three Lucide icons are inlined until P3.6; image export was manual until the P3.7 pipeline. Home stays indexable (needed for the P0.6 robot fetch).
 - **P2.5** Second release `62299c7` (#141) deployed to slot `green` in 54 s; `X-Robots-Tag: noindex` confirmed on the sslip.io host. Rollback tested: Deploy workflow with `rollback: true` → `blue` (`09ff1765d14b`), health confirmed; run again → back to `green` (`62299c73d3fc`). Exit gate "rollback tested once" met.
   - Where: `main` · `62299c7` · prod (VPS) · runs 37904457674, 37904554495
   - Notes: a second `rollback` swaps forward again (it always switches to the other slot). Phase 2 left: P2.6 staging domain, P2.7 Supabase, P2.8 DNS, P2.9, P2.10 Renovate app.
