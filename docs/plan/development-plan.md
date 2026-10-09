@@ -171,15 +171,15 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 **Tasks**
 
-- [ ] P4.1 `calc/src/types.ts`: `ToolModule`, `CalcContext`, `ToolResult`, `PurchaseItem`, `Quantity`, `Pack`, `Cost`, `Warning`, `Step`, `Room`, `Layout`.
-- [ ] P4.2 Blocks: `geometry` (rect, L, polygon, walls minus openings), `packs` (`ceilPacks` 1e‑9, leftover, can-set optimizer), `waste` (`WasteRule`), `coverage`.
-- [ ] P4.3 Golden harness: `GoldenExample` type, shared test that loads every `tools/*/golden.ts`, fails if < 10 or missing `source`; partial-match assertions. Benchmark observations are kept separately from expected values so a competitor can never become the source of truth by accident.
-- [ ] P4.4 Invariants with fast-check for every registered tool: bought ≥ need, integer packs, monotonic in area, no NaN/∞.
-- [ ] P4.5 Coverage gate 95% for `calc` in CI; `pnpm calc:export` script (golden → CSV/Markdown table for the reviewer).
-- [ ] P4.6 `catalog`: `ToolDef` (slug, category, titles, `FieldDef[]` with `main`/`planner`/`room`, presets, next steps, `disclaimer`, item `photo` keys), `CategoryDef` (slug, icon, photo), norms with `source` + `checkedAt`, `CountryConfig` skeleton, reserved segments list.
-- [ ] P4.7 Registry tests: unique URLs, reserved segments unused, next steps point to existing tools, ≤ 4 `main` fields, module ↔ catalog ↔ content ↔ golden all present.
-- [ ] P4.8 Content pipeline: Zod frontmatter schema (limits from design §18), `{{norm.*}}` substitution, Markdown → sanitized HTML at build, build warnings on title/description overflow.
-- [ ] P4.9 `ProjectData` schema v1 (with optional `master`) and `mergeItems()` stub in `calc/project`.
+- [x] P4.1 `calc/src/types.ts`: `ToolModule`, `CalcContext`, `ToolResult`, `PurchaseItem`, `Quantity`, `Pack`, `Cost`, `Warning`, `Step`, `Room`, `Layout`.
+- [x] P4.2 Blocks: `geometry` (rect, L, polygon, walls minus openings), `packs` (`ceilPacks` 1e‑9, leftover, can-set optimizer), `waste` (`WasteRule`), `coverage`.
+- [x] P4.3 Golden harness: `GoldenExample` type, shared test that loads every `tools/*/golden.ts`, fails if < 10 or missing `source`; partial-match assertions. Benchmark observations are kept separately from expected values so a competitor can never become the source of truth by accident.
+- [x] P4.4 Invariants with fast-check for every registered tool: bought ≥ need, integer packs, monotonic in area, no NaN/∞.
+- [x] P4.5 Coverage gate 95% for `calc` in CI; `pnpm calc:export` script (golden → CSV/Markdown table for the reviewer).
+- [x] P4.6 `catalog`: `ToolDef` (slug, category, titles, `FieldDef[]` with `main`/`planner`/`room`, presets, next steps, `disclaimer`, item `photo` keys), `CategoryDef` (slug, icon, photo), norms with `source` + `checkedAt`, `CountryConfig` skeleton, reserved segments list.
+- [x] P4.7 Registry tests: unique URLs, reserved segments unused, next steps point to existing tools, ≤ 4 `main` fields, module ↔ catalog ↔ content ↔ golden all present.
+- [x] P4.8 Content pipeline: Zod frontmatter schema (limits from design §18), `{{norm.*}}` substitution, Markdown → sanitized HTML at build, build warnings on title/description overflow.
+- [x] P4.9 `ProjectData` schema v1 (with optional `master`) and `mergeItems()` stub in `calc/project`.
 
 **Exit gate:** `pnpm --filter @umnyaut/calc test` green with coverage ≥ 95%; registry + content tests green.
 
@@ -236,6 +236,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 - [ ] P6.9 Layout schemes for laminate and tile **only if time remains** (else Phase 10).
 - [ ] P6.10 Reviewer export of wave 1 (C10) sent to the master (A26).
 - [ ] P6.11 Minimal local-only connected wall list: shared room → wall area → wallpaper or paint → glue/primer; `mergeItems()` combines duplicates and exposes the next calculation. Saving, projects and the full works picker remain Phase 7/11.
+- [ ] P6.12 Re-check the Phase 4 decisions against real tools and reviewer feedback ([Calculation Engine → Decisions to verify](../code/calc-engine.md#decisions-to-verify-in-real-testing)): `ceilPacks` tolerance, minimum one pack for a tiny need, norms filled with sources, harness running on real tools, `calc:export` on CI and Mac.
 
 **Exit gate:** 10 tools; first connected wall path produces one merged list; each tool has ≥ 10 golden with primary sources; overlapping tools have ≥ 3 explained Qalculator comparisons; `formula-reviewer` PASS; reviewer feedback scheduled.
 

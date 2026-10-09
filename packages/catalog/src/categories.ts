@@ -2,13 +2,17 @@
 export interface CategoryDef {
   slug: string;
   title: string;
+  /** Key in `categoryIcons` of `@umnyaut/ui`; none yet → a generic icon. */
+  icon?: string;
+  /** Category photo key in the image pipeline (`cat-<slug>`), once the photo exists (G06). */
+  photo?: string;
 }
 
 export const categories = [
-  { slug: "osnova", title: "Основа" },
-  { slug: "pol", title: "Пол" },
-  { slug: "steny", title: "Стены" },
-  { slug: "plitka", title: "Плитка" },
+  { slug: "osnova", title: "Основа", icon: "osnova" },
+  { slug: "pol", title: "Пол", icon: "pol" },
+  { slug: "steny", title: "Стены", icon: "steny" },
+  { slug: "plitka", title: "Плитка", icon: "plitka" },
   { slug: "potolok", title: "Потолок" },
   { slug: "elektrika", title: "Электрика" },
   { slug: "klimat", title: "Климат" },
