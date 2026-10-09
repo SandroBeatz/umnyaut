@@ -152,6 +152,7 @@ Taken in Phase 4 without real tools. Re-check each one once the first formulas, 
 | 3 | Norms registry is empty | No consumption rate, overlap or waste % exists until a tool brings it with `source` + `checkedAt`; content with `{{norm.*}}` fails the build without the norm | Each wave‑1 tool adds its norms from P0.7 sources; reviewer confirms values | P0.7, Phase 6 |
 | 4 | Harness proven only on a demo tool | Golden and invariant runs skip `version: 0`; the harness is tested on `test/fixtures/demo-tool.ts` | The first real tool (P5.8) must show up in `golden.test.ts` and `invariants.test.ts` as executed, not skipped, and fail when a golden number is broken on purpose | P5.8 |
 | 5 | `tsx` with disabled `esbuild` postinstall | `allowBuilds: { esbuild: false }` in `pnpm-workspace.yaml`; the platform binary comes from esbuild's optional package | Run `pnpm calc:export` on CI (Linux) and on the owner's Mac once real golden files exist | P6.10 |
+| 6 | Pack choice by litres, not by money | `bestPackSet` without prices minimises overbuy in litres, then pack count. Paint uses it (0,9 / 2,7 / 9 л); primer stays one canister size (owner, 2026-10-10) because 7 × 1 л would beat 10 л | Add pack price fields (`kind: "price"` per size) and switch both to the cheapest set; compare with real shop prices per country | Phase 7+ (prices), owner decision |
 
 ## Configuration
 

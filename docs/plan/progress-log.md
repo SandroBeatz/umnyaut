@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-10
 
+- **— (decision)** Owner: primer stays one canister size (10 л default, field) for now; choosing 1 л vs 10 л — and paint cans — by price comes with pack price fields later. Recorded in [Norm Sources — Wave 1](../code/norm-sources-wave-1.md) (decisions log) and [Calculation Engine](../code/calc-engine.md) (decision 6). Second `formula-reviewer` pass started for wallpaper (after fixes) and paint.
+  - Where: `feature/phase-6-wave-1`
+
 - **P6.5 (partial)** Paint calculator `kraska` v1 (`/steny/kraska/`, live): walls without openings, ceiling or both × coats ÷ coverage (10 m²/л, owner's conservative norm); new `purchaseSet()` turns the best 0,9 / 2,7 / 9 л set (least overbuy, then fewest cans) into one purchase line per size with the same key; primer 0,15 л/м² in one canister size (10 л, field). 12 golden examples derived by hand, all matched. Shell groups lines of one key: «4 банки» with «1 × 9 л + 1 × 2,7 л + 2 × 0,9 л» under it; a related item sold by volume shows «по 10 л» under its title; new pack kind `canister`; select fields can be a half-row dropdown (`dropdown: true`). First screen 579 px; Playwright journey for the can set.
   - Where: `feature/phase-6-wave-1`
   - Notes: P6.5 stays open until `formula-reviewer` and the release check. No Qalculator benchmark for paint yet.
