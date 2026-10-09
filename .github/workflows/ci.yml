@@ -67,7 +67,7 @@ jobs:
           docker logs web
           test "$status" = healthy
           curl -fsS http://localhost:3000/api/health/ | tee /dev/stderr | grep -q '"version":"${{ github.sha }}"'
-          curl -fsS http://localhost:3000/ | grep -q '<h1>'
+          curl -fsS http://localhost:3000/ | grep -qE '<h1[ >]'
       - name: Container refuses to boot with invalid env
         run: |
           code=0; timeout 60 docker run --rm -e APP_ENV=bogus umnyaut-web:ci || code=$?
