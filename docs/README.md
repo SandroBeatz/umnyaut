@@ -47,7 +47,7 @@ UmnyAut («Умняут») — a connected renovation calculator: enter room dim
 | [Development Plan](./plan/development-plan.md) | 2.2 |
 | [Accounts and Services](./plan/accounts-and-services.md) | 1.0 |
 | [Dependencies](./plan/dependencies.md) | 1.0 |
-| [Content and Assets Plan](./plan/content-plan.md) | 1.1 |
+| [Content and Assets Plan](./plan/content-plan.md) | 1.2 |
 | [Progress Log](./plan/progress-log.md) | 1.1 |
 
 ## Skill specifications

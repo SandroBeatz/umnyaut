@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-09
 
+- **— (G04–G06 prep)** Photo brief added to the [Content and Assets Plan](./content-plan.md): delivery format, one style (angle, light, palette with hex tones), base + per-item prompts for 12 wave-1 materials and 4 category photos, acceptance check. Owner generates the trial set (laminate, wallpaper, tile adhesive) first.
+  - Where: `feature/phase-3-design-system`
+  - Notes: P3.6 category icons stay as drafts for now (owner decision).
 - **P3.1, P3.2, P3.3, P3.4, P3.5, P3.7, P3.8, P3.10, P3.11; P3.6 (partly)** Design system in `packages/ui`: full tokens (`@theme static`) + type-scale utilities; Onest variable subset 36 KB via `next/font/local` (preloaded); `Logo` and adaptive favicon; `formatNumber`/`formatMoney`/`plural`/`formatQuantity`/`formatDimensions`; components `Button`, `NumberField`, `UnitToggle`, `Stepper`, `Segment`, `ChoiceTileGroup`, `Select` (sheet on phone, dropdown ≥ 1024), `PresetChips`, `Accordion`, `Tabs`, `Dialog`, `Sheet`, `Toaster`, `Card`, `IconCircle`, `Mascot`, `MaterialThumb`; Lucide icons + 4 draft category icons; mascot pipeline (5 poses, hashed AVIF/WebP, CI budget check); `/dev/ui` gallery (light + dark, 404 on prod). Home stub now uses these components. Tests: ui 57 (NumberField comma/dot/empty/paste/blur, format, contrast pairs light + dark).
   - Where: `feature/phase-3-design-system`
   - Notes: left — P3.6 category icon drafts need owner approval (G03), P3.9 trial material photos (G04, not made yet); dialogs/sheet/select were checked in the build and gallery screenshots, opening them by hand on a real phone is still to do. Exit gate otherwise met (components on `/dev/ui`, contrast pairs hold, tests green, poses 1–5 + 4 icons in place).
