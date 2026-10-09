@@ -1,18 +1,18 @@
 ---
-version: 1.0
-date: 2026-10-08
+version: 2.0
+date: 2026-10-09
 category: business
 ---
 
 # Product and Domain
 
-> Version 1.0 · 2026-10-08 · [Business](../business/)
+> Version 2.0 · 2026-10-09 · [Business](../business/)
 
 ## Overview
 
-UmnyAut answers one question for a person doing a renovation: **“how much do I buy and what will it cost?”** Working tagline: «Умные расчёты для ремонта: введите размеры — получите список покупок».
+UmnyAut answers one question for a person doing a renovation: **“how much do I buy and what will it cost?”** Its primary promise is: **«Введите размеры один раз — получите проверенный список покупок для всего ремонта»**. Homepage H1: «Одна комната — весь список покупок».
 
-The niche is crowded (Kalk.pro, Perpendicular.pro, Zhitov calculators, Toolfox, Profi.ru, retailers, AI answers in SERP). Simple formulas are a commodity. UmnyAut wins on **accuracy and the “what to buy” answer**: layout-aware math, pattern repeat, openings, whole packages, related materials, one shared room across tools, and a saved link.
+The niche is crowded. **Qalculator.ru is the primary benchmark competitor** because it already covers most of the original baseline: purchase units, waste, related materials, prices, methodology, sharing, print/PDF, no registration and a broad search catalog. Simple formulas and those baseline features are commodities. UmnyAut wins only if it turns separate calculations into a **connected, verified room project**: one room input, layout-aware math, linked work chains and one merged shopping list.
 
 Markets from day one: **Russia, Kazakhstan, Belarus, Kyrgyzstan** — one Russian-language page set, country is configuration (currency, typical prices, shops). Promotion in Yandex and Google simultaneously. Brand: «Умняут» in Russian text, `UmnyAut` in domain/code.
 
@@ -65,7 +65,21 @@ A tool ships only when it meets requirements 1–14; 15 is required where layout
 
 Text under a tool: 300–600 words — how it's calculated, which waste to pick, a worked example, common mistakes, 5–8 FAQ from real queries, related tools. No filler articles.
 
-### Catalog: first 30 tools in three waves
+### Competitive baseline
+
+Qalculator is mandatory for product, formula, UX and SEO comparison on every overlapping tool. Its result is evidence about competitor behaviour, not a norm source and never a golden-answer source by itself. Every comparison must be resolved against a primary source or an independent manual derivation.
+
+The durable differentiation is:
+
+1. one shared room and openings across tools;
+2. connected work chains that produce one merged list;
+3. real layout geometry where it changes purchases;
+4. dated sources, golden cases and practising-master review;
+5. a phone-first result that leads directly to the next renovation step.
+
+See [Competitive Benchmark](./competitive-benchmark.md) for the observed baseline and release protocol.
+
+### Catalog: first 30 candidates in three waves
 
 Complexity: **S** formula · **M** geometry + packages · **L** layout with scheme or framing system.
 
@@ -75,7 +89,7 @@ Complexity: **S** formula · **M** geometry + packages · **L** layout with sche
 | 2 | Dec 2026 – Jan 2027 | Plaster (M), Putty (S), Primer (S), Screed/self-leveling (M), Vinyl/parquet (S), Stretch ceiling (M), Lighting (M), Radiators (M), Drywall (L), Electricity usage (S) |
 | 3 | Feb – Apr 2027 | Air conditioner (M), Underfloor heating (M), Cable cross-section (M), Drywall ceiling (M), Decorative plaster/liquid wallpaper (S), PVC panels/lining (M), Concrete (M), Lumber (S), Brick/blocks (M), Curtains (S) |
 
-Composition is a hypothesis until research scoring (`Score = Demand × Value × Chance / Complexity`). Data-donor tools (room area, wall area) go to wave 1 regardless of score. Seasonal tools ship 2–3 months before peak. If time runs short, laminate/tile **schemes** slip to wave 2; pack counts ship immediately.
+Composition is a hypothesis until research scoring (`Score = Demand × Value × Chance / Complexity`) and the Qalculator benchmark are complete. The catalog count is a backlog size, not a success metric. Data-donor tools (room area, wall area) go to wave 1 regardless of score. After them, a complete wall chain ships before unrelated breadth. Seasonal tools ship 2–3 months before peak. If time runs short, laminate/tile **schemes** slip to wave 2; pack counts ship immediately.
 
 “Next step” chains carry dimensions forward: laminate → underlay → plinth; wallpaper → glue → primer; tile → adhesive → grout; plaster → putty → paint.
 
@@ -105,7 +119,7 @@ Ads alone are small (≈ 130–240 ₽ per 1,000 visits in the niche). Layers: Y
 
 ### Goals and checkpoints
 
-North-star metric: **useful calculations per week** (visits where ≥ 2 fields changed and the result was visible 5 s).
+North-star metric: **useful calculations per week** (visits where ≥ 2 fields changed and the result was visible 5 s). Supporting product metrics: continuation to the next tool and creation/share of a merged shopping list. Raw calculator count is a delivery measure only.
 
 | When | Go condition | Otherwise |
 |---|---|---|
@@ -149,6 +163,7 @@ The mockup (`docs/specs/UmnyAut — макеты ключевых экранов
 - [Calculation Engine](../code/calc-engine.md) — implements requirements 1, 2, 4–7, 10, 15
 - [Calculator Shell, Pages and Routing](../ui/calculator-shell-and-pages.md) — implements 3, 8, 9, 11–14, 16
 - [SEO and Analytics](../business/seo-and-analytics.md) — page types, events, north-star metric
+- [Competitive Benchmark](../business/competitive-benchmark.md) — Qalculator baseline, positioning decision and per-tool protocol
 - [Design System](../design/design-system.md) — tone of voice and dictionary
 - [Development Plan](../plan/development-plan.md) — stages and checkpoints as engineering tasks
 - Source: `docs/specs/UmnyAut — бизнес-спецификация.md`

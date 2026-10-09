@@ -1,12 +1,12 @@
 ---
-version: 1.0
-date: 2026-10-08
+version: 1.1
+date: 2026-10-09
 category: plan
 ---
 
 # Progress Log
 
-> Version 1.0 · 2026-10-08 · [Plan](../plan/)
+> Version 1.1 · 2026-10-09 · [Plan](../plan/)
 
 ## Overview
 
@@ -39,6 +39,12 @@ Each entry:
 - **Where** — short commit SHA (7 chars), PR number, and the environment it reached (`staging`, `prod`, `Vercel`).
 
 ## Log
+
+### 2026-10-09
+
+- **—** Product decision (owner): Qalculator.ru is the primary benchmark competitor. Baseline features such as whole packages, related materials, price, sources, sharing and PDF are parity, not positioning. New promise: «Введите размеры один раз — получите проверенный список покупок для всего ремонта»; H1: «Одна комната — весь список покупок».
+  - Where: `feature/phase-2-infra` · documentation change set
+  - Notes: Added the benchmark protocol; changed research, formula evidence, SEO/content and roadmap gates; introduced a minimal connected wall list in Phase 6. The 30-tool list is a ranked backlog and 60–80 is a conditional ceiling, not a KPI. P0.5/P0.7/P0.9 remain open until the research records, comparison cases and product copy are implemented.
 
 ### 2026-10-08
 

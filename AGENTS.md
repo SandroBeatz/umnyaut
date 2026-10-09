@@ -1,6 +1,6 @@
 # AGENTS.md — UmnyAut
 
-UmnyAut («Умняут») is a Russian-language renovation calculator service: enter room dimensions once, get a shopping list in packs, rolls and bags with a total. Markets: RU, KZ, BY, KG. Start every session from these rules; details live in `docs/` (index: `docs/README.md`).
+UmnyAut («Умняут») is a Russian-language renovation service: enter room dimensions once, get a verified merged shopping list in packs, rolls and bags for the selected renovation works. Markets: RU, KZ, BY, KG. Qalculator.ru is the primary benchmark, never a formula source of truth. Start every session from these rules; details live in `docs/` (index: `docs/README.md`).
 
 ## Status
 
@@ -23,6 +23,7 @@ pnpm workspaces + Turborepo, Node 24 · Next.js 16 App Router, React 19.2 + Comp
 9. Design tokens only; one orange element per view, navy text on orange; tap targets ≥ 48 px; a11y ≥ 95.
 10. No Vercel-only APIs; same Node code runs on VPS and Vercel.
 11. Never commit secrets; only `.env.example`. No force-push, prod migrations, deploys or DNS changes without explicit approval.
+12. Depth before breadth: complete connected room workflows before adding unrelated tools. For every overlapping tool, compare at least three cases with Qalculator, derive the expected answer independently, and explain differences.
 
 ## Workflow
 
