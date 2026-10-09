@@ -7,13 +7,13 @@ description: Run UmnyAut's CI chain locally before pushing — Biome, boundary g
 
 Runs the same stages, in the same order, as CI, stops at the first failing stage and reports. Makes **no edits** unless the user passes `--fix` (then only `pnpm format`, Biome autofix).
 
-Source spec: `docs/skills/preflight.md`. Keep this sequence in sync with `.github/workflows/ci.yml` once it exists (Phase 2, P2.4).
+Source spec: `docs/skills/preflight.md`. Keep this sequence in sync with `.github/workflows/ci.yml`.
 
 ## Inputs
 
 - Scope: `--affected` (default; Turborepo filter against `origin/develop`) or `--all`.
 - `--fix`: run Biome autofix first.
-- `--docker`: also build and smoke-test the prod image (available after P2.1).
+- `--docker`: also build and smoke-test the prod image (needs a running Docker daemon).
 
 ## Environment
 
@@ -29,7 +29,7 @@ Node 24 (`.nvmrc`) and pnpm 12 via corepack. If `node -v` is not 24.x, run comma
 6. **tsc + test** — affected: `pnpm turbo run typecheck test --filter='...[origin/develop]'`; all: `pnpm turbo run typecheck test`
 7. **build** — `pnpm turbo run build --filter=web`
 8. **html** — server-HTML guard against the build output (skip with ⏭ until P5.10 adds the script).
-9. **docker** — only with `--docker`: `docker build -f apps/web/Dockerfile .`, run the container, `curl -f http://localhost:3000/api/health` (skip with ⏭ until P2.1/P2.3 exist).
+9. **docker** — only with `--docker`: `docker build -f apps/web/Dockerfile --build-arg APP_VERSION=local -t umnyaut-web:local .`, `docker run -d --name umnyaut-preflight -p 3000:3000 -e APP_ENV=local umnyaut-web:local`, wait until `docker inspect --format '{{.State.Health.Status}}'` is `healthy`, `curl -fsS http://localhost:3000/api/health/`, then `docker rm -f umnyaut-preflight`. Same as the `docker` job in `ci.yml`.
 
 Stop at the first failing stage; mark the rest ⏭.
 

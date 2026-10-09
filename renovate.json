@@ -1,0 +1,44 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":pinAllExceptPeerDependencies", ":semanticCommitTypeAll(chore)"],
+  "baseBranchPatterns": ["develop"],
+  "timezone": "Asia/Almaty",
+  "schedule": ["* 0-6 1 * *"],
+  "prConcurrentLimit": 5,
+  "lockFileMaintenance": { "enabled": true, "schedule": ["* 0-6 1 * *"] },
+  "packageRules": [
+    {
+      "description": "One PR for all non-major npm updates",
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "npm non-major"
+    },
+    {
+      "description": "Next.js and React move together",
+      "matchPackageNames": [
+        "next",
+        "react",
+        "react-dom",
+        "@types/react",
+        "@types/react-dom",
+        "babel-plugin-react-compiler"
+      ],
+      "groupName": "next + react"
+    },
+    {
+      "description": "Node stays on the 24 LTS line (.nvmrc, Dockerfile, @types/node)",
+      "matchPackageNames": ["node", "@types/node"],
+      "allowedVersions": "<25"
+    },
+    {
+      "description": "Supabase CLI: npm package and the version pinned in workflows",
+      "matchPackageNames": ["supabase", "supabase/cli"],
+      "groupName": "supabase cli"
+    },
+    {
+      "description": "GitHub Actions: monthly, grouped",
+      "matchManagers": ["github-actions"],
+      "groupName": "github actions"
+    }
+  ]
+}

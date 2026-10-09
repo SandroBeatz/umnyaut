@@ -1,24 +1,25 @@
 ---
-version: 1.0
-date: 2026-10-08
+version: 1.1
+date: 2026-10-09
 category: architecture
 ---
 
 # Architecture Overview
 
-> Version 1.0 · 2026-10-08 · [Architecture](../architecture/)
+> Version 1.1 · 2026-10-09 · [Architecture](../architecture/)
 
 ## Overview
 
-UmnyAut («Умняут») is a renovation-calculation service: a person enters room dimensions and gets a **shopping list in purchase units** (packs, rolls, bags, cans) with a total cost. The product is a catalog of 60–80 calculators plus a renovation planner that shares one room model across all tools.
+UmnyAut («Умняут») is a renovation-calculation service: a person enters room dimensions once and gets a **verified, merged shopping list** in purchase units (packs, rolls, bags, cans) across the selected renovation works. Individual calculators are entry points into one room project, not the product boundary. Catalog breadth is conditional on demand and connected-workflow usage.
 
-The repository was reset on 2026-10-08: the previous project (a crossword game) and the Lovable prototype on the domain are fully replaced. **No application code exists yet** — this document describes the target architecture fixed in the source specs (`docs/specs/`). Every statement here is a decision, not a description of existing code; when the code lands, update this doc to point at real files.
+The repository was reset on 2026-10-08: the previous project (a crossword game) was removed. The Phase 1 monorepo and part of Phase 2 now exist; the Lovable/stub deployment remains until the production path is switched. This document distinguishes current code from target components through the development plan and progress log.
 
 Three properties drive every architectural choice:
 
 1. **Search engines must get real HTML.** All indexable pages are statically generated with the result for default values already rendered.
 2. **Calculation is deterministic code, never AI.** Formulas live in a pure TypeScript package shared by the site, the Telegram mini app, the embeddable widget, and tests.
 3. **One developer, 8–10 hours a week.** Boring, low-maintenance choices: one repo, one container, no ORM, no CMS, no client-side DB access.
+4. **Connected result over page count.** `Room` is shared input, tool outputs are `PurchaseItem[]`, and `mergeItems()` is the seam that turns several calculators into one shopping list.
 
 ## Architecture
 
@@ -30,7 +31,7 @@ Three properties drive every architectural choice:
  Telegram app ─►│                              ├─ static pages (SSG, calc at build) │
  Widget iframe ►│                              ├─ /p/[id] (SSR, project by link)     │
                 │                              └─ /api/** route handlers ────────────┼─► Supabase Postgres (Frankfurt)
-                └────────────────────────────────────────────────────────────────────┘─► Anthropic API (vision)
+                └────────────────────────────────────────────────────────────────────┘─► Gemini API (vision, via relay)
                                                                                       ─► Telegram Bot API
  Staging & PR previews: Vercel (branch `develop` + every PR), always noindex.
 ```
@@ -46,7 +47,7 @@ The browser receives a finished page and **computes locally** after hydration. I
 | Room carried between tools | Browser, localStorage (Zustand persist) | No |
 | Share link `?s=` | Browser (base64url of non-default fields) | No |
 | Save/open project | Route handler → Supabase | Yes |
-| Photo recognition | Route handler → Anthropic API | Yes |
+| Photo recognition | Route handler → Gemini API | Yes |
 | Telegram “My calculations” | Route handler → Supabase | Yes |
 
 ### Monorepo layout (pnpm workspaces + Turborepo, Node.js 24 LTS)
@@ -110,7 +111,7 @@ Environment variables are validated by a Zod schema at server start (missing var
 | `APP_ENV` | `local` / `preview` / `staging` / `production`; non-prod adds `X-Robots-Tag: noindex`, disables analytics, uses a small AI budget |
 | `SUPABASE_URL`, `SUPABASE_SECRET_KEY` | Server-only DB access |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `TELEGRAM_API_ROOT` | Bot + webhook; API root overridable for a proxy |
-| `ANTHROPIC_API_KEY`, `ANTHROPIC_BASE_URL` | Vision provider; base URL overridable for a proxy |
+| `GEMINI_API_KEY`, `GEMINI_BASE_URL` | Vision provider (Gemini); base URL points to a relay outside RU/BY on prod |
 | `AI_ENABLED`, `AI_MONTHLY_BUDGET_USD` | Kill switch and monthly ceiling |
 | `METRIKA_ID`, `INDEXNOW_KEY` | Analytics and indexing |
 
@@ -133,6 +134,7 @@ Routes are generated from the registry (`generateStaticParams`, `dynamicParams =
 ## Cross-references
 
 - [Product and Domain](../business/product-and-domain.md) — what the product is, calculator standard, catalog waves
+- [Competitive Benchmark](../business/competitive-benchmark.md) — why the shared room and merged list are architectural differentiators
 - [Calculation Engine](../code/calc-engine.md) — `ToolModule` contract and building blocks
 - [Calculator Shell, Pages and Routing](../ui/calculator-shell-and-pages.md) — UI composition, routes, state storage
 - [Server API and Data](../code/server-api-and-data.md) — Supabase tables, route handlers

@@ -1,6 +1,6 @@
 # Project Documentation
 
-UmnyAut («Умняут») — renovation calculators: enter room dimensions, get a shopping list in packs, rolls and bags. This directory holds:
+UmnyAut («Умняут») — a connected renovation calculator: enter room dimensions once, get a verified merged shopping list in packs, rolls and bags. This directory holds:
 
 1. **Source specs** (`specs/`, Russian) — business, technical and design specifications, mockups, roadmap script. They are the source of truth; reference docs below are English digests of them.
 2. **Reference documentation** — human- and AI-readable docs about this codebase, organized by category.
@@ -31,22 +31,24 @@ UmnyAut («Умняут») — renovation calculators: enter room dimensions, ge
 
 | Doc | Version |
 |---|---|
-| [Architecture Overview](./architecture/overview.md) | 1.0 |
-| [Product and Domain](./business/product-and-domain.md) | 1.0 |
-| [SEO and Analytics](./business/seo-and-analytics.md) | 1.0 |
+| [Architecture Overview](./architecture/overview.md) | 1.1 |
+| [Product and Domain](./business/product-and-domain.md) | 2.0 |
+| [Competitive Benchmark](./business/competitive-benchmark.md) | 1.0 |
+| [SEO and Analytics](./business/seo-and-analytics.md) | 1.1 |
 | [Calculation Engine](./code/calc-engine.md) | 1.0 |
 | [Server API and Data](./code/server-api-and-data.md) | 1.0 |
 | [Calculator Shell, Pages and Routing](./ui/calculator-shell-and-pages.md) | 1.0 |
 | [Design System](./design/design-system.md) | 1.0 |
 | [Telegram Bot and Mini App](./integrations/telegram-bot.md) | 1.0 |
 | [AI Vision Features](./integrations/ai-vision.md) | 1.0 |
-| [Environments and CI/CD](./deploy/environments-and-ci.md) | 1.0 |
+| [Environments and CI/CD](./deploy/environments-and-ci.md) | 1.3 |
+| [Prod Server Runbook](./deploy/prod-server-runbook.md) | 1.0 |
 | [Engineering Practices](./practices/engineering-practices.md) | 1.1 |
-| [Development Plan](./plan/development-plan.md) | 2.1 |
+| [Development Plan](./plan/development-plan.md) | 2.2 |
 | [Accounts and Services](./plan/accounts-and-services.md) | 1.0 |
 | [Dependencies](./plan/dependencies.md) | 1.0 |
-| [Content and Assets Plan](./plan/content-plan.md) | 1.0 |
-| [Progress Log](./plan/progress-log.md) | 1.0 |
+| [Content and Assets Plan](./plan/content-plan.md) | 1.1 |
+| [Progress Log](./plan/progress-log.md) | 1.1 |
 
 ## Skill specifications
 

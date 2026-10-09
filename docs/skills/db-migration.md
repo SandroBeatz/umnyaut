@@ -13,7 +13,7 @@ targets: [claude-code, codex, universal]
 
 ## 1. Purpose
 
-Creates a Supabase Postgres migration that respects the project's data rules: numbered SQL file in `packages/db/migrations`, RLS enabled with **no policies**, atomic operations as SQL functions, backward compatibility with the previous app version, regenerated TS types, and a query function in `server/db`. Keeps the “browser never touches the DB” guarantee intact as the schema grows.
+Creates a Supabase Postgres migration that respects the project's data rules: numbered SQL file in `packages/db/supabase/migrations`, RLS enabled with **no policies**, atomic operations as SQL functions, backward compatibility with the previous app version, regenerated TS types, and a query function in `server/db`. Keeps the “browser never touches the DB” guarantee intact as the schema grows.
 
 ## 2. When to trigger
 
@@ -27,7 +27,7 @@ Description of the change; current migrations; `docs/code/server-api-and-data.md
 
 ## 4. Outputs
 
-- `packages/db/migrations/NNNN_<snake_name>.sql`
+- `packages/db/supabase/migrations/NNNN_<snake_name>.sql` (create the file by hand with the next number; `supabase migration new` would use a timestamp)
 - Regenerated `packages/db/src/types.ts`
 - Updated/added function in `packages/db/src/queries/` and its caller in `apps/web/server/db/`
 - Test against local Supabase if behaviour changed

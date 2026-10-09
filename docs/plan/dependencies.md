@@ -108,7 +108,7 @@ shadcn/ui is not a dependency: components are generated with `pnpm dlx shadcn@la
 | `@playwright/test` | 1.64.0 | dev | 5 | E2E on phone viewport |
 | `@lhci/cli` | 0.15.1 | dev | 9 | Lighthouse CI thresholds |
 | `grammy` | 1.46.0 | dep | 12 | Telegram bot (webhook mode) |
-| `@anthropic-ai/sdk` | 0.132.1 | dep | 14 | `VisionProvider` implementation |
+| `@google/genai` | 2.28.0 | dep | 14 | `VisionProvider` implementation (Gemini API) |
 
 Not installed as packages: Telegram `telegram-web-app.js` (loaded from Telegram on `/tg/` only), Yandex Metrika `tag.js` (loaded after consent).
 
