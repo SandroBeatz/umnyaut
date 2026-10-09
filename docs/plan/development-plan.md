@@ -121,7 +121,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 **Tasks**
 
 - [x] P2.1 `apps/web/Dockerfile` (multi-stage, Node 24, standalone, non-root user, healthcheck).
-- [ ] P2.2 `infra/compose.yml` (`web`, `caddy`), `infra/Caddyfile` (TLS, gzip+zstd, `www`→apex, security headers, upstream switch), `infra/bootstrap.sh` (user, SSH-key only, firewall 22/80/443, unattended upgrades, Docker), `infra/deploy.sh` (pull tag → start new → `/api/health` → switch → stop old), rollback command.
+- [x] P2.2 `infra/compose.yml` (`web`, `caddy`), `infra/Caddyfile` (TLS, gzip+zstd, `www`→apex, security headers, upstream switch), `infra/bootstrap.sh` (user, SSH-key only, firewall 22/80/443, unattended upgrades, Docker), `infra/deploy.sh` (pull tag → start new → `/api/health` → switch → stop old), rollback command.
 - [x] P2.3 `GET /api/health` (app + DB ping).
 - [x] P2.4 `.github/workflows/ci.yml`: pnpm cache → Biome, Steiger, tsc → tests → `next build` → Docker build + container smoke test.
 - [ ] P2.5 `.github/workflows/deploy.yml` (on `main`): build & push to GHCR with SHA tag → migrations to prod → SSH deploy → external smoke test.
