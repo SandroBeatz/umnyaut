@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-09
 
+- **P2.5** Second release `62299c7` (#141) deployed to slot `green` in 54 s; `X-Robots-Tag: noindex` confirmed on the sslip.io host. Rollback tested: Deploy workflow with `rollback: true` → `blue` (`09ff1765d14b`), health confirmed; run again → back to `green` (`62299c73d3fc`). Exit gate "rollback tested once" met.
+  - Where: `main` · `62299c7` · prod (VPS) · runs 37904457674, 37904554495
+  - Notes: a second `rollback` swaps forward again (it always switches to the other slot). Phase 2 left: P2.6 staging domain, P2.7 Supabase, P2.8 DNS, P2.9, P2.10 Renovate app.
 - **P2.2, P2.5 (partly), P0.6 (partly)** First prod deploy: merge #139 → `main` → Deploy workflow green in 3.5 min; `/api/health/` → `version 09ff1765d14b`, `env production`, `db skipped`; slot `blue` healthy, app ≈ 43 MB of 768 MB, ≈ 1.3 GB RAM free. Caddyfile now sends `X-Robots-Tag: noindex, nofollow` for any host but `umnyaut.com` (temporary sslip.io domain is not indexable). Reachability via Globalping (17 probes): all 200; RU 0.20–0.39 s, BY 0.19–0.29 s, KG 0.46 s, KZ 0.45–1.67 s.
   - Where: `main` · `09ff176` · prod (VPS, `129-101-115-71.sslip.io`); noindex on `feature/prod-followups`
   - Notes: rollback test runs on the next release (this PR). P0.6 left: real testers on RU mobile operators (no Beeline/MegaFon/Tele2 probes), robot fetch in Webmaster/Search Console after DNS. DNS at Namecheap still points to Lovable (`185.158.133.1`); switch = P2.8.
