@@ -1,5 +1,9 @@
-import { comingSoon, site } from "@umnyaut/catalog";
-import { FeatureIcon } from "./FeatureIcon";
+import { comingSoon, type FeatureIcon, site } from "@umnyaut/catalog";
+import { IconCircle, Logo, Mascot } from "@umnyaut/ui";
+import { BadgeCheck, type LucideIcon, Package, Ruler } from "lucide-react";
+import { mascotImages } from "@/shared/config";
+
+const icons: Record<FeatureIcon, LucideIcon> = { package: Package, ruler: Ruler, check: BadgeCheck };
 
 const blueprint = {
   backgroundImage:
@@ -15,8 +19,7 @@ export function HomePage() {
       <div aria-hidden="true" className="absolute inset-0 -z-10 opacity-60" style={blueprint} />
 
       <header className="mx-auto w-full max-w-[1200px] px-4 pt-5 sm:px-6 lg:px-8 lg:pt-8">
-        {/* biome-ignore lint/performance/noImgElement: static SVG logo, no optimisation needed */}
-        <img src="/brand/logo.svg" alt={site.name} width={221} height={68} className="h-8 w-auto lg:h-10" />
+        <Logo />
       </header>
 
       <main className="mx-auto grid w-full max-w-[1200px] flex-1 content-start gap-6 px-4 py-6 sm:px-6 lg:content-center lg:items-center lg:grid-cols-[1.1fr_1fr] lg:gap-6 lg:px-8 lg:py-12">
@@ -29,7 +32,7 @@ export function HomePage() {
             {comingSoon.badge}
           </p>
 
-          <h1 className="mt-5 font-extrabold text-[32px] leading-[38px] tracking-tight lg:text-5xl lg:leading-[54px]">
+          <h1 className="mt-5 text-display">
             {comingSoon.titleLead} <span className="text-primary">{comingSoon.titleAccent}</span>
           </h1>
 
@@ -38,15 +41,18 @@ export function HomePage() {
           </p>
 
           <ul className="mt-8 grid gap-3 sm:grid-cols-3 lg:mt-10">
-            {comingSoon.features.map((feature) => (
-              <li key={feature.icon} className="rounded-lg border border-border bg-surface p-4 shadow-sm">
-                <span className="flex size-12 items-center justify-center rounded-full bg-primary-soft text-primary-hover">
-                  <FeatureIcon name={feature.icon} />
-                </span>
-                <h2 className="mt-3 font-bold text-base leading-6">{feature.title}</h2>
-                <p className="mt-1 text-sm text-text-muted leading-5">{feature.text}</p>
-              </li>
-            ))}
+            {comingSoon.features.map((feature) => {
+              const Icon = icons[feature.icon];
+              return (
+                <li key={feature.icon} className="rounded-lg border border-border bg-surface p-4 shadow-sm">
+                  <IconCircle>
+                    <Icon />
+                  </IconCircle>
+                  <h2 className="mt-3 font-bold text-base leading-6">{feature.title}</h2>
+                  <p className="mt-1 text-sm text-text-muted leading-5">{feature.text}</p>
+                </li>
+              );
+            })}
           </ul>
         </section>
 
@@ -58,26 +64,15 @@ export function HomePage() {
               className="absolute top-1/2 -right-[7px] size-3 -translate-y-1/2 rotate-45 border-border border-t border-r bg-surface lg:top-auto lg:right-auto lg:-bottom-[7px] lg:left-1/3 lg:translate-y-0 lg:rotate-[135deg]"
             />
           </figcaption>
-          <div className="relative order-2 w-[132px] shrink-0 sm:w-[160px] lg:order-1 lg:w-[400px] lg:self-center">
-            <div
-              aria-hidden="true"
-              className="absolute inset-x-[4%] top-[14%] bottom-0 -z-10 rounded-[46%_54%_48%_52%/52%_46%_54%_48%] bg-surface-mint"
-            />
-            <picture>
-              <source type="image/avif" srcSet="/img/mascot/hello-320.avif 320w, /img/mascot/hello-640.avif 640w" />
-              <source type="image/webp" srcSet="/img/mascot/hello-320.webp 320w, /img/mascot/hello-640.webp 640w" />
-              <img
-                src="/img/mascot/hello-640.webp"
-                srcSet="/img/mascot/hello-320.webp 320w, /img/mascot/hello-640.webp 640w"
-                sizes="(min-width: 1024px) 400px, 160px"
-                width={640}
-                height={633}
-                alt={comingSoon.mascotAlt}
-                fetchPriority="high"
-                className="h-auto w-full motion-safe:animate-[fade-in_200ms_var(--ease-standard)]"
-              />
-            </picture>
-          </div>
+          <Mascot
+            image={mascotImages.hello}
+            size={140}
+            sizeLg={400}
+            alt={comingSoon.mascotAlt}
+            spot
+            priority
+            className="order-2 lg:order-1 lg:self-center"
+          />
         </figure>
       </main>
 

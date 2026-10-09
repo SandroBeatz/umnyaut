@@ -73,8 +73,7 @@ Every tool, CLI and npm package the stack in the technical spec requires, groupe
 | `lucide-react` | 1.53.0 | dependency | Icons |
 | `vaul` | 1.1.2 | dependency | Bottom sheet (shadcn Drawer) on phone |
 | `sonner` | 2.0.8 | dependency | Toasts (“Ссылка скопирована”) |
-| `@fontsource-variable/onest` | 5.3.1 | dev | Font source for subsetting |
-| `subset-font` | 2.9.0 | dev | Build-time subsetting to `onest-var.woff2` |
+| `subset-font` | 2.9.0 | dev | Subsets the full Onest variable TTF (google/fonts, pinned commit) to `onest-var.woff2` — fontsource ships it split by unicode range, so it was dropped |
 | `@testing-library/react` | 16.3.3 | dev | Component tests |
 | `@testing-library/user-event` | 14.6.7 | dev | Interactions |
 | `jsdom` | 30.1.2 | dev | Test DOM |

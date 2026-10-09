@@ -16,7 +16,7 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "build": "turbo run build",
-    "check": "pnpm lint && pnpm guard && pnpm steiger && turbo run typecheck test build"
+    "check": "pnpm lint && pnpm guard && pnpm steiger && pnpm --filter web images:check && turbo run typecheck test build"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",

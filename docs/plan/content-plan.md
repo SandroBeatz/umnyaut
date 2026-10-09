@@ -1,12 +1,12 @@
 ---
-version: 1.1
+version: 1.2
 date: 2026-10-09
 category: plan
 ---
 
 # Content and Assets Plan
 
-> Version 1.1 · 2026-10-09 · [Plan](../plan/)
+> Version 1.2 · 2026-10-09 · [Plan](../plan/)
 
 ## Overview
 
@@ -78,6 +78,87 @@ Rules from the specs that apply to all content:
 | G15 | Mascot clips (`*.mp4` in `docs/details/`) | 5 | — | — | **Not used at launch** (spec: no character animation). Decide later for bot/stage 2 |
 
 Brand files to copy in Phase 3: `logo.svg`, `logo-white.svg`, `icon.svg`, `icon-white.svg`, `favicon.svg`, `favicon-dark.svg` → `packages/ui/assets/brand/`.
+
+### Material and category photo brief (G04, G05, G06)
+
+Source of the style: design spec §10. One brief for every generator or photographer so all photos look like one set.
+
+**Delivery**
+
+| | Material photo | Category photo |
+|---|---|---|
+| Count | 12 (first 3 = trial set G04 / P3.9) | 4 |
+| Format | PNG with transparent background (else pure white `#FFFFFF`, background removed later) | JPG or PNG, with background |
+| Size | 1024 × 1024 px | 1600 × 1067 px (3:2) |
+| Framing | Object centred, ~80% of the frame | Material in work, main subject in the lower right (brush-stroke mask sits there) |
+| File name | `<key>.png` (key = `PurchaseItem.key`) | `cat-<slug>.jpg` |
+| Folder | `docs/details/materials/` | `docs/details/materials/` |
+
+The image pipeline turns them into AVIF/WebP at 128, 192, 320 px (materials) and 480, 800 px (categories); budget 3–5 KB at 128 px.
+
+**One style**
+
+- Three-quarter view, camera slightly above (~30°), the same for every object.
+- Soft studio light from the top left; soft neutral contact shadow; matte 3D look, no glossy highlights.
+- No letters, numbers, logos, pseudo-text, barcodes, price tags or people. **No orange** (reserved for the mascot and the one accent button).
+
+| Role | Tone |
+|---|---|
+| Packaging | white `#FFFFFF`, light grey `#F4F6F8` / `#E2E7ED` |
+| Accent (one stripe per package at most) | teal `#157779` |
+| Shadows, small details | graphite `#55627A` |
+| Wood (laminate, plinth) | light oak `#D9B98F` … `#C29A6B` |
+| Wallpaper | warm white `#F3EFE8`, barely visible pattern |
+| Tile | light grey matte `#DADDE0` |
+| Grout, adhesive | cement grey `#A7ADB5` |
+| Mint (category photos only) | `#EDF9F8` / `#D5F0EC` |
+
+**Base prompt (append to every material prompt)**
+
+```
+product render of a single renovation material, isolated on transparent background,
+three-quarter view from slightly above, soft studio light from top-left, soft neutral
+contact shadow, clean matte 3D style, white and light grey packaging with at most one
+thin teal (#157779) stripe, object centered filling 80% of a square frame,
+no text, no letters, no numbers, no logos, no labels, no barcode, no people, no orange
+```
+
+Negative prompt: `text, letters, typography, logo, brand, label, barcode, price tag, watermark, orange, busy background, hands, multiple objects, glossy reflections`. If packaging still shows pseudo-text, add `blank packaging`.
+
+**Materials (wave 1)** — ★ = trial set G04, approve style and real weights on these first.
+
+| # | Key | Item | Subject prompt (before the base prompt) |
+|---|---|---|---|
+| 1 ★ | `laminate` | Laminate pack | `a sealed pack of laminate flooring boards, white shrink-wrapped box with light oak boards visible at the open end` |
+| 2 ★ | `wallpaper` | Wallpaper roll | `a single roll of wallpaper, slightly unrolled at the front, warm off-white with a very subtle tone-on-tone pattern` |
+| 3 ★ | `tile-adhesive` | Tile adhesive bag | `a 25 kg paper sack of tile adhesive powder, light grey paper bag with one teal stripe, standing upright` |
+| 4 | `wallpaper-glue` | Wallpaper paste | `a small white cardboard box of wallpaper paste powder, compact, one teal stripe` |
+| 5 | `paint` | Paint can | `a white metal paint can with a wire handle, lid slightly ajar showing white paint, one teal stripe` |
+| 6 | `primer` | Primer canister | `a white plastic canister of wall primer with a handle and screw cap, one teal stripe` |
+| 7 | `underlay` | Underlay roll | `a roll of thin foam floor underlay, light grey, partly unrolled flat in front` |
+| 8 | `plinth` | Skirting plank | `a single floor skirting board plank lying diagonally, light oak colour, profile end visible` |
+| 9 | `plinth-fittings` | Skirting fittings | `a small neat group of skirting board fittings: inner corner, outer corner, end cap and connector, light oak colour plastic` |
+| 10 | `linoleum` | Linoleum roll | `a large roll of linoleum flooring, light grey-beige wood pattern, end of the roll facing viewer, partly unrolled` |
+| 11 | `tile` | Tile stack | `a neat stack of square ceramic floor tiles, light grey matte, top tile slightly offset` |
+| 12 | `grout` | Grout pack | `a small white plastic bucket of tile grout with lid, one teal stripe, a little grey grout visible on the lid edge` |
+
+**Category photos** — base prompt:
+
+```
+bright clean renovation scene, close-up of material being worked, soft daylight,
+light walls, white and mint (#EDF9F8) tones, one teal (#157779) accent object,
+main subject in the lower right of a 3:2 frame, shallow depth of field,
+no faces, no text, no logos, no orange
+```
+
+| Key | Subject prompt |
+|---|---|
+| `cat-osnova` | `a tape measure extended along a light floor next to a pencil and a sheet of graph paper` |
+| `cat-pol` | `light oak laminate boards being laid on a floor, a few loose boards stacked nearby` |
+| `cat-steny` | `a paint roller with white paint on a light wall, a strip freshly painted` |
+| `cat-plitka` | `a notched trowel spreading grey adhesive next to light grey square tiles` |
+
+**Acceptance check** (put the three trial photos side by side): same camera angle and light side, same object size in frame, same soft shadow, no letters anywhere, no orange.
 
 ## Data Model
 

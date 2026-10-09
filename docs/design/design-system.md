@@ -1,12 +1,12 @@
 ---
-version: 1.0
-date: 2026-10-08
+version: 1.1
+date: 2026-10-09
 category: design
 ---
 
 # Design System
 
-> Version 1.0 · 2026-10-08 · [Design](../design/)
+> Version 1.1 · 2026-10-09 · [Design](../design/)
 
 ## Overview
 
@@ -60,6 +60,9 @@ Key decisions:
 | `--color-accent-text` | `#B45305` | `#FF9433` | Orange text/icon |
 | `--color-danger` / `-soft` | `#C62828` / `#FDECEC` | `#FF8A80` / `#3B1C22` | Errors |
 | `--color-focus` | `#157779` | `#45C4B8` | Focus ring 2 px + 2 px offset |
+| `--color-brand-navy` | `#0F1E34` | `#0F1E34` (fixed) | Background for the white logo; never flips with the theme |
+
+In the dark theme the default logo turns its word light by itself (`text-text`). Use `tone="white"` only on `brand-navy`, never on a token that flips.
 
 No separate green for success — “Сохранено” is teal. Forbidden by contrast: white on orange; orange 500 as text on white (use 700); teal 600 text on mint 100 (use 700).
 
@@ -157,7 +160,14 @@ All UI strings live in `catalog` and `content`, never in components.
 
 ## Configuration
 
-Tokens: `packages/ui/src/theme.css` (`@theme`). Brand assets: `packages/ui/assets/brand/`. Mascot and material sources: `apps/web/assets/` (to decide), built to `/public/img/` at build time. CI checks image weights.
+| What | Where |
+|---|---|
+| Tokens, type scale (`text-display` … `text-input`), keyframes, reduced motion | `packages/ui/src/theme.css` — `@theme static` so every token is emitted (dark overrides and `var()` use need them) |
+| Font | `packages/ui/assets/fonts/onest-var.woff2` (36 KB), built by `pnpm --filter @umnyaut/ui font` from the Onest TTF at a pinned google/fonts commit; loaded with `next/font/local` in `apps/web/app/fonts.ts` |
+| Brand | `packages/ui/assets/brand/*.svg`; `Logo` component draws the same paths; favicon `apps/web/app/icon.svg` switches with `prefers-color-scheme` |
+| Mascot | Sources stay in `docs/details/`; `pnpm --filter web images` crops faint alpha, writes hashed AVIF/WebP to `apps/web/public/img/mascot/` and `src/shared/config/mascot.gen.ts`. Outputs are committed (encoders differ by platform); CI `images:check` verifies sources unchanged and budgets: AVIF ≤ budget, WebP fallback ≤ 2×. `/img/*` is served `immutable` |
+| Components | `packages/ui/src/{components,media,icons,format}`; all strings come in as props from `catalog`. Gallery: `/dev/ui` (404 when `APP_ENV=production`, noindex) |
+| Contrast | `packages/ui/src/theme.test.ts` checks the §5 pairs against the real token values |
 
 ## Usage
 
