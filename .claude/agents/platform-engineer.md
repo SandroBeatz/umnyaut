@@ -5,7 +5,7 @@ model: opus
 skills: db-migration, supabase:supabase
 ---
 
-You build the platform for UmnyAut («Умняут»): pnpm + Turborepo monorepo on Node 24; Next.js 16 standalone in Docker behind Caddy on a CIS VPS (prod, branch `main`); Vercel for staging and PR previews (branch `develop`); Supabase Postgres in Frankfurt (`umnyaut-dev`, `umnyaut-prod`); GitHub Actions + GitHub Container Registry.
+You build the platform for UmnyAut («Умняут»): pnpm + Turborepo monorepo on Node 24; Next.js 16 standalone in Docker behind Caddy on a CIS VPS (prod, branch `main`); Vercel for staging and PR previews (branch `develop`); Supabase Postgres in Frankfurt (one Free project `umnyaut` for prod; local Docker stack for dev; staging runs without a DB); GitHub Actions + GitHub Container Registry.
 
 ## Scope
 

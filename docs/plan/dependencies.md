@@ -1,12 +1,12 @@
 ---
-version: 1.0
+version: 1.1
 date: 2026-10-08
 category: plan
 ---
 
 # Dependencies Manifest
 
-> Version 1.0 · 2026-10-08 · [Plan](../plan/)
+> Version 1.1 · 2026-10-08 · [Plan](../plan/)
 
 ## Overview
 
@@ -14,14 +14,14 @@ Every tool, CLI and npm package the stack in the technical spec requires, groupe
 
 ## Architecture
 
-### Version decisions to make in Phase 1 (spike, ≤ 2 h)
+### Version decisions (Phase 1 spike, decided 2026-10-08)
 
-| Item | Latest | Spec says | Decision rule |
+| Item | Latest | Spec says | Decision |
 |---|---|---|---|
-| Node.js | local machine has **v26.0.0** | Node 24 LTS | Pin **24 LTS** in `.nvmrc`, `engines`, Dockerfile, CI (prod image = Node 24). Use a version manager (fnm / mise / volta) locally. Revisit when Node 26 becomes LTS |
-| TypeScript | **7.0.2** (native port) | `strict`, `tsc --noEmit` | Try 7.0 with Next 16.4, Vitest 5, Steiger 0.7. If any breaks — pin the latest 5.x/6.x line and note it in `docs/practices/engineering-practices.md` |
+| Node.js | local machine has **v26.0.0** | Node 24 LTS | **Decided: 24 LTS** in `.nvmrc` and `engines` (`>=24 <25`); Dockerfile and CI follow in Phase 2. Locally via nvm (`nvm use`, 24.21.0). Revisit when Node 26 becomes LTS |
+| TypeScript | **7.0.2** (native port) | `strict`, `tsc --noEmit` | **Decided: 7.0.2.** `tsc --noEmit` in every package, Next 16.4 build's TypeScript step, Vitest 5 and Steiger 0.7 all pass. Only noise: `tsconfck` (via Steiger) declares peer `typescript ^5` — harmless, it parses tsconfig JSON only |
 | Zod | 4.6.5 | Zod | Use v4 API (`z.object`, `z.infer`, `.check`), verify via Context7 |
-| React | 19.3.0 | 19.2 + Compiler | Take whatever `next@16.4` peers with |
+| React | 19.3.0 | 19.2 + Compiler | **Decided: 19.3.0** (peers cleanly with `next@16.4.0`) |
 | lucide-react | 1.53.0 | Lucide | v1 API; per-icon imports |
 
 ### Global tools (developer machine, Phase 0–1)
@@ -29,7 +29,7 @@ Every tool, CLI and npm package the stack in the technical spec requires, groupe
 | Tool | Version | Purpose | Install |
 |---|---|---|---|
 | Node.js 24 LTS | 24.x | Runtime | `fnm install 24 && fnm use 24` (or mise/volta) |
-| pnpm | 12.10.1 | Package manager | `corepack enable && corepack prepare pnpm@latest --activate` |
+| pnpm | 12.10.1 | Package manager | Pinned by `packageManager` in root `package.json`; `corepack enable` under Node 24 picks it up. Make sure no other global `pnpm` shadows it — Turborepo runs tasks with the first `pnpm` on `PATH` |
 | Docker Desktop / OrbStack | latest | Local Supabase, image smoke test | Installer |
 | Supabase CLI | 2.120.0 | Local DB, migrations, types | devDependency `supabase` (run via `pnpm supabase`) |
 | GitHub CLI `gh` | latest | PRs, roadmap script, GHCR | `brew install gh` |
@@ -96,6 +96,7 @@ shadcn/ui is not a dependency: components are generated with `pnpm dlx shadcn@la
 | `react`, `react-dom` | 19.3.0 | dep | 1 | — |
 | `babel-plugin-react-compiler` | 1.0.0 | dev | 1 | React Compiler |
 | `tailwindcss`, `@tailwindcss/postcss` | 4.3.3 | dev | 1 | Styles, `@theme` tokens |
+| `@types/react`, `@types/react-dom`, `@types/node` | 19.3.0 / 19.3.0 / 24.19.1 | dev | 1 | Types for React 19 and Node 24 (not in the original list; required by `tsc`) |
 | `server-only` | 0.0.1 | dep | 1 | Breaks build if server code is imported in the browser |
 | `zod` | 4.6.5 | dep | 1 | Env, API bodies, frontmatter |
 | `@t3-oss/env-nextjs` | 0.13.11 | dep | 1 | *Optional* typed env on top of Zod; a plain Zod schema in `server/platform/env.ts` is equally fine |
@@ -107,7 +108,7 @@ shadcn/ui is not a dependency: components are generated with `pnpm dlx shadcn@la
 | `@playwright/test` | 1.64.0 | dev | 5 | E2E on phone viewport |
 | `@lhci/cli` | 0.15.1 | dev | 9 | Lighthouse CI thresholds |
 | `grammy` | 1.46.0 | dep | 12 | Telegram bot (webhook mode) |
-| `@anthropic-ai/sdk` | 0.132.1 | dep | 14 | `VisionProvider` implementation |
+| `@google/genai` | 2.28.0 | dep | 14 | `VisionProvider` implementation (Gemini API) |
 
 Not installed as packages: Telegram `telegram-web-app.js` (loaded from Telegram on `/tg/` only), Yandex Metrika `tag.js` (loaded after consent).
 

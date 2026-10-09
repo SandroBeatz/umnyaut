@@ -1,0 +1,24 @@
+{
+  "name": "@umnyaut/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run",
+    "supabase": "supabase",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:types": "supabase gen types typescript --local --schema public > src/types.ts && biome format --write src/types.ts"
+  },
+  "devDependencies": {
+    "@umnyaut/tsconfig": "workspace:*",
+    "@umnyaut/vitest-config": "workspace:*",
+    "supabase": "2.120.0"
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "extends": "@umnyaut/tsconfig/react-library.json",
+  "include": ["src", "vitest.config.ts"]
+}

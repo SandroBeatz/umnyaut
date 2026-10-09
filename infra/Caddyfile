@@ -1,0 +1,40 @@
+{
+	email {$ACME_EMAIL}
+}
+
+(security_headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+		-X-Powered-By
+	}
+}
+
+(access_log) {
+	log {
+		output stdout
+		# No full IPs in logs: keep the /24 (IPv4) or /48 (IPv6) subnet only.
+		format filter {
+			request>remote_ip ip_mask 24 48
+			request>client_ip ip_mask 24 48
+			request>headers>X-Forwarded-For delete
+			request>headers>Cookie delete
+		}
+	}
+}
+
+www.{$DOMAIN} {
+	import security_headers
+	redir https://{$DOMAIN}{uri} permanent
+}
+
+{$DOMAIN} {
+	import security_headers
+	import access_log
+	encode zstd gzip
+
+	# Written by deploy.sh: `reverse_proxy web-blue:3000` or `reverse_proxy web-green:3000`.
+	import /etc/caddy/state/upstream.caddy
+}

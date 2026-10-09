@@ -1,16 +1,18 @@
 ---
-version: 1.0
-date: 2026-10-08
+version: 1.1
+date: 2026-10-09
 category: business
 ---
 
 # SEO and Analytics
 
-> Version 1.0 · 2026-10-08 · [Business](../business/)
+> Version 1.1 · 2026-10-09 · [Business](../business/)
 
 ## Overview
 
 Search is the main acquisition channel (Yandex + Google, four countries). Everything a search engine needs is **generated from the tool registry**, never hand-written per page. Analytics answers three questions per page: is it found, do people calculate on it, do they take the next step. Funnel: search impression → click → useful calculation → action.
+
+Qalculator.ru is the primary search/product benchmark. Its breadth proves that page count is easy to imitate; UmnyAut therefore optimizes for validated clusters and continuation through a room project, not for the largest catalog.
 
 > Status: planned. Sources: business spec §6, §11, §12; technical spec §14.
 
@@ -18,7 +20,7 @@ Search is the main acquisition channel (Yandex + Google, four countries). Everyt
 
 ### Page types and indexing
 
-Nine page types, seven indexed. ~150 indexed pages by month 12; tool pages and their variations bring most traffic. URLs are short transliterated slugs nested by category, with trailing slash.
+Nine page types, seven indexed. Up to ~150 indexed pages by month 12 is a conditional ceiling, not a target; tool pages and their variations bring most traffic only when demand and distinct value are proven. URLs are short transliterated slugs nested by category, with trailing slash.
 
 **Variation rule** (protection from low-quality filters) — a separate page only when **all three** hold: own demand confirmed (Wordstat / Webmaster queries); calculation or preset genuinely differs; own example and FAQ. Otherwise the query becomes a section of the main page. Never create pages per size combination (“обои на комнату 3×4”).
 
@@ -52,6 +54,8 @@ Links & distribution: niche publications 1–2/month from month 2; outreach to c
 
 Rhythm: weekly 30 min in Webmaster/Search Console; monthly decision on new pages.
 
+Before any new tool or variation enters production, record its Qalculator overlap, the concrete calculation/content gap and how the page advances a connected work chain. “They have this page” is not sufficient reason to create it, and “they do not have it” is not proof of demand. See [Competitive Benchmark](./competitive-benchmark.md).
+
 ### Events
 
 ```ts
@@ -63,6 +67,7 @@ type EventMap = {
   price_added:       { tool: ToolId; item: string };
   how_opened:        { tool: ToolId };
   next_tool_clicked: { tool: ToolId; next: ToolId };
+  shopping_list_created: { tools: number; items: number };
   project_saved:     { works: number };
   project_shared:    { channel: 'link' | 'text' | 'print' | 'telegram' };
   result_copied:     { tool: ToolId };
@@ -101,11 +106,12 @@ Metrika script is **not loaded** until “Принять”. Narrow bottom banne
 
 ## Data Model
 
-`events_daily(day, event, tool, country, source, count)` — see [Server API and Data](../code/server-api-and-data.md). Reports: weekly (useful calcs total and by tool, calc rate, new queries); monthly table per tool (impressions, clicks, position, calcs, actions, revenue) → decide develop / fix / leave. `pnpm report:weekly` aggregates Metrika, Webmaster and Search Console APIs (stage 2).
+`events_daily(day, event, tool, country, source, count)` — see [Server API and Data](../code/server-api-and-data.md). Reports: weekly (useful calcs total and by tool, calc rate, next-tool continuation, merged-list creation, new queries); monthly table per tool (impressions, clicks, position, calcs, actions, revenue, benchmark gap) → decide develop / fix / leave. `pnpm report:weekly` aggregates Metrika, Webmaster and Search Console APIs (stage 2).
 
 ## Cross-references
 
 - [Product and Domain](../business/product-and-domain.md) — north-star metric and checkpoints
+- [Competitive Benchmark](../business/competitive-benchmark.md) — primary competitor and mandatory overlap review
 - [Calculator Shell, Pages and Routing](../ui/calculator-shell-and-pages.md) — routes, headers, content frontmatter
 - [Server API and Data](../code/server-api-and-data.md) — `/api/e`
 - [Engineering Practices](../practices/engineering-practices.md) — performance budget, Lighthouse CI

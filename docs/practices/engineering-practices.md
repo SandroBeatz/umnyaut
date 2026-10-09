@@ -1,12 +1,12 @@
 ---
-version: 1.0
+version: 1.1
 date: 2026-10-08
 category: practices
 ---
 
 # Engineering Practices
 
-> Version 1.0 · 2026-10-08 · [Practices](../practices/)
+> Version 1.1 · 2026-10-08 · [Practices](../practices/)
 
 ## Overview
 
@@ -51,6 +51,7 @@ LCP ≤ 2.0 s · INP ≤ 200 ms · CLS ≤ 0.05 · first-screen JS ≤ 150 KB gz
 - `main` → prod (VPS). `develop` → staging (Vercel). Feature branches → PR into `develop` (Vercel preview per PR). Release = PR `develop` → `main`.
 - Conventional-ish commit messages (`feat:`, `fix:`, `chore:`, `docs:`, `test:`), referencing the GitHub Project item where possible.
 - Migrations backward compatible; never edit an applied migration.
+- Every finished step is logged in [Progress Log](../plan/progress-log.md) and ticks its plan task, in the same commit as the work.
 
 ### Definition of done — calculator
 

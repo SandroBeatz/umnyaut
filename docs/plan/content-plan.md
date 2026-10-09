@@ -1,12 +1,12 @@
 ---
-version: 1.0
-date: 2026-10-08
+version: 1.1
+date: 2026-10-09
 category: plan
 ---
 
 # Content and Assets Plan
 
-> Version 1.0 · 2026-10-08 · [Plan](../plan/)
+> Version 1.1 · 2026-10-09 · [Plan](../plan/)
 
 ## Overview
 
@@ -17,6 +17,7 @@ Rules from the specs that apply to all content:
 - Every norm number lives in `packages/catalog` with `source` + `checkedAt`; texts reference it via `{{norm.*}}`.
 - No blog, news, reviews, ratings, per-size pages.
 - Tool text 300–600 words + 5–8 FAQ from real queries.
+- Qalculator is the mandatory benchmark for overlapping tools, but never a norm or golden-answer source without an independent derivation.
 
 ## Rules
 
@@ -24,8 +25,8 @@ Rules from the specs that apply to all content:
 
 | ID | Item | Phase | Due | Producer | Notes |
 |---|---|---|---|---|---|
-| C01 | Norm sources for wave 1 (≥ 2 per tool) | 0 | 21 Oct | Owner + `formula-reviewer` | Datasheets of mixes/paints, laying guides; fills `[ИСТОЧНИК НОРМЫ]` placeholders |
-| C02 | Golden example drafts for wave 1 (10 per tool) | 0→6 | per tool | `calc-engineer` | From C01 + manual calcs + competitor cross-checks |
+| C01 | Norm sources for wave 1 (≥ 2 per tool) | 0 | 21 Oct | Owner + `formula-reviewer` | Primary datasheets, standards and laying guides; Qalculator may expose an edge case but is not a norm source; fills `[ИСТОЧНИК НОРМЫ]` placeholders |
+| C02 | Golden example drafts for wave 1 (10 per tool) | 0→6 | per tool | `calc-engineer` | From C01 + manual calcs; ≥ 3 shared Qalculator scenarios with every difference explained |
 | C03 | Presets wave 1 | 6 | with tool | `calc-engineer` | Laminate boards (e.g. 1285 × 192 × 9 шт, 1380 × 193 × 8, 1292 × 194 × 8), wallpaper rolls (0,53 × 10; 1,06 × 10; 1,06 × 25), paint cans (0,9 / 2,5 / 5 / 9 л), primer canisters, tile formats (20 × 20 … 60 × 120), adhesive/grout bag sizes, plinth lengths (2,0 / 2,2 / 2,5 м), linoleum widths (1,5 … 5 м), underlay rolls |
 | C04 | Waste rules by method and room shape | 4 | 1 Nov | `calc-engineer` | Straight 5–10%, diagonal ~15%, herringbone, tile from centre/corner |
 | C05 | Warning texts and step texts (RU) per tool | 6 | with tool | `calc-engineer` | Reason + way out («Последний ряд выйдет 5 см. Подрежьте первый ряд») |
@@ -41,7 +42,7 @@ Rules from the specs that apply to all content:
 |---|---|---|---|---|
 | C11 | Tool texts wave 1 (10 × 300–600 words + FAQ + frontmatter) | 8 | 27 Nov | `seo-content-writer` + owner review |
 | C12 | Category texts (osnova, pol, steny, plitka): one-line description, work order, short text + FAQ | 8 | 20 Nov | `seo-content-writer` |
-| C13 | Home copy: label, headline (decide: «Рассчитайте материалы для ремонта» vs «Умные расчёты для ремонта»), subline, three badges («Целые упаковки», «Без регистрации», «Ссылка на расчёт»), “How we calculate” | 8 | 20 Nov | Owner |
+| C13 | Home copy: label; H1 «Одна комната — весь список покупок»; subline «Введите размеры один раз — получите проверенный список покупок для всего ремонта»; proof points «Проверенные формулы», «Размеры не нужно повторять», «Один список по всем работам»; “How we calculate” | 8 | 20 Nov | Owner |
 | C14 | «Методика» — sources per norm, how we round, checked dates, note that photos show material types not products | 8 | 25 Nov | Owner + agent |
 | C15 | «О проекте» — author, why, contact (trust signal) | 8 | 25 Nov | Owner |
 | C16 | «Политика конфиденциальности» — exactly the data table from tech spec §16; cookie section (strict mode) | 8 | 25 Nov | Owner (lawyer review later, A32) |
@@ -86,9 +87,12 @@ Content frontmatter schema (validated by Zod at build): `title ≤ 65`, `descrip
 
 Producing a wave-1 tool's content: C01 sources → C02 golden → tool code (phase 6) → C05/C06 texts in catalog → G05 photo (optional) → C11 text via `tool-content` skill → `calculator-release-check`.
 
+The tool page must explain any material result difference from Qalculator when it comes from a deliberate method choice (for example, actual rows/offcuts instead of a fixed percentage). Do not name the competitor in ordinary user copy unless a comparison page has its own confirmed demand; keep the evidence in the benchmark record and methodology.
+
 ## Cross-references
 
 - [Development Plan](./development-plan.md)
 - [Design System](../design/design-system.md) — asset specs, tone
 - [SEO and Analytics](../business/seo-and-analytics.md) — content rules
+- [Competitive Benchmark](../business/competitive-benchmark.md) — comparison cases and evidence rules
 - Source: design spec §9–10, §16, §18; business spec §7–8, §11

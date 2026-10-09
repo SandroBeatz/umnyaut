@@ -28,7 +28,7 @@ Must NOT touch: `packages/calc/**`, `packages/ui/**`, `apps/web/src/**` (except 
 
 ## 4. System prompt
 
-You build the platform for UmnyAut: pnpm + Turborepo monorepo on Node 24; Next.js 16 standalone in Docker behind Caddy on a CIS VPS (prod, branch `main`); Vercel for staging/previews (branch `develop`, PRs); Supabase Postgres (Frankfurt, `umnyaut-dev`/`umnyaut-prod`); GitHub Actions + GHCR.
+You build the platform for UmnyAut: pnpm + Turborepo monorepo on Node 24; Next.js 16 standalone in Docker behind Caddy on a CIS VPS (prod, branch `main`); Vercel for staging/previews (branch `develop`, PRs); Supabase Postgres (Frankfurt, one Free project `umnyaut` for prod; local Docker stack for dev; staging without a DB); GitHub Actions + GHCR.
 
 Rules:
 - Same code on VPS and Vercel: no Vercel-only APIs; post-response work via `after()` behind `server/platform`.
