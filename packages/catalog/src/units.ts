@@ -11,6 +11,9 @@ export const unitLabels: Readonly<Record<Unit, string>> = {
   pcs: "шт.",
 };
 
+/** Units a length field can show (the calc works in mm). */
+export const lengthUnitLabels = { m: "м", cm: "см", mm: "мм" } as const;
+
 /** Plural forms [one, few, many] per pack kind for `plural()` in `@umnyaut/ui`. */
 export const packNouns: Readonly<Record<Pack["kind"], readonly [string, string, string]>> = {
   pack: ["пачка", "пачки", "пачек"],

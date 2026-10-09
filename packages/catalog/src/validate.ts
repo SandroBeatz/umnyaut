@@ -49,6 +49,12 @@ export function validateRegistry({ categories, reservedSegments, tools, modules,
     if (main > MAX_MAIN_FIELDS) errors.push(`${at}: ${main} main fields, at most ${MAX_MAIN_FIELDS}`);
     const names = tool.fields.flatMap((f) => ("name" in f ? [f.name] : []));
     for (const name of duplicates(names)) errors.push(`${at}: duplicate field ${name}`);
+    for (const field of tool.fields) {
+      if (!("when" in field) || !field.when) continue;
+      for (const key of Object.keys(field.when)) {
+        if (!names.includes(key)) errors.push(`${at}: field ${field.name} depends on unknown field ${key}`);
+      }
+    }
 
     const presetIds = (tool.presets ?? []).map((p) => p.id);
     for (const id of duplicates(presetIds)) errors.push(`${at}: duplicate preset ${id}`);

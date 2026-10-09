@@ -26,6 +26,22 @@ describe("registry", () => {
     expect(getTool(other?.slug ?? "", first.id)).toBeUndefined();
   });
 
+  it("every summary key and step code of a live tool has Russian text; presets pass the schema", () => {
+    for (const tool of tools.filter((t) => t.status === "live")) {
+      const module = toolModules[tool.id];
+      const ctx = { country: "RU" } as const;
+      const result = module.compute(module.input.parse(module.defaults(ctx)) as never, ctx);
+      if (result.items.length === 0) {
+        for (const { key } of result.summary) expect(tool.summary?.[key], `${tool.id} summary.${key}`).toBeDefined();
+      }
+      for (const { code } of result.steps) expect(tool.steps?.[code], `${tool.id} steps.${code}`).toBeDefined();
+      for (const preset of tool.presets ?? []) {
+        const input = { ...module.defaults(ctx), ...preset.values };
+        expect(module.input.safeParse(input).success, `${tool.id} preset ${preset.id}`).toBe(true);
+      }
+    }
+  });
+
   it("active categories are exactly those with tools", () => {
     expect(activeCategories().map((c) => c.slug)).toEqual(
       categories.filter((c) => tools.some((t) => t.category === c.slug)).map((c) => c.slug),
@@ -64,6 +80,7 @@ describe("validateRegistry", () => {
             field("f4"),
             field("f1"),
             { kind: "preset", label: "P", presets: ["p1", "missing"] },
+            { kind: "toggle", name: "w", label: "W", when: { ghost: "x" } },
           ],
           presets: [
             { id: "p1", label: "P1", values: { f1: true, zz: 1 } },
@@ -87,6 +104,7 @@ describe("validateRegistry", () => {
       "tool a: next step ghost does not exist",
       "tool a: 5 main fields, at most 4",
       "tool a: duplicate field f1",
+      "tool a: field w depends on unknown field ghost",
       "tool a: duplicate preset p1",
       "tool a: unknown preset missing",
       "tool a: preset p1 sets unknown field zz",

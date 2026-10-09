@@ -1,18 +1,18 @@
 ---
-version: 1.0
-date: 2026-10-08
+version: 1.1
+date: 2026-10-09
 category: ui
 ---
 
 # Calculator Shell, Pages and Routing
 
-> Version 1.0 · 2026-10-08 · [UI](../ui/)
+> Version 1.1 · 2026-10-09 · [UI](../ui/)
 
 ## Overview
 
 Every tool is rendered by **one component, `CalculatorShell`**. A tool is described by data in `packages/catalog` (fields, presets, links), not by its own markup, so the 16 requirements of the calculator standard are implemented once. Pages are statically generated from the registry; adding a tool never adds a route file.
 
-> Status: planned. Sources: technical spec §6–7, design spec §11–14, mockups in `docs/specs/UmnyAut — макеты ключевых экранов.html`.
+> Status: implemented in Phase 5 for `ploshchad-komnaty` and `ploshchad-sten` (see Implementation notes below). Sources: technical spec §6–7, design spec §11–14, mockups in `docs/specs/UmnyAut — макеты ключевых экранов.html`.
 
 ## Architecture
 
@@ -115,6 +115,20 @@ Variations are `catalog` entries (URL, titles, default overrides, own text). Fro
 | `/embed/*` | as indexable | `noindex` | Any site |
 | `/tg/` | as indexable | `noindex` | Telegram only |
 | Hashed build assets | `max-age=31536000, immutable` | — | — |
+
+### Implementation notes (Phase 5)
+
+| Topic | How it works now |
+|---|---|
+| Input flow | `useCalculator` (`widgets/calculator-shell/model`) renders defaults with country RU on the server and in the first client render. After mount: a valid `?s=` wins alone (a shared link reproduces exactly); otherwise saved tool values (`umnyaut:tool:<id>:v1`, only fields not bound to the room) and then “My room” are applied |
+| Room binding | `FieldDef.room` (`length`, `width`, `height`, `cutLength`, `cutWidth`; `shape` on a select) and every `openings` field read and write `entities/room`. The room store is a draft: parts are optional, nothing is invented (the room area tool has no height). Zustand `persist` with `skipHydration`, rehydrated after mount |
+| Conditional fields | `FieldDef.when` (`{ shape: "l" }`); a hidden field never counts in «Ещё параметры · N» and its error does not hold the result |
+| Invalid input | Out of range or empty → red message under the field, the result keeps the last valid input and shows «По прошлым значениям» |
+| Tools without items | Geometry tools return only `summary`; the first entry is the big number, the rest are tiles; labels in `ToolDef.summary`. Header reads «Получилось» instead of «Нужно купить» |
+| `?s=` | base64url (UTF-8) JSON of fields that differ from `defaults()`; decoded values go through the tool's Zod schema, garbage is ignored. Canonical is always the clean URL |
+| Phone budget | Asserted by Playwright: the main number ends at 643 px on wall area (390 × 844) |
+| Server-HTML guard | `pnpm --filter web html:check` after the build: title, one H1, canonical on every prerendered page, digits in `[data-result-value]` on tool pages |
+| Not yet | `calc_completed` event (Phase 9), «Сохранить» and report sending (Phase 7), desktop 480 px dialogs instead of bottom sheets, per-tool code splitting of calc modules |
 
 ## Configuration
 

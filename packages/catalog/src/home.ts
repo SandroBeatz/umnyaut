@@ -23,7 +23,7 @@ export const comingSoon = {
       text: "Каждый расчёт с объяснением, источником нормы и примерами.",
     },
   ],
-  markets: "Россия · Казахстан · Беларусь · Кыргызстан",
+  live: "Уже можно посчитать",
 } as const;
 
 export type FeatureIcon = (typeof comingSoon.features)[number]["icon"];

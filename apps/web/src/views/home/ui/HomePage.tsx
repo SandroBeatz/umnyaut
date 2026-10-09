@@ -1,6 +1,7 @@
-import { comingSoon, type FeatureIcon, site } from "@umnyaut/catalog";
-import { IconCircle, Logo, Mascot } from "@umnyaut/ui";
+import { comingSoon, type FeatureIcon, tools } from "@umnyaut/catalog";
+import { IconCircle, Mascot } from "@umnyaut/ui";
 import { BadgeCheck, type LucideIcon, Package, Ruler } from "lucide-react";
+import { ToolCard } from "@/entities/tool";
 import { mascotImages } from "@/shared/config";
 
 const icons: Record<FeatureIcon, LucideIcon> = { package: Package, ruler: Ruler, check: BadgeCheck };
@@ -12,15 +13,11 @@ const blueprint = {
   maskImage: "radial-gradient(ellipse 80% 70% at 70% 30%, #000 20%, transparent 75%)",
 } as const;
 
-/** "Coming soon" home until the first tools go live (Phase 5). */
+/** "Coming soon" hero until the full home page (Phase 8); header and footer come from the root layout. */
 export function HomePage() {
   return (
-    <div className="relative isolate flex min-h-dvh flex-col overflow-hidden">
+    <div className="relative isolate flex flex-1 flex-col overflow-hidden">
       <div aria-hidden="true" className="absolute inset-0 -z-10 opacity-60" style={blueprint} />
-
-      <header className="mx-auto w-full max-w-[1200px] px-4 pt-5 sm:px-6 lg:px-8 lg:pt-8">
-        <Logo />
-      </header>
 
       <main className="mx-auto grid w-full max-w-[1200px] flex-1 content-start gap-6 px-4 py-6 sm:px-6 lg:content-center lg:items-center lg:grid-cols-[1.1fr_1fr] lg:gap-6 lg:px-8 lg:py-12">
         <section className="order-2 lg:order-1">
@@ -54,6 +51,17 @@ export function HomePage() {
               );
             })}
           </ul>
+
+          <h2 className="mt-8 text-h3 lg:mt-10">{comingSoon.live}</h2>
+          <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+            {tools
+              .filter((tool) => tool.status === "live")
+              .map((tool) => (
+                <li key={tool.id}>
+                  <ToolCard tool={tool} />
+                </li>
+              ))}
+          </ul>
         </section>
 
         <figure className="order-1 flex items-center gap-3 lg:order-2 lg:flex-col lg:items-end lg:gap-0">
@@ -75,13 +83,6 @@ export function HomePage() {
           />
         </figure>
       </main>
-
-      <footer className="mx-auto flex w-full max-w-[1200px] flex-col gap-1 px-4 pt-4 pb-6 text-text-muted text-xs sm:flex-row sm:justify-between sm:px-6 lg:px-8">
-        <span>
-          © {new Date().getFullYear()} {site.name}
-        </span>
-        <span>{comingSoon.markets}</span>
-      </footer>
     </div>
   );
 }

@@ -7,6 +7,7 @@ export { ChoiceTileGroup, type ChoiceTileOption } from "./components/ChoiceTile"
 export { Dialog, DialogClose, DialogContent, DialogTrigger } from "./components/Dialog";
 export { IconCircle } from "./components/IconCircle";
 export { NumberField, type NumberFieldProps } from "./components/NumberField";
+export { Popover, PopoverClose, PopoverContent, PopoverTrigger } from "./components/Popover";
 export { type PresetChip, PresetChips } from "./components/PresetChips";
 export { Segment, type SegmentOption } from "./components/Segment";
 export { Select, type SelectOption } from "./components/Select";
