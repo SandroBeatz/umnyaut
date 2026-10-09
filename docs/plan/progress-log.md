@@ -42,6 +42,12 @@ Each entry:
 
 ### 2026-10-09
 
+- **P2.6, P2.8** Staging domain live: `staging.umnyaut.com` → CNAME to Vercel, 200 with `X-Robots-Tag: noindex, nofollow`. Stray Namecheap records (`umnyaut.com.umnyaut.com` A/TXT) deleted. Release #143 deployed to prod (`8bd2b9b5004d`).
+  - Where: Vercel, Namecheap (owner) · `main` `8bd2b9b` · prod
+- **P2.9** Registry-driven routes with one empty tool: `calc` gets a skeleton `ToolModule` contract and `toolModules` (`ploshchad-komnaty`, version 0, empty result); `catalog` gets `categories` (9 slugs), `reservedSegments`, a skeleton `ToolDef` with `status`, and the `tools` registry with tests (unique well-formed slugs, no reserved segment, catalog ↔ calc modules). Routes `app/[category]/page.tsx` and `app/[category]/[tool]/page.tsx` use `generateStaticParams` + `dynamicParams = false` and compose `views/category` and `views/tool`. Build prerenders `/osnova/` and `/osnova/ploshchad-komnaty/`; unknown category/tool → 404.
+  - Where: `feature/p2-9-registry-routes`
+  - Notes: the tool is `status: 'draft'`, so both pages are `noindex, nofollow` until P5.8 makes it `live`. P4.1/P4.6 extend the skeleton types; golden examples come with the formula.
+  - Deviation: the tool route returns both `category` and `tool` params itself (a child segment only receives parent params from a layout's `generateStaticParams`, not a sibling page). `dev` added to reserved segments for `/dev/ui` (P3.11).
 - **P2.5** Second release `62299c7` (#141) deployed to slot `green` in 54 s; `X-Robots-Tag: noindex` confirmed on the sslip.io host. Rollback tested: Deploy workflow with `rollback: true` → `blue` (`09ff1765d14b`), health confirmed; run again → back to `green` (`62299c73d3fc`). Exit gate "rollback tested once" met.
   - Where: `main` · `62299c7` · prod (VPS) · runs 37904457674, 37904554495
   - Notes: a second `rollback` swaps forward again (it always switches to the other slot). Phase 2 left: P2.6 staging domain, P2.7 Supabase, P2.8 DNS, P2.9, P2.10 Renovate app.
