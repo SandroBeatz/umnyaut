@@ -141,6 +141,18 @@ Only three engines need new geometry: `rows`, `grid`, `strips`.
 
 Wave 2/3 approaches: technical spec §8. Tools `kabel`, `radiatory`, `styazhka` carry a `disclaimer` flag in `catalog`.
 
+### Decisions to verify in real testing
+
+Taken in Phase 4 without real tools. Re-check each one once the first formulas, golden examples and the reviewer's feedback exist (plan P6.12); change the rule here if testing disagrees.
+
+| # | Decision | Current behaviour | How to verify | When |
+|---|---|---|---|---|
+| 1 | Rounding tolerance of `ceilPacks()` | Relative 1e‑9, only float noise: 0.1 × 3 / 0.1 → 3 packs, but 10.0000001 → 11. The spec example «10.0000001 must not become 11» is not followed | Golden examples on exact pack multiples for wave‑1 tools; compare with the reviewer and Qalculator. If real inputs land just above a multiple (e.g. dimensions in cm → m² with tiny excess), consider a wider tolerance | P5.8, P6.x, reviewer pass (P6.10) |
+| 2 | Tiny positive need | Any need > 0 buys at least one pack (found by fast-check: 1e‑9 and 5e‑324 gave 0) | Check that no tool produces a phantom 1 pack from a near-zero leftover of geometry (e.g. openings almost equal to walls); if it does, the tool must clamp or warn, not `ceilPacks` | First tools with openings (P5.8 wall area, P6.4 wallpaper, P6.5 paint) |
+| 3 | Norms registry is empty | No consumption rate, overlap or waste % exists until a tool brings it with `source` + `checkedAt`; content with `{{norm.*}}` fails the build without the norm | Each wave‑1 tool adds its norms from P0.7 sources; reviewer confirms values | P0.7, Phase 6 |
+| 4 | Harness proven only on a demo tool | Golden and invariant runs skip `version: 0`; the harness is tested on `test/fixtures/demo-tool.ts` | The first real tool (P5.8) must show up in `golden.test.ts` and `invariants.test.ts` as executed, not skipped, and fail when a golden number is broken on purpose | P5.8 |
+| 5 | `tsx` with disabled `esbuild` postinstall | `allowBuilds: { esbuild: false }` in `pnpm-workspace.yaml`; the platform binary comes from esbuild's optional package | Run `pnpm calc:export` on CI (Linux) and on the owner's Mac once real golden files exist | P6.10 |
+
 ## Configuration
 
 No runtime configuration. Norms and presets are data in `packages/catalog` (each with `source` and `checkedAt`). Coverage threshold for `packages/calc`: **95% of lines**.
