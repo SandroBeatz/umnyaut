@@ -80,6 +80,8 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | 2026-10-09 | Grout density | 1,6 (Ceresit) |
 | 2026-10-09 | Wallpaper paste from a real pack | Not available yet → default, unconfirmed |
 | 2026-10-09 | Laminate diagonal / herringbone waste | 15% with the note «по опыту укладчиков» until the master confirms |
+| 2026-10-10 | Wallpaper: worst-case pattern start per roll | Keep it (never under-buys); show an info hint with the lucky-start roll count and «лишние не вскрывайте» |
+| 2026-10-10 | Paint: least overbuy vs fewer cans | Keep least overbuy (then fewest cans) until pack prices exist |
 | 2026-10-10 | Primer packs 1 л and 10 л (S8) | One canister size for now (10 л default, editable field); choosing between sizes waits for pack prices — by litres alone the optimiser would buy 7 × 1 л instead of one 10 л |
 
 ## Cross-references

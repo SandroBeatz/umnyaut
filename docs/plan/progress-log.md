@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-10
 
+- **— (decisions)** Owner: (1) wallpaper keeps the worst-case pattern start per roll; new info hint `repeat_lucky_start` gives the roll count for a lucky start (`cutStrips` with `luckyStart`) and says «лишние рулоны не вскрывайте» — shown only when it is smaller (e.g. H 3 m, repeat 64 cm: 16 vs 12); (2) paint keeps least overbuy until pack prices. Recorded in [Norm Sources — Wave 1](../code/norm-sources-wave-1.md) and [Calculation Engine](../code/calc-engine.md).
+  - Where: `feature/phase-6-wave-1`
+
 - **P6.4, P6.5 (second review)** `formula-reviewer` pass 2: wallpaper FAIL (one blocker), paint PASS WITH NOTES. Fixed: (1) blocker — offset match paid the worst-case lead plus half a repeat on every roll that opens at the half phase (offset 50 cm, H 2,8 m gave 16 rolls instead of 12); `cutStrips` now keeps a pattern frame per roll and opens every roll at 0; (2) the tight-roll slack comes from the real layout; (3) the strip-too-long check runs even with zero strips (fast-check found a larger room losing its wallpaper line); (4) paint golden pins can counts, a step explains the set («наименьший остаток»), info hint when a 10 л primer canister is > 4× the need. 18 wallpaper and 13 paint golden examples, all derived by hand.
   - Where: `feature/phase-6-wave-1`
   - Notes: left for the owner / master (A26): worst-case pattern start is safe but adds up to ~45% near H 3 m with a 64 cm repeat (straight 640: H 2,9 → 12 rolls, H 2,95 → 16); paint picks the least overbuy, not fewer/cheaper cans (7,46 л → 3 × 2,7, not 9 л) until prices exist; paint ignores an L-shaped ceiling (overbuys); primer source S8 is a tiling primer — a painting primer (e.g. PARADE G30) would be a better source; Qalculator has no paint tool, benchmark against Tikkurila or Leroy instead. Not changed: an opening taller than the wall counts at full height in `wallAreaM2` (0,02 л effect, warning shown) — changing it would alter the released wall-area tool.

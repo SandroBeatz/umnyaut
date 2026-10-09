@@ -155,6 +155,17 @@ export const oboi: ToolModule<OboiInput> = {
       steps.push({ code: "strip_rolls", values: { strips, perRoll: cut.perRoll, rolls: stripRolls } });
       if (cut.rolls > stripRolls) steps.push({ code: "pieces_rolls", values: { extra: cut.rolls - stripRolls } });
       steps.push({ code: "rolls", values: { rolls: cut.rolls, tail: mmToM(tailMm) } });
+      // The count above assumes the worst pattern start on every roll; say how many a lucky start needs.
+      if (i.repeatMm > 0) {
+        const lucky = cutStrips({ ...stripsOnly, strips, pieces, luckyStart: true }).rolls;
+        if (lucky < cut.rolls) {
+          warnings.push({
+            code: "repeat_lucky_start",
+            level: "info",
+            values: { rolls: lucky, extra: cut.rolls - lucky },
+          });
+        }
+      }
       // Strips that use the roll almost to the end: a roll shorter within the tolerance gives one strip less.
       if (cut.perRoll > 0 && cut.perRollSlackMm < ROLL_TOLERANCE * i.rollLengthMm) {
         warnings.push({ code: "roll_tight", level: "info", values: { slack: mmToM(cut.perRollSlackMm) } });

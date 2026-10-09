@@ -47,6 +47,12 @@ describe("cutStrips", () => {
     expect(cut).toMatchObject({ rolls: 11, perRoll: 3, perRollSlackMm: 151 });
   });
 
+  it("lucky start: no lead, the 3100 mm strips fit 3 per roll", () => {
+    const input = { ...base, repeatMm: 640, stripLengthMm: 3100, strips: 3 };
+    expect(cutStrips(input).rolls).toBe(2);
+    expect(cutStrips({ ...input, luckyStart: true })).toMatchObject({ rolls: 1, perRoll: 3 });
+  });
+
   it("an odd repeat keeps half a millimetre exact", () => {
     const cut = cutStrips({ ...base, repeatMm: 641, offset: true, strips: 2 });
     // Usable 10 050 − 640 = 9410; 0–2800; second strip at phase 320.5: 320.5 + 641 × 4 = 2884.5 → 5684.5.

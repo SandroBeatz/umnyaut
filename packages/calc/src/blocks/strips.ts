@@ -17,6 +17,8 @@ export interface StripCutInput {
   strips: number;
   /** Short pieces in mm, any order; each may start at any allowed phase. */
   pieces?: readonly number[];
+  /** Best case: every roll starts right at the pattern (no lead). For the «удачное начало» hint only. */
+  luckyStart?: boolean;
 }
 
 export interface StripCut {
@@ -45,7 +47,7 @@ function startAt(pos: number, phase: number, repeat: number): number {
 export function cutStrips(input: StripCutInput): StripCut {
   const repeat = Math.max(input.repeatMm, 0) * SCALE;
   // Usable length after the worst-case lead to the pattern; positions below count from its end.
-  const roll = input.rollLengthMm * SCALE - (repeat > 0 ? repeat - SCALE : 0);
+  const roll = input.rollLengthMm * SCALE - (repeat > 0 && !input.luckyStart ? repeat - SCALE : 0);
   const half = input.offset && repeat > 0 ? repeat / 2 : 0;
   const strip = input.stripLengthMm * SCALE;
   const strips = Math.max(Math.trunc(input.strips), 0);
