@@ -195,16 +195,16 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 **Tasks**
 
-- [ ] P5.1 Root layout: header (phone 56 px: logo, country chip, menu sheet; ≥ 1024 72 px: mascot head + logo, nav with categories dropdown, “Мои расчёты”), footer (navy, categories, info pages, country switch, “Настройки cookie”, bot link), breadcrumbs (back link on phone).
-- [ ] P5.2 `entities/room`: Zustand persist `umnyaut:room:v1` + migration hook; `entities/country`: detection by timezone → localStorage `umnyaut:country`; `entities/tool`.
-- [ ] P5.3 `widgets/calculator-shell`: `useCalculator` (SSR result for defaults → hydrate identical → after mount apply `?s=` → room → saved tool values), live `compute()`, `useDeferredValue` for layouts.
-- [ ] P5.4 Blocks: `RoomBar`, `ToolForm` (from `FieldDef`, ≤ 4 main fields, “Ещё параметры · N”), `ResultPanel` (mascot `done` 56 px, big number, related list, total + price per m², «без N позиций»), `Warnings` (mascot head `warn`), disclaimer card, `HowCalculated` (accordion, source, checked date, report link), `ResultActions` (save — disabled until Phase 7, send/copy text, print), `NextSteps`, `ReportError` sheet (stub until Phase 7), sticky result bar (< 1024, IntersectionObserver), inert `AdSlot`.
-- [ ] P5.5 `features/share-result`: `?s=` = base64url JSON of non-default fields; canonical to clean URL; copy as text; `navigator.share`.
-- [ ] P5.6 Print stylesheet (`@media print`, A4, no chrome, checkbox column).
-- [ ] P5.7 Tool page route `app/[category]/[tool]/page.tsx` composing `views/tool-page`; category route skeleton.
-- [ ] P5.8 Tools **Room area** (writes “My room”) and **Wall area** via skill `new-calculator` (five files each, 10 golden each). Content stubs.
-- [ ] P5.9 Playwright on phone viewport: room area → wall area carries the room; `?s=` link reproduces result.
-- [ ] P5.10 Server-HTML guard script (no-JS HTML contains title, one H1, canonical, result numbers) in CI.
+- [x] P5.1 Root layout: header (phone 56 px: logo, country chip, menu sheet; ≥ 1024 72 px: mascot head + logo, nav with categories dropdown, “Мои расчёты”), footer (navy, categories, info pages, country switch, “Настройки cookie”, bot link), breadcrumbs (back link on phone).
+- [x] P5.2 `entities/room`: Zustand persist `umnyaut:room:v1` + migration hook; `entities/country`: detection by timezone → localStorage `umnyaut:country`; `entities/tool`.
+- [x] P5.3 `widgets/calculator-shell`: `useCalculator` (SSR result for defaults → hydrate identical → after mount apply `?s=` → room → saved tool values), live `compute()`, `useDeferredValue` for layouts.
+- [x] P5.4 Blocks: `RoomBar`, `ToolForm` (from `FieldDef`, ≤ 4 main fields, “Ещё параметры · N”), `ResultPanel` (mascot `done` 56 px, big number, related list, total + price per m², «без N позиций»), `Warnings` (mascot head `warn`), disclaimer card, `HowCalculated` (accordion, source, checked date, report link), `ResultActions` (save — disabled until Phase 7, send/copy text, print), `NextSteps`, `ReportError` sheet (stub until Phase 7), sticky result bar (< 1024, IntersectionObserver), inert `AdSlot`.
+- [x] P5.5 `features/share-result`: `?s=` = base64url JSON of non-default fields; canonical to clean URL; copy as text; `navigator.share`.
+- [x] P5.6 Print stylesheet (`@media print`, A4, no chrome, checkbox column).
+- [x] P5.7 Tool page route `app/[category]/[tool]/page.tsx` composing `views/tool-page`; category route skeleton.
+- [x] P5.8 Tools **Room area** (writes “My room”) and **Wall area** via skill `new-calculator` (five files each, 10 golden each). Content stubs.
+- [x] P5.9 Playwright on phone viewport: room area → wall area carries the room; `?s=` link reproduces result.
+- [x] P5.10 Server-HTML guard script (no-JS HTML contains title, one H1, canonical, result numbers) in CI.
 - [ ] P5.11 Deploy to prod.
 
 **Exit gate (mobile gate):** both tools live on `umnyaut.com`; on iPhone Safari 390 × 844 the result number is within 660 px; sticky bar works; no-JS HTML contains numbers.

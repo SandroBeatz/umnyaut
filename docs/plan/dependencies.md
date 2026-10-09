@@ -1,12 +1,12 @@
 ---
-version: 1.2
+version: 1.3
 date: 2026-10-09
 category: plan
 ---
 
 # Dependencies Manifest
 
-> Version 1.2 · 2026-10-09 · [Plan](../plan/)
+> Version 1.3 · 2026-10-09 · [Plan](../plan/)
 
 ## Overview
 
@@ -106,7 +106,8 @@ shadcn/ui is not a dependency: components are generated with `pnpm dlx shadcn@la
 | `unified`, `remark-parse`, `remark-rehype`, `rehype-sanitize`, `rehype-stringify` | 11.0.5 / 11.0.0 / 11.1.2 / 6.0.0 / 10.0.1 | dev | 4 | Markdown → sanitized HTML at build (no MDX by decision) |
 | `sharp` | 0.35.5 | dev | 3 | Build-time AVIF/WebP for mascot and material photos |
 | `schema-dts` | 2.1.0 | dev | 9 | Typed JSON-LD (`WebApplication`, `FAQPage`, `BreadcrumbList`) |
-| `@playwright/test` | 1.64.0 | dev | 5 | E2E on phone viewport |
+| `@playwright/test` | 1.64.0 | dev | 5 | E2E on phone viewport (`pnpm e2e`; Chromium with the 390 × 844 iPhone viewport, CI job `e2e`) |
+| `jsdom`, `@testing-library/react` | 30.1.2 / 16.3.3 | dev | 5 | DOM for `src/**` tests that touch `localStorage` (`// @vitest-environment jsdom`) |
 | `@lhci/cli` | 0.15.1 | dev | 9 | Lighthouse CI thresholds |
 | `grammy` | 1.46.0 | dep | 12 | Telegram bot (webhook mode) |
 | `@google/genai` | 2.28.0 | dep | 14 | `VisionProvider` implementation (Gemini API) |

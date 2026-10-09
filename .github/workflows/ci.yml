@@ -40,6 +40,33 @@ jobs:
         run: pnpm --filter web images:check
       - name: Typecheck, test, build
         run: pnpm turbo run typecheck test build
+      - name: Server HTML has title, one H1, canonical and result numbers
+        run: pnpm --filter web html:check
+
+  e2e:
+    name: Playwright (phone)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build web
+        run: pnpm turbo run build --filter=web
+      - name: Install Chromium
+        run: pnpm --filter web exec playwright install --with-deps chromium
+      - name: Phone journeys
+        run: pnpm --filter web e2e
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-traces
+          path: apps/web/test-results
+          retention-days: 7
 
   docker:
     name: Docker image + smoke test

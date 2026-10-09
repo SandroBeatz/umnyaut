@@ -1,12 +1,12 @@
 ---
-version: 1.3
+version: 1.4
 date: 2026-10-09
 category: deploy
 ---
 
 # Environments and CI/CD
 
-> Version 1.3 · 2026-10-09 · [Deploy](../deploy/)
+> Version 1.4 · 2026-10-09 · [Deploy](../deploy/)
 
 ## Overview
 
@@ -33,7 +33,7 @@ Non-prod (`APP_ENV != production`): `X-Robots-Tag: noindex` on all responses, Me
 
 ### Pipeline (GitHub Actions + GitHub Container Registry)
 
-1. **PR → `develop`**: pnpm install (cached) → Biome, Steiger, `tsc --noEmit` → tests → `next build` → Docker image build + container smoke test → Playwright and Lighthouse CI against the Vercel preview.
+1. **PR → `develop`**: pnpm install (cached) → Biome, Steiger, `tsc --noEmit` → tests → `next build` → server-HTML guard → Playwright on the CI build (phone viewport) → Docker image build + container smoke test → Lighthouse CI against the Vercel preview (Phase 9).
 2. **Merge → `develop`**: Vercel deploys staging (no DB, no migrations).
 3. **PR `develop` → `main`**: same checks + manual pass of staging on a real phone.
 4. **Merge → `main`**: image tagged with commit SHA pushed to GHCR → migrations applied to the Supabase project → server pulls the image over SSH and starts the new container next to the old → after `/api/health` passes, Caddy switches traffic → external smoke test → IndexNow submission.
@@ -118,7 +118,7 @@ If none passes everything: host the site where visitor reachability is best and 
 | `infra/deploy.sh` | `deploy <tag>` / `rollback` / `status`: start idle slot → wait for Docker health → reload Caddy → stop old slot |
 | `infra/server.env.example` | Compose `.env` on the server (`DOMAIN`, `ACME_EMAIL`) |
 | `apps/web/Dockerfile` | Next standalone image (Node 24 alpine, non-root, `HEALTHCHECK` on `/api/health/`, `APP_VERSION` build arg) |
-| `.github/workflows/ci.yml` | PR checks: Biome, guard, Steiger, tsc, tests, build; Docker image + smoke test; infra lint (shellcheck, compose, caddy validate) |
+| `.github/workflows/ci.yml` | PR checks: Biome, guard, Steiger, tsc, tests, build, server-HTML guard (`html:check`); Playwright phone journeys against `next start` of the CI build (job `e2e`); Docker image + smoke test; infra lint (shellcheck, compose, caddy validate) |
 | `.github/workflows/deploy.yml` | `main` → GHCR → VPS |
 | `.github/workflows/backup.yml` | Weekly encrypted `pg_dump` of prod as an Actions artifact (35 days) |
 | `renovate.json` | Monthly dependency PRs into `develop`, grouped |

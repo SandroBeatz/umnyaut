@@ -16,8 +16,9 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "build": "turbo run build",
-    "check": "pnpm lint && pnpm guard && pnpm steiger && pnpm --filter web images:check && turbo run typecheck test build",
-    "calc:export": "pnpm --filter @umnyaut/calc export"
+    "check": "pnpm lint && pnpm guard && pnpm steiger && pnpm --filter web images:check && turbo run typecheck test build && pnpm --filter web html:check",
+    "calc:export": "pnpm --filter @umnyaut/calc export",
+    "e2e": "pnpm --filter web e2e"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",

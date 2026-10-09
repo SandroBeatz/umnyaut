@@ -4,7 +4,7 @@ UmnyAut («Умняут») is a Russian-language renovation service: enter room 
 
 ## Status
 
-Repo reset on 2026-10-08 (previous crossword project removed). Phase 1 monorepo skeleton is in place (`apps/web`, `packages/{calc,catalog,ui,db}`, `tooling/`); `pnpm check` runs every gate. Next: Phases 2–4 (see `docs/plan/development-plan.md`). Use Node 24 (`.nvmrc`) and pnpm 12 via corepack. Source specs (Russian) in `docs/specs/` are the source of truth; English digests in `docs/**`.
+Repo reset on 2026-10-08 (previous crossword project removed). Phases 1–5 done: monorepo, deploy, design system, calc core, app shell with `CalculatorShell` and two live tools (room area, wall area); `pnpm check` runs every gate, `pnpm e2e` the phone journeys. Next: Phase 6 wave-1 calculators (see `docs/plan/development-plan.md`). Use Node 24 (`.nvmrc`) and pnpm 12 via corepack. Source specs (Russian) in `docs/specs/` are the source of truth; English digests in `docs/**`.
 
 ## Stack
 

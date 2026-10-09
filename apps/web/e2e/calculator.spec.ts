@@ -1,0 +1,117 @@
+import { expect, type Page, test } from "@playwright/test";
+
+const ROOM = "/osnova/ploshchad-komnaty/";
+const WALLS = "/osnova/ploshchad-sten/";
+/** Visible area of Safari on a 390 × 844 iPhone (design spec §12). */
+const FIRST_SCREEN = 660;
+
+const result = (page: Page) => page.locator("[data-result-value]").first();
+const s = (value: object) => Buffer.from(JSON.stringify(value)).toString("base64url");
+
+async function type(page: Page, label: string, value: string) {
+  const field = page.getByRole("textbox", { name: label });
+  await field.fill(value);
+  await field.blur();
+}
+
+test("the result number is on the first phone screen of both tools", async ({ page }) => {
+  for (const path of [ROOM, WALLS]) {
+    await page.goto(path);
+    const box = await result(page).boundingBox();
+    expect(box, path).not.toBeNull();
+    expect((box?.y ?? 0) + (box?.height ?? 0), path).toBeLessThanOrEqual(FIRST_SCREEN);
+  }
+});
+
+test("room area writes “My room”, wall area picks it up", async ({ page }) => {
+  await page.goto(ROOM);
+  await expect(page.getByText("Это пример. Введите свои размеры")).toBeVisible();
+  await type(page, "Длина комнаты", "5");
+  await type(page, "Ширина комнаты", "4");
+  await expect(result(page)).toHaveText("20");
+  await expect(page.getByText("Это пример. Введите свои размеры")).toBeHidden();
+
+  await page
+    .getByRole("link", { name: /Площадь стен/ })
+    .first()
+    .click();
+  await expect(page).toHaveURL(WALLS);
+  await expect(page.getByRole("textbox", { name: "Длина комнаты" })).toHaveValue("5");
+  await expect(page.getByRole("textbox", { name: "Ширина комнаты" })).toHaveValue("4");
+  await expect(page.getByText(/Моя комната: 5\s×\s4\sм/)).toBeVisible();
+  // 2 × (5 + 4) × 2,7 = 48,6 − door 1,6 − window 1,68 = 45,32
+  await expect(result(page)).toHaveText("45,32");
+
+  await type(page, "Высота потолка", "3");
+  await page.goto(ROOM);
+  await expect(page.getByText(/Моя комната: 5\s×\s4\s×\s3\sм/)).toBeVisible();
+});
+
+test("a ?s= link reproduces the result and «Отправить» builds one", async ({ page, context }) => {
+  const openings = [
+    { type: "door", widthMm: 900, heightMm: 2050, count: 1 },
+    { type: "window", widthMm: 1500, heightMm: 1500, count: 2 },
+  ];
+  await page.goto(`${WALLS}?s=${s({ lengthMm: 5000, widthMm: 4000, openings })}`);
+  await expect(result(page)).toHaveText("42,26");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/osnova\/ploshchad-sten\/$/);
+
+  await type(page, "Высота потолка", "3");
+  await expect(result(page)).toHaveText("47,66");
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.evaluate(() => Object.defineProperty(navigator, "share", { value: undefined }));
+  await page.getByRole("button", { name: "Отправить" }).click();
+  await expect(page.getByText("Ссылка скопирована")).toBeVisible();
+  const link = await page.evaluate(() => navigator.clipboard.readText());
+  expect(link).toContain("?s=");
+
+  const fresh = await context.browser()?.newContext({ viewport: { width: 390, height: 844 } });
+  const other = await fresh?.newPage();
+  if (!other) throw new Error("no second page");
+  await other.goto(link);
+  await expect(result(other)).toHaveText("47,66");
+  await fresh?.close();
+});
+
+test("an L-shaped room shows the cut-out fields and subtracts the corner", async ({ page }) => {
+  await page.goto(ROOM);
+  await type(page, "Длина комнаты", "6");
+  await type(page, "Ширина комнаты", "4");
+  await expect(page.getByRole("textbox", { name: "Длина выреза" })).toHaveCount(0);
+  await page.getByRole("button", { name: /Ещё параметры/ }).click();
+  await page.getByRole("radio", { name: "Г-образная" }).click();
+  await type(page, "Длина выреза", "2");
+  await type(page, "Ширина выреза", "1,5");
+  await expect(result(page)).toHaveText("21");
+  await page.getByRole("button", { name: "Свернуть параметры" }).click();
+  await expect(page.getByRole("button", { name: /Ещё параметры · 3/ })).toBeVisible();
+});
+
+test("an invalid field keeps the last result and says so", async ({ page }) => {
+  await page.goto(WALLS);
+  await type(page, "Длина комнаты", "500");
+  await expect(page.getByText("От 0,3 до 100 м")).toBeVisible();
+  await expect(page.getByText("По прошлым значениям")).toBeVisible();
+  await expect(result(page)).toHaveText("44,78");
+});
+
+test("the sticky bar shows the result once the panel scrolls away", async ({ page }) => {
+  await page.goto(WALLS);
+  const bar = page.getByRole("link", { name: /К результату/ });
+  await expect(bar).toBeHidden();
+  await page.getByRole("heading", { name: "Вопросы и ответы" }).scrollIntoViewIfNeeded();
+  await expect(bar).toBeVisible();
+  await expect(bar).toContainText("44,78");
+  await bar.click();
+  await expect(page.locator("#result")).toBeInViewport();
+});
+
+test.describe("without JavaScript", () => {
+  test.use({ javaScriptEnabled: false });
+
+  test("the server HTML already has the numbers", async ({ page }) => {
+    await page.goto(WALLS);
+    await expect(page.locator("h1")).toHaveCount(1);
+    await expect(result(page)).toHaveText("44,78");
+  });
+});

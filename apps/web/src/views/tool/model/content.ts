@@ -4,6 +4,8 @@ export interface ToolText {
   description: string;
   h1: string;
   question: string;
+  /** YYYY-MM-DD: «Проверено …» in “How calculated”. */
+  checkedAt: string;
   html: string;
   faq: readonly { q: string; a: string }[];
 }
