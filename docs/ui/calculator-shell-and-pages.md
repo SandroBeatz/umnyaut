@@ -128,7 +128,8 @@ Variations are `catalog` entries (URL, titles, default overrides, own text). Fro
 | `?s=` | base64url (UTF-8) JSON of fields that differ from `defaults()`; decoded values go through the tool's Zod schema, garbage is ignored. Canonical is always the clean URL |
 | Phone budget | Asserted by Playwright: the main number ends at 643 px on wall area (390 × 844) |
 | Server-HTML guard | `pnpm --filter web html:check` after the build: title, one H1, canonical on every prerendered page, digits in `[data-result-value]` on tool pages |
-| Not yet | `calc_completed` event (Phase 9), «Сохранить» and report sending (Phase 7), desktop 480 px dialogs instead of bottom sheets, per-tool code splitting of calc modules |
+| Sheets | `ResponsiveSheet` (`packages/ui`): bottom sheet below 1024 px, centred 480 px dialog from 1024 px — RoomBar editor, report error |
+| Not yet | `calc_completed` event (Phase 9), «Сохранить» and report sending (Phase 7), per-tool code splitting of calc modules |
 
 ## Configuration
 

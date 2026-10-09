@@ -1,7 +1,7 @@
 "use client";
 
 import { shell, unitLabels } from "@umnyaut/catalog";
-import { Button, NumberField, Sheet, SheetClose, SheetContent, SheetTrigger } from "@umnyaut/ui";
+import { Button, NumberField, ResponsiveSheet } from "@umnyaut/ui";
 import { formatNumber } from "@umnyaut/ui/format";
 import { Ruler } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -67,50 +67,55 @@ export function RoomBar() {
           <span className="font-semibold">{t.empty}</span>
         )}
       </p>
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetTrigger asChild>
+      <ResponsiveSheet
+        open={open}
+        onOpenChange={onOpenChange}
+        title={t.sheetTitle}
+        description={t.sheetDescription}
+        closeLabel={shell.close}
+        trigger={
           <Button variant="ghost" size="md" className="shrink-0">
             {t.edit}
           </Button>
-        </SheetTrigger>
-        <SheetContent title={t.sheetTitle} description={t.sheetDescription}>
-          <div className="grid grid-cols-2 gap-3 pt-2">
-            {(
-              [
-                ["lengthMm", t.length],
-                ["widthMm", t.width],
-                ["heightMm", t.height],
-              ] as const
-            ).map(([part, label]) => (
-              <NumberField
-                key={part}
-                label={label}
-                unit={m}
-                value={draft[part]}
-                onValueChange={(value) => setDraft((d) => ({ ...d, [part]: value }))}
-                min={LIMITS[part][0] / 1000}
-                max={LIMITS[part][1] / 1000}
-                messages={{ range: range(LIMITS[part]) }}
-              />
-            ))}
-          </div>
-          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-            <Button size="lg" className="sm:flex-1" disabled={!canSave} onClick={save}>
-              {t.save}
-            </Button>
-            <SheetClose asChild>
-              <Button
-                variant="secondary"
-                size="lg"
-                className="sm:flex-1"
-                onClick={() => useRoomStore.getState().clearRoom()}
-              >
-                {t.clear}
-              </Button>
-            </SheetClose>
-          </div>
-        </SheetContent>
-      </Sheet>
+        }
+      >
+        <div className="grid grid-cols-2 gap-3 pt-2">
+          {(
+            [
+              ["lengthMm", t.length],
+              ["widthMm", t.width],
+              ["heightMm", t.height],
+            ] as const
+          ).map(([part, label]) => (
+            <NumberField
+              key={part}
+              label={label}
+              unit={m}
+              value={draft[part]}
+              onValueChange={(value) => setDraft((d) => ({ ...d, [part]: value }))}
+              min={LIMITS[part][0] / 1000}
+              max={LIMITS[part][1] / 1000}
+              messages={{ range: range(LIMITS[part]) }}
+            />
+          ))}
+        </div>
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+          <Button size="lg" className="sm:flex-1" disabled={!canSave} onClick={save}>
+            {t.save}
+          </Button>
+          <Button
+            variant="secondary"
+            size="lg"
+            className="sm:flex-1"
+            onClick={() => {
+              useRoomStore.getState().clearRoom();
+              setOpen(false);
+            }}
+          >
+            {t.clear}
+          </Button>
+        </div>
+      </ResponsiveSheet>
     </div>
   );
 }

@@ -9,6 +9,7 @@ export { IconCircle } from "./components/IconCircle";
 export { NumberField, type NumberFieldProps } from "./components/NumberField";
 export { Popover, PopoverClose, PopoverContent, PopoverTrigger } from "./components/Popover";
 export { type PresetChip, PresetChips } from "./components/PresetChips";
+export { ResponsiveSheet, type ResponsiveSheetProps } from "./components/ResponsiveSheet";
 export { Segment, type SegmentOption } from "./components/Segment";
 export { Select, type SelectOption } from "./components/Select";
 export { Sheet, SheetClose, SheetContent, SheetTrigger } from "./components/Sheet";

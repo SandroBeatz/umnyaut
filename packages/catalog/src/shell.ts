@@ -10,6 +10,7 @@ export const shell = {
     calculators: "Калькуляторы",
     country: "Страна и валюта",
   },
+  close: "Закрыть",
   breadcrumbs: { label: "Навигация", home: "Главная", back: "Назад" },
   footer: {
     categories: "Калькуляторы",
