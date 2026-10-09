@@ -60,6 +60,9 @@ Key decisions:
 | `--color-accent-text` | `#B45305` | `#FF9433` | Orange text/icon |
 | `--color-danger` / `-soft` | `#C62828` / `#FDECEC` | `#FF8A80` / `#3B1C22` | Errors |
 | `--color-focus` | `#157779` | `#45C4B8` | Focus ring 2 px + 2 px offset |
+| `--color-brand-navy` | `#0F1E34` | `#0F1E34` (fixed) | Background for the white logo; never flips with the theme |
+
+In the dark theme the default logo turns its word light by itself (`text-text`). Use `tone="white"` only on `brand-navy`, never on a token that flips.
 
 No separate green for success — “Сохранено” is teal. Forbidden by contrast: white on orange; orange 500 as text on white (use 700); teal 600 text on mint 100 (use 700).
 

@@ -268,7 +268,7 @@ function Gallery() {
       <Section title={t.sections.media}>
         <div className="flex flex-wrap items-center gap-6">
           <Logo />
-          <span className="rounded-md bg-text p-3">
+          <span className="rounded-md bg-brand-navy p-3">
             <Logo tone="white" />
           </span>
         </div>

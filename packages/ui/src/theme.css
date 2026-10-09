@@ -5,6 +5,7 @@
   --color-white: #ffffff;
   --color-transparent: transparent;
   --color-current: currentColor;
+  --color-brand-navy: #0f1e34; /* fixed brand navy, same in both themes: background for the white logo */
 
   --color-bg: #ffffff;
   --color-surface: #ffffff;

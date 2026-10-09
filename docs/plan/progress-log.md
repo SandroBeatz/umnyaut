@@ -42,6 +42,8 @@ Each entry:
 
 ### 2026-10-09
 
+- **— (P3.3 fix)** The white logo in `/dev/ui` sat on `bg-text`, which turns light in the dark theme, so the result was white on light. Added the fixed token `--color-brand-navy` (`#0F1E34` in both themes) and put the white logo on it. Rule written into the design system.
+  - Where: `feature/phase-3-design-system`
 - **P3.9** Trial material photos (laminate, wallpaper, tile adhesive) added to `docs/details/materials/` and accepted by the owner. Image pipeline now builds two groups: mascot (`/img/mascot/`, `mascotImages`) and materials (`/img/m/`, `materialImages`, keyed by `PurchaseItem.key`). Material photos are cropped, padded to a square with a 6% margin and encoded at 64, 96, 128, 192 px; AVIF at 128 px weighs 1.8–2.1 KB (budget 5 KB per AVIF file, all within). `/dev/ui` shows the three thumbs at 56, 64 and 96 px.
   - Where: `feature/phase-3-design-system`
   - Notes: the other 9 materials and 4 category photos come later. Each one needs a source file, an entry in `MATERIALS` and a run of `pnpm --filter web images`. Category photos need their own group (480/800 px) when the files arrive.
