@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-09
 
+- **P3.9** Trial material photos (laminate, wallpaper, tile adhesive) added to `docs/details/materials/` and accepted by the owner. Image pipeline now builds two groups: mascot (`/img/mascot/`, `mascotImages`) and materials (`/img/m/`, `materialImages`, keyed by `PurchaseItem.key`). Material photos are cropped, padded to a square with a 6% margin and encoded at 64, 96, 128, 192 px; AVIF at 128 px weighs 1.8–2.1 KB (budget 5 KB per AVIF file, all within). `/dev/ui` shows the three thumbs at 56, 64 and 96 px.
+  - Where: `feature/phase-3-design-system`
+  - Notes: the other 9 materials and 4 category photos come later. Each one needs a source file, an entry in `MATERIALS` and a run of `pnpm --filter web images`. Category photos need their own group (480/800 px) when the files arrive.
+  - Deviation: sources are 1254 × 1254 px, not the briefed 1024 × 1024. That is fine, because the pipeline crops and resizes anyway.
 - **— (G04–G06 prep)** Photo brief added to the [Content and Assets Plan](./content-plan.md): delivery format, one style (angle, light, palette with hex tones), base + per-item prompts for 12 wave-1 materials and 4 category photos, acceptance check. Owner generates the trial set (laminate, wallpaper, tile adhesive) first.
   - Where: `feature/phase-3-design-system`
   - Notes: P3.6 category icons stay as drafts for now (owner decision).

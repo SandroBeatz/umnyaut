@@ -153,7 +153,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 - [ ] P3.6 Icons: Lucide per-icon imports; 4 custom category icons (G03) as components.
 - [x] P3.7 Image pipeline: `sharp` script → AVIF/WebP at fixed widths (mascot 1×/2×; materials 128/192/320), hashed names, CI weight check (head ≤ 4 KB, 56–96 px ≤ 10 KB, hero ≤ 60 KB, material 128 ≈ 3–5 KB).
 - [x] P3.8 `Mascot` component (pose, size, mint spot, `alt` rules, 200 ms fade) with poses G02; `MaterialThumb` with icon fallback.
-- [ ] P3.9 Trial photos G04 approved (style + weight).
+- [x] P3.9 Trial photos G04 approved (style + weight).
 - [x] P3.10 Accessibility baseline: focus ring, 48 px targets, reduced motion; component tests for `NumberField` (comma, empty, paste).
 - [x] P3.11 A simple `/dev/ui` page (noindex, non-prod only) showing all components at 390 and 1440 px.
 

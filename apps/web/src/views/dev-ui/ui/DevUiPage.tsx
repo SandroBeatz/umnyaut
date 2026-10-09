@@ -41,7 +41,7 @@ import {
 } from "@umnyaut/ui";
 import { Layers, Package, Share2, Trash2 } from "lucide-react";
 import { type ReactNode, useState } from "react";
-import { mascotImages } from "@/shared/config";
+import { mascotImages, materialImages } from "@/shared/config";
 
 const COLORS = [
   "bg",
@@ -286,7 +286,16 @@ function Gallery() {
             </IconCircle>
           ))}
           <MaterialThumb fallbackIcon={<Package />} alt={t.media.noPhoto} />
-          <MaterialThumb image={mascotImages.head} fallbackIcon={<Package />} alt={t.media.material} size={56} />
+          {Object.entries(materialImages).map(([key, image]) => (
+            <MaterialThumb
+              key={key}
+              image={image}
+              fallbackIcon={<Package />}
+              alt={t.media.materials[key as keyof typeof materialImages]}
+            />
+          ))}
+          <MaterialThumb image={materialImages.laminate} fallbackIcon={<Package />} alt="" size={56} />
+          <MaterialThumb image={materialImages.wallpaper} fallbackIcon={<Package />} alt="" size={96} />
         </div>
       </Section>
 

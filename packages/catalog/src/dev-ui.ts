@@ -100,7 +100,7 @@ export const devUi = {
   },
   media: {
     mascotHello: "Кот Умняут машет лапой",
-    material: "Ламинат",
+    materials: { laminate: "Ламинат", wallpaper: "Обои", "tile-adhesive": "Плиточный клей" },
     noPhoto: "Подложка",
   },
 } as const;

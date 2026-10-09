@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Mascot image pipeline (design system: mascot; plan P3.7).
-//   pnpm --filter web images        → rebuild public/img/mascot + src/shared/config/mascot.gen.ts
+// Image pipeline (design system: mascot and material photos; plan P3.7, P3.9).
+//   pnpm --filter web images        → rebuild public/img/{mascot,m} + src/shared/config/{mascot,materials}.gen.ts
 //   pnpm --filter web images:check  → CI: sources unchanged since the last build, files exist, weight budgets hold
 // Outputs are committed: encoders differ slightly between platforms, so CI checks inputs and budgets, not bytes.
 import { createHash } from "node:crypto";
@@ -11,10 +11,9 @@ import sharp from "sharp";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "../../..");
 const web = join(root, "apps/web");
-const outDir = join(web, "public/img/mascot");
-const manifestPath = join(web, "src/shared/config/mascot.gen.ts");
 const ENCODER = { avif: { quality: 50, effort: 6 }, webp: { quality: 80, alphaQuality: 85, effort: 6 } };
 const ALPHA_FLOOR = 24; // alpha below this is generation noise around the character
+const MATERIAL_MARGIN = 0.06; // transparent margin on each side of a squared material photo
 
 /**
  * Stage-1 poses: source, rendered CSS widths (1× and 2× are built), budget per AVIF file in KB.
@@ -28,11 +27,32 @@ const POSES = {
   head: { source: "Cute Orange Tabby Cat Avatar.png", widths: [40], budgetKb: 4 },
 };
 
-const sha = (buffer) => createHash("sha256").update(buffer).digest("hex");
-const configHash = sha(Buffer.from(JSON.stringify({ POSES, ENCODER, ALPHA_FLOOR }))).slice(0, 12);
+/** Material photos (content plan: photo brief), keyed by `PurchaseItem.key`; thumbs render at 64 and 96 px. */
+const MATERIALS = {
+  laminate: { source: "laminate.png", widths: [64, 96], budgetKb: 5 },
+  wallpaper: { source: "wallpaper.png", widths: [64, 96], budgetKb: 5 },
+  "tile-adhesive": { source: "tile-adhesive.png", widths: [64, 96], budgetKb: 5 },
+};
 
-/** Clears faint alpha and crops to the visible character. */
-async function prepare(input) {
+const GROUPS = [
+  { name: "mascotImages", file: "mascot.gen.ts", sources: "docs/details", out: "mascot", items: POSES },
+  {
+    name: "materialImages",
+    file: "materials.gen.ts",
+    sources: "docs/details/materials",
+    out: "m",
+    items: MATERIALS,
+    square: true,
+  },
+];
+
+const sha = (buffer) => createHash("sha256").update(buffer).digest("hex");
+const configHash = sha(Buffer.from(JSON.stringify({ GROUPS, ENCODER, ALPHA_FLOOR, MATERIAL_MARGIN }))).slice(0, 12);
+const outDir = (group) => join(web, "public/img", group.out);
+const manifestPath = (group) => join(web, "src/shared/config", group.file);
+
+/** Clears faint alpha and crops to the visible object; `square` pads it to a square with an even margin. */
+async function prepare(input, square) {
   const { data, info } = await sharp(input).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   let [left, top, right, bottom] = [info.width, info.height, -1, -1];
   for (let y = 0; y < info.height; y++) {
@@ -50,50 +70,60 @@ async function prepare(input) {
   }
   const width = right - left + 1;
   const height = bottom - top + 1;
-  const png = await sharp(data, { raw: info }).extract({ left, top, width, height }).png().toBuffer();
-  return { png, width, height };
+  const cropped = sharp(data, { raw: info }).extract({ left, top, width, height });
+  if (!square) return { png: await cropped.png().toBuffer(), width, height };
+  const side = Math.round(Math.max(width, height) / (1 - 2 * MATERIAL_MARGIN));
+  const x = Math.floor((side - width) / 2);
+  const y = Math.floor((side - height) / 2);
+  const transparent = { r: 0, g: 0, b: 0, alpha: 0 };
+  const png = await cropped
+    .extend({ left: x, right: side - width - x, top: y, bottom: side - height - y, background: transparent })
+    .png()
+    .toBuffer();
+  return { png, width: side, height: side };
 }
 
-async function build() {
-  await rm(outDir, { recursive: true, force: true });
-  await mkdir(outDir, { recursive: true });
+async function buildGroup(group) {
+  const dir = outDir(group);
+  await rm(dir, { recursive: true, force: true });
+  await mkdir(dir, { recursive: true });
   const manifest = {};
-  for (const [pose, { source, widths, avifQuality }] of Object.entries(POSES)) {
-    const input = await readFile(join(root, "docs/details", source));
-    const { png, width, height } = await prepare(input);
+  for (const [key, { source, widths, avifQuality }] of Object.entries(group.items)) {
+    const input = await readFile(join(root, group.sources, source));
+    const { png, width, height } = await prepare(input, group.square);
     const sizes = [...new Set(widths.flatMap((w) => [w, w * 2]))].sort((a, b) => a - b);
     const entry = { width, height, sourceSha: sha(input).slice(0, 16), avif: [], webp: [] };
     for (const w of sizes) {
       for (const format of ["avif", "webp"]) {
         const options = format === "avif" && avifQuality ? { ...ENCODER.avif, quality: avifQuality } : ENCODER[format];
         const file = await sharp(png).resize({ width: w })[format](options).toBuffer();
-        const name = `${pose}-${w}.${sha(file).slice(0, 8)}.${format}`;
-        await writeFile(join(outDir, name), file);
-        entry[format].push({ w, src: `/img/mascot/${name}` });
+        const name = `${key}-${w}.${sha(file).slice(0, 8)}.${format}`;
+        await writeFile(join(dir, name), file);
+        entry[format].push({ w, src: `/img/${group.out}/${name}` });
       }
     }
-    manifest[pose] = entry;
-    console.log(`${pose}: ${width}×${height} → ${sizes.join(", ")}`);
+    manifest[key] = entry;
+    console.log(`${key}: ${width}×${height} → ${sizes.join(", ")}`);
   }
-  const body = `// Generated by apps/web/scripts/images.mjs (config ${configHash}). Do not edit.\nexport const mascotImages = ${JSON.stringify(manifest, null, 2)} as const;\n`;
-  await writeFile(manifestPath, body);
-  console.log(`wrote ${relative(root, manifestPath)}`);
+  const body = `// Generated by apps/web/scripts/images.mjs (config ${configHash}). Do not edit.\nexport const ${group.name} = ${JSON.stringify(manifest, null, 2)} as const;\n`;
+  await writeFile(manifestPath(group), body);
+  console.log(`wrote ${relative(root, manifestPath(group))}`);
 }
 
-async function check() {
-  const errors = [];
-  const text = await readFile(manifestPath, "utf8").catch(() => "");
-  if (!text.includes(`(config ${configHash})`)) errors.push("pipeline config changed — run `pnpm --filter web images`");
+async function checkGroup(group, errors) {
+  const text = await readFile(manifestPath(group), "utf8").catch(() => "");
+  if (!text.includes(`(config ${configHash})`))
+    errors.push(`${group.file}: pipeline config changed — run \`pnpm --filter web images\``);
   const manifest = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1) || "{}");
   const listed = new Set();
-  for (const [pose, { source, budgetKb }] of Object.entries(POSES)) {
-    const entry = manifest[pose];
+  for (const [key, { source, budgetKb }] of Object.entries(group.items)) {
+    const entry = manifest[key];
     if (!entry) {
-      errors.push(`${pose}: missing from manifest`);
+      errors.push(`${key}: missing from manifest`);
       continue;
     }
-    const input = await readFile(join(root, "docs/details", source));
-    if (sha(input).slice(0, 16) !== entry.sourceSha) errors.push(`${pose}: source changed — rebuild images`);
+    const input = await readFile(join(root, group.sources, source));
+    if (sha(input).slice(0, 16) !== entry.sourceSha) errors.push(`${key}: source changed — rebuild images`);
     for (const [format, limitKb] of [
       ["avif", budgetKb],
       ["webp", budgetKb * 2],
@@ -109,9 +139,18 @@ async function check() {
       }
     }
   }
-  for (const name of await readdir(outDir).catch(() => [])) {
-    if (!listed.has(name)) errors.push(`public/img/mascot/${name}: not in manifest`);
+  for (const name of await readdir(outDir(group)).catch(() => [])) {
+    if (!listed.has(name)) errors.push(`public/img/${group.out}/${name}: not in manifest`);
   }
+}
+
+async function build() {
+  for (const group of GROUPS) await buildGroup(group);
+}
+
+async function check() {
+  const errors = [];
+  for (const group of GROUPS) await checkGroup(group, errors);
   if (errors.length) {
     console.error(`Image check failed:\n${errors.map((e) => `  ✗ ${e}`).join("\n")}`);
     process.exit(1);
