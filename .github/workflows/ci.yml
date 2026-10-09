@@ -36,6 +36,8 @@ jobs:
         run: pnpm guard
       - name: Steiger
         run: pnpm steiger
+      - name: Image sources and weight budgets
+        run: pnpm --filter web images:check
       - name: Typecheck, test, build
         run: pnpm turbo run typecheck test build
 

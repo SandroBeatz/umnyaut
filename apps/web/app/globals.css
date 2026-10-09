@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "@umnyaut/ui/theme.css";
 
+/* packages/ui is linked through node_modules, which Tailwind skips by default. */
+@source "../../../packages/ui/src";
+
 @layer base {
   html {
     background: var(--color-bg);
@@ -12,11 +15,5 @@
   :focus-visible {
     outline: 2px solid var(--color-focus);
     outline-offset: 2px;
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
   }
 }

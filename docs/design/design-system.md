@@ -1,12 +1,12 @@
 ---
-version: 1.0
-date: 2026-10-08
+version: 1.1
+date: 2026-10-09
 category: design
 ---
 
 # Design System
 
-> Version 1.0 · 2026-10-08 · [Design](../design/)
+> Version 1.1 · 2026-10-09 · [Design](../design/)
 
 ## Overview
 
@@ -157,7 +157,14 @@ All UI strings live in `catalog` and `content`, never in components.
 
 ## Configuration
 
-Tokens: `packages/ui/src/theme.css` (`@theme`). Brand assets: `packages/ui/assets/brand/`. Mascot and material sources: `apps/web/assets/` (to decide), built to `/public/img/` at build time. CI checks image weights.
+| What | Where |
+|---|---|
+| Tokens, type scale (`text-display` … `text-input`), keyframes, reduced motion | `packages/ui/src/theme.css` — `@theme static` so every token is emitted (dark overrides and `var()` use need them) |
+| Font | `packages/ui/assets/fonts/onest-var.woff2` (36 KB), built by `pnpm --filter @umnyaut/ui font` from the Onest TTF at a pinned google/fonts commit; loaded with `next/font/local` in `apps/web/app/fonts.ts` |
+| Brand | `packages/ui/assets/brand/*.svg`; `Logo` component draws the same paths; favicon `apps/web/app/icon.svg` switches with `prefers-color-scheme` |
+| Mascot | Sources stay in `docs/details/`; `pnpm --filter web images` crops faint alpha, writes hashed AVIF/WebP to `apps/web/public/img/mascot/` and `src/shared/config/mascot.gen.ts`. Outputs are committed (encoders differ by platform); CI `images:check` verifies sources unchanged and budgets: AVIF ≤ budget, WebP fallback ≤ 2×. `/img/*` is served `immutable` |
+| Components | `packages/ui/src/{components,media,icons,format}`; all strings come in as props from `catalog`. Gallery: `/dev/ui` (404 when `APP_ENV=production`, noindex) |
+| Contrast | `packages/ui/src/theme.test.ts` checks the §5 pairs against the real token values |
 
 ## Usage
 

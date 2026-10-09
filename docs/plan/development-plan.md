@@ -145,17 +145,17 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 **Tasks**
 
-- [ ] P3.1 Tokens in `packages/ui/src/theme.css` via `@theme`: all colour tokens light + dark (`data-theme="dark"`), radii, shadows, z-index scale, motion durations + curve, spacing scale, breakpoints (sm 640, lg 1024, xl 1280).
-- [ ] P3.2 Font: subset Onest variable → `onest-var.woff2` (Latin, Cyrillic, `₽ ₸ × ² ³ ≈ → − — « » № °`), `next/font/local` with `display: swap`, preload, fallback with `size-adjust`. Type scale utilities (`display … input`).
-- [ ] P3.3 Brand assets → `packages/ui/assets/brand/`; `Logo` component (32/40 px, optical −7% shift); favicons via `prefers-color-scheme`.
-- [ ] P3.4 Number formatting helpers: `formatNumber`, `formatMoney` (`Intl.NumberFormat` per country locale), `plural` (`Intl.PluralRules`), dimension formatter («4,6 × 4,3 × 2,7 м»), NBSP rules.
-- [ ] P3.5 Base components (shadcn generated, restyled to tokens): `Button` (primary, accent, secondary, ghost, danger, icon; 56/48/40; loading), `NumberField` (m/cm, comma/dot, decimal keyboard, validate on blur), `UnitToggle`, `Stepper`, `Segment`, `ChoiceTile`, `Select` (sheet on phone / dropdown ≥ 1024), `PresetChips`, `Accordion`, `Tabs`, `Sheet`/`Dialog` (vaul / radix), `Toast` (sonner), `Card`, `IconCircle`.
+- [x] P3.1 Tokens in `packages/ui/src/theme.css` via `@theme`: all colour tokens light + dark (`data-theme="dark"`), radii, shadows, z-index scale, motion durations + curve, spacing scale, breakpoints (sm 640, lg 1024, xl 1280).
+- [x] P3.2 Font: subset Onest variable → `onest-var.woff2` (Latin, Cyrillic, `₽ ₸ × ² ³ ≈ → − — « » № °`), `next/font/local` with `display: swap`, preload, fallback with `size-adjust`. Type scale utilities (`display … input`).
+- [x] P3.3 Brand assets → `packages/ui/assets/brand/`; `Logo` component (32/40 px, optical −7% shift); favicons via `prefers-color-scheme`.
+- [x] P3.4 Number formatting helpers: `formatNumber`, `formatMoney` (`Intl.NumberFormat` per country locale), `plural` (`Intl.PluralRules`), dimension formatter («4,6 × 4,3 × 2,7 м»), NBSP rules.
+- [x] P3.5 Base components (shadcn generated, restyled to tokens): `Button` (primary, accent, secondary, ghost, danger, icon; 56/48/40; loading), `NumberField` (m/cm, comma/dot, decimal keyboard, validate on blur), `UnitToggle`, `Stepper`, `Segment`, `ChoiceTile`, `Select` (sheet on phone / dropdown ≥ 1024), `PresetChips`, `Accordion`, `Tabs`, `Sheet`/`Dialog` (vaul / radix), `Toast` (sonner), `Card`, `IconCircle`.
 - [ ] P3.6 Icons: Lucide per-icon imports; 4 custom category icons (G03) as components.
-- [ ] P3.7 Image pipeline: `sharp` script → AVIF/WebP at fixed widths (mascot 1×/2×; materials 128/192/320), hashed names, CI weight check (head ≤ 4 KB, 56–96 px ≤ 10 KB, hero ≤ 60 KB, material 128 ≈ 3–5 KB).
-- [ ] P3.8 `Mascot` component (pose, size, mint spot, `alt` rules, 200 ms fade) with poses G02; `MaterialThumb` with icon fallback.
+- [x] P3.7 Image pipeline: `sharp` script → AVIF/WebP at fixed widths (mascot 1×/2×; materials 128/192/320), hashed names, CI weight check (head ≤ 4 KB, 56–96 px ≤ 10 KB, hero ≤ 60 KB, material 128 ≈ 3–5 KB).
+- [x] P3.8 `Mascot` component (pose, size, mint spot, `alt` rules, 200 ms fade) with poses G02; `MaterialThumb` with icon fallback.
 - [ ] P3.9 Trial photos G04 approved (style + weight).
-- [ ] P3.10 Accessibility baseline: focus ring, 48 px targets, reduced motion; component tests for `NumberField` (comma, empty, paste).
-- [ ] P3.11 A simple `/dev/ui` page (noindex, non-prod only) showing all components at 390 and 1440 px.
+- [x] P3.10 Accessibility baseline: focus ring, 48 px targets, reduced motion; component tests for `NumberField` (comma, empty, paste).
+- [x] P3.11 A simple `/dev/ui` page (noindex, non-prod only) showing all components at 390 and 1440 px.
 
 **Exit gate:** all components render on `/dev/ui` in light theme; contrast pairs from design spec §5 hold; tests green; mascot poses 1–5 and 4 category icons in place (due 8 Nov).
 

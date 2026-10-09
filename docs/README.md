@@ -38,7 +38,7 @@ UmnyAut («Умняут») — a connected renovation calculator: enter room dim
 | [Calculation Engine](./code/calc-engine.md) | 1.0 |
 | [Server API and Data](./code/server-api-and-data.md) | 1.0 |
 | [Calculator Shell, Pages and Routing](./ui/calculator-shell-and-pages.md) | 1.0 |
-| [Design System](./design/design-system.md) | 1.0 |
+| [Design System](./design/design-system.md) | 1.1 |
 | [Telegram Bot and Mini App](./integrations/telegram-bot.md) | 1.0 |
 | [AI Vision Features](./integrations/ai-vision.md) | 1.0 |
 | [Environments and CI/CD](./deploy/environments-and-ci.md) | 1.3 |
