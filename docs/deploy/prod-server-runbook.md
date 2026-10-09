@@ -1,12 +1,12 @@
 ---
-version: 1.0
+version: 1.1
 date: 2026-10-09
 category: deploy
 ---
 
 # Prod Server Runbook
 
-> Version 1.0 · 2026-10-09 · [Deploy](../deploy/)
+> Version 1.1 · 2026-10-09 · [Deploy](../deploy/)
 
 ## Overview
 
@@ -133,7 +133,7 @@ printf 'DOMAIN=umnyaut.com\nACME_EMAIL=<email>\n' > .env
 install -m 600 /dev/null web.env && printf 'APP_ENV=production\n' > web.env   # add secrets later
 ```
 
-Until DNS points to the server, Caddy cannot get a certificate for `DOMAIN`; the first deploy still passes the internal healthcheck, and the external smoke test needs `PROD_URL` reachable — so until step 7 the server uses `DOMAIN=<ip-with-dashes>.sslip.io` and `PROD_URL=https://<ip-with-dashes>.sslip.io` (set up this way on 2026-10-09; Caddy got Let's Encrypt certificates for it). At the DNS switch change both to `umnyaut.com`.
+Until DNS points to the server, Caddy cannot get a certificate for `DOMAIN`; the first deploy still passes the internal healthcheck, and the external smoke test needs `PROD_URL` reachable — Caddy sends `X-Robots-Tag: noindex, nofollow` for every host except `umnyaut.com`, so the temporary domain is never indexed. Until step 7 the server uses `DOMAIN=<ip-with-dashes>.sslip.io` and `PROD_URL=https://<ip-with-dashes>.sslip.io` (set up this way on 2026-10-09; Caddy got Let's Encrypt certificates for it). At the DNS switch change both to `umnyaut.com`.
 
 ### 5. GitHub variables and secrets
 
@@ -164,7 +164,19 @@ Deploy a second commit, then run the **Deploy** workflow with `rollback: true` o
 
 ### 7. Measurement and DNS (P0.6, P2.8 — owner approval)
 
-Before DNS: run the P0.6 reachability test against this server (RU mobile/wired, KZ, BY, KG; outbound to Supabase, Gemini, Telegram). Then `umnyaut.com` A → `<ip>`, `www` → same IP (Caddy redirects to apex), `staging` CNAME → Vercel.
+Before DNS: run the P0.6 reachability test against this server (RU mobile/wired, KZ, BY, KG; outbound to Supabase, Gemini, Telegram).
+
+Automated part (2026-10-09, [Globalping](https://globalping.io) HTTPS GET `/`, 17 probes): all `200`. Total time — RU (Moscow ×3, Taganrog, Novosibirsk MTS ×2, Rostelecom N. Novgorod/Kostroma) 0.20–0.39 s; BY (Minsk ×2 incl. MTS, Brest) 0.19–0.29 s; KG (Bishkek) 0.46 s; KZ (Almaty ×3, Pavlodar, Kazakhtelecom ×2) 0.45–1.67 s. No probes on Beeline, MegaFon, Tele2 — mobile operators still need real testers (A07) once tool pages exist.
+
+DNS lives at **Namecheap** (registrar DNS). Today `umnyaut.com` and `www` are A → `185.158.133.1` (Lovable stub). Switch:
+
+| Host | Type | Value | TTL |
+|---|---|---|---|
+| `@` | A | `<ip>` | 5 min during the switch, then 30 min |
+| `www` | A | `<ip>` (Caddy redirects to apex) | same |
+| `staging` | CNAME | `cname.vercel-dns.com.` (as Vercel shows for the domain) | same |
+
+Then on the server set `DOMAIN=umnyaut.com` in `/srv/umnyaut/.env`, run `docker compose up -d caddy` (new certs), and `gh variable set PROD_URL --body https://umnyaut.com`.
 
 ### Day-to-day
 
