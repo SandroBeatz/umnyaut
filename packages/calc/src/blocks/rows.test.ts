@@ -20,9 +20,11 @@ describe("layRows", () => {
     expect(cut).toMatchObject({ boards: 7, reusedStarts: 1 });
   });
 
-  it("a row no longer than a board is one piece per row", () => {
+  it("a row no longer than a board is one piece; what is left of a board keeps its lock and is used again", () => {
     expect(layRows({ ...board, rowLengthMm: 1180, rows: 6 })).toMatchObject({ boards: 6, reusedStarts: 0 });
     expect(layRows({ ...board, rowLengthMm: 600, rows: 4 }).boards).toBe(2);
+    // 2000 boards, rows of 400: 5 rows per board → 20 rows take 4 boards.
+    expect(layRows({ ...board, boardLengthMm: 2000, rowLengthMm: 400, rows: 20 }).boards).toBe(4);
   });
 
   it("no rows, no boards", () => {

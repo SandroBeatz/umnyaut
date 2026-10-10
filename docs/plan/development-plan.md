@@ -225,14 +225,14 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 **Tasks**
 
-- [ ] P6.1 Plinth (S) — `geometry` + `packs`; corners, caps, joiners.
-- [ ] P6.2 Tile adhesive (S) — `coverage` by notch × format × base.
-- [ ] P6.3 Grout (S) — (A+B)/(A·B) × width × depth × density.
-- [ ] P6.4 Wallpaper (M) — `strips` engine (repeat, offset), rolls, glue.
-- [ ] P6.5 Paint (M) — `coverage` + can-set optimizer, primer related.
-- [ ] P6.6 Linoleum (M) — `strips` variants by width × direction, seams, sorted by price.
-- [ ] P6.7 Laminate (L) — `rows` engine (offset, trimming, offcut reuse, narrow last row warning); underlay + plinth related; diagonal/herringbone as waste. Golden incl. mockup case (4.6 × 4.3, 2.22 m² → 10 packs, 23 rows).
-- [ ] P6.8 Tile (L) — `grid` engine from centre/corner, whole vs cut tiles, boxes.
+- [x] P6.1 Plinth (S) — `geometry` + `packs`; corners, caps, joiners.
+- [x] P6.2 Tile adhesive (S) — `coverage` by notch × format × base.
+- [x] P6.3 Grout (S) — (A+B)/(A·B) × width × depth × density.
+- [x] P6.4 Wallpaper (M) — `strips` engine (repeat, offset), rolls, glue.
+- [x] P6.5 Paint (M) — `coverage` + can-set optimizer, primer related.
+- [x] P6.6 Linoleum (M) — `strips` variants by width × direction, seams, sorted by price.
+- [x] P6.7 Laminate (L) — `rows` engine (offset, trimming, offcut reuse, narrow last row warning); underlay + plinth related; diagonal/herringbone as waste. Golden incl. mockup case (4.6 × 4.3, 2.22 m² → 10 packs, 23 rows).
+- [x] P6.8 Tile (L) — `grid` engine from centre/corner, whole vs cut tiles, boxes.
 - [ ] P6.9 Layout schemes for laminate and tile **only if time remains** (else Phase 10). → **Moved to Phase 10** (owner, 2026-10-10); release-check requirement 15 for wallpaper, laminate, linoleum and tile waits for it.
 - [ ] P6.10 Reviewer export of wave 1 (C10) sent to the master (A26).
 - [x] P6.11 Minimal local-only connected wall list: shared room → wall area → wallpaper or paint → glue/primer; `mergeItems()` combines duplicates and exposes the next calculation. Saving, projects and the full works picker remain Phase 7/11.

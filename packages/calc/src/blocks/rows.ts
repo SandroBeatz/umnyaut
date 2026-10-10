@@ -109,7 +109,10 @@ export function layRows(input: RowsInput): RowsResult {
       const k = st[pool].reduce((b, p, j) => (p >= row && (b < 0 || p < (st[pool][b] as number)) ? j : b), -1);
       if (k < 0) continue;
       const next = copy(st, undefined);
-      next.wasteMm += (next[pool].splice(k, 1)[0] as number) - row;
+      // Cut from the piece's sawn end: the rest keeps its lock and goes back to the same pool.
+      const rest = (next[pool].splice(k, 1)[0] as number) - row;
+      if (rest >= minPiece) next[pool].push(rest);
+      else next.wasteMm += rest;
       next.plan = { row: { start: row, startFrom: from, end: 0, endFrom: "none" }, previous: st.plan };
       out.push(next);
     }

@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-10
 
+- **P6.1–P6.8** Closed: every wave-1 tool has had `formula-reviewer` passes with fixes and a release check — READY, or READY except the layout scheme moved to Phase 10 by the owner ([Wave 1 — Release Check](../review/wave-1-release-check.md) v1.1). Last review (rows search and L-shapes): L-shaped golden examples and the 85-board mockup plan confirmed row by row, 4 000 random rooms never below the length bound; fixed — a one-piece row (shorter than a board) now returns the rest of the cut piece to its pool with its lock (20 rows × 400 mm of 2 m boards: 10 → 4 boards).
+  - Where: `feature/phase-6-wave-1`
+  - Notes (for Phase 10 / the master, not blocking): rows shorter than a board are always one piece — a narrow corridor laid across could use joints (6 × 1 m: 32 vs ≈ 26 boards); the tile L-shape removes only whole tiles surely inside the cut-out (330 tiles vs an exact 297–315 depending on the corner) — safe side; the scheme must start short and long rows from the same wall. Phase 6 remaining: P6.10 (owner sends the handout to the master); content texts are Phase 8.
+
 - **— (review: prices, related)** `formula-reviewer`: all priced golden totals and tile's adhesive/grout (= the standalone tools) confirmed. Fixed: the room list summed adhesive and grout twice when tile and the adhesive/grout tools were both in it (9 bags instead of 5) — a material counted by its own tool now replaces the same material another work brings as related, and the list no longer suggests adhesive and grout after tile. Paint price hint: small cans cost more per litre. Left as is: weld seams along the longer side (safe side), a total of 0 ₽ when all prices are 0.
   - Where: `feature/phase-6-wave-1`
 

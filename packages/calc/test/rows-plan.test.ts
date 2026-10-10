@@ -29,7 +29,10 @@ function check(input: RowsInput): string[] {
       if (pool) {
         const i = pool.reduce((b, p, j) => (p >= row && (b < 0 || p < (pool[b] as number)) ? j : b), -1);
         if (i < 0) errors.push(`${at}: no piece ≥ ${row} in the pool`);
-        else pool.splice(i, 1);
+        else {
+          const rest = (pool.splice(i, 1)[0] as number) - row;
+          if (rest >= min) pool.push(rest);
+        }
       } else {
         boards++;
         if (board - row >= min) rights.push(board - row);
