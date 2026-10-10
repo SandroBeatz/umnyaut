@@ -1,12 +1,12 @@
 ---
-version: 1.5
+version: 1.6
 date: 2026-10-10
 category: code
 ---
 
 # Calculation Engine (`@umnyaut/calc`)
 
-> Version 1.5 · 2026-10-10 · [Code](../code/)
+> Version 1.6 · 2026-10-10 · [Code](../code/)
 
 ## Overview
 
@@ -14,7 +14,7 @@ category: code
 
 The package does not know about React, HTTP, or the database. Its only dependency is Zod. It is also the single biggest product risk (a wrong formula means a person buys the wrong amount), so it carries the strictest testing rules in the repo.
 
-> Status: core implemented (Phase 4): types, blocks `geometry`/`packs`/`waste`/`coverage`, golden harness, invariants, reviewer export, `ProjectData` v1 and a `mergeItems()` stub. Live tools: room area, wall area (Phase 5), wallpaper and paint (Phase 6) with the `strips` engine (`cutStrips`) and can sets (`purchaseSet`). The wall list (P6.11) merges works with `mergeItems()` — same key and pack summed, rounded once (walls primer + ceiling primer = one 10 л canister); can sets from different works are merged per size, not re-optimised (P11.1). A can set returns one line per size with the same key: golden expectations and the monotonic invariant compare the sum per key (total bought must not drop when the area grows). Engines `rows`, `grid`, `frame`, `power` arrive with their tools.
+> Status: core implemented (Phase 4): types, blocks `geometry`/`packs`/`waste`/`coverage`, golden harness, invariants, reviewer export, `ProjectData` v1 and a `mergeItems()` stub. Live tools (10): room area, wall area (Phase 5); wallpaper, paint, plinth, linoleum, laminate, tile, tile adhesive, grout (Phase 6) with the engines `strips` (`cutStrips`), `rows` (`layRows`), `grid` (`gridArea`) and can sets (`purchaseSet`); `frame` and `power` arrive with wave 2. The wall list (P6.11) merges works with `mergeItems()` — same key and pack summed, rounded once (walls primer + ceiling primer = one 10 л canister); can sets from different works are merged per size, not re-optimised (P11.1). A can set returns one line per size with the same key: golden expectations and the monotonic invariant compare the sum per key (total bought must not drop when the area grows).
 
 ## Architecture
 
@@ -132,12 +132,12 @@ Only three engines need new geometry: `rows`, `grid`, `strips`.
 | Wall area | `/osnova/ploshchad-sten/` | `geometry` | Perimeter × height − Σ openings; ceiling = floor |
 | Wallpaper | `/steny/oboi/` | `strips`, `packs` | Strips = ⌈(perimeter − Σ max(opening width − roll width, 0)) ÷ roll width⌉ — a strip that only partly covers an opening is still full height; each strip is height + 10 cm trim. `cutStrips` cuts them on the repeat (offset match: phases 0 and repeat/2 alternate) after a worst-case lead of repeat − 1 mm per roll (the fitters' «высота + раппорт»), and puts the pieces above doors and above/below windows (none under 5 cm) into roll tails first; need = rolls × roll length − largest tail; paste by net wall area ÷ m² per pack; warning when strips use the roll within the ±1,5% length tolerance |
 | Paint | `/steny/kraska/` | `coverage`, `packs` | Area (walls without openings and/or ceiling) × coats ÷ coverage from the can; `purchaseSet` picks the 0,9 / 2,7 / 9 л set with the least overbuy, then the fewest cans, one purchase line per size with the same key; primer = area × rate in one canister size (a litre-based optimiser would buy 7 × 1 л instead of 10 л — needs prices) |
-| Laminate | `/pol/laminat/` | `rows`, `waste`, `packs` | Row by row: offset, trimming, offcut moves to next row if ≥ minimum. Diagonal/herringbone = waste % at launch |
+| Laminate | `/pol/laminat/` | `rows`, `waste`, `packs` | `layRows`: rows = ⌈(across − 2 × gap) ÷ board width⌉; each row starts with a start-side offcut (the right part left by a row-end cut — click locks forbid turning a piece) if the end joints stay ≥ 30 cm from the previous row and no end is shorter than 30 cm, else a whole board, else a board cut to shift the joints (its left part may only END a later row). Mockup 4,6 × 4,3, 1285 × 192 × 9 → 92 boards, 11 packs (rows across: 9). Last row < 5 cm warns; diagonal/herringbone = area + 15 % (unconfirmed); underlay rolls by floor area |
 | Linoleum | `/pol/linoleum/` | `packs` | Every roll width (1,5 … 4 м, or one pinned) × both directions: sheets n with n·w − (n − 1)·overlap ≥ the room across, cut = n × room along (+ allowance), rounded to the shop cut step. Fewest seams first (Tarkett: «избегайте швов, выбирая максимальную ширину»), then the smallest bought area (price is per m²), then along the length. Bought by area: `Pack.kind: "running"` with `width`, one cut step = width × step, so needs of different widths stay comparable; the shell shows «8,6 м · ширина 2,5 м · 21,5 м²». Implemented in v1 without the `strips` block (no pattern repeat input yet) |
-| Plinth | `/pol/plintus/` | `geometry`, `packs` | ⌈(perimeter − doors) ÷ plank length⌉; corners by shape, caps by doors, joiners by joints |
-| Tile | `/plitka/plitka/` | `grid`, `waste`, `packs` | Grid with joint from centre or corner; whole and cut tiles; boxes |
-| Tile adhesive | `/plitka/klej/` | `coverage` | Area × rate by trowel notch for tile format × base coef |
-| Grout | `/plitka/zatirka/` | `coverage` | kg/m² = (A + B) ÷ (A × B) × joint width × depth × density |
+| Plinth | `/pol/plintus/` | `geometry`, `packs` | ⌈(perimeter − doors) ÷ plank⌉ with offcuts joined; joiners = planks − 1; inner corners 4 (5 + 1 outer for an L-shape); 2 caps per door; fasteners per straight run ⌈run ÷ 40 cm⌉ + 1 (doors split the longest run; Arbiton INDO manual) |
+| Tile | `/plitka/plitka/` | `grid`, `packs` | `gridArea` from a corner or the centre (parity with the wider cut; a remainder ≤ joint is no cut); every cut piece takes a tile (Kerama Marazzi); walls one by one minus whole tiles surely inside openings, ⌊(size − tile) ÷ pitch⌋ (a door lines up with the rows from a corner); + 10 % reserve; diagonal = area ÷ tile × 1,15; boxes |
+| Tile adhesive | `/plitka/klej/` | `coverage` | Floor (L-shape from the room) or walls without openings × kg/m² from the CM 11 PRO notch table by the longer side, or 1,2 kg/m² × layer mm; from 30 × 30 + 1 mm on the tile back (+1,2 kg/m², unconfirmed); bags |
+| Grout | `/plitka/zatirka/` | `coverage` | kg/m² = (A + B) ÷ (A × B) × joint × depth (= tile thickness) × 1,6, + 10 %; the CE 40 table equals this formula at its own 12,5–14 mm depth (golden cross-checks); packs of 2 kg |
 
 Wave 2/3 approaches: technical spec §8. Tools `kabel`, `radiatory`, `styazhka` carry a `disclaimer` flag in `catalog`.
 

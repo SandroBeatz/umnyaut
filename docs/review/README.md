@@ -16,6 +16,8 @@ Files sent to the practising master (account A26, content plan C10) for an indep
 |---|---|---|
 | [wave-1-master.md](./wave-1-master.md) | Every golden example of the 10 live wave-1 tools: parameters by field label, our answer in packs, the hand derivation with sources, Qalculator observations, open questions per tool | `pnpm review:export` (`tooling/scripts/review-export.ts`) — regenerate after any golden change |
 
+| [wave-1-release-check.md](./wave-1-release-check.md) | The 16-requirement release check per tool with blockers | `calculator-release-check` skill, by hand |
+
 Raw rows for a spreadsheet: `pnpm calc:export --csv --out wave-1.csv`.
 
 ## Usage

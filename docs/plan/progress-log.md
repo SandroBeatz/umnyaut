@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-10
 
+- **— (release check)** `calculator-release-check` on wave 1: room and wall area READY; the 8 purchase tools NOT READY — common blocker is cost (no pack-price field, req. 5), plus layout schemes for wallpaper, laminate, linoleum, tile (req. 15, P6.9), L-shaped floors for laminate, linoleum, tile (req. 3), related items for tile (adhesive, grout) and linoleum (seam welding) (req. 4), editable diagonal % for laminate (req. 2). Recorded in [Wave 1 — Release Check](../review/wave-1-release-check.md). Docs audit in the same pass: [Calculation Engine](../code/calc-engine.md) v1.6 rows for plinth, laminate, tile, adhesive and grout brought up to the implemented formulas; [Environments and CI/CD](../deploy/environments-and-ci.md) v1.5 lists the reviewer-export CI step; `AGENTS.md` status updated; `docs/README.md` version register synced (6 stale entries); plinth description cut to 136 characters.
+  - Where: `feature/phase-6-wave-1`
+  - Notes: P6.1–P6.8 stay open until their blockers are fixed or moved by the owner; content (300–600 words, `{{norm.*}}`) stays with Phase 8.
+
 - **P6.10 (partial)** Reviewer handout for the master: `pnpm review:export` (`tooling/scripts/review-export.ts`) writes [docs/review/wave-1-master.md](../review/wave-1-master.md) — 10 live tools, 134 golden examples in Russian (parameters by field label, our answer in packs, hand derivation with sources, warnings with numbers, norms with «не подтверждено» marks, Qalculator observations) and 23 open questions per tool. [Reviewer Handouts](../review/README.md) explains regeneration and how corrections come back.
   - Where: `feature/phase-6-wave-1`
   - Notes: P6.10 stays open until the owner sends the file to the master (A26) and the feedback is scheduled.
