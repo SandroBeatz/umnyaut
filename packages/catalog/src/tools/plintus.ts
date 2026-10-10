@@ -52,7 +52,7 @@ export const plintus: ToolDef = {
     { id: "p220", label: "2,2 м", values: { plankLengthMm: 2200 } },
     { id: "p250", label: "2,5 м", values: { plankLengthMm: 2500 } },
   ],
-  nextSteps: ["ploshchad-komnaty"],
+  nextSteps: ["linoleum", "ploshchad-komnaty"],
   items: {
     plinth: { title: "Плинтус", photo: "plinth" },
     "plinth-corner-in": { title: "Внутренний угол", photo: "plinth-fittings" },

@@ -25,5 +25,6 @@ export const packNouns: Readonly<Record<Pack["kind"], readonly [string, string, 
   box: ["коробка", "коробки", "коробок"],
   piece: ["штука", "штуки", "штук"],
   plank: ["планка", "планки", "планок"],
+  running: ["отрез", "отреза", "отрезов"],
   tube: ["туба", "тубы", "туб"],
 };

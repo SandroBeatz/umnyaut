@@ -13,8 +13,13 @@ export interface Quantity {
 
 /** How the item is sold. `kind` picks the noun in catalog (пачка, рулон, мешок…); `size` is what one holds. */
 export interface Pack {
-  kind: "pack" | "roll" | "bag" | "bucket" | "can" | "canister" | "box" | "piece" | "plank" | "tube";
+  kind: "pack" | "roll" | "bag" | "bucket" | "can" | "canister" | "box" | "piece" | "plank" | "running" | "tube";
   size: Quantity;
+  /**
+   * Roll width of goods sold by the running metre (`kind: "running"`): `size` is then the area of one cut
+   * step (width × step), so needs of different widths stay comparable in m².
+   */
+  width?: Quantity;
 }
 
 export interface Opening {

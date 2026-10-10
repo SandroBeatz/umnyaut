@@ -42,6 +42,11 @@ Each entry:
 
 ### 2026-10-10
 
+- **P6.6 (partial)** Linoleum `linoleum` v1 (`/pol/linoleum/`, live): every roll width 1,5 … 4 м (or one pinned) × both directions, sheets with a 5 cm seam overlap (S11), cut rounded to a 10 cm shop step (field, no source — retail practice); fewest seams first, then the smallest area, then along the length. 12 golden examples by hand, all matched; 30 000-input property check clean. New `Pack.width` and pack kind `running` (bought by area so widths compare; card shows metres + width + m²); numeric select values are numbers again in the form.
+  - Where: `feature/phase-6-wave-1`
+  - Notes: P6.6 stays open until `formula-reviewer` and the release check. Pattern repeat across sheets and L-shaped rooms (bounding rectangle bought) are not modelled; the market width list 1,5 … 4 м has no primary source yet (ГОСТ 7251 confirms 1,2–2,4 and allows up to 3).
+  - Deviation: Tarkett (S11) says the 0,5–1 cm at the walls is a gap, not an extra to buy, so the allowance field defaults to 0 and `linoleum.wallTrim` is not used for buying; the ranking follows Tarkett's «избегайте швов» rather than the spec's «sorted by price». [Calculation Engine](../code/calc-engine.md) linoleum row updated.
+
 - **P6.2, P6.3 (partial)** Tile adhesive `klej` v1 (`/plitka/klej/`) and grout `zatirka` v1 (`/plitka/zatirka/`), both live — open the «Плитка» category. Adhesive: floor (L × W) or walls without openings × kg/m² from the Ceresit CM 11 PRO notch table by the tile's longer side (3 / 4 / 6 / 8 / 10 / 12 mm → 1,7 / 2,0 / 2,7 / 3,6 / 4,2 / 5,5), or by layer (1,2 kg/m² per mm, warning above 10 mm); info «комбинированный способ» from 30 × 30, warning beyond 60 cm; 25 kg bags (5 kg field). Grout: Ceresit formula (A + B) / (A × B) × joint × depth × 1,6 + 10 % reserve, 2 kg packs (CE 40), warning above a 10 mm joint. 12 + 11 golden examples by hand, one cross-check against the CE 40 consumption table; norm sync tests for the notch table, density, reserve, joint and pack. Adhesive H1 shortened to «Расход плиточного клея» (two lines pushed the result to 675 px); four tile chips per tool.
   - Where: `feature/phase-6-wave-1`
   - Notes: P6.2 and P6.3 stay open until `formula-reviewer` and the release check. Owner decision pending: notch 8 mm 3,2 (Ceresit blog, tile ≤ 20 cm) vs 3,6 (CM 11 PRO, tile ≤ 25 cm) — 3,6 in use.

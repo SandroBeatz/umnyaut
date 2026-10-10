@@ -5,6 +5,7 @@ const WALLS = "/osnova/ploshchad-sten/";
 const WALLPAPER = "/steny/oboi/";
 const PAINT = "/steny/kraska/";
 const PLINTH = "/pol/plintus/";
+const LINOLEUM = "/pol/linoleum/";
 const ADHESIVE = "/plitka/klej/";
 const GROUT = "/plitka/zatirka/";
 /** Visible area of Safari on a 390 × 844 iPhone (design spec §12). */
@@ -20,7 +21,7 @@ async function type(page: Page, label: string, value: string) {
 }
 
 test("the result number is on the first phone screen of every tool", async ({ page }) => {
-  for (const path of [ROOM, WALLS, WALLPAPER, PAINT, PLINTH, ADHESIVE, GROUT]) {
+  for (const path of [ROOM, WALLS, WALLPAPER, PAINT, PLINTH, LINOLEUM, ADHESIVE, GROUT]) {
     await page.goto(path);
     const box = await result(page).boundingBox();
     expect(box, path).not.toBeNull();
@@ -202,4 +203,15 @@ test("tile adhesive and grout follow the tile size", async ({ page }) => {
   await page.goto(GROUT);
   // 0,256 кг/м² × 19,78 × 1,1 = 5,57 кг → 3 упаковки по 2 кг.
   await expect(result(page)).toHaveText("3");
+});
+
+test("linoleum: the best width and the cut length, a pinned width", async ({ page }) => {
+  await page.goto(LINOLEUM);
+  // 4,6 × 4,3: no roll covers it; 2,5 м across, 2 × 4,3 = 8,6 м, 21,5 м².
+  await expect(result(page)).toHaveText("8,6");
+  await expect(page.getByText(/ширина 2,5\sм · 21,5\sм²/)).toBeVisible();
+
+  await page.getByRole("button", { name: "Ширина рулона" }).click();
+  await page.getByRole("radio", { name: "4 м" }).click();
+  await expect(page.getByText(/ширина 4\sм · 34,4\sм²/)).toBeVisible();
 });

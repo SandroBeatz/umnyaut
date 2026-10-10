@@ -125,7 +125,9 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
           />
         );
       }
-      case "select":
+      case "select": {
+        // Options are strings; a numeric input (linoleum roll width) gets its number back.
+        const pick = (v: string) => onChange({ [field.name]: typeof values[field.name] === "number" ? Number(v) : v });
         return field.options.length <= 4 && !field.dropdown ? (
           <div key={field.name} className="col-span-2 flex flex-col gap-1.5">
             <span className="text-small font-medium text-text">{label(field)}</span>
@@ -133,7 +135,7 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
               label={field.label}
               options={field.options}
               value={String(values[field.name])}
-              onValueChange={(v) => onChange({ [field.name]: v })}
+              onValueChange={pick}
             />
           </div>
         ) : (
@@ -142,9 +144,10 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
             label={label(field)}
             options={field.options}
             value={String(values[field.name])}
-            onValueChange={(v) => onChange({ [field.name]: v })}
+            onValueChange={pick}
           />
         );
+      }
       case "toggle":
         return (
           <label key={field.name} className="flex min-h-12 items-center gap-3 col-span-2 text-body text-text">

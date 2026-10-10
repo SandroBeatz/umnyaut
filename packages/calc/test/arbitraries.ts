@@ -2,6 +2,7 @@ import type fc from "fast-check";
 import type { ToolId } from "../src/tools";
 import type { KlejInput } from "../src/tools/klej";
 import type { KraskaInput } from "../src/tools/kraska";
+import type { LinoleumInput } from "../src/tools/linoleum";
 import type { OboiInput } from "../src/tools/oboi";
 import type { PlintusInput } from "../src/tools/plintus";
 import type { PloshchadKomnatyInput } from "../src/tools/ploshchad-komnaty";
@@ -160,6 +161,19 @@ const zatirka: ToolArbitrary<ZatirkaInput> = {
   grow,
 };
 
+const linoleum: ToolArbitrary<LinoleumInput> = {
+  input: (f) =>
+    f.record({
+      lengthMm: lengthMm(f),
+      widthMm: lengthMm(f),
+      rollWidthMm: f.oneof(f.constant(0), f.integer({ min: 500, max: 6000 })),
+      overlapMm: f.integer({ min: 0, max: 300 }),
+      allowanceMm: f.integer({ min: 0, max: 300 }),
+      cutStepMm: f.integer({ min: 10, max: 1000 }),
+    }),
+  grow,
+};
+
 export const arbitraries: Partial<Record<ToolId, ToolArbitrary<never>>> = {
   "ploshchad-komnaty": ploshchadKomnaty as ToolArbitrary<never>,
   "ploshchad-sten": ploshchadSten as ToolArbitrary<never>,
@@ -168,4 +182,5 @@ export const arbitraries: Partial<Record<ToolId, ToolArbitrary<never>>> = {
   plintus: plintus as ToolArbitrary<never>,
   klej: klej as ToolArbitrary<never>,
   zatirka: zatirka as ToolArbitrary<never>,
+  linoleum: linoleum as ToolArbitrary<never>,
 };

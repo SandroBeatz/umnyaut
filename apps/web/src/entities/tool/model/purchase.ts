@@ -40,8 +40,23 @@ const sizeText = (item: PurchaseItem) => quantityText(item.pack.size.value, item
 export const setText = (lines: readonly PurchaseItem[]) =>
   lines.map((line) => `${formatNumber(line.packs)}${NBSP}×${NBSP}${sizeText(line)}`).join(" + ");
 
-/** «1 канистра» and, for items sold by volume or weight, «по 10 л» or the set of sizes. */
+/** Running-metre goods: bought length = bought area / roll width. */
+export function runningLength(group: PurchaseGroup): number | undefined {
+  const width = group.first.pack.width?.value;
+  if (group.first.pack.kind !== "running" || !width) return undefined;
+  return group.lines.reduce((sum, line) => sum + line.bought.value, 0) / width;
+}
+
+/** «1 канистра» and, for items sold by volume or weight, «по 10 л» or the set of sizes; linoleum «8,6 м». */
 export function purchaseTexts(group: PurchaseGroup): { quantity: string; detail?: string } {
+  const length = runningLength(group);
+  const width = group.first.pack.width;
+  if (length !== undefined && width) {
+    return {
+      quantity: quantityText(length, "m"),
+      detail: fill(shell.result.width, { size: quantityText(width.value, width.unit) }),
+    };
+  }
   const quantity = formatQuantity(group.packs, forms(packNouns[group.first.pack.kind]));
   if (!group.sized) return { quantity };
   const detail =

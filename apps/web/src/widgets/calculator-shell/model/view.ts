@@ -1,7 +1,7 @@
 import type { Country, ToolResult } from "@umnyaut/calc";
 import { packNouns, shell, type ToolDef, unitLabels } from "@umnyaut/catalog";
 import { formatMoney, formatNumber, formatQuantity, NBSP, plural } from "@umnyaut/ui/format";
-import { groupPurchases, purchaseTexts, setText } from "@/entities/tool";
+import { groupPurchases, purchaseTexts, runningLength, setText } from "@/entities/tool";
 import { fill } from "@/shared/lib";
 
 const forms = ([one, few, many]: readonly [string, string, string]) => ({ one, few, many });
@@ -44,7 +44,20 @@ export function describeResult(tool: ToolDef, result: ToolResult, country: Count
   const mainGroup = groups.find((g) => g.first.role === "main");
   const mainItem = mainGroup?.first;
   let main: MainFigure | undefined;
-  if (mainGroup && mainItem) {
+  const length = mainGroup ? runningLength(mainGroup) : undefined;
+  if (mainGroup && mainItem && length !== undefined && mainItem.pack.width) {
+    main = {
+      key: mainItem.key,
+      title: tool.items?.[mainItem.key]?.title ?? mainItem.key,
+      value: number(length),
+      unit: unitLabels.m,
+      caption: fill(shell.result.running, {
+        width: quantity(mainItem.pack.width.value, mainItem.pack.width.unit),
+        area: quantity(mainItem.bought.value, mainItem.bought.unit),
+      }),
+      photo: tool.items?.[mainItem.key]?.photo,
+    };
+  } else if (mainGroup && mainItem) {
     const leftover = quantity(mainGroup.leftover, mainItem.leftover.unit);
     main = {
       key: mainItem.key,

@@ -72,6 +72,9 @@ export const shell = {
     /** Packs sold by volume or weight: which sizes to take instead of the need («1 × 9 л + 1 × 2,7 л»). */
     set: "{set} · останется {leftover}",
     each: "по {size}",
+    /** Running-metre goods (linoleum): the roll width and the bought area. */
+    running: "ширина {width} · {area}",
+    width: "ширина {size}",
     total: "Итого {total}",
     perM2: "{price} за м²",
     missing: "без {count} {positions}",

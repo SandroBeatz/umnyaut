@@ -63,6 +63,7 @@ describe("registry", () => {
     expect(zatirka.reservePct).toBe(value("grout.reserve"));
     expect(zatirka.jointMm).toBe(value("tile.joint.floor"));
     expect(zatirka.packKg).toBe(value("grout.pack"));
+    expect(toolModules.linoleum.defaults({ country: "RU" }).overlapMm).toBe(value("linoleum.seamOverlap"));
   });
 
   it("active categories are exactly those with tools", () => {
