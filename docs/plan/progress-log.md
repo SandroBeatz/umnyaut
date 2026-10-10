@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-10
 
+- **— (design rule)** Owner: every hint uses the cat's head, not the whole cat. New shared `Hint` (`apps/web/src/shared/ui/Hint.tsx`, head 40 px on the warning background) now renders the warnings under the result and the room-list note; a test fails if the whole-cat `warn` pose is used outside the dev gallery. Rule written into [Design System](../design/design-system.md) v1.2 (mascot table and a rule paragraph) and `AGENTS.md` hard rule 9.
+  - Where: `feature/phase-6-wave-1`
+
 - **P6.1–P6.8** Closed: every wave-1 tool has had `formula-reviewer` passes with fixes and a release check — READY, or READY except the layout scheme moved to Phase 10 by the owner ([Wave 1 — Release Check](../review/wave-1-release-check.md) v1.1). Last review (rows search and L-shapes): L-shaped golden examples and the 85-board mockup plan confirmed row by row, 4 000 random rooms never below the length bound; fixed — a one-piece row (shorter than a board) now returns the rest of the cut piece to its pool with its lock (20 rows × 400 mm of 2 m boards: 10 → 4 boards).
   - Where: `feature/phase-6-wave-1`
   - Notes (for Phase 10 / the master, not blocking): rows shorter than a board are always one piece — a narrow corridor laid across could use joints (6 × 1 m: 32 vs ≈ 26 boards); the tile L-shape removes only whole tiles surely inside the cut-out (330 tiles vs an exact 297–315 depending on the corner) — safe side; the scheme must start short and long rows from the same wall. Phase 6 remaining: P6.10 (owner sends the handout to the master); content texts are Phase 8.

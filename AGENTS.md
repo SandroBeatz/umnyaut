@@ -20,7 +20,7 @@ pnpm workspaces + Turborepo, Node 24 · Next.js 16 App Router, React 19.2 + Comp
 6. A new tool = five files (calc module, golden, catalog entry, content Markdown, optional scheme) and **no new route**. One id everywhere (module, URL, content, analytics).
 7. UI strings are Russian and live only in `catalog`/`content`. Code identifiers English or transliterated.
 8. Nothing above the result: no ads, AI, mascot or banners push the purchase number down. Phone first screen ≤ 660 px to the result.
-9. Design tokens only; one orange element per view, navy text on orange; tap targets ≥ 48 px; a11y ≥ 95.
+9. Design tokens only; one orange element per view, navy text on orange; tap targets ≥ 48 px; a11y ≥ 95. Every hint, warning or note shows the cat's **head** (40 px, `Hint` component), never the whole cat.
 10. No Vercel-only APIs; same Node code runs on VPS and Vercel.
 11. Never commit secrets; only `.env.example`. No force-push, prod migrations, deploys or DNS changes without explicit approval.
 12. Depth before breadth: complete connected room workflows before adding unrelated tools. For every overlapping tool, compare at least three cases with Qalculator, derive the expected answer independently, and explain differences.

@@ -9,6 +9,7 @@ import { useRoomStore } from "@/entities/room";
 import { groupPurchases, purchaseTexts, ToolCard } from "@/entities/tool";
 import { materialImages } from "@/shared/config";
 import { fill } from "@/shared/lib";
+import { Hint } from "@/shared/ui";
 import { buildList, itemDef } from "../model/build";
 import { hydrateList, useListStore } from "../model/store";
 
@@ -85,9 +86,9 @@ export function RoomList() {
       </ul>
 
       {view.conflicts.map((code) => (
-        <p key={code} className="mt-3 rounded-md bg-accent-soft p-3 text-small text-text">
+        <Hint key={code} className="mt-3">
           {t.conflicts[code]}
-        </p>
+        </Hint>
       ))}
 
       <h3 className="mt-4 text-small font-semibold text-text-muted">{t.buy}</h3>
