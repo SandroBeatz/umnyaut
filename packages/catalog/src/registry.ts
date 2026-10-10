@@ -6,6 +6,7 @@ import { laminat } from "./tools/laminat";
 import { linoleum } from "./tools/linoleum";
 import { oboi } from "./tools/oboi";
 import { plintus } from "./tools/plintus";
+import { plitka } from "./tools/plitka";
 import { ploshchadKomnaty } from "./tools/ploshchad-komnaty";
 import { ploshchadSten } from "./tools/ploshchad-sten";
 import type { ToolDef } from "./tools/types";
@@ -20,6 +21,7 @@ export const tools: readonly ToolDef[] = [
   laminat,
   plintus,
   linoleum,
+  plitka,
   klej,
   zatirka,
 ];

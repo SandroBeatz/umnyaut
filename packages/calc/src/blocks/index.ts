@@ -11,6 +11,7 @@ export {
   polygonPerimeterMm,
   wallAreaM2,
 } from "./geometry";
+export { type GridArea, type GridLine, gridArea, gridLine } from "./grid";
 export { bestPackSet, ceilPacks, PACK_EPSILON, type PackOption, type PackSet, purchase, purchaseSet } from "./packs";
 export { layRows, type RowsInput, type RowsResult } from "./rows";
 export { cutStrips, type StripCut, type StripCutInput } from "./strips";

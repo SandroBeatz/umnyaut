@@ -97,7 +97,7 @@ export const klej: ToolDef = {
     { id: "t30", label: "30 × 30", values: { tileLengthMm: 300, tileWidthMm: 300 } },
     { id: "t60", label: "60 × 60", values: { tileLengthMm: 600, tileWidthMm: 600 } },
   ],
-  nextSteps: ["zatirka", "ploshchad-sten"],
+  nextSteps: ["zatirka", "plitka"],
   items: { "tile-adhesive": { title: "Плиточный клей", photo: "tile-adhesive" } },
   summary: { adhesiveKg: "Клея нужно", area: "Площадь облицовки", notch: "Зуб шпателя" },
   steps: {

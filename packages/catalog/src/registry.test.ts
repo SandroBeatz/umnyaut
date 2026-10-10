@@ -1,4 +1,4 @@
-import { GROUT_DENSITY, LAMINATE_WASTE_PCT, NOTCH_TABLE, toolModules } from "@umnyaut/calc";
+import { GROUT_DENSITY, LAMINATE_WASTE_PCT, NOTCH_TABLE, TILE_DIAGONAL_RESERVE_PCT, toolModules } from "@umnyaut/calc";
 import { describe, expect, it } from "vitest";
 import { type CategoryDef, categories, reservedSegments } from "./categories";
 import { norms } from "./norms";
@@ -70,6 +70,11 @@ describe("registry", () => {
     expect(laminat.underlayRollM2).toBe(value("underlay.rollArea"));
     expect(LAMINATE_WASTE_PCT.diagonal).toBe(value("laminate.waste.diagonal"));
     expect(LAMINATE_WASTE_PCT.herringbone).toBe(value("laminate.waste.herringbone"));
+    const plitka = toolModules.plitka.defaults({ country: "RU" });
+    expect(plitka.reservePct).toBe(value("tile.reserve"));
+    expect(TILE_DIAGONAL_RESERVE_PCT).toBe(value("tile.reserve.diagonal"));
+    expect(plitka.tilesPerBox).toBe(value("tile.perBox"));
+    expect(plitka.jointMm).toBe(value("tile.joint.floor"));
   });
 
   it("active categories are exactly those with tools", () => {

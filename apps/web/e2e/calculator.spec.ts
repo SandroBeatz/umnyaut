@@ -7,6 +7,7 @@ const PAINT = "/steny/kraska/";
 const PLINTH = "/pol/plintus/";
 const LINOLEUM = "/pol/linoleum/";
 const LAMINATE = "/pol/laminat/";
+const TILE = "/plitka/plitka/";
 const ADHESIVE = "/plitka/klej/";
 const GROUT = "/plitka/zatirka/";
 /** Visible area of Safari on a 390 × 844 iPhone (design spec §12). */
@@ -22,7 +23,7 @@ async function type(page: Page, label: string, value: string) {
 }
 
 test("the result number is on the first phone screen of every tool", async ({ page }) => {
-  for (const path of [ROOM, WALLS, WALLPAPER, PAINT, PLINTH, LINOLEUM, LAMINATE, ADHESIVE, GROUT]) {
+  for (const path of [ROOM, WALLS, WALLPAPER, PAINT, PLINTH, LINOLEUM, LAMINATE, TILE, ADHESIVE, GROUT]) {
     await page.goto(path);
     const box = await result(page).boundingBox();
     expect(box, path).not.toBeNull();
@@ -226,4 +227,14 @@ test("laminate: the mockup case — 10 packs, 23 rows, underlay; diagonal adds 1
   await page.getByRole("radio", { name: "Диагональ" }).click();
   // 19,78 × 1,15 / 2,22 = 10,2 → 11
   await expect(result(page)).toHaveText("11");
+});
+
+test("tile: piece count with reserve, centre start removes the narrow-cut hint", async ({ page }) => {
+  await page.goto(TILE);
+  // 210 whole + 30 cut = 240 × 1,1 = 264 → 22 коробки по 12.
+  await expect(result(page)).toHaveText("22");
+  await expect(page.getByText(/узкая подрезка/)).toBeVisible();
+  await page.getByRole("button", { name: /Ещё параметры/ }).click();
+  await page.getByRole("radio", { name: "От центра" }).click();
+  await expect(page.getByText(/узкая подрезка/)).toBeHidden();
 });

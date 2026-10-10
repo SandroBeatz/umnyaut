@@ -6,6 +6,7 @@ import type { LaminatInput } from "../src/tools/laminat";
 import type { LinoleumInput } from "../src/tools/linoleum";
 import type { OboiInput } from "../src/tools/oboi";
 import type { PlintusInput } from "../src/tools/plintus";
+import type { PlitkaInput } from "../src/tools/plitka";
 import type { PloshchadKomnatyInput } from "../src/tools/ploshchad-komnaty";
 import type { PloshchadStenInput } from "../src/tools/ploshchad-sten";
 import type { ZatirkaInput } from "../src/tools/zatirka";
@@ -210,6 +211,25 @@ const laminat: ToolArbitrary<LaminatInput> = {
   grow,
 };
 
+const plitka: ToolArbitrary<PlitkaInput> = {
+  input: (f) =>
+    f.record({
+      surface: f.constantFrom("floor" as const, "walls" as const),
+      lengthMm: f.integer({ min: 300, max: 20_000 }),
+      widthMm: f.integer({ min: 300, max: 20_000 }),
+      heightMm: f.integer({ min: 1000, max: 10_000 }),
+      openings: f.array(opening(f), { maxLength: 20 }),
+      tileLengthMm: f.integer({ min: 20, max: 3000 }),
+      tileWidthMm: f.integer({ min: 20, max: 3000 }),
+      jointMm: f.double({ min: 0, max: 20, noNaN: true }),
+      layout: f.constantFrom("straight" as const, "diagonal" as const),
+      start: f.constantFrom("corner" as const, "center" as const),
+      reservePct: f.double({ min: 0, max: 30, noNaN: true }),
+      tilesPerBox: f.integer({ min: 1, max: 200 }),
+    }),
+  grow,
+};
+
 export const arbitraries: Partial<Record<ToolId, ToolArbitrary<never>>> = {
   "ploshchad-komnaty": ploshchadKomnaty as ToolArbitrary<never>,
   "ploshchad-sten": ploshchadSten as ToolArbitrary<never>,
@@ -220,4 +240,5 @@ export const arbitraries: Partial<Record<ToolId, ToolArbitrary<never>>> = {
   zatirka: zatirka as ToolArbitrary<never>,
   linoleum: linoleum as ToolArbitrary<never>,
   laminat: laminat as ToolArbitrary<never>,
+  plitka: plitka as ToolArbitrary<never>,
 };

@@ -5,6 +5,7 @@ import { laminat } from "./laminat";
 import { linoleum } from "./linoleum";
 import { oboi } from "./oboi";
 import { plintus } from "./plintus";
+import { plitka } from "./plitka";
 import { ploshchadKomnaty } from "./ploshchad-komnaty";
 import { ploshchadSten } from "./ploshchad-sten";
 import { zatirka } from "./zatirka";
@@ -20,6 +21,7 @@ export const toolModules = {
   zatirka,
   linoleum,
   laminat,
+  plitka,
 } as const satisfies Record<string, ToolModule>;
 
 export type ToolId = keyof typeof toolModules;

@@ -42,6 +42,7 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | S15 | СП 71.13330.2017 «Изоляционные и отделочные покрытия», п. 7.4.15 | Минстрой России | https://docs.cntd.ru/document/456082588 | 2026-10-09 |
 | S16 | ГЭСН 11‑01‑034‑04 (ламинат), ГЭСН 11‑01‑027‑02 (плитка) — cross-check only | Минстрой России | https://fsnb2022.ru/gesn/gesn11-01-034-04.html · https://fsnb2022.ru/gesn/gesn11-01-027-02.html | 2026-10-09 |
 | S18 | Ceresit CE 40 PREMIUM, product page (pack, joint range, consumption table) | Ceresit (Henkel) | https://www.ceresit.ru/ru/products/tiling/grouts-and-sealants/ce_40_aquastatic/ | 2026-10-10 |
+| S19 | «Как рассчитать количество плитки» (piece method, reserve, layout from wall or centre) | KERAMA MARAZZI | https://ufa.kerama-marazzi.com/blog/stati/kak-rasschitat-kolichestvo-plitki-podrobnoe-rukovodstvo/ | 2026-10-10 |
 | S17 | Инструкция по поклейке обоев (ARTSIMPLE) | SURGAZ (ООО «Фортпост»), manufacturer | https://artsimple.ru/instruction | 2026-10-09 |
 
 ## Norms
@@ -73,6 +74,8 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | `linoleum.wallTrim` | 10 mm (0,5–1 cm) | S11 | confirmed | |
 | `linoleum.rollWidthMin`, `linoleum.rollWidthMax` | 1,2 / 2,4 m (table 1 allows up to 3 m) | S12 | confirmed | Market presets 1,5 … 4 m (C03) |
 | `plinth.length` | 2,5 m (2,2 m preset) | S13, S14 | confirmed | |
+| `tile.reserve`, `tile.reserve.diagonal` | 10 % straight, 15 % diagonal | S19 | confirmed | On top of the piece count (every cut piece already takes a tile) — the conservative reading; field «Запас» |
+| `tile.perBox` | 12 tiles per box | — (typical 30 × 30 box, 1,08 m²) | **default, unconfirmed** | Field «Плиток в коробке», hint «проверьте на коробке» |
 | `tile.joint.wall`, `tile.joint.floor` | 2 mm / 3 mm | S3 (1,5–2 wall 15 × 15; 2–3 floor 33 × 33) | confirmed | Upper bound of each range |
 | Adhesive layer limit | ≤ manufacturer's value | S15 | confirmed | Warning when notch × format leaves the S1 table |
 

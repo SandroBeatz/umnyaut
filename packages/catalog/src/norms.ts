@@ -36,6 +36,7 @@ const S = {
   S14: "IDEAL, каталог плинтусов, https://ideal.ru/product/plintusy/",
   S17: "ARTSIMPLE (SURGAZ), инструкция по поклейке обоев, https://artsimple.ru/instruction",
   S18: "Ceresit CE 40 PREMIUM, https://www.ceresit.ru/ru/products/tiling/grouts-and-sealants/ce_40_aquastatic/",
+  S19: "KERAMA MARAZZI, «Как рассчитать количество плитки», https://ufa.kerama-marazzi.com/blog/stati/kak-rasschitat-kolichestvo-plitki-podrobnoe-rukovodstvo/",
 } as const;
 
 const norm = (value: number, unit: string, source: string, extra: Partial<Norm> = {}): Norm => ({
@@ -63,6 +64,12 @@ export const norms: Readonly<Record<string, Norm>> = {
   "grout.reserve": norm(10, "%", S.S3, { note: "в источнике 10–15%" }),
   "grout.pack": norm(2, "кг", S.S18),
   "grout.maxJoint": norm(10, "мм", S.S18, { note: "шов 1–10 мм" }),
+  "tile.reserve": norm(10, "%", S.S19, { note: "прямая укладка, на подрезку и бой" }),
+  "tile.reserve.diagonal": norm(15, "%", S.S19),
+  "tile.perBox": norm(12, "шт. в коробке", "типичная коробка 30 × 30 (1,08 м²)", {
+    unconfirmed: true,
+    note: "проверьте на коробке",
+  }),
   "tile.joint.wall": norm(2, "мм", S.S3, { note: "в источнике 1,5–2 мм для 15 × 15" }),
   "tile.joint.floor": norm(3, "мм", S.S3, { note: "в источнике 2–3 мм для 33 × 33" }),
   "wallpaper.rollWidth": norm(0.53, "м", S.S5),
