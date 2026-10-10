@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-10
 
+- **— (CI race)** The two one-off `pnpm check` failures today were `web:typecheck` (`next typegen`) and `web:build` writing `.next/types` at the same time (`ENOENT … routes.d.ts`). `turbo.json`: `build` now depends on the package's own `typecheck`, so they never overlap. The commit before this one was pushed after such a failed run; a rerun passed with no change.
+  - Where: `feature/phase-6-wave-1`
+
 - **— (design rule)** Owner: every hint uses the cat's head, not the whole cat. New shared `Hint` (`apps/web/src/shared/ui/Hint.tsx`, head 40 px on the warning background) now renders the warnings under the result and the room-list note; a test fails if the whole-cat `warn` pose is used outside the dev gallery. Rule written into [Design System](../design/design-system.md) v1.2 (mascot table and a rule paragraph) and `AGENTS.md` hard rule 9.
   - Where: `feature/phase-6-wave-1`
 
