@@ -17,6 +17,11 @@ describe("gridLine", () => {
     expect(gridLine(3027, 300, 3, "center")).toEqual({ whole: 10, cuts: [] });
   });
 
+  it("from the centre: a remainder no wider than a joint is no cut; a cut is never wider than a tile", () => {
+    // 2 × 300 + 3 = 603 leaves 3 mm on 606 — two whole tiles, no cut (was 0 whole and two 301,5 «cuts»).
+    expect(gridLine(606, 300, 3, "center")).toEqual({ whole: 2, cuts: [] });
+  });
+
   it("a span shorter than a tile is one cut", () => {
     expect(gridLine(400, 600, 2, "corner")).toEqual({ whole: 0, cuts: [400] });
     expect(gridLine(400, 600, 2, "center")).toEqual({ whole: 0, cuts: [400] });

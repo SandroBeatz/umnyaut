@@ -26,7 +26,7 @@ export const golden: GoldenFile<PlintusInput> = {
           "plinth-corner-in": { packs: 4 },
           "plinth-cap": { packs: 2 },
           "plinth-joiner": { packs: 6 },
-          "plinth-fastener": { packs: 43 },
+          "plinth-fastener": { packs: 49 },
         },
         absentItems: ["plinth-corner-out"],
         summary: { run: 17, perimeter: 17.8 },
@@ -34,7 +34,7 @@ export const golden: GoldenFile<PlintusInput> = {
       },
       source: {
         kind: "manual",
-        ref: `${PLANK}. Бизнес-спецификация: «периметр 17,8 м минус дверь — 17 м, это 7 планок по 2,5 м». 7 × 2,5 = 17,5, остаток 0,5; стыков 6; 4 угла; дверь — 2 заглушки. ${MANUAL}: 17 / 0,4 = 42,5 → 43 крепежа`,
+        ref: `${PLANK}. Бизнес-спецификация: «периметр 17,8 м минус дверь — 17 м, это 7 планок по 2,5 м». 7 × 2,5 = 17,5, остаток 0,5; стыков 6; 4 угла; дверь — 2 заглушки. ${MANUAL}: крепёж на каждый прямой участок: ⌈участок / 0,4⌉ + 1 (по краям), участки 1,9 + 1,9 (дверь посередине стены 4,6), 4,3, 4,6, 4,3 → 6 + 6 + 12 + 13 + 12 = 49`,
       },
     },
     {
@@ -137,8 +137,11 @@ export const golden: GoldenFile<PlintusInput> = {
     {
       name: "Fasteners every 30 cm",
       input: { fastenerSpacingMm: 300 },
-      expected: { items: { "plinth-fastener": { packs: 57 } } },
-      source: { kind: "datasheet", ref: `${MANUAL}. 17 / 0,3 = 56,7 → 57` },
+      expected: { items: { "plinth-fastener": { packs: 65 } } },
+      source: {
+        kind: "datasheet",
+        ref: `${MANUAL}. участки 1,9 × 2, 4,3 × 2, 4,6: (7 + 1) × 2 + (15 + 1) × 2 + (16 + 1) = 65`,
+      },
     },
     {
       name: "Glued or taped: no fasteners",

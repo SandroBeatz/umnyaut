@@ -96,11 +96,19 @@ export const plitka: ToolModule<PlitkaInput> = {
           cut += g.cut;
           if (g.cut > 0) narrowest = Math.min(narrowest, g.narrowestMm);
         }
-        const covered = openings.reduce(
-          (n, o) =>
-            n + Math.floor(o.widthMm / pitchX) * Math.floor(Math.min(o.heightMm, i.heightMm) / pitchY) * o.count,
-          0,
-        );
+        // Whole tiles surely inside an opening wherever it sits: ⌊(size − tile) / pitch⌋ per side. A door
+        // stands on the floor, so from a corner its height lines up with the rows: ⌊(h + joint) / pitch⌋.
+        const inside = (size: number, tileMm: number, pitch: number) =>
+          Math.max(Math.floor((size - tileMm) / pitch), 0);
+        const covered = openings.reduce((n, o) => {
+          const h = Math.min(o.heightMm, i.heightMm);
+          const across = inside(o.widthMm, i.tileLengthMm, pitchX);
+          const up =
+            o.type === "door" && i.start === "corner"
+              ? Math.floor((h + i.jointMm) / pitchY)
+              : inside(h, i.tileWidthMm, pitchY);
+          return n + across * up * o.count;
+        }, 0);
         whole = Math.max(whole - covered, 0);
         steps.push({ code: "openings", values: { tiles: covered } });
       }

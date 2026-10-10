@@ -18,7 +18,7 @@ export const golden: GoldenFile<LinoleumInput> = {
       expected: {
         items: { linoleum: { packs: 86 } },
         summary: { width: 2.5, length: 8.6, sheets: 2, seams: 1, boughtArea: 21.5, waste: 1.72 },
-        warnings: [],
+        warnings: ["seams"],
       },
       source: {
         kind: "manual",
@@ -96,6 +96,18 @@ export const golden: GoldenFile<LinoleumInput> = {
       input: { lengthMm: 6000, widthMm: 4970, rollWidthMm: 2500, overlapMm: 0 },
       expected: { items: { linoleum: { packs: 120 } }, summary: { sheets: 2, seams: 1, boughtArea: 30 } },
       source: { kind: "manual", ref: "Без нахлёста 2 × 2,5 = 5 ≥ 4,97 → 2 × 6 = 12 м = 30 м²" },
+    },
+    {
+      name: "Patterned linoleum, repeat 50 cm: the second sheet is cut longer",
+      input: { repeatMm: 500 },
+      expected: {
+        items: { linoleum: { packs: 91 } },
+        summary: { width: 2.5, length: 9.1, seams: 1, boughtArea: 22.75 },
+      },
+      source: {
+        kind: "manual",
+        ref: `${TARKETT} (подгонка рисунка). Второе полотно смещают до совпадения рисунка — до одного раппорта: 2 × 4,3 + 0,5 = 9,1 м × 2,5 = 22,75 м²; вдоль длины 9,2 + 0,5 = 9,7 м`,
+      },
     },
     {
       name: "Length rounded up to the 10 cm cut step",

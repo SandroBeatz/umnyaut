@@ -27,10 +27,11 @@ export function gridLine(spanMm: number, tileMm: number, jointMm: number, start:
     return n >= parity ? { n, e: edge(n) } : undefined;
   });
   const exact = Math.floor((spanMm + jointMm) / pitch);
-  // Whole tiles that fill the span exactly need no cuts at all.
-  if (exact * tileMm + (exact - 1) * jointMm === spanMm) return { whole: exact, cuts: [] };
+  // Whole tiles that leave no more than a joint at the walls need no cuts.
+  if (spanMm - (exact * tileMm + (exact - 1) * jointMm) <= jointMm) return { whole: exact, cuts: [] };
   const best = options
-    .filter((o): o is { n: number; e: number } => o !== undefined && o.e > 0)
+    // A «cut» wider than a tile means another whole tile fits: not a centred layout.
+    .filter((o): o is { n: number; e: number } => o !== undefined && o.e > 0 && o.e <= tileMm)
     .sort((a, b) => b.e - a.e || b.n - a.n)[0];
   return best ? { whole: best.n, cuts: [best.e, best.e] } : { whole: exact, cuts: [] };
 }

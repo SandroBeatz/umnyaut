@@ -13,6 +13,8 @@ const input = z.object({
   overlapMm: z.number().int().min(0).max(300),
   /** Extra on each room dimension for uneven walls; 0 — the room's largest length and width (Tarkett). */
   allowanceMm: z.number().int().min(0).max(300),
+  /** Pattern repeat: each sheet after the first is cut up to one repeat longer to match the pattern. */
+  repeatMm: z.number().int().min(0).max(2000),
   /** Shop cut step. */
   cutStepMm: z.number().int().min(10).max(1000),
 });
@@ -39,7 +41,7 @@ function variant(widthMm: number, alongLength: boolean, i: LinoleumInput): Varia
   const step = widthMm - i.overlapMm;
   const sheets = across <= widthMm || step <= 0 ? 1 : 1 + Math.ceil((across - widthMm) / step);
   const fits = step > 0 || across <= widthMm;
-  const needMm = (fits ? sheets : Number.POSITIVE_INFINITY) * along;
+  const needMm = fits ? sheets * along + (sheets - 1) * i.repeatMm : Number.POSITIVE_INFINITY;
   const boughtMm = Math.ceil(needMm / i.cutStepMm) * i.cutStepMm;
   return { widthMm, alongLength, sheets, needMm, boughtMm, areaMm2: boughtMm * widthMm };
 }
@@ -61,7 +63,15 @@ export const linoleum: ToolModule<LinoleumInput> = {
   id: "linoleum",
   version: 1,
   input,
-  defaults: () => ({ lengthMm: 4600, widthMm: 4300, rollWidthMm: 0, overlapMm: 50, allowanceMm: 0, cutStepMm: 100 }),
+  defaults: () => ({
+    lengthMm: 4600,
+    widthMm: 4300,
+    rollWidthMm: 0,
+    overlapMm: 50,
+    allowanceMm: 0,
+    repeatMm: 0,
+    cutStepMm: 100,
+  }),
   compute(i): ToolResult {
     const widths = i.rollWidthMm > 0 ? [i.rollWidthMm] : [...LINOLEUM_WIDTHS_MM];
     const variants = widths
@@ -108,7 +118,7 @@ export const linoleum: ToolModule<LinoleumInput> = {
         { key: "boughtArea", value: boughtM2, unit: "m2" },
         { key: "waste", value: Math.max(boughtM2 - floorM2, 0), unit: "m2" },
       ],
-      warnings: [],
+      warnings: best.sheets > 1 ? [{ code: "seams", level: "info", values: { seams: best.sheets - 1 } }] : [],
       steps,
     };
   },

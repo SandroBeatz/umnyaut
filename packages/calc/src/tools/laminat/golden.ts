@@ -15,13 +15,13 @@ export const golden: GoldenFile<LaminatInput> = {
       name: "Mockup room 4.6 × 4.3 m, board 1285 × 192, 9 per pack (defaults)",
       input: {},
       expected: {
-        items: { laminate: { packs: 10 }, underlay: { packs: 2, need: 19.78 } },
-        summary: { rows: 23, boards: 85, lastRow: 56 },
+        items: { laminate: { packs: 11 }, underlay: { packs: 2, need: 19.78 } },
+        summary: { rows: 23, boards: 92, lastRow: 56 },
         warnings: ["other_direction_cheaper"],
       },
       source: {
         kind: "manual",
-        ref: `${RULES}. Ряды по 4580: 1285 + 2 × 1285 + 725 (обрезок 560); 2-й ряд: 560 оставит хвост 165 — режем 985 (обрезок 300), конец 1025; 3-й: начало 300, конец 425 из 560; 4-й = 1-му. Цикл 4 + 3 + 4. (4300 − 20) / 192 = 22,3 → 23 ряда, последний 56 мм; 4 + 7 × 11 + 4 = 85 досок / 9 → 10 пачек (макет: 10 пачек, 23 ряда). Поперёк — 80 досок, 9 пачек`,
+        ref: `${RULES}. Замок с двух концов: правая часть обрезка (после резки конца ряда) может только начать ряд, левая (после резки начала) — только закончить. Ряды по 4580: 1) 1285 + 2 × 1285 + 725 → правый обрезок 560; 2) 560 дал бы хвост 165, целая доска повторит стыки — режем 985 (левый обрезок 300), конец 1025 из новой доски; 3) целая + 2 + 725 (ещё 560). Каждый ряд — 4 доски: 23 × 4 = 92 / 9 → 11 пачек. Макет обещал 10 — он не учитывал замки; поперёк — 80 досок, 9 пачек`,
       },
     },
     {
@@ -72,11 +72,11 @@ export const golden: GoldenFile<LaminatInput> = {
       name: "Last row of 30 mm: warning",
       input: { widthMm: 4274 },
       expected: {
-        items: { laminate: { packs: 10 } },
+        items: { laminate: { packs: 11 } },
         summary: { rows: 23, lastRow: 30 },
         warnings: ["narrow_last_row"],
       },
-      source: { kind: "manual", ref: `${RULES}. 4254 − 22 × 192 = 30 мм < 50; ряды те же, 85 досок → 10 пачек` },
+      source: { kind: "manual", ref: `${RULES}. 4254 − 22 × 192 = 30 мм < 50; ряды те же, 92 доски → 11 пачек` },
     },
     {
       name: "Diagonal: area + 15 % «по опыту укладчиков»",
@@ -100,7 +100,7 @@ export const golden: GoldenFile<LaminatInput> = {
     {
       name: "Without underlay",
       input: { underlay: false },
-      expected: { items: { laminate: { packs: 10 } }, absentItems: ["underlay"] },
+      expected: { items: { laminate: { packs: 11 } }, absentItems: ["underlay"] },
       source: { kind: "manual", ref: "Подложка выключена" },
     },
     {

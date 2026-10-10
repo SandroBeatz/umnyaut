@@ -4,12 +4,19 @@ import { layRows } from "./rows";
 const board = { boardLengthMm: 1285, minPieceMm: 300, minOffsetMm: 300 };
 
 describe("layRows", () => {
-  it("mockup room: rows of 4580 repeat as 4 + 3 + 4 boards; 23 rows take 85 boards", () => {
-    // Row 1: 1285 + 2 × 1285 + 725 (offcut 560 kept). Row 2: 560 would leave a 165 end — start 985 (offcut 300),
-    // end 1025 from a new board. Row 3: starts with 300, ends with 425 cut from 560. Row 4 = row 1.
+  it("mockup room: every row of 4580 takes 4 boards; 23 rows take 92", () => {
+    // Row 1: 1285 + 2 × 1285 + 725 (right part 560 → start pool). Row 2: 560 would end in 165; a whole board
+    // repeats the joints — cut 985 (left part 300 → end pool), end 1025 from a new board (300 is too short).
+    // Row 3: whole board, end 725 → another 560. The 300 left parts may only END a row, never start one.
     expect(layRows({ ...board, rowLengthMm: 4580, rows: 1 }).boards).toBe(4);
-    expect(layRows({ ...board, rowLengthMm: 4580, rows: 4 }).boards).toBe(4 + 4 + 3 + 4);
-    expect(layRows({ ...board, rowLengthMm: 4580, rows: 23 })).toMatchObject({ boards: 85 });
+    expect(layRows({ ...board, rowLengthMm: 4580, rows: 4 }).boards).toBe(16);
+    expect(layRows({ ...board, rowLengthMm: 4580, rows: 23 })).toMatchObject({ boards: 92 });
+  });
+
+  it("a start-cut leftover is never used to start a row", () => {
+    // In the mockup rows the only start-side offcut is 560, which would end the row in a 165 sliver; the 300
+    // left parts are end-side only — so no row starts with an offcut.
+    expect(layRows({ ...board, rowLengthMm: 4580, rows: 6 }).reusedStarts).toBe(0);
   });
 
   it("reuses a row-end offcut to start the next row when the joints stay 300 apart", () => {

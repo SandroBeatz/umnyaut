@@ -24,6 +24,13 @@ export interface ToolArbitrary<I> {
 const lengthMm = (f: typeof fc) => f.integer({ min: 300, max: 50_000 });
 const grow = <I extends { lengthMm: number }>(input: I): I => ({ ...input, lengthMm: input.lengthMm + 1000 });
 
+/** Growing the room must not turn an oversized cut-out into a real one (area would drop); golden covers it. */
+const validCut = <
+  T extends { shape: "rect" | "l"; lengthMm: number; widthMm: number; cutLengthMm: number; cutWidthMm: number },
+>(
+  v: T,
+): T => (v.shape === "l" && (v.cutLengthMm >= v.lengthMm || v.cutWidthMm >= v.widthMm) ? { ...v, shape: "rect" } : v);
+
 const ploshchadKomnaty: ToolArbitrary<PloshchadKomnatyInput> = {
   input: (f) =>
     f.record({
@@ -116,24 +123,19 @@ const kraska: ToolArbitrary<KraskaInput> = {
 
 const plintus: ToolArbitrary<PlintusInput> = {
   input: (f) =>
-    f.record({
-      shape: f.constantFrom("rect" as const, "l" as const),
-      lengthMm: lengthMm(f),
-      widthMm: lengthMm(f),
-      cutLengthMm: f.integer({ min: 0, max: 60_000 }),
-      cutWidthMm: f.integer({ min: 0, max: 60_000 }),
-      openings: f.array(opening(f), { maxLength: 20 }),
-      plankLengthMm: f.integer({ min: 1000, max: 6000 }),
-    }),
+    f
+      .record({
+        shape: f.constantFrom("rect" as const, "l" as const),
+        lengthMm: lengthMm(f),
+        widthMm: lengthMm(f),
+        cutLengthMm: f.integer({ min: 0, max: 60_000 }),
+        cutWidthMm: f.integer({ min: 0, max: 60_000 }),
+        openings: f.array(opening(f), { maxLength: 20 }),
+        plankLengthMm: f.integer({ min: 1000, max: 6000 }),
+      })
+      .map(validCut),
   grow,
 };
-
-/** Growing the room must not turn an oversized cut-out into a real one (area would drop); golden covers it. */
-const validCut = <
-  T extends { shape: "rect" | "l"; lengthMm: number; widthMm: number; cutLengthMm: number; cutWidthMm: number },
->(
-  v: T,
-): T => (v.shape === "l" && (v.cutLengthMm >= v.lengthMm || v.cutWidthMm >= v.widthMm) ? { ...v, shape: "rect" } : v);
 
 const klej: ToolArbitrary<KlejInput> = {
   input: (f) =>
@@ -188,6 +190,7 @@ const linoleum: ToolArbitrary<LinoleumInput> = {
       rollWidthMm: f.oneof(f.constant(0), f.integer({ min: 500, max: 6000 })),
       overlapMm: f.integer({ min: 0, max: 300 }),
       allowanceMm: f.integer({ min: 0, max: 300 }),
+      repeatMm: f.integer({ min: 0, max: 2000 }),
       cutStepMm: f.integer({ min: 10, max: 1000 }),
     }),
   grow,

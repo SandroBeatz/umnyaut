@@ -28,6 +28,27 @@ const input = z.object({
 
 export type PlintusInput = z.infer<typeof input>;
 
+/**
+ * Straight plinth runs: the walls (6 for an L-shape), each door put on the longest run left and splitting it
+ * in two (a door mid-wall — the conservative case for fixings).
+ */
+function runs(i: PlintusInput, l: boolean): number[] {
+  const walls = l
+    ? [i.lengthMm, i.widthMm, i.lengthMm - i.cutLengthMm, i.cutWidthMm, i.cutLengthMm, i.widthMm - i.cutWidthMm]
+    : [i.lengthMm, i.widthMm, i.lengthMm, i.widthMm];
+  const pieces = [...walls];
+  const doors = i.openings
+    .filter((o) => o.type === "door" && o.count > 0)
+    .flatMap((o) => Array.from({ length: o.count }, () => o.widthMm))
+    .sort((a, b) => b - a);
+  for (const door of doors) {
+    const k = pieces.reduce((best, p, j) => (p > (pieces[best] as number) ? j : best), 0);
+    const rest = Math.max((pieces[k] as number) - door, 0) / 2;
+    pieces.splice(k, 1, rest, rest);
+  }
+  return pieces.filter((p) => p > 0);
+}
+
 const piece = (key: string, count: number): PurchaseItem =>
   purchase(key, "related", { value: count, unit: "pcs" }, { kind: "piece", size: { value: 1, unit: "pcs" } });
 
@@ -106,7 +127,8 @@ export const plintus: ToolModule<PlintusInput> = {
       ...(joiners > 0 ? [piece("plinth-joiner", joiners)] : []),
     ];
     if (i.fasteners) {
-      const fasteners = Math.ceil(runMm / i.fastenerSpacingMm);
+      // A fixing near both ends of every straight run, and no more than the spacing between them.
+      const fasteners = runs(i, l).reduce((n, run) => n + Math.ceil(run / i.fastenerSpacingMm) + 1, 0);
       items.push(piece("plinth-fastener", fasteners));
       steps.push({
         code: "fasteners",

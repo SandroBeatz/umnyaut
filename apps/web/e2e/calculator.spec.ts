@@ -218,15 +218,16 @@ test("linoleum: the best width and the cut length, a pinned width", async ({ pag
   await expect(page.getByText(/ширина 4\sм · 34,4\sм²/)).toBeVisible();
 });
 
-test("laminate: the mockup case — 10 packs, 23 rows, underlay; diagonal adds 15 %", async ({ page }) => {
+test("laminate: the mockup room — 11 packs (92 boards), 9 across; diagonal adds 15 %", async ({ page }) => {
   await page.goto(LAMINATE);
-  await expect(result(page)).toHaveText("10");
+  await expect(result(page)).toHaveText("11");
   await expect(page.getByText("Если класть ряды в другую сторону, хватит 9 пачек")).toBeVisible();
 
   await page.getByRole("button", { name: "Укладка" }).click();
   await page.getByRole("radio", { name: "Диагональ" }).click();
   // 19,78 × 1,15 / 2,22 = 10,2 → 11
   await expect(result(page)).toHaveText("11");
+  await expect(page.getByText(/по опыту укладчиков/)).toBeVisible();
 });
 
 test("tile: piece count with reserve, centre start removes the narrow-cut hint", async ({ page }) => {

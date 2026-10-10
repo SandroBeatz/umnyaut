@@ -46,6 +46,15 @@ export const linoleum: ToolDef = {
       label: "Припуск на подрезку",
       hint: "Стены неровные — добавьте 5–10 см",
     },
+    {
+      kind: "length",
+      unit: "cm",
+      min: 0,
+      max: 2000,
+      name: "repeatMm",
+      label: "Раппорт рисунка",
+      hint: "Шаг рисунка; каждое следующее полотно режут длиннее, чтобы совпал рисунок",
+    },
     { kind: "length", unit: "cm", min: 1, max: 100, name: "cutStepMm", label: "Шаг отреза в магазине" },
   ],
   nextSteps: ["plintus", "ploshchad-komnaty"],
@@ -64,6 +73,9 @@ export const linoleum: ToolDef = {
     variant_length: "Рулон {width} м вдоль длины: полотен {sheets}, отрез {length} м, {area} м²",
     variant_width: "Рулон {width} м поперёк: полотен {sheets}, отрез {length} м, {area} м²",
     best: "Берём {width} м: швов {seams}, отрез {length} м, {area} м² — меньше швов, затем меньше площадь",
+  },
+  warnings: {
+    seams: "Швов: {seams}. Стыки полотен сваривают холодной сваркой — купите её вместе с линолеумом",
   },
   norms: ["linoleum.seamOverlap", "linoleum.rollWidthMin", "linoleum.rollWidthMax"],
 };

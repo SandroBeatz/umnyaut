@@ -71,7 +71,7 @@ export const plintus: ToolDef = {
     corners: "Углов: внутренних {inner}, наружных {outer}",
     caps: "Заглушки: по 2 на дверь × {doors} = {caps}",
     joiners: "Соединители: по одному на стык, {planks} − 1 = {joiners}",
-    fasteners: "Крепёж: {run} м / шаг {spacing} м = {count}",
+    fasteners: "Крепёж: на каждый прямой участок длина / шаг {spacing} м + 1 у края — {count} шт.",
   },
   warnings: {
     cut_too_large: "Вырез не меньше самой комнаты — считаем её прямоугольной. Проверьте размеры выреза",
