@@ -69,6 +69,23 @@ describe("room list", () => {
     ).toEqual([]);
   });
 
+  it("tile + its own adhesive tool: adhesive counted once, by the adhesive tool", () => {
+    const view = buildList(
+      [
+        { tool: "plitka", input: {} },
+        { tool: "klej", input: {} },
+      ],
+      { lengthMm: 4600, widthMm: 4300 },
+    );
+    // Floor 19,78 m² × 5,4 kg/m² = 106,8 kg → 5 bags (not 9 from summing both works); grout stays from tile.
+    expect(view.items.filter((i) => i.key === "tile-adhesive").reduce((n, i) => n + i.packs, 0)).toBe(5);
+    expect(view.items.filter((i) => i.key === "grout").reduce((n, i) => n + i.packs, 0)).toBe(3);
+  });
+
+  it("after tile, adhesive and grout are not suggested — they are already in the list", () => {
+    expect(buildList([{ tool: "plitka", input: {} }], null).next.map((t) => t.id)).toEqual([]);
+  });
+
   it("suggests the other purchase tool of the same category", () => {
     const view = buildList([{ tool: "oboi", input: {} }], null);
     expect(view.next.map((t) => t.id)).toEqual(["kraska"]);

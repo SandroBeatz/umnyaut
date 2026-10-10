@@ -44,9 +44,19 @@ export function buildList(entries: readonly ListEntry[], room: RoomDraft | null)
   });
   const inList = new Set(works.map((w) => w.tool.id));
   const categories = new Set(works.map((w) => w.tool.category));
-  const next = tools.filter((t) => t.status === "live" && t.items && categories.has(t.category) && !inList.has(t.id));
+  // A material counted by its own tool (adhesive in «Плиточный клей») replaces the same material that another
+  // work brings as related (adhesive in «Плитка») — summing both would buy it twice for one floor.
+  const ownKeys = new Set(works.flatMap((w) => w.items.filter((i) => i.role === "main").map((i) => i.key)));
+  const items = works.flatMap((w) => w.items.filter((i) => i.role === "main" || !ownKeys.has(i.key)));
+  // Do not suggest a tool whose material the list already has (tile brings adhesive and grout).
+  const listed = new Set(items.map((i) => i.key));
+  const next = tools.filter((t) => {
+    if (t.status !== "live" || !t.items || !categories.has(t.category) || inList.has(t.id)) return false;
+    const main = Object.keys(t.items)[0];
+    return !(main && listed.has(main));
+  });
   const conflicts: RoomListView["conflicts"] = wallPaint && inList.has("oboi") ? ["walls_twice"] : [];
-  return { works, items: mergeItems(works.flatMap((w) => w.items)), next, conflicts };
+  return { works, items: mergeItems(items), next, conflicts };
 }
 
 /** Title and photo of an item key from any tool that sells it. */

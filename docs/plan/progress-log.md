@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-10
 
+- **— (review: prices, related)** `formula-reviewer`: all priced golden totals and tile's adhesive/grout (= the standalone tools) confirmed. Fixed: the room list summed adhesive and grout twice when tile and the adhesive/grout tools were both in it (9 bags instead of 5) — a material counted by its own tool now replaces the same material another work brings as related, and the list no longer suggests adhesive and grout after tile. Paint price hint: small cans cost more per litre. Left as is: weld seams along the longer side (safe side), a total of 0 ₽ when all prices are 0.
+  - Where: `feature/phase-6-wave-1`
+
 - **P6.6, P6.9, release check v1.1** Linoleum cold welding is a related item: seams × the longer room side (safe side, monotonic) ÷ 20 m per tube (`linoleum.weldPerTube`, unconfirmed — retailer cards for Tarkett type A; the manufacturer gives no figure), with a price field. P6.9 layout schemes moved to Phase 10 (owner) — P10.3 now lists laminate (from `RowsResult.plan`), tile, wallpaper, linoleum. [Wave 1 — Release Check](../review/wave-1-release-check.md) v1.1: room/wall area, paint, plinth, adhesive, grout READY; wallpaper, laminate, linoleum, tile READY except requirement 15 (scheme, Phase 10). Also fixed in the rule checker: a recursive `err()` that hid real violations behind a stack overflow, and the integer half-board offset cap; 20 000 random straight and L-shaped plans clean.
   - Where: `feature/phase-6-wave-1`
 
