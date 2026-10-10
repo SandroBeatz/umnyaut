@@ -48,6 +48,12 @@ export const plintus: ToolDef = {
     { kind: "length", unit: "m", min: 1000, max: 6000, name: "plankLengthMm", label: "Длина планки" },
     { kind: "toggle", name: "fasteners", label: "Крепить на дюбели", hint: "На клей или скотч — выключите" },
     { kind: "length", unit: "cm", min: 100, max: 1000, name: "fastenerSpacingMm", label: "Шаг крепежа" },
+    { kind: "price", item: "plinth", name: "price_plinth", label: "Цена планки" },
+    { kind: "price", item: "plinth-corner-in", name: "price_plinth-corner-in", label: "Цена внутреннего угла" },
+    { kind: "price", item: "plinth-corner-out", name: "price_plinth-corner-out", label: "Цена наружного угла" },
+    { kind: "price", item: "plinth-cap", name: "price_plinth-cap", label: "Цена заглушки" },
+    { kind: "price", item: "plinth-joiner", name: "price_plinth-joiner", label: "Цена соединителя" },
+    { kind: "price", item: "plinth-fastener", name: "price_plinth-fastener", label: "Цена дюбеля" },
   ],
   presets: [
     { id: "p200", label: "2 м", values: { plankLengthMm: 2000 } },

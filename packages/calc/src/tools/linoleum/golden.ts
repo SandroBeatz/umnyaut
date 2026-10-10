@@ -139,5 +139,11 @@ export const golden: GoldenFile<LinoleumInput> = {
         ref: "Меньше двух швов нельзя (2 × 4 − 0,05 < 8). Два шва: 3 м вдоль длины 3 × 12 = 36 м = 108 м²; 3,5 м — 126 м²; поперёк — от 3 швов",
       },
     },
+    {
+      name: "With pack prices: total cost",
+      input: { price_linoleum: 800 } as Partial<LinoleumInput>,
+      expected: { costTotal: 17200 },
+      source: { kind: "manual", ref: "21,5 м² × 800 ₽/м² = 17 200 ₽ (8,6 м × 2,5 м)" },
+    },
   ],
 };

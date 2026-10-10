@@ -155,5 +155,11 @@ export const golden: GoldenFile<PlintusInput> = {
       expected: { items: { plinth: { packs: 9, leftover: 1 }, "plinth-joiner": { packs: 8 } } },
       source: { kind: "manual", ref: "17 / 2 = 8,5 → 9 планок, 18 − 17 = 1" },
     },
+    {
+      name: "With pack prices: total cost",
+      input: { price_plinth: 350 } as Partial<PlintusInput>,
+      expected: { costTotal: 2450 },
+      source: { kind: "manual", ref: "7 планок × 350 = 2450 ₽; фурнитура без цены" },
+    },
   ],
 };

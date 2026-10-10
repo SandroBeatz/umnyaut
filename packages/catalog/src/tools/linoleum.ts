@@ -56,6 +56,7 @@ export const linoleum: ToolDef = {
       hint: "Шаг рисунка; каждое следующее полотно режут длиннее, чтобы совпал рисунок",
     },
     { kind: "length", unit: "cm", min: 1, max: 100, name: "cutStepMm", label: "Шаг отреза в магазине" },
+    { kind: "price", item: "linoleum", name: "price_linoleum", label: "Цена за м²" },
   ],
   nextSteps: ["plintus", "ploshchad-komnaty"],
   items: { linoleum: { title: "Линолеум", photo: "linoleum" } },

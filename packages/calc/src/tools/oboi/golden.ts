@@ -261,6 +261,15 @@ export const golden: GoldenFile<OboiInput> = {
         ref: "Пачка на 50 м² (тяжёлые флизелиновые, по этикетке): 44,78 / 50 → 1, останется на 5,22 м²",
       },
     },
+    {
+      name: "With pack prices: total cost",
+      input: { price_wallpaper: 1500, "price_wallpaper-glue": 400 } as Partial<OboiInput>,
+      expected: { costTotal: 17300 },
+      source: {
+        kind: "manual",
+        ref: "11 рулонов × 1500 + 2 пачки клея × 400 = 17 300 ₽; грунтовка без цены — «без 1 позиции»",
+      },
+    },
   ],
   benchmarks: [
     {

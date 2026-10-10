@@ -239,3 +239,12 @@ test("tile: piece count with reserve, centre start removes the narrow-cut hint",
   await page.getByRole("radio", { name: "От центра" }).click();
   await expect(page.getByText(/узкая подрезка/)).toBeHidden();
 });
+
+test("pack price gives a total and «без N позиций» for items without one", async ({ page }) => {
+  await page.goto(LAMINATE);
+  await page.getByRole("button", { name: /Ещё параметры/ }).click();
+  await type(page, "Цена пачки", "1800");
+  // 10 пачек × 1800; подложка без цены.
+  await expect(page.locator("#result").getByText(/Итого 18\s000/)).toBeVisible();
+  await expect(page.locator("#result").getByText(/без 1 позиции/)).toBeVisible();
+});

@@ -133,5 +133,11 @@ export const golden: GoldenFile<KlejInput> = {
       expected: { absentItems: ["tile-adhesive"], warnings: ["openings_exceed_walls"] },
       source: { kind: "manual", ref: "Стены 10 м², окна 20 м² — клеить нечего" },
     },
+    {
+      name: "With pack prices: total cost",
+      input: { "price_tile-adhesive": 550 } as Partial<KlejInput>,
+      expected: { costTotal: 2750 },
+      source: { kind: "manual", ref: "5 мешков × 550 = 2750 ₽" },
+    },
   ],
 };

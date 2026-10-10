@@ -182,5 +182,11 @@ export const golden: GoldenFile<ZatirkaInput> = {
       expected: { absentItems: ["grout"], warnings: ["openings_exceed_walls"] },
       source: { kind: "manual", ref: "Стены 10 м², окна 20 м² — затирать нечего" },
     },
+    {
+      name: "With pack prices: total cost",
+      input: { price_grout: 450 } as Partial<ZatirkaInput>,
+      expected: { costTotal: 1350 },
+      source: { kind: "manual", ref: "3 упаковки × 450 = 1350 ₽" },
+    },
   ],
 };

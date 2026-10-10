@@ -79,6 +79,9 @@ export const oboi: ToolDef = {
       hint: "На канистре: 0,1–0,2 л/м²",
     },
     { kind: "number", min: 0.5, max: 50, step: 0.5, unit: "л", name: "primerPackL", label: "Объём канистры" },
+    { kind: "price", item: "wallpaper", name: "price_wallpaper", label: "Цена рулона" },
+    { kind: "price", item: "wallpaper-glue", name: "price_wallpaper-glue", label: "Цена пачки клея" },
+    { kind: "price", item: "primer", name: "price_primer", label: "Цена канистры грунтовки" },
   ],
   presets: [
     { id: "r053", label: "0,53 × 10 м", values: { rollWidthMm: 530, rollLengthMm: 10_050 } },

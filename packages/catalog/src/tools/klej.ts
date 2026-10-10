@@ -100,6 +100,7 @@ export const klej: ToolDef = {
       label: "Слой на плитку",
       hint: "Для плитки от 30 × 30 см; производитель толщину не указывает",
     },
+    { kind: "price", item: "tile-adhesive", name: "price_tile-adhesive", label: "Цена мешка" },
   ],
   presets: [
     { id: "t10", label: "10 × 10", values: { tileLengthMm: 100, tileWidthMm: 100 } },

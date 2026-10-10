@@ -17,6 +17,8 @@ const input = z.object({
   gapMm: z.number().int().min(0).max(30),
   /** Joint offset between rows and the shortest piece (norm `laminate.minOffset`). */
   minOffsetMm: z.number().int().min(100).max(1000),
+  /** Diagonal and herringbone waste, % (norms `laminate.waste.*`, unconfirmed). */
+  wastePct: z.number().min(0).max(40),
   underlay: z.boolean(),
   underlayRollM2: z.number().min(1).max(100),
 });
@@ -63,6 +65,7 @@ export const laminat: ToolModule<LaminatInput> = {
     boardsPerPack: 9,
     gapMm: 10,
     minOffsetMm: 300,
+    wastePct: LAMINATE_WASTE_PCT.diagonal,
     underlay: true,
     underlayRollM2: 10,
   }),
@@ -112,7 +115,7 @@ export const laminat: ToolModule<LaminatInput> = {
         { key: "lastRow", value: lay.lastRowMm, unit: "mm" },
       );
     } else {
-      const wastePct = LAMINATE_WASTE_PCT[i.method];
+      const wastePct = i.wastePct;
       const need = coverage({ areaM2: floorM2, ratePerM2: 1, wastePct });
       items.push(purchase("laminate", "main", { value: need, unit: "m2" }, pack));
       warnings.push({ code: "waste_unconfirmed", level: "info", values: { pct: wastePct } });

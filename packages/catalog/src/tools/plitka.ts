@@ -86,6 +86,21 @@ export const plitka: ToolDef = {
       label: "Плиток в коробке",
       hint: "Проверьте на коробке",
     },
+    { kind: "toggle", name: "adhesive", label: "Плиточный клей" },
+    { kind: "toggle", name: "grout", label: "Затирка" },
+    {
+      kind: "number",
+      min: 3,
+      max: 30,
+      step: 0.5,
+      unit: "мм",
+      name: "tileThicknessMm",
+      label: "Толщина плитки",
+      hint: "Для затирки: глубина шва",
+    },
+    { kind: "price", item: "tile", name: "price_tile", label: "Цена коробки" },
+    { kind: "price", item: "tile-adhesive", name: "price_tile-adhesive", label: "Цена мешка клея" },
+    { kind: "price", item: "grout", name: "price_grout", label: "Цена упаковки затирки" },
   ],
   presets: [
     { id: "t20", label: "20 × 20", values: { tileLengthMm: 200, tileWidthMm: 200, tilesPerBox: 25 } },
@@ -94,7 +109,11 @@ export const plitka: ToolDef = {
     { id: "t60", label: "60 × 60", values: { tileLengthMm: 600, tileWidthMm: 600, tilesPerBox: 4 } },
   ],
   nextSteps: ["klej", "zatirka"],
-  items: { tile: { title: "Плитка", photo: "tile" } },
+  items: {
+    tile: { title: "Плитка", photo: "tile" },
+    "tile-adhesive": { title: "Плиточный клей", photo: "tile-adhesive" },
+    grout: { title: "Затирка", photo: "grout" },
+  },
   summary: {
     tiles: "Плиток с запасом",
     whole: "Целых",
@@ -108,6 +127,8 @@ export const plitka: ToolDef = {
     reserve: "С запасом {pct}% на подрезку и бой: {pieces} → {tiles}",
     diagonal: "Диагональ: {area} м² / {tile} м² + {pct}% = {tiles} плиток",
     boxes: "Коробок по {perBox} шт.: {tiles} / {perBox} → {boxes}",
+    adhesive: "Клей — как в калькуляторе клея для этой плитки: {kg} кг, мешков {bags}",
+    grout: "Затирка — как в калькуляторе затирки для этого шва и толщины: {kg} кг, упаковок {packs}",
   },
   warnings: {
     openings_exceed_walls: "Окна и двери больше площади стен. Проверьте их размеры",

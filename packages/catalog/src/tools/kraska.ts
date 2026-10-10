@@ -62,6 +62,8 @@ export const kraska: ToolDef = {
       hint: "На канистре: 0,1–0,2 л/м²",
     },
     { kind: "number", min: 0.5, max: 50, step: 0.5, unit: "л", name: "primerPackL", label: "Объём канистры" },
+    { kind: "price", item: "paint", name: "price_paint", label: "Цена литра краски", hint: "Цена банки / объём банки" },
+    { kind: "price", item: "primer", name: "price_primer", label: "Цена канистры грунтовки" },
   ],
   nextSteps: ["ploshchad-sten", "oboi"],
   items: {

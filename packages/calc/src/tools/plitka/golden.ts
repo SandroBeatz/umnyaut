@@ -16,7 +16,11 @@ export const golden: GoldenFile<PlitkaInput> = {
       name: "Floor 4.6 × 4.3 m, tile 30 × 30, joint 3, from a corner (defaults)",
       input: {},
       expected: {
-        items: { tile: { packs: 22, need: 264, leftover: 0 } },
+        items: {
+          tile: { packs: 22, need: 264, leftover: 0 },
+          "tile-adhesive": { packs: 5, need: 106.812 },
+          grout: { packs: 3, need: 5.570048 },
+        },
         summary: { whole: 210, cut: 30, tiles: 264 },
         warnings: ["narrow_cut"],
       },
@@ -92,7 +96,14 @@ export const golden: GoldenFile<PlitkaInput> = {
         jointMm: 2,
         tilesPerBox: 20,
       },
-      expected: { items: { tile: { packs: 18, need: 359 } }, summary: { whole: 256, cut: 70 } },
+      expected: {
+        items: {
+          tile: { packs: 18, need: 359 },
+          "tile-adhesive": { packs: 3, need: 52.56 },
+          grout: { packs: 2, need: 3.700224 },
+        },
+        summary: { whole: 256, cut: 70 },
+      },
       source: {
         kind: "manual",
         ref: `${KM}. Высота 2500 по 252: 9 целых, 232. Стена 1700 по 202: 8 целых, 84 → 72 + 8 + 9 + 1 = 90; стена 1500: 7 целых, 86 → 63 + 7 + 9 + 1 = 80. 2 × 90 + 2 × 80 = 340; дверь где угодно по ширине наверняка закрывает ⌊(700 − 200) / 202⌋ = 2 целые в ряду, по высоте стоит на полу — ⌊2002 / 252⌋ = 7 рядов: 14 → 326 × 1,1 = 358,6 → 359 / 20 → 18`,
@@ -117,10 +128,22 @@ export const golden: GoldenFile<PlitkaInput> = {
       source: { kind: "manual", ref: "Стены 10 м², окна 20 м² — класть нечего" },
     },
     {
+      name: "Without adhesive and grout",
+      input: { adhesive: false, grout: false },
+      expected: { items: { tile: { packs: 22 } }, absentItems: ["tile-adhesive", "grout"] },
+      source: { kind: "manual", ref: "Сопутствующие выключены — только плитка" },
+    },
+    {
       name: "Reserve 15 % on a complex room",
       input: { reservePct: 15 },
       expected: { items: { tile: { packs: 23, need: 276 } } },
       source: { kind: "manual", ref: `${KM}. 240 × 1,15 = 276 / 12 → 23` },
+    },
+    {
+      name: "With pack prices: total cost",
+      input: { price_tile: 1200 } as Partial<PlitkaInput>,
+      expected: { costTotal: 26400 },
+      source: { kind: "manual", ref: "22 коробки × 1200 = 26 400 ₽; клей и затирка без цены" },
     },
   ],
 };

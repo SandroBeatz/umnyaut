@@ -59,6 +59,18 @@ export const laminat: ToolDef = {
       label: "Подложка: м² в рулоне",
       hint: "Проверьте по упаковке",
     },
+    {
+      kind: "number",
+      min: 0,
+      max: 40,
+      step: 1,
+      unit: "%",
+      name: "wastePct",
+      label: "Запас на диагональ и ёлочку",
+      hint: "По опыту укладчиков 15 %",
+    },
+    { kind: "price", item: "laminate", name: "price_laminate", label: "Цена пачки" },
+    { kind: "price", item: "underlay", name: "price_underlay", label: "Цена рулона подложки" },
   ],
   presets: [
     { id: "b1285", label: "1285 × 192, 9 шт.", values: { boardLengthMm: 1285, boardWidthMm: 192, boardsPerPack: 9 } },

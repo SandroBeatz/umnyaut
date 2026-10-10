@@ -91,6 +91,7 @@ export const zatirka: ToolDef = {
     },
     { kind: "number", min: 0, max: 30, step: 1, unit: "%", name: "reservePct", label: "Запас" },
     { kind: "number", min: 0.5, max: 25, step: 0.5, unit: "кг", name: "packKg", label: "Упаковка" },
+    { kind: "price", item: "grout", name: "price_grout", label: "Цена упаковки" },
   ],
   presets: [
     { id: "t10", label: "10 × 10", values: { tileLengthMm: 100, tileWidthMm: 100 } },

@@ -208,6 +208,7 @@ const laminat: ToolArbitrary<LaminatInput> = {
       boardsPerPack: f.integer({ min: 1, max: 50 }),
       gapMm: f.integer({ min: 0, max: 30 }),
       minOffsetMm: f.integer({ min: 100, max: 1000 }),
+      wastePct: f.double({ min: 0, max: 40, noNaN: true }),
       underlay: f.boolean(),
       underlayRollM2: f.double({ min: 1, max: 100, noNaN: true }),
     }),
@@ -229,6 +230,9 @@ const plitka: ToolArbitrary<PlitkaInput> = {
       start: f.constantFrom("corner" as const, "center" as const),
       reservePct: f.double({ min: 0, max: 30, noNaN: true }),
       tilesPerBox: f.integer({ min: 1, max: 200 }),
+      adhesive: f.boolean(),
+      grout: f.boolean(),
+      tileThicknessMm: f.double({ min: 3, max: 30, noNaN: true }),
     }),
   grow,
 };

@@ -162,5 +162,11 @@ export const golden: GoldenFile<KraskaInput> = {
       },
       source: { kind: "manual", ref: "Стены 0 (проёмы больше стен), потолок 1 м² × 2 / 10 = 0,2 л → 0,9 л" },
     },
+    {
+      name: "With pack prices: total cost",
+      input: { price_paint: 600, price_primer: 1500 } as Partial<KraskaInput>,
+      expected: { costTotal: 6900 },
+      source: { kind: "manual", ref: "краска 9 л × 600 ₽/л + 1 канистра × 1500 = 6900 ₽" },
+    },
   ],
 };

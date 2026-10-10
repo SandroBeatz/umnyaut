@@ -107,6 +107,12 @@ export const golden: GoldenFile<LaminatInput> = {
       },
     },
     {
+      name: "Herringbone with 20 % waste",
+      input: { method: "herringbone", wastePct: 20 },
+      expected: { items: { laminate: { packs: 11, need: 23.736 } } },
+      source: { kind: "manual", ref: "19,78 × 1,2 = 23,736 м² / 2,22048 = 10,7 → 11 пачек" },
+    },
+    {
       name: "Without underlay",
       input: { underlay: false },
       expected: { items: { laminate: { packs: 10 } }, absentItems: ["underlay"] },
@@ -126,6 +132,12 @@ export const golden: GoldenFile<LaminatInput> = {
         kind: "manual",
         ref: `${RULES}. Ряды 2980: 1285 + 1285 + 410 (обрезок 875); 875 + 1285 + 820 (обрезок 465); 465 + 1285 + 1230; 4-й = 1-му. (2000 − 20) / 192 → 11 рядов, последний 60 мм; 3 + 3 × 7 + 2 = 26 досок / 9 → 3 пачки`,
       },
+    },
+    {
+      name: "With pack prices: total cost",
+      input: { price_laminate: 1800, price_underlay: 600 } as Partial<LaminatInput>,
+      expected: { costTotal: 19200 },
+      source: { kind: "manual", ref: "10 пачек × 1800 + 2 рулона × 600 = 19 200 ₽" },
     },
   ],
 };

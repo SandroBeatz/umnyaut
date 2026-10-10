@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { gridArea, mm2ToM2, mmToM, purchase, wallAreaM2 } from "../../blocks";
-import type { Room, Step, ToolModule, ToolResult, Warning } from "../../types";
+import type { PurchaseItem, Room, Step, ToolModule, ToolResult, Warning } from "../../types";
+import { klej } from "../klej";
+import { zatirka } from "../zatirka";
 
 const length = z.number().int().min(300).max(100_000);
 
@@ -27,6 +29,11 @@ const input = z.object({
   /** Norm `tile.reserve` (straight), `tile.reserve.diagonal` replaces it for the diagonal. */
   reservePct: z.number().min(0).max(30),
   tilesPerBox: z.number().int().min(1).max(200),
+  /** Related: tile adhesive and grout, counted by the adhesive and grout tools with this tile and joint. */
+  adhesive: z.boolean(),
+  grout: z.boolean(),
+  /** Grout depth = tile thickness. */
+  tileThicknessMm: z.number().min(3).max(30),
 });
 
 export type PlitkaInput = z.infer<typeof input>;
@@ -60,6 +67,9 @@ export const plitka: ToolModule<PlitkaInput> = {
     start: "corner",
     reservePct: 10,
     tilesPerBox: 12,
+    adhesive: true,
+    grout: true,
+    tileThicknessMm: 8,
   }),
   compute(i): ToolResult {
     const warnings: Warning[] = [];
@@ -142,8 +152,35 @@ export const plitka: ToolModule<PlitkaInput> = {
     );
     steps.push({ code: "boxes", values: { tiles, perBox: i.tilesPerBox, boxes: tile.packs } });
 
+    // Adhesive and grout for the same surface, tile and joint — the very formulas of those two tools.
+    const related: PurchaseItem[] = [];
+    const surface = {
+      surface: i.surface,
+      lengthMm: i.lengthMm,
+      widthMm: i.widthMm,
+      heightMm: i.heightMm,
+      openings: i.openings,
+      tileLengthMm: i.tileLengthMm,
+      tileWidthMm: i.tileWidthMm,
+    };
+    if (i.adhesive) {
+      const glue = klej.compute({ ...klej.defaults({ country: "RU" }), ...surface }, { country: "RU" });
+      related.push(...glue.items.map((it) => ({ ...it, role: "related" as const })));
+      const kg = glue.items.reduce((n, it) => n + it.need.value, 0);
+      steps.push({ code: "adhesive", values: { kg, bags: glue.items.reduce((n, it) => n + it.packs, 0) } });
+    }
+    if (i.grout && i.jointMm > 0) {
+      const fill = zatirka.compute(
+        { ...zatirka.defaults({ country: "RU" }), ...surface, jointMm: i.jointMm, depthMm: i.tileThicknessMm },
+        { country: "RU" },
+      );
+      related.push(...fill.items.map((it) => ({ ...it, role: "related" as const })));
+      const kg = fill.items.reduce((n, it) => n + it.need.value, 0);
+      steps.push({ code: "grout", values: { kg, packs: fill.items.reduce((n, it) => n + it.packs, 0) } });
+    }
+
     return {
-      items: [tile],
+      items: [tile, ...related],
       summary: [
         { key: "tiles", value: tiles, unit: "pcs" },
         ...(i.layout === "straight"
