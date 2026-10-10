@@ -1,5 +1,6 @@
 import type { ToolId } from "@umnyaut/calc";
 import { type CategoryDef, type CategorySlug, categories } from "./categories";
+import { home } from "./home";
 import { klej } from "./tools/klej";
 import { kraska } from "./tools/kraska";
 import { laminat } from "./tools/laminat";
@@ -49,4 +50,12 @@ export function activeCategories(): CategoryDef[] {
 
 export function toolPath(tool: { category: CategorySlug; id: ToolId }): string {
   return `/${tool.category}/${tool.id}/`;
+}
+
+/** Popular tools of the home and 404 pages with their card note; a tool that is not live is skipped. */
+export function popularTools(): { tool: ToolDef; note: string }[] {
+  return home.popular.tools.flatMap(({ id, note }) => {
+    const tool = tools.find((t) => t.id === id && t.status === "live");
+    return tool ? [{ tool, note }] : [];
+  });
 }

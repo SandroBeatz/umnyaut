@@ -1,7 +1,7 @@
 import { toolModules } from "@umnyaut/calc";
 import { describe, expect, it } from "vitest";
 import { home } from "./home";
-import { tools } from "./registry";
+import { popularTools, tools } from "./registry";
 
 describe("home", () => {
   it("every example card is an item its tool returns for the example room", () => {
@@ -24,7 +24,6 @@ describe("home", () => {
   });
 
   it("popular tools are six live tools", () => {
-    expect(home.popular.tools).toHaveLength(6);
-    for (const { id } of home.popular.tools) expect(tools.find((t) => t.id === id)?.status, id).toBe("live");
+    expect(popularTools()).toHaveLength(6);
   });
 });

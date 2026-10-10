@@ -12,7 +12,16 @@ export { devUi } from "./dev-ui";
 export { type ExampleItem, type HomeWork, home, type MethodIcon } from "./home";
 export { normTitles } from "./norm-titles";
 export { getNorm, type Norm, norms } from "./norms";
-export { activeCategories, getCategory, getTool, strings, toolPath, tools, toolsIn } from "./registry";
+export {
+  activeCategories,
+  getCategory,
+  getTool,
+  popularTools,
+  strings,
+  toolPath,
+  tools,
+  toolsIn,
+} from "./registry";
 export { methodology, navigation, shell } from "./shell";
 export type { FieldDef, ItemDef, PresetDef, RoomBinding, ToolDef } from "./tools/types";
 export { lengthUnitLabels, packNouns, unitLabels } from "./units";

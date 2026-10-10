@@ -1,4 +1,4 @@
-import { activeCategories, type CategoryDef, home, type MethodIcon, tools } from "@umnyaut/catalog";
+import { activeCategories, type CategoryDef, home, type MethodIcon, popularTools } from "@umnyaut/catalog";
 import { Button, categoryIcons, IconCircle, Mascot } from "@umnyaut/ui";
 import { ArrowRight, Calculator, CalendarCheck, Check, type LucideIcon, Package } from "lucide-react";
 import Link from "next/link";
@@ -11,10 +11,7 @@ const methodIcons: Record<MethodIcon, LucideIcon> = { package: Package, formula:
 
 /** Home page (design spec §13 «Главная»); header and footer come from the root layout. */
 export function HomePage() {
-  const popular = home.popular.tools.flatMap(({ id, note }) => {
-    const tool = tools.find((t) => t.id === id && t.status === "live");
-    return tool ? [{ tool, note }] : [];
-  });
+  const popular = popularTools();
 
   return (
     <main className="flex flex-1 flex-col">
