@@ -1,12 +1,12 @@
 ---
-version: 1.1
-date: 2026-10-09
+version: 1.6
+date: 2026-10-10
 category: code
 ---
 
 # Calculation Engine (`@umnyaut/calc`)
 
-> Version 1.1 · 2026-10-09 · [Code](../code/)
+> Version 1.6 · 2026-10-10 · [Code](../code/)
 
 ## Overview
 
@@ -14,7 +14,7 @@ category: code
 
 The package does not know about React, HTTP, or the database. Its only dependency is Zod. It is also the single biggest product risk (a wrong formula means a person buys the wrong amount), so it carries the strictest testing rules in the repo.
 
-> Status: core implemented (Phase 4): types, blocks `geometry`/`packs`/`waste`/`coverage`, golden harness, invariants, reviewer export, `ProjectData` v1 and a `mergeItems()` stub. No tool has a formula yet; engines `rows`, `grid`, `strips`, `frame`, `power` arrive with their tools.
+> Status: core implemented (Phase 4): types, blocks `geometry`/`packs`/`waste`/`coverage`, golden harness, invariants, reviewer export, `ProjectData` v1 and a `mergeItems()` stub. Live tools (10): room area, wall area (Phase 5); wallpaper, paint, plinth, linoleum, laminate, tile, tile adhesive, grout (Phase 6) with the engines `strips` (`cutStrips`), `rows` (`layRows`), `grid` (`gridArea`) and can sets (`purchaseSet`); `frame` and `power` arrive with wave 2. The wall list (P6.11) merges works with `mergeItems()` — same key and pack summed, rounded once (walls primer + ceiling primer = one 10 л canister); can sets from different works are merged per size, not re-optimised (P11.1). A can set returns one line per size with the same key: golden expectations and the monotonic invariant compare the sum per key (total bought must not drop when the area grows).
 
 ## Architecture
 
@@ -130,14 +130,14 @@ Only three engines need new geometry: `rows`, `grid`, `strips`.
 |---|---|---|---|
 | Room area | `/osnova/ploshchad-komnaty/` | `geometry` | Rect; L = rect − cut; niches/protrusions signed. Writes “My room” |
 | Wall area | `/osnova/ploshchad-sten/` | `geometry` | Perimeter × height − Σ openings; ceiling = floor |
-| Wallpaper | `/steny/oboi/` | `strips`, `packs` | Strips around perimeter w/o openings; strips per roll = ⌊roll length ÷ (height + allowance + repeat)⌋; rolls = ⌈strips ÷ strips per roll⌉; glue by area |
-| Paint | `/steny/kraska/` | `coverage`, `packs` | Area × label rate × layers × surface coef; can set by search with minimal overpay |
-| Laminate | `/pol/laminat/` | `rows`, `waste`, `packs` | Row by row: offset, trimming, offcut moves to next row if ≥ minimum. Diagonal/herringbone = waste % at launch |
-| Linoleum | `/pol/linoleum/` | `strips` | For each roll width × 2 directions: sheets, cut length, seams, waste, price; variants sorted |
-| Plinth | `/pol/plintus/` | `geometry`, `packs` | ⌈(perimeter − doors) ÷ plank length⌉; corners by shape, caps by doors, joiners by joints |
-| Tile | `/plitka/plitka/` | `grid`, `waste`, `packs` | Grid with joint from centre or corner; whole and cut tiles; boxes |
-| Tile adhesive | `/plitka/klej/` | `coverage` | Area × rate by trowel notch for tile format × base coef |
-| Grout | `/plitka/zatirka/` | `coverage` | kg/m² = (A + B) ÷ (A × B) × joint width × depth × density |
+| Wallpaper | `/steny/oboi/` | `strips`, `packs` | Strips = ⌈(perimeter − Σ max(opening width − roll width, 0)) ÷ roll width⌉ — a strip that only partly covers an opening is still full height; each strip is height + 10 cm trim. `cutStrips` cuts them on the repeat (offset match: phases 0 and repeat/2 alternate) after a worst-case lead of repeat − 1 mm per roll (the fitters' «высота + раппорт»), and puts the pieces above doors and above/below windows (none under 5 cm) into roll tails first; need = rolls × roll length − largest tail; paste by net wall area ÷ m² per pack; warning when strips use the roll within the ±1,5% length tolerance |
+| Paint | `/steny/kraska/` | `coverage`, `packs` | Area (walls without openings and/or ceiling) × coats ÷ coverage from the can; `purchaseSet` picks the 0,9 / 2,7 / 9 л set with the least overbuy, then the fewest cans, one purchase line per size with the same key; primer = area × rate in one canister size (a litre-based optimiser would buy 7 × 1 л instead of 10 л — needs prices) |
+| Laminate | `/pol/laminat/` | `rows`, `waste`, `packs` | `layRows`: rows = ⌈(across − 2 × gap) ÷ board width⌉; each row starts with a start-side offcut (the right part left by a row-end cut — click locks forbid turning a piece) if the end joints stay ≥ 30 cm from the previous row and no end is shorter than 30 cm, else a whole board, else a board cut to shift the joints (its left part may only END a later row). Mockup 4,6 × 4,3, 1285 × 192 × 9 → 92 boards, 11 packs (rows across: 9). Last row < 5 cm warns; diagonal/herringbone = area + 15 % (unconfirmed); underlay rolls by floor area |
+| Linoleum | `/pol/linoleum/` | `packs` | Every roll width (1,5 … 4 м, or one pinned) × both directions: sheets n with n·w − (n − 1)·overlap ≥ the room across, cut = n × room along (+ allowance), rounded to the shop cut step. Fewest seams first (Tarkett: «избегайте швов, выбирая максимальную ширину»), then the smallest bought area (price is per m²), then along the length. Bought by area: `Pack.kind: "running"` with `width`, one cut step = width × step, so needs of different widths stay comparable; the shell shows «8,6 м · ширина 2,5 м · 21,5 м²». Implemented in v1 without the `strips` block (no pattern repeat input yet) |
+| Plinth | `/pol/plintus/` | `geometry`, `packs` | ⌈(perimeter − doors) ÷ plank⌉ with offcuts joined; joiners = planks − 1; inner corners 4 (5 + 1 outer for an L-shape); 2 caps per door; fasteners per straight run ⌈run ÷ 40 cm⌉ + 1 (doors split the longest run; Arbiton INDO manual) |
+| Tile | `/plitka/plitka/` | `grid`, `packs` | `gridArea` from a corner or the centre (parity with the wider cut; a remainder ≤ joint is no cut); every cut piece takes a tile (Kerama Marazzi); walls one by one minus whole tiles surely inside openings, ⌊(size − tile) ÷ pitch⌋ (a door lines up with the rows from a corner); + 10 % reserve; diagonal = area ÷ tile × 1,15; boxes |
+| Tile adhesive | `/plitka/klej/` | `coverage` | Floor (L-shape from the room) or walls without openings × kg/m² from the CM 11 PRO notch table by the longer side, or 1,2 kg/m² × layer mm; from 30 × 30 + 1 mm on the tile back (+1,2 kg/m², unconfirmed); bags |
+| Grout | `/plitka/zatirka/` | `coverage` | kg/m² = (A + B) ÷ (A × B) × joint × depth (= tile thickness) × 1,6, + 10 %; the CE 40 table equals this formula at its own 12,5–14 mm depth (golden cross-checks); packs of 2 kg |
 
 Wave 2/3 approaches: technical spec §8. Tools `kabel`, `radiatory`, `styazhka` carry a `disclaimer` flag in `catalog`.
 
@@ -152,6 +152,20 @@ Taken in Phase 4 without real tools. Re-check each one once the first formulas, 
 | 3 | Norms registry is empty | No consumption rate, overlap or waste % exists until a tool brings it with `source` + `checkedAt`; content with `{{norm.*}}` fails the build without the norm | Each wave‑1 tool adds its norms from P0.7 sources; reviewer confirms values | P0.7, Phase 6 |
 | 4 | Harness proven only on a demo tool | Golden and invariant runs skip `version: 0`; the harness is tested on `test/fixtures/demo-tool.ts` | The first real tool (P5.8) must show up in `golden.test.ts` and `invariants.test.ts` as executed, not skipped, and fail when a golden number is broken on purpose | P5.8 |
 | 5 | `tsx` with disabled `esbuild` postinstall | `allowBuilds: { esbuild: false }` in `pnpm-workspace.yaml`; the platform binary comes from esbuild's optional package | Run `pnpm calc:export` on CI (Linux) and on the owner's Mac once real golden files exist | P6.10 |
+| 6 | Pack choice by litres, not by money | `bestPackSet` without prices minimises overbuy in litres, then pack count. Paint uses it (0,9 / 2,7 / 9 л) — owner, 2026-10-10: keep least overbuy until prices, even where one 9 л can is likely cheaper than 3 × 2,7 л; primer stays one canister size because 7 × 1 л would beat 10 л | Add pack price fields (`kind: "price"` per size) and switch both to the cheapest set; compare with real shop prices per country | Phase 7+ (prices), owner decision |
+
+### Phase 6 check (P6.12, 2026-10-10)
+
+| # | Verdict | Evidence from the 10 wave-1 tools |
+|---|---|---|
+| 1 | Keep relative 1e‑9 | Exact pack multiples in golden for paint (9 л), adhesive (50 кг), grout (2 кг), wallpaper (3 × 3,35 м = 10,05), linoleum (4,0 м), tile (70 шт.): none bought an extra pack. Inputs are integer mm, so float noise never reached a real boundary; the reviewer probed +ε (15,002 м → 7 планок) and it held |
+| 2 | Keep; tools clamp | Phantom packs from near-zero geometry were found and handled in the tools, not in `ceilPacks`: a 3 mm gap above a door bought a whole roll (wallpaper now drops pieces under 5 cm); openings ≥ walls return no items (wallpaper, paint, adhesive, grout, tile); doors ≥ perimeter (plinth) |
+| 3 | Done | 45 norms from 19 sources (S1–S19) in [Norm Sources — Wave 1](./norm-sources-wave-1.md); 7 working defaults flagged `unconfirmed`; catalog tests keep every calc default equal to its norm |
+| 4 | Done | All 10 tools run golden and invariants; deep property runs (20–30 thousand inputs) found real defects the 300-run CI pass missed: wallpaper monotonicity with zero strips, fractional can sizes in `bestPackSet`, a zero linoleum sheet step, an oversized cut-out turning into a real L-shape. CI keeps 600 runs with a 30 s timeout |
+| 5 | Mac ✅, CI step added | `pnpm calc:export` writes 128 rows on macOS; the CI job runs it on Linux and checks > 100 rows |
+| 6 | Open (prices) | Least overbuy in litres stays for paint; primer one canister size (owner, 2026-10-10) |
+
+New rules learnt in Phase 6: one line per pack size with the same item key (can sets) — golden and invariants compare sums per key; goods bought by the running metre are compared by area (`Pack.width`); a rule found by fast-check gets a golden example or a documented arbitrary constraint, never a weaker test.
 
 ## Configuration
 

@@ -3,6 +3,7 @@ import { categoryIcons, cn, Mascot, MaterialThumb } from "@umnyaut/ui";
 import { Calculator, Info } from "lucide-react";
 import type { Ref } from "react";
 import { mascotImages, materialImages } from "@/shared/config";
+import { Hint } from "@/shared/ui";
 import type { ResultView } from "../model/view";
 
 const r = shell.result;
@@ -38,7 +39,7 @@ export function ResultPanel({ tool, view, example, stale, ref }: ResultPanelProp
           <p className="text-small font-semibold text-text">
             {example ? r.example : view.mode === "buy" ? r.buy : r.measure}
           </p>
-          {main && view.mode === "measure" ? <p className="text-small text-text-muted">{main.title}</p> : null}
+          {main ? <p className="text-small text-text-muted">{main.title}</p> : null}
         </div>
       </header>
 
@@ -48,9 +49,8 @@ export function ResultPanel({ tool, view, example, stale, ref }: ResultPanelProp
             <MaterialThumb image={photoOf(main.photo)} fallbackIcon={<CategoryIcon />} alt="" size={64} />
           ) : null}
           <div className="min-w-0" aria-live="polite" aria-atomic="true">
-            {view.mode === "buy" ? <p className="text-small text-text-muted">{main.title}</p> : null}
             <p className={cn("tabular-nums transition-opacity duration-150", stale && "opacity-60")}>
-              {view.mode === "measure" ? <span className="sr-only">{main.title}: </span> : null}
+              <span className="sr-only">{main.title}: </span>
               <span className="text-result" data-result-value>
                 {main.value}
               </span>{" "}
@@ -64,17 +64,14 @@ export function ResultPanel({ tool, view, example, stale, ref }: ResultPanelProp
       {stale ? <p className="mt-2 text-small text-danger">{r.stale}</p> : null}
 
       {view.warnings.length > 0 ? (
-        <div className="mt-4 flex gap-3 rounded-md bg-accent-soft p-3">
-          <Mascot image={mascotImages.warn} size={40} alt="" />
-          <div>
-            <p className="sr-only">{shell.warningsTitle}</p>
-            <ul className="flex flex-col gap-1 text-small text-text">
-              {view.warnings.map((w) => (
-                <li key={w.code}>{w.text}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
+        <Hint className="mt-4">
+          <p className="sr-only">{shell.warningsTitle}</p>
+          <ul className="flex flex-col gap-1">
+            {view.warnings.map((w) => (
+              <li key={w.code}>{w.text}</li>
+            ))}
+          </ul>
+        </Hint>
       ) : null}
 
       {tool.disclaimer ? (
@@ -91,7 +88,10 @@ export function ResultPanel({ tool, view, example, stale, ref }: ResultPanelProp
             {view.related.map((item) => (
               <li key={item.key} className="flex items-center gap-3 py-2">
                 <MaterialThumb image={photoOf(item.photo)} fallbackIcon={<CategoryIcon />} alt="" size={56} />
-                <span className="flex-1 text-body">{item.title}</span>
+                <span className="flex flex-1 flex-col">
+                  <span className="text-body">{item.title}</span>
+                  {item.detail ? <span className="text-small text-text-muted tabular-nums">{item.detail}</span> : null}
+                </span>
                 <span className="text-quantity tabular-nums" data-result-value>
                   {item.quantity}
                 </span>

@@ -69,11 +69,37 @@ export const shell = {
     example: "Это пример. Введите свои размеры",
     stale: "По прошлым значениям — исправьте поле с ошибкой",
     need: "{need} · останется {leftover}",
+    /** Packs sold by volume or weight: which sizes to take instead of the need («1 × 9 л + 1 × 2,7 л»). */
+    set: "{set} · останется {leftover}",
+    each: "по {size}",
+    /** Running-metre goods (linoleum): the roll width and the bought area. */
+    running: "ширина {width} · {area}",
+    width: "ширина {size}",
     total: "Итого {total}",
     perM2: "{price} за м²",
     missing: "без {count} {positions}",
     positions: { one: "позиции", few: "позиций", many: "позиций" },
     related: "Ещё понадобится",
+  },
+  /** Local list of works for one room (P6.11); the full planner is /remont/ in Phase 11. */
+  roomList: {
+    title: "Список для комнаты",
+    lead: "Одинаковые материалы сложены и округлены до упаковок один раз. Размеры — из «Моей комнаты».",
+    add: "В список",
+    added: "В списке",
+    update: "Обновить в списке",
+    addedToast: "Добавлено в список для комнаты",
+    works: "Расчёты",
+    remove: "Убрать «{tool}» из списка",
+    buy: "Купить",
+    next: "Добавьте в список",
+    copy: "Скопировать список",
+    copied: "Список скопирован",
+    clear: "Очистить список",
+    /** Conflicts between works of the list, by code. */
+    conflicts: {
+      walls_twice: "Стены и в обоях, и в краске. Если красите только потолок, выберите в краске «Потолок»",
+    },
   },
   warningsTitle: "Обратите внимание",
   disclaimer: "Расчёт ориентировочный. Монтаж выполняет специалист с допуском, по проекту и нормам.",

@@ -1,12 +1,12 @@
 ---
-version: 1.1
-date: 2026-10-09
+version: 1.4
+date: 2026-10-10
 category: ui
 ---
 
 # Calculator Shell, Pages and Routing
 
-> Version 1.1 · 2026-10-09 · [UI](../ui/)
+> Version 1.4 · 2026-10-10 · [UI](../ui/)
 
 ## Overview
 
@@ -79,6 +79,7 @@ From 1024 px: form 5/12 columns left, result 7/12 right and sticky (top offset 8
 | “My room” | Zustand + persist (localStorage) | `umnyaut:room:v1` |
 | Last packs/prices per tool | localStorage | `umnyaut:tool:<id>:v1` |
 | Country | localStorage | `umnyaut:country` |
+| Room list (P6.11) | Zustand + persist (localStorage) | `umnyaut:list:v1` — `{ tool, input }` per tool, own fields only |
 | Planner draft | localStorage | `umnyaut:planner:draft` |
 | Shareable calc | URL param | `/pol/laminat/?s=<base64url JSON of non-default fields>` |
 | Saved project | Supabase | `/p/a8H2k` |
@@ -126,7 +127,13 @@ Variations are `catalog` entries (URL, titles, default overrides, own text). Fro
 | Invalid input | Out of range or empty → red message under the field, the result keeps the last valid input and shows «По прошлым значениям» |
 | Tools without items | Geometry tools return only `summary`; the first entry is the big number, the rest are tiles; labels in `ToolDef.summary`. Header reads «Получилось» instead of «Нужно купить» |
 | `?s=` | base64url (UTF-8) JSON of fields that differ from `defaults()`; decoded values go through the tool's Zod schema, garbage is ignored. Canonical is always the clean URL |
-| Phone budget | Asserted by Playwright: the main number ends at 643 px on wall area (390 × 844) |
+| Tools with items | The main item's name sits in the mascot header line (under «Нужно купить»), not above the number, so a purchase tool keeps the same height as a geometry tool; the number row is photo + count + «need · останется» caption |
+| Can sets | Lines of one item key are one purchase: the main figure is the total count («4 банки») with the sizes in the caption («1 × 9 л + 1 × 2,7 л + 2 × 0,9 л · останется 0,59 л»); a related item sold by volume or weight shows its size under the title («по 10 л») |
+| Room list | `features/room-list` (P6.11, local only): on purchase tools the disabled «Сохранить» becomes «В список» → «В списке» → «Обновить в списке» when the tool's own input changes. «Список для комнаты» under the result on every tool page: works as removable chips, each recomputed with the current “My room” (defaults → stored input → room → schema → compute), items merged by `mergeItems()` and grouped like the result card, «Скопировать список», «Очистить», and «Добавьте в список» with purchase tools of the same categories not in the list yet. Server HTML has no list (read after mount). Room-binding helpers moved to `entities/room`, purchase grouping to `entities/tool`, so the shell and the list share them. Saving and the full planner stay in Phases 7 and 11 |
+| Running metre | `Pack.kind: "running"` with `width` (linoleum): the main figure is the cut length («8,6 м») with «ширина 2,5 м · 21,5 м²» under it; a numeric select (roll width) gets its number back from the string option |
+| Select fields | Up to 4 options render as a full-width segment; `dropdown: true` puts the select in half a row (paint «Что красим» next to the height) |
+| Length units | A length field with `unit: "m"` follows the form's м/см switch; `cm` and `mm` fields keep their own unit (wallpaper repeat and trim in cm) |
+| Phone budget | Asserted by Playwright for every live tool: the main number ends at 643 px on wall area and wallpaper, 579 px on paint (390 × 844) |
 | Server-HTML guard | `pnpm --filter web html:check` after the build: title, one H1, canonical on every prerendered page, digits in `[data-result-value]` on tool pages |
 | Sheets | `ResponsiveSheet` (`packages/ui`): bottom sheet below 1024 px, centred 480 px dialog from 1024 px — RoomBar editor, report error |
 | Not yet | `calc_completed` event (Phase 9), «Сохранить» and report sending (Phase 7), per-tool code splitting of calc modules |

@@ -1,4 +1,4 @@
-import { toolModules } from "@umnyaut/calc";
+import { GROUT_DENSITY, LAMINATE_WASTE_PCT, NOTCH_TABLE, TILE_DIAGONAL_RESERVE_PCT, toolModules } from "@umnyaut/calc";
 import { describe, expect, it } from "vitest";
 import { type CategoryDef, categories, reservedSegments } from "./categories";
 import { norms } from "./norms";
@@ -40,6 +40,44 @@ describe("registry", () => {
         expect(module.input.safeParse(input).success, `${tool.id} preset ${preset.id}`).toBe(true);
       }
     }
+  });
+
+  it("calc defaults use the catalog norms (calc cannot import them)", () => {
+    const value = (id: string) => norms[id]?.value;
+    const oboi = toolModules.oboi.defaults({ country: "RU" });
+    expect(oboi.rollWidthMm / 1000).toBe(value("wallpaper.rollWidth"));
+    expect(oboi.rollLengthMm / 1000).toBe(value("wallpaper.rollLength"));
+    expect(oboi.trimMm / 10).toBe(value("wallpaper.trimAllowance"));
+    expect(oboi.pasteCoverageM2).toBe(value("wallpaperPaste.coverage"));
+    const kraska = toolModules.kraska.defaults({ country: "RU" });
+    expect(kraska.coverageM2PerL).toBe(value("paint.coverage"));
+    expect(kraska.coats).toBe(value("paint.coats"));
+    expect(kraska.primerRateLPerM2).toBe(value("primer.consumption"));
+    expect(toolModules.oboi.defaults({ country: "RU" }).primerRateLPerM2).toBe(value("primer.consumption"));
+    expect(toolModules.plintus.defaults({ country: "RU" }).plankLengthMm / 1000).toBe(value("plinth.length"));
+    expect(toolModules.plintus.defaults({ country: "RU" }).fastenerSpacingMm).toBe(value("plinth.fastenerSpacing"));
+    expect(toolModules.klej.defaults({ country: "RU" }).backButterMm).toBe(value("tileAdhesive.backButter"));
+    for (const row of NOTCH_TABLE)
+      expect(row.kgPerM2, `notch ${row.notchMm}`).toBe(value(`tileAdhesive.notch${row.notchMm}`));
+    expect(toolModules.klej.defaults({ country: "RU" }).bagKg).toBe(value("tileAdhesive.bag"));
+    const zatirka = toolModules.zatirka.defaults({ country: "RU" });
+    expect(GROUT_DENSITY).toBe(value("grout.density"));
+    expect(zatirka.reservePct).toBe(value("grout.reserve"));
+    expect(zatirka.jointMm).toBe(value("tile.joint.floor"));
+    expect(zatirka.packKg).toBe(value("grout.pack"));
+    expect(toolModules.linoleum.defaults({ country: "RU" }).overlapMm).toBe(value("linoleum.seamOverlap"));
+    expect(toolModules.linoleum.defaults({ country: "RU" }).weldPerTubeM).toBe(value("linoleum.weldPerTube"));
+    const laminat = toolModules.laminat.defaults({ country: "RU" });
+    expect(laminat.gapMm).toBe(value("laminate.expansionGap"));
+    expect(laminat.minOffsetMm).toBe(value("laminate.minOffset"));
+    expect(laminat.underlayRollM2).toBe(value("underlay.rollArea"));
+    expect(LAMINATE_WASTE_PCT.diagonal).toBe(value("laminate.waste.diagonal"));
+    expect(LAMINATE_WASTE_PCT.herringbone).toBe(value("laminate.waste.herringbone"));
+    const plitka = toolModules.plitka.defaults({ country: "RU" });
+    expect(plitka.reservePct).toBe(value("tile.reserve"));
+    expect(TILE_DIAGONAL_RESERVE_PCT).toBe(value("tile.reserve.diagonal"));
+    expect(plitka.tilesPerBox).toBe(value("tile.perBox"));
+    expect(plitka.jointMm).toBe(value("tile.joint.floor"));
   });
 
   it("active categories are exactly those with tools", () => {

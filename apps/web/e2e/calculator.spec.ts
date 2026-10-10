@@ -2,6 +2,14 @@ import { expect, type Page, test } from "@playwright/test";
 
 const ROOM = "/osnova/ploshchad-komnaty/";
 const WALLS = "/osnova/ploshchad-sten/";
+const WALLPAPER = "/steny/oboi/";
+const PAINT = "/steny/kraska/";
+const PLINTH = "/pol/plintus/";
+const LINOLEUM = "/pol/linoleum/";
+const LAMINATE = "/pol/laminat/";
+const TILE = "/plitka/plitka/";
+const ADHESIVE = "/plitka/klej/";
+const GROUT = "/plitka/zatirka/";
 /** Visible area of Safari on a 390 × 844 iPhone (design spec §12). */
 const FIRST_SCREEN = 660;
 
@@ -14,8 +22,8 @@ async function type(page: Page, label: string, value: string) {
   await field.blur();
 }
 
-test("the result number is on the first phone screen of both tools", async ({ page }) => {
-  for (const path of [ROOM, WALLS]) {
+test("the result number is on the first phone screen of every tool", async ({ page }) => {
+  for (const path of [ROOM, WALLS, WALLPAPER, PAINT, PLINTH, LINOLEUM, LAMINATE, TILE, ADHESIVE, GROUT]) {
     await page.goto(path);
     const box = await result(page).boundingBox();
     expect(box, path).not.toBeNull();
@@ -114,4 +122,129 @@ test.describe("without JavaScript", () => {
     await expect(page.locator("h1")).toHaveCount(1);
     await expect(result(page)).toHaveText("44,78");
   });
+});
+
+test("wallpaper: rolls by strips, roll preset and pattern repeat change the count", async ({ page }) => {
+  await page.goto(WALLPAPER);
+  // Mockup room: 32 strips of 2,8 m, 3 per 10,05 m roll → 11 rolls; paste 44,78 / 30 → 2 packs.
+  await expect(result(page)).toHaveText("11");
+  await expect(page.getByText("2 пачки")).toBeVisible();
+
+  await page.getByText("1,06 × 10 м").click();
+  await expect(result(page)).toHaveText("6");
+
+  await page.getByText("0,53 × 10 м").click();
+  await page.getByRole("button", { name: /Ещё параметры/ }).click();
+  await type(page, "Раппорт", "64");
+  // Each strip takes 3,2 m of the roll after the worst pattern start; the pieces need a 12th roll.
+  await expect(result(page)).toHaveText("12");
+});
+
+test("paint: a can set with sizes, ceiling switch, primer canister", async ({ page }) => {
+  await page.goto(PAINT);
+  // Walls 44,78 m² × 2 / 10 = 8,956 l → one 9 l can; primer 6,7 l → one 10 l canister.
+  await expect(result(page)).toHaveText("1");
+  await expect(page.getByText(/1\s×\s9\sл · останется/)).toBeVisible();
+  await expect(page.getByText(/^1\sканистра$/)).toBeVisible();
+  await expect(page.getByText(/^по 10\sл$/)).toBeVisible();
+
+  await page.getByRole("button", { name: "Что красим" }).click();
+  await page.getByRole("radio", { name: "Стены и потолок" }).click();
+  // + ceiling 19,78 → 12,912 l → 9 + 2,7 + 2 × 0,9
+  await expect(result(page)).toHaveText("4");
+  await expect(page.getByText(/1\s×\s9\sл \+ 1\s×\s2,7\sл \+ 2\s×\s0,9\sл/)).toBeVisible();
+});
+
+test("room list: wallpaper on the walls and paint on the ceiling share one primer canister", async ({ page }) => {
+  await page.goto(WALLPAPER);
+  await expect(result(page)).toHaveText("11");
+  await page.getByRole("button", { name: "В список" }).click();
+  await expect(page.getByRole("button", { name: "В списке" })).toBeDisabled();
+  const list = page.locator("[data-room-list]");
+  await expect(list.getByRole("heading", { name: "Список для комнаты" })).toBeVisible();
+
+  await list.getByRole("link", { name: /Краска/ }).click();
+  await expect(page).toHaveURL(PAINT);
+  await page.getByRole("button", { name: "Что красим" }).click();
+  await page.getByRole("radio", { name: "Потолок", exact: true }).click();
+  await page.getByRole("button", { name: "В список" }).click();
+
+  // Walls 44,78 × 0,15 + ceiling 19,78 × 0,15 = 9,68 л → one canister for both works.
+  const rows = list.locator("li", { has: page.locator("[data-list-quantity]") });
+  await expect(rows).toHaveCount(4);
+  await expect(rows.filter({ hasText: "Грунтовка" }).locator("[data-list-quantity]")).toHaveText(/^1\sканистра$/);
+  await expect(rows.filter({ hasText: "Обои" }).first().locator("[data-list-quantity]")).toHaveText(/^11\sрулонов$/);
+
+  // The list follows “My room”: a longer room needs more wallpaper.
+  await type(page, "Длина комнаты", "6");
+  await expect(rows.filter({ hasText: "Обои" }).first().locator("[data-list-quantity]")).not.toHaveText(/^11\s/);
+
+  await list.getByRole("button", { name: "Убрать «Обои» из списка" }).click();
+  await expect(rows.filter({ hasText: "Обои" })).toHaveCount(0);
+});
+
+test("plinth: planks and fittings, an L-shaped room adds corners", async ({ page }) => {
+  await page.goto(PLINTH);
+  // 17,8 − 0,8 = 17 м → 7 планок по 2,5 м.
+  await expect(result(page)).toHaveText("7");
+  await expect(page.getByText(/^4\sштуки$/)).toBeVisible();
+
+  await page.getByRole("button", { name: /Ещё параметры/ }).click();
+  await page.getByRole("radio", { name: "Г-образная" }).click();
+  await expect(page.locator("#result").getByText("Наружный угол")).toBeVisible();
+});
+
+test("tile adhesive and grout follow the tile size", async ({ page }) => {
+  await page.goto(ADHESIVE);
+  // 19,78 м² × (4,2 + 1,2 на плитку) = 106,8 кг → 5 мешков по 25 кг.
+  await expect(result(page)).toHaveText("5");
+  await page.getByRole("radio", { name: "10 × 10" }).click();
+  // × 2,0 кг/м² = 39,6 кг → 2 мешка.
+  await expect(result(page)).toHaveText("2");
+
+  await page.goto(GROUT);
+  // 0,256 кг/м² × 19,78 × 1,1 = 5,57 кг → 3 упаковки по 2 кг.
+  await expect(result(page)).toHaveText("3");
+});
+
+test("linoleum: the best width and the cut length, a pinned width", async ({ page }) => {
+  await page.goto(LINOLEUM);
+  // 4,6 × 4,3: no roll covers it; 2,5 м across, 2 × 4,3 = 8,6 м, 21,5 м².
+  await expect(result(page)).toHaveText("8,6");
+  await expect(page.getByText(/ширина 2,5\sм · 21,5\sм²/)).toBeVisible();
+
+  await page.getByRole("button", { name: "Ширина рулона" }).click();
+  await page.getByRole("radio", { name: "4 м" }).click();
+  await expect(page.getByText(/ширина 4\sм · 34,4\sм²/)).toBeVisible();
+});
+
+test("laminate: the mockup room — 10 packs (85 boards), 9 across; diagonal adds 15 %", async ({ page }) => {
+  await page.goto(LAMINATE);
+  await expect(result(page)).toHaveText("10");
+  await expect(page.getByText("Если класть ряды в другую сторону, хватит 9 пачек")).toBeVisible();
+
+  await page.getByRole("button", { name: "Укладка" }).click();
+  await page.getByRole("radio", { name: "Диагональ" }).click();
+  // 19,78 × 1,15 / 2,22 = 10,2 → 11
+  await expect(result(page)).toHaveText("11");
+  await expect(page.getByText(/по опыту укладчиков/)).toBeVisible();
+});
+
+test("tile: piece count with reserve, centre start removes the narrow-cut hint", async ({ page }) => {
+  await page.goto(TILE);
+  // 210 whole + 30 cut = 240 × 1,1 = 264 → 22 коробки по 12.
+  await expect(result(page)).toHaveText("22");
+  await expect(page.getByText(/узкая подрезка/)).toBeVisible();
+  await page.getByRole("button", { name: /Ещё параметры/ }).click();
+  await page.getByRole("radio", { name: "От центра" }).click();
+  await expect(page.getByText(/узкая подрезка/)).toBeHidden();
+});
+
+test("pack price gives a total and «без N позиций» for items without one", async ({ page }) => {
+  await page.goto(LAMINATE);
+  await page.getByRole("button", { name: /Ещё параметры/ }).click();
+  await type(page, "Цена пачки", "1800");
+  // 10 пачек × 1800; подложка без цены.
+  await expect(page.locator("#result").getByText(/Итого 18\s000/)).toBeVisible();
+  await expect(page.locator("#result").getByText(/без 1 позиции/)).toBeVisible();
 });

@@ -65,7 +65,7 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
   const render = (field: FieldDef): ReactNode => {
     switch (field.kind) {
       case "length": {
-        const shown = field.unit === "mm" ? "mm" : unit;
+        const shown = field.unit === "m" ? unit : field.unit;
         const range = fill(f.range, {
           min: formatNumber(toDisplay(field.min, shown)),
           max: formatNumber(toDisplay(field.max, shown)),
@@ -125,15 +125,17 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
           />
         );
       }
-      case "select":
-        return field.options.length <= 4 ? (
+      case "select": {
+        // Options are strings; a numeric input (linoleum roll width) gets its number back.
+        const pick = (v: string) => onChange({ [field.name]: typeof values[field.name] === "number" ? Number(v) : v });
+        return field.options.length <= 4 && !field.dropdown ? (
           <div key={field.name} className="col-span-2 flex flex-col gap-1.5">
             <span className="text-small font-medium text-text">{label(field)}</span>
             <Segment
               label={field.label}
               options={field.options}
               value={String(values[field.name])}
-              onValueChange={(v) => onChange({ [field.name]: v })}
+              onValueChange={pick}
             />
           </div>
         ) : (
@@ -142,9 +144,10 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
             label={label(field)}
             options={field.options}
             value={String(values[field.name])}
-            onValueChange={(v) => onChange({ [field.name]: v })}
+            onValueChange={pick}
           />
         );
+      }
       case "toggle":
         return (
           <label key={field.name} className="flex min-h-12 items-center gap-3 col-span-2 text-body text-text">

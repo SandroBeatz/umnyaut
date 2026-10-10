@@ -19,7 +19,8 @@ export type RoomBinding = "length" | "width" | "height" | "cutLength" | "cutWidt
 
 /**
  * Form described by data (tech spec §6 + design spec §18 `main` flag). Lengths are stored in mm;
- * `unit` is what the field shows first, `min`/`max` are mm.
+ * `min`/`max` are mm. A length with `unit: "m"` follows the form's м/см switch; `cm` and `mm` stay fixed
+ * (wallpaper repeat in cm whatever the room is measured in).
  */
 export type FieldDef =
   | (FieldBase & {
@@ -36,6 +37,8 @@ export type FieldDef =
       options: readonly { value: string; label: string }[];
       /** `shape` reads and writes the room shape. */
       room?: "shape";
+      /** Dropdown in half a row instead of a full-width segment (up to 4 options are a segment by default). */
+      dropdown?: boolean;
     })
   | (FieldBase & { kind: "toggle" })
   | (FieldBase & { kind: "price" /** Purchase item key the pack price belongs to. */; item: string })

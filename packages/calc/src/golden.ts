@@ -10,7 +10,10 @@ export interface GoldenSource {
   ref: string;
 }
 
-/** Numbers per purchase item key; only the listed fields are compared. `packs` is exact, the rest within tolerance. */
+/**
+ * Numbers per purchase item key, summed over its lines (a can set has one line per size); only the listed
+ * fields are compared. `packs` is exact, the rest within tolerance.
+ */
 export interface ExpectedItem {
   packs?: number;
   need?: number;
@@ -78,15 +81,38 @@ export function matchExpectation(
       errors.push(`${label}: got ${actual}, expected ${want}`);
   };
   for (const [key, want] of Object.entries(expected.items ?? {})) {
-    const item = result.items.find((i) => i.key === key);
-    if (!item) {
+    // A can set has one line per size with the same key; the expectation is about their sum.
+    const lines = result.items.filter((i) => i.key === key);
+    if (lines.length === 0) {
       errors.push(`item ${key}: missing`);
       continue;
     }
-    if (want.packs !== undefined) num(`${key}.packs`, item.packs, want.packs, true);
-    if (want.need !== undefined) num(`${key}.need`, item.need.value, want.need);
-    if (want.bought !== undefined) num(`${key}.bought`, item.bought.value, want.bought);
-    if (want.leftover !== undefined) num(`${key}.leftover`, item.leftover.value, want.leftover);
+    const sum = (pick: (i: (typeof lines)[number]) => number) => lines.reduce((total, i) => total + pick(i), 0);
+    if (want.packs !== undefined)
+      num(
+        `${key}.packs`,
+        sum((i) => i.packs),
+        want.packs,
+        true,
+      );
+    if (want.need !== undefined)
+      num(
+        `${key}.need`,
+        sum((i) => i.need.value),
+        want.need,
+      );
+    if (want.bought !== undefined)
+      num(
+        `${key}.bought`,
+        sum((i) => i.bought.value),
+        want.bought,
+      );
+    if (want.leftover !== undefined)
+      num(
+        `${key}.leftover`,
+        sum((i) => i.leftover.value),
+        want.leftover,
+      );
   }
   for (const key of expected.absentItems ?? []) {
     if (result.items.some((i) => i.key === key)) errors.push(`item ${key}: expected absent`);

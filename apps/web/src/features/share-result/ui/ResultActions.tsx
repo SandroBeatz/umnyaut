@@ -3,6 +3,7 @@
 import { shell } from "@umnyaut/catalog";
 import { Button, toast } from "@umnyaut/ui";
 import { Copy, Printer, Send } from "lucide-react";
+import type { ReactNode } from "react";
 import { fill } from "@/shared/lib";
 
 const t = shell.actions;
@@ -13,6 +14,8 @@ export interface ResultActionsProps {
   /** Called on click so the text and link reflect the current input. */
   getText(): string;
   getUrl(): string;
+  /** Replaces the disabled «Сохранить» (purchase tools put «В список» here). */
+  primary?: ReactNode;
 }
 
 async function copy(text: string, done: string) {
@@ -28,7 +31,7 @@ async function copy(text: string, done: string) {
  * «Сохранить» (disabled until projects exist, Phase 7), «Отправить» (system share sheet, or the link is copied),
  * «Скопировать» (text + link), «Печать». No request to the server.
  */
-export function ResultActions({ title, getText, getUrl }: ResultActionsProps) {
+export function ResultActions({ title, getText, getUrl, primary }: ResultActionsProps) {
   const send = async () => {
     const url = getUrl();
     if (typeof navigator.share === "function") {
@@ -47,9 +50,11 @@ export function ResultActions({ title, getText, getUrl }: ResultActionsProps) {
 
   return (
     <div className="flex flex-wrap items-center gap-2 print:hidden">
-      <Button className="min-w-32 flex-1" disabled title={t.saveSoon}>
-        {t.save}
-      </Button>
+      {primary ?? (
+        <Button className="min-w-32 flex-1" disabled title={t.saveSoon}>
+          {t.save}
+        </Button>
+      )}
       <Button variant="secondary" className="min-w-32 flex-1" onClick={send}>
         <Send aria-hidden="true" />
         {t.share}

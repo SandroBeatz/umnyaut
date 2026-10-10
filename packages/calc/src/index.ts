@@ -15,6 +15,11 @@ export type {
 } from "./golden";
 export * from "./project";
 export { type ToolId, toolModules } from "./tools";
+export { NOTCH_TABLE } from "./tools/klej";
+export { LAMINATE_WASTE_PCT } from "./tools/laminat";
+export { TILE_DIAGONAL_RESERVE_PCT } from "./tools/plitka";
+export { costOf, type PriceBasis, priced, priceField } from "./tools/priced";
+export { GROUT_DENSITY } from "./tools/zatirka";
 export type {
   CalcContext,
   Cost,
