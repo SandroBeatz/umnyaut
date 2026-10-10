@@ -1,0 +1,84 @@
+import type { ToolDef } from "./types";
+
+const room = { kind: "length", unit: "m", min: 300, max: 100_000 } as const;
+const tile = { kind: "length", unit: "cm", min: 20, max: 3000 } as const;
+
+/** Grout by the Ceresit formula: tile format, joint width and depth, density 1,6, reserve 10 %. */
+export const zatirka: ToolDef = {
+  id: "zatirka",
+  category: "plitka",
+  title: "Затирка",
+  outcome: "Килограммы и упаковки по формату плитки и шву",
+  status: "live",
+  fields: [
+    { ...room, name: "lengthMm", label: "Длина комнаты", room: "length", main: true, planner: true },
+    { ...room, name: "widthMm", label: "Ширина комнаты", room: "width", main: true, planner: true },
+    {
+      kind: "select",
+      name: "surface",
+      label: "Что затираем",
+      main: true,
+      dropdown: true,
+      options: [
+        { value: "floor", label: "Пол" },
+        { value: "walls", label: "Стены" },
+      ],
+    },
+    { kind: "preset", label: "Плитка", presets: ["t10", "t20", "t30", "t60"], main: true },
+    {
+      kind: "length",
+      unit: "m",
+      min: 1000,
+      max: 10_000,
+      name: "heightMm",
+      label: "Высота стен",
+      room: "height",
+      when: { surface: "walls" },
+    },
+    { kind: "openings", name: "openings", label: "Окна и двери", hint: "Вычитаются, если затираем стены" },
+    { ...tile, name: "tileLengthMm", label: "Длина плитки" },
+    { ...tile, name: "tileWidthMm", label: "Ширина плитки" },
+    {
+      kind: "number",
+      min: 0.5,
+      max: 20,
+      step: 0.5,
+      unit: "мм",
+      name: "jointMm",
+      label: "Ширина шва",
+      hint: "Стены 1,5–2 мм, пол 2–3 мм",
+    },
+    {
+      kind: "number",
+      min: 1,
+      max: 30,
+      step: 0.5,
+      unit: "мм",
+      name: "depthMm",
+      label: "Толщина плитки",
+      hint: "Глубина шва — толщина плитки",
+    },
+    { kind: "number", min: 0, max: 30, step: 1, unit: "%", name: "reservePct", label: "Запас" },
+    { kind: "number", min: 0.5, max: 25, step: 0.5, unit: "кг", name: "packKg", label: "Упаковка" },
+  ],
+  presets: [
+    { id: "t10", label: "10 × 10", values: { tileLengthMm: 100, tileWidthMm: 100 } },
+    { id: "t20", label: "20 × 20", values: { tileLengthMm: 200, tileWidthMm: 200 } },
+    { id: "t30", label: "30 × 30", values: { tileLengthMm: 300, tileWidthMm: 300 } },
+    { id: "t60", label: "60 × 60", values: { tileLengthMm: 600, tileWidthMm: 600 } },
+  ],
+  nextSteps: ["klej"],
+  items: { grout: { title: "Затирка", photo: "grout" } },
+  summary: { groutKg: "Затирки нужно", rate: "Расход на 1 м²", area: "Площадь облицовки" },
+  steps: {
+    floor: "Пол = {length} × {width} = {area} м²",
+    walls: "Стены = {gross} − окна и двери {openings} = {area} м²",
+    rate: "Расход = ({a} + {b}) / ({a} × {b}) см × шов {joint} мм × глубина {depth} мм × {density} = {rate} кг/м²",
+    grout: "Затирка = {area} × {rate} + запас {reserve}% = {kg} кг → упаковок по {pack} кг: {packs}",
+  },
+  warnings: {
+    openings_exceed_walls: "Окна и двери больше площади стен. Проверьте их размеры",
+    joint_too_wide: "Шов {joint} мм шире {max} мм — для такого шва нужна другая затирка. Уточните по паспорту",
+  },
+  norms: ["grout.density", "grout.reserve", "tile.joint.wall", "tile.joint.floor", "grout.pack", "grout.maxJoint"],
+};

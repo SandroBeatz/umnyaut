@@ -42,6 +42,11 @@ Each entry:
 
 ### 2026-10-10
 
+- **P6.2, P6.3 (partial)** Tile adhesive `klej` v1 (`/plitka/klej/`) and grout `zatirka` v1 (`/plitka/zatirka/`), both live — open the «Плитка» category. Adhesive: floor (L × W) or walls without openings × kg/m² from the Ceresit CM 11 PRO notch table by the tile's longer side (3 / 4 / 6 / 8 / 10 / 12 mm → 1,7 / 2,0 / 2,7 / 3,6 / 4,2 / 5,5), or by layer (1,2 kg/m² per mm, warning above 10 mm); info «комбинированный способ» from 30 × 30, warning beyond 60 cm; 25 kg bags (5 kg field). Grout: Ceresit formula (A + B) / (A × B) × joint × depth × 1,6 + 10 % reserve, 2 kg packs (CE 40), warning above a 10 mm joint. 12 + 11 golden examples by hand, one cross-check against the CE 40 consumption table; norm sync tests for the notch table, density, reserve, joint and pack. Adhesive H1 shortened to «Расход плиточного клея» (two lines pushed the result to 675 px); four tile chips per tool.
+  - Where: `feature/phase-6-wave-1`
+  - Notes: P6.2 and P6.3 stay open until `formula-reviewer` and the release check. Owner decision pending: notch 8 mm 3,2 (Ceresit blog, tile ≤ 20 cm) vs 3,6 (CM 11 PRO, tile ≤ 25 cm) — 3,6 in use.
+  - Deviation: S2 moved from the CM 11 Plus page (404 on 2026-10-10) to CM 11 PRO; new source S18 (CE 40 PREMIUM). [Norm Sources — Wave 1](../code/norm-sources-wave-1.md) v1.4.
+
 - **P6.1 (partial)** Plinth calculator `plintus` v1 (`/pol/plintus/`, live — opens the «Пол» category): run = perimeter − door widths (windows ignored), planks = ⌈run / plank⌉ with offcuts joined (business spec example 17 м → 7 планок), joiners = planks − 1, inner corners 4 or 5 + 1 outer for an L-shape (shape and cut-out from “My room”), 2 end caps per door. New pack kind `plank`; fittings use the `plinth-fittings` photo. 12 golden examples derived by hand, all matched; Playwright journey and first-screen check.
   - Where: `feature/phase-6-wave-1`
   - Notes: P6.1 stays open until `formula-reviewer` and the release check. Doors are not placed on walls, so no per-wall cutting (whole pieces per wall would buy more planks); Qalculator benchmark pending.

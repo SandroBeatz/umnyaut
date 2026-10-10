@@ -1,12 +1,12 @@
 ---
-version: 1.3
+version: 1.4
 date: 2026-10-10
 category: code
 ---
 
 # Norm Sources — Wave 1
 
-> Version 1.3 · 2026-10-10 · [Code](../code/)
+> Version 1.4 · 2026-10-10 · [Code](../code/)
 
 ## Overview
 
@@ -26,7 +26,7 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | # | Document | Publisher | Link | Checked |
 |---|---|---|---|---|
 | S1 | «Как рассчитать расход плиточного клея на 1 м²» | Ceresit (Henkel) | https://ceresit.ru/ru/blog/plitochnaya-oblicovka/raschet-kleya-dlya-plitki/ | 2026-10-09 |
-| S2 | Ceresit CM 11 Plus, product page | Ceresit (Henkel) | https://www.ceresit.ru/ru/products/tiling/tile-adhesives/cm_11_plus.html | 2026-10-09 |
+| S2 | Ceresit CM 11 PRO, product page (the CM 11 Plus page is gone — 404 on 2026-10-10) | Ceresit (Henkel) | https://ceresit.ru/ru/products/tiling/tile-adhesives/cm_11_pro/ | 2026-10-10 |
 | S3 | «Как рассчитать расход затирки для плитки» | Ceresit (Henkel) | https://ceresit.ru/ru/blog/plitochnaya-oblicovka/raschet-zatirki-dlya-plitki/ | 2026-10-09 |
 | S4 | Keracolor FF, technical data sheet (consumption table) | Mapei | https://cdnmedia.mapei.com/docs/librariesprovider52/products-documents/1_00131_keracolor-ff-sg-23022023_29291268390942ceb2a0fe6a6616403b.pdf?sfvrsn=bf8c64e1_0 | 2026-10-09 |
 | S5 | ГОСТ 6810‑2002 «Обои. Технические условия» | Межгосударственный стандарт | https://docs.cntd.ru/document/1200032267 | 2026-10-09 |
@@ -41,16 +41,19 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | S14 | Напольные плинтусы, каталог | IDEAL | https://ideal.ru/product/plintusy/ | 2026-10-09 |
 | S15 | СП 71.13330.2017 «Изоляционные и отделочные покрытия», п. 7.4.15 | Минстрой России | https://docs.cntd.ru/document/456082588 | 2026-10-09 |
 | S16 | ГЭСН 11‑01‑034‑04 (ламинат), ГЭСН 11‑01‑027‑02 (плитка) — cross-check only | Минстрой России | https://fsnb2022.ru/gesn/gesn11-01-034-04.html · https://fsnb2022.ru/gesn/gesn11-01-027-02.html | 2026-10-09 |
+| S18 | Ceresit CE 40 PREMIUM, product page (pack, joint range, consumption table) | Ceresit (Henkel) | https://www.ceresit.ru/ru/products/tiling/grouts-and-sealants/ce_40_aquastatic/ | 2026-10-10 |
 | S17 | Инструкция по поклейке обоев (ARTSIMPLE) | SURGAZ (ООО «Фортпост»), manufacturer | https://artsimple.ru/instruction | 2026-10-09 |
 
 ## Norms
 
 | Norm id | Value used | Source | Status | Notes |
 |---|---|---|---|---|
-| `tileAdhesive.notch4`, `tileAdhesive.notch6`, `tileAdhesive.notch8`, `tileAdhesive.notch10` | 2,0 / 2,7 / 3,2 / 4,2 kg/m² for notch 4 / 6 / 8 / 10 mm | S1 | confirmed | Tile side 10 / 15 / 20 / 30 cm in the same table; S1 also gives V = S × Vст × h |
+| `tileAdhesive.notch3`, `tileAdhesive.notch4`, `tileAdhesive.notch6`, `tileAdhesive.notch8`, `tileAdhesive.notch10`, `tileAdhesive.notch12` | 1,7 / 2,0 / 2,7 / 3,6 / 4,2 / 5,5 kg/m² for notch 3 / 4 / 6 / 8 / 10 / 12 mm, tile up to 5 / 10 / 15 / 25 / 30 / 60 cm | S2 (4, 6, 10 also S1) | confirmed; **notch 8 changed 3,2 → 3,6, awaiting owner** | S1 (blog) gives 3,2 for 8 mm and tiles up to 20 cm; the product page gives 3,6 up to 25 cm — we take the datasheet (larger). Beyond 60 cm the table says «от 5,5»: warning. S1 also gives V = S × Vст × h |
+| `tileAdhesive.maxLayer` | 10 mm | S2 | confirmed | Warning above it in the layer mode |
 | `tileAdhesive.perMm` | 1,2 kg/m² per 1 mm of layer | S2 | confirmed | For a user-entered layer thickness |
 | `tileAdhesive.bag` | 25 kg | S2 | confirmed | Preset; 5 kg second preset |
 | `grout.density` | 1,6 | S3 | confirmed (owner: 1,6) | Mapei S4 implies ~1,5; we keep the larger value. S4 rows are golden cross-checks with that difference explained |
+| `grout.pack`, `grout.maxJoint` | 2 kg pack; joint 1–10 mm | S18 | confirmed | 5 kg as a second pack size (field). S18's consumption table (10 × 10, joint 2 → ≈ 0,4 kg/m²) is a golden cross-check |
 | `grout.reserve` | 10% | S3 (10–15%) | confirmed | Lower bound of the range |
 | `wallpaper.rollWidth`, `wallpaper.rollLength` | 0,53 m / 10,05 m | S5 | confirmed | 1,06 × 10,05 and 1,06 × 25 m as market presets |
 | `wallpaper.trimAllowance` | 10 cm per strip | S17 (4–5 cm top and 4–5 cm bottom) | confirmed | Upper bound of the range; editable field «Припуск на подрезку» |
@@ -80,6 +83,7 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | 2026-10-09 | Grout density | 1,6 (Ceresit) |
 | 2026-10-09 | Wallpaper paste from a real pack | Not available yet → default, unconfirmed |
 | 2026-10-09 | Laminate diagonal / herringbone waste | 15% with the note «по опыту укладчиков» until the master confirms |
+| 2026-10-10 | Tile adhesive 8 mm notch: S1 3,2 (tile ≤ 20 cm) vs S2 3,6 (tile ≤ 25 cm) | **Pending owner** — 3,6 from the datasheet in use (conservative, one source for the whole table) |
 | 2026-10-10 | Wallpaper: worst-case pattern start per roll | Keep it (never under-buys); show an info hint with the lucky-start roll count and «лишние не вскрывайте» |
 | 2026-10-10 | Paint: least overbuy vs fewer cans | Keep least overbuy (then fewest cans) until pack prices exist |
 | 2026-10-10 | Primer packs 1 л and 10 л (S8) | One canister size for now (10 л default, editable field); choosing between sizes waits for pack prices — by litres alone the optimiser would buy 7 × 1 л instead of one 10 л |

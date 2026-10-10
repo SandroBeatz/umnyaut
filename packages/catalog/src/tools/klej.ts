@@ -1,0 +1,96 @@
+import type { ToolDef } from "./types";
+
+const room = { kind: "length", unit: "m", min: 300, max: 100_000 } as const;
+const tile = { kind: "length", unit: "cm", min: 20, max: 3000 } as const;
+
+/** Tile adhesive by the trowel notch for the tile size (Ceresit CM 11 PRO table) or by layer thickness. */
+export const klej: ToolDef = {
+  id: "klej",
+  category: "plitka",
+  title: "Плиточный клей",
+  outcome: "Килограммы и мешки по зубу шпателя",
+  status: "live",
+  fields: [
+    { ...room, name: "lengthMm", label: "Длина комнаты", room: "length", main: true, planner: true },
+    { ...room, name: "widthMm", label: "Ширина комнаты", room: "width", main: true, planner: true },
+    {
+      kind: "select",
+      name: "surface",
+      label: "Что облицовываем",
+      main: true,
+      dropdown: true,
+      options: [
+        { value: "floor", label: "Пол" },
+        { value: "walls", label: "Стены" },
+      ],
+    },
+    { kind: "preset", label: "Плитка", presets: ["t10", "t20", "t30", "t60"], main: true },
+    {
+      kind: "length",
+      unit: "m",
+      min: 1000,
+      max: 10_000,
+      name: "heightMm",
+      label: "Высота стен",
+      room: "height",
+      when: { surface: "walls" },
+    },
+    { kind: "openings", name: "openings", label: "Окна и двери", hint: "Вычитаются, если облицовываем стены" },
+    { ...tile, name: "tileLengthMm", label: "Длина плитки" },
+    { ...tile, name: "tileWidthMm", label: "Ширина плитки" },
+    {
+      kind: "select",
+      name: "method",
+      label: "Как считать",
+      options: [
+        { value: "notch", label: "По зубу шпателя" },
+        { value: "layer", label: "По толщине слоя" },
+      ],
+    },
+    {
+      kind: "number",
+      min: 1,
+      max: 20,
+      step: 0.5,
+      unit: "мм",
+      name: "layerMm",
+      label: "Толщина слоя",
+      hint: "Для неровного основания — больше",
+      when: { method: "layer" },
+    },
+    { kind: "number", min: 1, max: 50, step: 1, unit: "кг", name: "bagKg", label: "Мешок" },
+  ],
+  presets: [
+    { id: "t10", label: "10 × 10", values: { tileLengthMm: 100, tileWidthMm: 100 } },
+    { id: "t20", label: "20 × 20", values: { tileLengthMm: 200, tileWidthMm: 200 } },
+    { id: "t30", label: "30 × 30", values: { tileLengthMm: 300, tileWidthMm: 300 } },
+    { id: "t60", label: "60 × 60", values: { tileLengthMm: 600, tileWidthMm: 600 } },
+  ],
+  nextSteps: ["zatirka", "ploshchad-sten"],
+  items: { "tile-adhesive": { title: "Плиточный клей", photo: "tile-adhesive" } },
+  summary: { adhesiveKg: "Клея нужно", area: "Площадь облицовки", notch: "Зуб шпателя" },
+  steps: {
+    floor: "Пол = {length} × {width} = {area} м²",
+    walls: "Стены = {gross} − окна и двери {openings} = {area} м²",
+    rate_notch: "Плитка до {side} см — шпатель {notch} мм, расход {rate} кг/м²",
+    rate_layer: "Расход = {perMm} кг/м² на 1 мм × {layer} мм = {rate} кг/м²",
+    adhesive: "Клей = {area} × {rate} = {kg} кг → мешков по {bag} кг: {bags}",
+  },
+  warnings: {
+    openings_exceed_walls: "Окна и двери больше площади стен. Проверьте их размеры",
+    combined_method:
+      "Плитку от 30 × 30 см кладут комбинированным способом: тонкий слой клея ещё и на плитку. Расход будет выше — посчитайте по толщине слоя или возьмите мешок про запас",
+    large_format:
+      "Плитка больше 60 см — за пределами таблицы производителя, взят расход от {rate} кг/м². Уточните по паспорту клея",
+    layer_too_thick:
+      "Слой {layer} мм толще допустимого {max} мм. Выровняйте основание или выберите клей для толстого слоя",
+  },
+  norms: [
+    "tileAdhesive.notch3",
+    "tileAdhesive.notch8",
+    "tileAdhesive.notch12",
+    "tileAdhesive.perMm",
+    "tileAdhesive.maxLayer",
+    "tileAdhesive.bag",
+  ],
+};

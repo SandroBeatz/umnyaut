@@ -1,14 +1,16 @@
 import type { ToolId } from "@umnyaut/calc";
 import { type CategoryDef, type CategorySlug, categories } from "./categories";
+import { klej } from "./tools/klej";
 import { kraska } from "./tools/kraska";
 import { oboi } from "./tools/oboi";
 import { plintus } from "./tools/plintus";
 import { ploshchadKomnaty } from "./tools/ploshchad-komnaty";
 import { ploshchadSten } from "./tools/ploshchad-sten";
 import type { ToolDef } from "./tools/types";
+import { zatirka } from "./tools/zatirka";
 
 /** All tools in display order. Routes, sitemap and navigation are generated from this list. */
-export const tools: readonly ToolDef[] = [ploshchadKomnaty, ploshchadSten, oboi, kraska, plintus];
+export const tools: readonly ToolDef[] = [ploshchadKomnaty, ploshchadSten, oboi, kraska, plintus, klej, zatirka];
 
 export const strings = {
   draftNotice: "Калькулятор скоро появится.",

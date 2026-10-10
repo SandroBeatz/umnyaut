@@ -1,4 +1,4 @@
-import { toolModules } from "@umnyaut/calc";
+import { GROUT_DENSITY, NOTCH_TABLE, toolModules } from "@umnyaut/calc";
 import { describe, expect, it } from "vitest";
 import { type CategoryDef, categories, reservedSegments } from "./categories";
 import { norms } from "./norms";
@@ -55,6 +55,14 @@ describe("registry", () => {
     expect(kraska.primerRateLPerM2).toBe(value("primer.consumption"));
     expect(toolModules.oboi.defaults({ country: "RU" }).primerRateLPerM2).toBe(value("primer.consumption"));
     expect(toolModules.plintus.defaults({ country: "RU" }).plankLengthMm / 1000).toBe(value("plinth.length"));
+    for (const row of NOTCH_TABLE)
+      expect(row.kgPerM2, `notch ${row.notchMm}`).toBe(value(`tileAdhesive.notch${row.notchMm}`));
+    expect(toolModules.klej.defaults({ country: "RU" }).bagKg).toBe(value("tileAdhesive.bag"));
+    const zatirka = toolModules.zatirka.defaults({ country: "RU" });
+    expect(GROUT_DENSITY).toBe(value("grout.density"));
+    expect(zatirka.reservePct).toBe(value("grout.reserve"));
+    expect(zatirka.jointMm).toBe(value("tile.joint.floor"));
+    expect(zatirka.packKg).toBe(value("grout.pack"));
   });
 
   it("active categories are exactly those with tools", () => {

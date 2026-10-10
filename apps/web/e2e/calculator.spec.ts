@@ -5,6 +5,8 @@ const WALLS = "/osnova/ploshchad-sten/";
 const WALLPAPER = "/steny/oboi/";
 const PAINT = "/steny/kraska/";
 const PLINTH = "/pol/plintus/";
+const ADHESIVE = "/plitka/klej/";
+const GROUT = "/plitka/zatirka/";
 /** Visible area of Safari on a 390 × 844 iPhone (design spec §12). */
 const FIRST_SCREEN = 660;
 
@@ -18,7 +20,7 @@ async function type(page: Page, label: string, value: string) {
 }
 
 test("the result number is on the first phone screen of every tool", async ({ page }) => {
-  for (const path of [ROOM, WALLS, WALLPAPER, PAINT, PLINTH]) {
+  for (const path of [ROOM, WALLS, WALLPAPER, PAINT, PLINTH, ADHESIVE, GROUT]) {
     await page.goto(path);
     const box = await result(page).boundingBox();
     expect(box, path).not.toBeNull();
@@ -187,4 +189,17 @@ test("plinth: planks and fittings, an L-shaped room adds corners", async ({ page
   await page.getByRole("button", { name: /Ещё параметры/ }).click();
   await page.getByRole("radio", { name: "Г-образная" }).click();
   await expect(page.locator("#result").getByText("Наружный угол")).toBeVisible();
+});
+
+test("tile adhesive and grout follow the tile size", async ({ page }) => {
+  await page.goto(ADHESIVE);
+  // 19,78 м² × 4,2 кг/м² (шпатель 10 мм) = 83,1 кг → 4 мешка по 25 кг.
+  await expect(result(page)).toHaveText("4");
+  await page.getByRole("radio", { name: "10 × 10" }).click();
+  // × 2,0 кг/м² = 39,6 кг → 2 мешка.
+  await expect(result(page)).toHaveText("2");
+
+  await page.goto(GROUT);
+  // 0,256 кг/м² × 19,78 × 1,1 = 5,57 кг → 3 упаковки по 2 кг.
+  await expect(result(page)).toHaveText("3");
 });

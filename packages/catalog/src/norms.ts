@@ -22,7 +22,7 @@ const CHECKED = "2026-10-09";
 /** Primary sources; ids match the Sources table in docs/code/norm-sources-wave-1.md. */
 const S = {
   S1: "Ceresit, «Как рассчитать расход плиточного клея на 1 м²», https://ceresit.ru/ru/blog/plitochnaya-oblicovka/raschet-kleya-dlya-plitki/",
-  S2: "Ceresit CM 11 Plus, https://www.ceresit.ru/ru/products/tiling/tile-adhesives/cm_11_plus.html",
+  S2: "Ceresit CM 11 PRO, https://ceresit.ru/ru/products/tiling/tile-adhesives/cm_11_pro/",
   S3: "Ceresit, «Как рассчитать расход затирки для плитки», https://ceresit.ru/ru/blog/plitochnaya-oblicovka/raschet-zatirki-dlya-plitki/",
   S5: "ГОСТ 6810-2002 «Обои. Технические условия», https://docs.cntd.ru/document/1200032267",
   S6: "Метилан Флизелин Ультра Премиум, https://www.metylan.ru/ru/katalog/oboynyy-kley-metylan/metilan-flizelin-ultra-premium.html",
@@ -35,6 +35,7 @@ const S = {
   S13: "Arbiton, каталог плинтусов, https://arbiton.com/ru/plintus",
   S14: "IDEAL, каталог плинтусов, https://ideal.ru/product/plintusy/",
   S17: "ARTSIMPLE (SURGAZ), инструкция по поклейке обоев, https://artsimple.ru/instruction",
+  S18: "Ceresit CE 40 PREMIUM, https://www.ceresit.ru/ru/products/tiling/grouts-and-sealants/ce_40_aquastatic/",
 } as const;
 
 const norm = (value: number, unit: string, source: string, extra: Partial<Norm> = {}): Norm => ({
@@ -47,14 +48,21 @@ const norm = (value: number, unit: string, source: string, extra: Partial<Norm> 
 
 /** Keyed by dotted id: `underlay.overlap`. Every entry has a row in docs/code/norm-sources-wave-1.md. */
 export const norms: Readonly<Record<string, Norm>> = {
-  "tileAdhesive.notch4": norm(2.0, "кг/м²", S.S1, { note: "шпатель 4 мм, плитка до 10 см" }),
-  "tileAdhesive.notch6": norm(2.7, "кг/м²", S.S1, { note: "шпатель 6 мм, плитка до 15 см" }),
-  "tileAdhesive.notch8": norm(3.2, "кг/м²", S.S1, { note: "шпатель 8 мм, плитка до 20 см" }),
-  "tileAdhesive.notch10": norm(4.2, "кг/м²", S.S1, { note: "шпатель 10 мм, плитка до 30 см" }),
+  "tileAdhesive.notch3": norm(1.7, "кг/м²", S.S2, { note: "шпатель 3 мм, плитка до 5 см" }),
+  "tileAdhesive.notch4": norm(2.0, "кг/м²", `${S.S2}; ${S.S1}`, { note: "шпатель 4 мм, плитка до 10 см" }),
+  "tileAdhesive.notch6": norm(2.7, "кг/м²", `${S.S2}; ${S.S1}`, { note: "шпатель 6 мм, плитка до 15 см" }),
+  "tileAdhesive.notch8": norm(3.6, "кг/м²", S.S2, {
+    note: "шпатель 8 мм, плитка до 25 см; в блоге Ceresit 3,2 для плитки до 20 см — берём паспорт",
+  }),
+  "tileAdhesive.notch10": norm(4.2, "кг/м²", `${S.S2}; ${S.S1}`, { note: "шпатель 10 мм, плитка до 30 см" }),
+  "tileAdhesive.notch12": norm(5.5, "кг/м²", S.S2, { note: "шпатель 12 мм, плитка до 60 см, «от 5,5»" }),
+  "tileAdhesive.maxLayer": norm(10, "мм", S.S2),
   "tileAdhesive.perMm": norm(1.2, "кг/м² на 1 мм", S.S2),
   "tileAdhesive.bag": norm(25, "кг", S.S2),
   "grout.density": norm(1.6, "кг/дм³", S.S3, { note: "у Mapei Keracolor FF по таблице ≈ 1,5; берём больше" }),
   "grout.reserve": norm(10, "%", S.S3, { note: "в источнике 10–15%" }),
+  "grout.pack": norm(2, "кг", S.S18),
+  "grout.maxJoint": norm(10, "мм", S.S18, { note: "шов 1–10 мм" }),
   "tile.joint.wall": norm(2, "мм", S.S3, { note: "в источнике 1,5–2 мм для 15 × 15" }),
   "tile.joint.floor": norm(3, "мм", S.S3, { note: "в источнике 2–3 мм для 33 × 33" }),
   "wallpaper.rollWidth": norm(0.53, "м", S.S5),

@@ -1,10 +1,12 @@
 import type fc from "fast-check";
 import type { ToolId } from "../src/tools";
+import type { KlejInput } from "../src/tools/klej";
 import type { KraskaInput } from "../src/tools/kraska";
 import type { OboiInput } from "../src/tools/oboi";
 import type { PlintusInput } from "../src/tools/plintus";
 import type { PloshchadKomnatyInput } from "../src/tools/ploshchad-komnaty";
 import type { PloshchadStenInput } from "../src/tools/ploshchad-sten";
+import type { ZatirkaInput } from "../src/tools/zatirka";
 
 /**
  * fast-check input generators for every tool with a formula (version ≥ 1), used by invariants.test.ts.
@@ -123,10 +125,47 @@ const plintus: ToolArbitrary<PlintusInput> = {
   grow,
 };
 
+const klej: ToolArbitrary<KlejInput> = {
+  input: (f) =>
+    f.record({
+      surface: f.constantFrom("floor" as const, "walls" as const),
+      lengthMm: lengthMm(f),
+      widthMm: lengthMm(f),
+      heightMm: f.integer({ min: 1000, max: 10_000 }),
+      openings: f.array(opening(f), { maxLength: 20 }),
+      tileLengthMm: f.integer({ min: 20, max: 3000 }),
+      tileWidthMm: f.integer({ min: 20, max: 3000 }),
+      method: f.constantFrom("notch" as const, "layer" as const),
+      layerMm: f.double({ min: 1, max: 20, noNaN: true }),
+      bagKg: f.double({ min: 1, max: 50, noNaN: true }),
+    }),
+  grow,
+};
+
+const zatirka: ToolArbitrary<ZatirkaInput> = {
+  input: (f) =>
+    f.record({
+      surface: f.constantFrom("floor" as const, "walls" as const),
+      lengthMm: lengthMm(f),
+      widthMm: lengthMm(f),
+      heightMm: f.integer({ min: 1000, max: 10_000 }),
+      openings: f.array(opening(f), { maxLength: 20 }),
+      tileLengthMm: f.integer({ min: 20, max: 3000 }),
+      tileWidthMm: f.integer({ min: 20, max: 3000 }),
+      jointMm: f.double({ min: 0.5, max: 20, noNaN: true }),
+      depthMm: f.double({ min: 1, max: 30, noNaN: true }),
+      reservePct: f.double({ min: 0, max: 30, noNaN: true }),
+      packKg: f.double({ min: 0.5, max: 25, noNaN: true }),
+    }),
+  grow,
+};
+
 export const arbitraries: Partial<Record<ToolId, ToolArbitrary<never>>> = {
   "ploshchad-komnaty": ploshchadKomnaty as ToolArbitrary<never>,
   "ploshchad-sten": ploshchadSten as ToolArbitrary<never>,
   oboi: oboi as ToolArbitrary<never>,
   kraska: kraska as ToolArbitrary<never>,
   plintus: plintus as ToolArbitrary<never>,
+  klej: klej as ToolArbitrary<never>,
+  zatirka: zatirka as ToolArbitrary<never>,
 };

@@ -15,6 +15,8 @@ export type {
 } from "./golden";
 export * from "./project";
 export { type ToolId, toolModules } from "./tools";
+export { NOTCH_TABLE } from "./tools/klej";
+export { GROUT_DENSITY } from "./tools/zatirka";
 export type {
   CalcContext,
   Cost,
