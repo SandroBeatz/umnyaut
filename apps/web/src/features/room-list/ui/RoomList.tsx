@@ -84,6 +84,12 @@ export function RoomList() {
         })}
       </ul>
 
+      {view.conflicts.map((code) => (
+        <p key={code} className="mt-3 rounded-md bg-accent-soft p-3 text-small text-text">
+          {t.conflicts[code]}
+        </p>
+      ))}
+
       <h3 className="mt-4 text-small font-semibold text-text-muted">{t.buy}</h3>
       <ul className="mt-1 divide-y divide-border">
         {lines.map((line) => (

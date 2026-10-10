@@ -130,8 +130,11 @@ const klej: ToolArbitrary<KlejInput> = {
   input: (f) =>
     f.record({
       surface: f.constantFrom("floor" as const, "walls" as const),
+      shape: f.constantFrom("rect" as const, "l" as const),
       lengthMm: lengthMm(f),
       widthMm: lengthMm(f),
+      cutLengthMm: f.integer({ min: 0, max: 60_000 }),
+      cutWidthMm: f.integer({ min: 0, max: 60_000 }),
       heightMm: f.integer({ min: 1000, max: 10_000 }),
       openings: f.array(opening(f), { maxLength: 20 }),
       tileLengthMm: f.integer({ min: 20, max: 3000 }),
@@ -147,8 +150,11 @@ const zatirka: ToolArbitrary<ZatirkaInput> = {
   input: (f) =>
     f.record({
       surface: f.constantFrom("floor" as const, "walls" as const),
+      shape: f.constantFrom("rect" as const, "l" as const),
       lengthMm: lengthMm(f),
       widthMm: lengthMm(f),
+      cutLengthMm: f.integer({ min: 0, max: 60_000 }),
+      cutWidthMm: f.integer({ min: 0, max: 60_000 }),
       heightMm: f.integer({ min: 1000, max: 10_000 }),
       openings: f.array(opening(f), { maxLength: 20 }),
       tileLengthMm: f.integer({ min: 20, max: 3000 }),

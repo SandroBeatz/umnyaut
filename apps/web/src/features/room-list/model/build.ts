@@ -15,6 +15,8 @@ export interface RoomListView {
   items: PurchaseItem[];
   /** Purchase tools of the same categories that are not in the list yet. */
   next: ToolDef[];
+  /** Works that cover the same surface twice (wallpaper and paint on the walls). */
+  conflicts: "walls_twice"[];
 }
 
 /** The tool's own input to store: changed fields that are not bound to “My room”. */
@@ -30,17 +32,21 @@ export function ownInput(tool: ToolDef, values: ToolValues, defaults: ToolValues
  */
 export function buildList(entries: readonly ListEntry[], room: RoomDraft | null): RoomListView {
   const ctx = { country: DEFAULT_COUNTRY };
+  let wallPaint = false;
   const works = entries.flatMap((entry): ListWork[] => {
     const tool = tools.find((t) => t.id === entry.tool);
     if (!tool) return [];
     const module = getToolModule(entry.tool);
     const parsed = module.input.safeParse(applyRoom({ ...module.defaults(ctx), ...entry.input }, room, tool.fields));
-    return parsed.success ? [{ tool, items: module.compute(parsed.data, ctx).items }] : [];
+    if (!parsed.success) return [];
+    if (entry.tool === "kraska" && (parsed.data as { surface?: string }).surface !== "ceiling") wallPaint = true;
+    return [{ tool, items: module.compute(parsed.data, ctx).items }];
   });
   const inList = new Set(works.map((w) => w.tool.id));
   const categories = new Set(works.map((w) => w.tool.category));
   const next = tools.filter((t) => t.status === "live" && t.items && categories.has(t.category) && !inList.has(t.id));
-  return { works, items: mergeItems(works.flatMap((w) => w.items)), next };
+  const conflicts: RoomListView["conflicts"] = wallPaint && inList.has("oboi") ? ["walls_twice"] : [];
+  return { works, items: mergeItems(works.flatMap((w) => w.items)), next, conflicts };
 }
 
 /** Title and photo of an item key from any tool that sells it. */

@@ -48,6 +48,27 @@ describe("room list", () => {
     expect(view.next).toEqual([]);
   });
 
+  it("warns when wallpaper and paint both cover the walls", () => {
+    expect(
+      buildList(
+        [
+          { tool: "oboi", input: {} },
+          { tool: "kraska", input: {} },
+        ],
+        null,
+      ).conflicts,
+    ).toEqual(["walls_twice"]);
+    expect(
+      buildList(
+        [
+          { tool: "oboi", input: {} },
+          { tool: "kraska", input: { surface: "ceiling" } },
+        ],
+        null,
+      ).conflicts,
+    ).toEqual([]);
+  });
+
   it("suggests the other purchase tool of the same category", () => {
     const view = buildList([{ tool: "oboi", input: {} }], null);
     expect(view.next.map((t) => t.id)).toEqual(["kraska"]);

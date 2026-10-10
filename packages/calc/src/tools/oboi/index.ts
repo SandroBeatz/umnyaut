@@ -211,6 +211,9 @@ export const oboi: ToolModule<OboiInput> = {
         },
       );
       items.push(primer);
+      if (primer.leftover.value > 4 * primerL) {
+        warnings.push({ code: "primer_small_need", level: "info", values: { need: primerL, size: i.primerPackL } });
+      }
       steps.push({
         code: "primer",
         values: {

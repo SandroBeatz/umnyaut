@@ -79,7 +79,7 @@ export const golden: GoldenFile<KlejInput> = {
     {
       name: "By layer thickness 3 mm",
       input: { method: "layer", layerMm: 3 },
-      expected: { items: { "tile-adhesive": { packs: 3, need: 71.208 } }, warnings: [] },
+      expected: { items: { "tile-adhesive": { packs: 3, need: 71.208 } }, warnings: ["combined_method"] },
       source: {
         kind: "datasheet",
         ref: `${CM11}. 19,78 × 1,2 × 3 = 71,208 кг → 3 мешка (формула V = S × Vст × h, Ceresit)`,
@@ -102,6 +102,15 @@ export const golden: GoldenFile<KlejInput> = {
       input: { lengthMm: 5000, widthMm: 5000, tileLengthMm: 100, tileWidthMm: 100 },
       expected: { items: { "tile-adhesive": { packs: 2, need: 50, leftover: 0 } } },
       source: { kind: "manual", ref: "25 м² × 2,0 = 50 кг = 2 × 25 ровно" },
+    },
+    {
+      name: "L-shaped floor 6 × 5 m with a 3 × 2 m cut-out",
+      input: { shape: "l", lengthMm: 6000, widthMm: 5000, cutLengthMm: 3000, cutWidthMm: 2000 },
+      expected: { items: { "tile-adhesive": { packs: 5, need: 100.8 } }, summary: { area: 24 } },
+      source: {
+        kind: "datasheet",
+        ref: `${CM11}. 30 − 6 = 24 м² × 4,2 = 100,8 кг → 5 мешков (прямоугольник дал бы 6)`,
+      },
     },
     {
       name: "Wall openings larger than the walls: nothing to buy",

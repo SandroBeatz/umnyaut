@@ -13,8 +13,12 @@ const opening = z.object({
 
 const input = z.object({
   surface: z.enum(["floor", "walls"]),
+  shape: z.enum(["rect", "l"]),
   lengthMm: length,
   widthMm: length,
+  /** Corner cut-out of an L-shaped floor (from “My room”); the walls keep the rectangle's perimeter. */
+  cutLengthMm: z.number().int().min(0).max(100_000),
+  cutWidthMm: z.number().int().min(0).max(100_000),
   heightMm: z.number().int().min(1000).max(10_000),
   openings: z.array(opening).max(20).readonly(),
   tileLengthMm: z.number().int().min(20).max(3000),
@@ -32,7 +36,8 @@ export type ZatirkaInput = z.infer<typeof input>;
 
 /** Norm `grout.density`, kg/dm³ (Ceresit; owner's choice over Mapei's ≈ 1,5). */
 export const GROUT_DENSITY = 1.6;
-/** Widest joint the grout is made for (CE 40). */
+/** Joint range the grout is made for (CE 40: 1–10 mm). */
+const MIN_JOINT_MM = 1;
 const MAX_JOINT_MM = 10;
 
 /**
@@ -45,8 +50,11 @@ export const zatirka: ToolModule<ZatirkaInput> = {
   input,
   defaults: () => ({
     surface: "floor",
+    shape: "rect",
     lengthMm: 4600,
     widthMm: 4300,
+    cutLengthMm: 1500,
+    cutWidthMm: 1200,
     heightMm: 2700,
     openings: [
       { type: "door", widthMm: 800, heightMm: 2000, count: 1 },
@@ -64,8 +72,26 @@ export const zatirka: ToolModule<ZatirkaInput> = {
     const steps: Step[] = [];
     let areaM2: number;
     if (i.surface === "floor") {
-      areaM2 = mm2ToM2(i.lengthMm * i.widthMm);
-      steps.push({ code: "floor", values: { length: mmToM(i.lengthMm), width: mmToM(i.widthMm), area: areaM2 } });
+      let l = i.shape === "l" && i.cutLengthMm > 0 && i.cutWidthMm > 0;
+      if (l && (i.cutLengthMm >= i.lengthMm || i.cutWidthMm >= i.widthMm)) {
+        warnings.push({ code: "cut_too_large", level: "warning" });
+        l = false;
+      }
+      areaM2 = mm2ToM2(i.lengthMm * i.widthMm - (l ? i.cutLengthMm * i.cutWidthMm : 0));
+      steps.push(
+        l
+          ? {
+              code: "floor_l",
+              values: {
+                length: mmToM(i.lengthMm),
+                width: mmToM(i.widthMm),
+                cutLength: mmToM(i.cutLengthMm),
+                cutWidth: mmToM(i.cutWidthMm),
+                area: areaM2,
+              },
+            }
+          : { code: "floor", values: { length: mmToM(i.lengthMm), width: mmToM(i.widthMm), area: areaM2 } },
+      );
     } else {
       const openings = i.openings.filter((o) => o.count > 0);
       const room: Room = { shape: "rect", lengthMm: i.lengthMm, widthMm: i.widthMm, heightMm: i.heightMm, openings };
@@ -75,6 +101,9 @@ export const zatirka: ToolModule<ZatirkaInput> = {
       steps.push({ code: "walls", values: { gross: walls.grossM2, openings: walls.openingsM2, area: areaM2 } });
     }
     if (!(areaM2 > 0)) return { items: [], summary: [], warnings, steps };
+    if (i.jointMm < MIN_JOINT_MM) {
+      warnings.push({ code: "joint_too_narrow", level: "warning", values: { joint: i.jointMm, min: MIN_JOINT_MM } });
+    }
     if (i.jointMm > MAX_JOINT_MM) {
       warnings.push({ code: "joint_too_wide", level: "warning", values: { joint: i.jointMm, max: MAX_JOINT_MM } });
     }
@@ -95,7 +124,7 @@ export const zatirka: ToolModule<ZatirkaInput> = {
     steps.push(
       {
         code: "rate",
-        values: { a: a / 10, b: b / 10, joint: i.jointMm, depth: i.depthMm, density: GROUT_DENSITY, rate },
+        values: { a, b, joint: i.jointMm, depth: i.depthMm, density: GROUT_DENSITY, rate },
       },
       { code: "grout", values: { area: areaM2, rate, reserve: i.reservePct, kg, pack: i.packKg, packs: grout.packs } },
     );

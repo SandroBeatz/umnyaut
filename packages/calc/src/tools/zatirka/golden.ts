@@ -79,6 +79,21 @@ export const golden: GoldenFile<ZatirkaInput> = {
       },
     },
     {
+      name: "Joint 0.5 mm is narrower than the grout allows",
+      input: { jointMm: 0.5 },
+      expected: { items: { grout: { packs: 1, need: 0.928341333 } }, warnings: ["joint_too_narrow"] },
+      source: {
+        kind: "datasheet",
+        ref: `${CE40}. 600 / 90 000 × 0,5 × 8 × 1,6 = 0,04267 × 19,78 × 1,1 = 0,928 кг → 1 упаковка`,
+      },
+    },
+    {
+      name: "L-shaped floor 6 × 5 m with a 3 × 2 m cut-out",
+      input: { shape: "l", lengthMm: 6000, widthMm: 5000, cutLengthMm: 3000, cutWidthMm: 2000 },
+      expected: { items: { grout: { packs: 4, need: 6.7584 } }, summary: { area: 24 } },
+      source: { kind: "manual", ref: `${FORMULA}. 24 м² × 0,256 × 1,1 = 6,758 кг → 4 упаковки` },
+    },
+    {
       name: "5 kg packs",
       input: { packKg: 5 },
       expected: { items: { grout: { packs: 2, need: 5.570048 } } },

@@ -13,8 +13,12 @@ const opening = z.object({
 
 const input = z.object({
   surface: z.enum(["floor", "walls"]),
+  shape: z.enum(["rect", "l"]),
   lengthMm: length,
   widthMm: length,
+  /** Corner cut-out of an L-shaped floor (from “My room”); the walls keep the rectangle's perimeter. */
+  cutLengthMm: z.number().int().min(0).max(100_000),
+  cutWidthMm: z.number().int().min(0).max(100_000),
   heightMm: z.number().int().min(1000).max(10_000),
   openings: z.array(opening).max(20).readonly(),
   tileLengthMm: z.number().int().min(20).max(3000),
@@ -46,6 +50,8 @@ const PER_MM = 1.2;
 const MAX_LAYER_MM = 10;
 /** From 30 × 30 cm the adhesive also goes on the tile back (combined method). */
 const COMBINED_FROM_MM = 300;
+/** From 60 × 60 the note becomes a warning: the table value is a bare minimum there. */
+const LARGE_COMBINED_MM = 600;
 
 /**
  * Tile adhesive: area (floor = length × width, walls = perimeter × height − openings) × kg/m² from the notch
@@ -57,8 +63,11 @@ export const klej: ToolModule<KlejInput> = {
   input,
   defaults: () => ({
     surface: "floor",
+    shape: "rect",
     lengthMm: 4600,
     widthMm: 4300,
+    cutLengthMm: 1500,
+    cutWidthMm: 1200,
     heightMm: 2700,
     openings: [
       { type: "door", widthMm: 800, heightMm: 2000, count: 1 },
@@ -75,8 +84,26 @@ export const klej: ToolModule<KlejInput> = {
     const steps: Step[] = [];
     let areaM2: number;
     if (i.surface === "floor") {
-      areaM2 = mm2ToM2(i.lengthMm * i.widthMm);
-      steps.push({ code: "floor", values: { length: mmToM(i.lengthMm), width: mmToM(i.widthMm), area: areaM2 } });
+      let l = i.shape === "l" && i.cutLengthMm > 0 && i.cutWidthMm > 0;
+      if (l && (i.cutLengthMm >= i.lengthMm || i.cutWidthMm >= i.widthMm)) {
+        warnings.push({ code: "cut_too_large", level: "warning" });
+        l = false;
+      }
+      areaM2 = mm2ToM2(i.lengthMm * i.widthMm - (l ? i.cutLengthMm * i.cutWidthMm : 0));
+      steps.push(
+        l
+          ? {
+              code: "floor_l",
+              values: {
+                length: mmToM(i.lengthMm),
+                width: mmToM(i.widthMm),
+                cutLength: mmToM(i.cutLengthMm),
+                cutWidth: mmToM(i.cutWidthMm),
+                area: areaM2,
+              },
+            }
+          : { code: "floor", values: { length: mmToM(i.lengthMm), width: mmToM(i.widthMm), area: areaM2 } },
+      );
     } else {
       const openings = i.openings.filter((o) => o.count > 0);
       const room: Room = { shape: "rect", lengthMm: i.lengthMm, widthMm: i.widthMm, heightMm: i.heightMm, openings };
@@ -100,12 +127,14 @@ export const klej: ToolModule<KlejInput> = {
       steps.push({ code: "rate_layer", values: { perMm: PER_MM, layer: i.layerMm, rate } });
     } else {
       rate = row.kgPerM2;
-      steps.push({ code: "rate_notch", values: { side: sideMm / 10, notch: row.notchMm, rate } });
-      if (sideMm > row.maxSideMm) {
-        warnings.push({ code: "large_format", level: "warning", values: { rate } });
-      } else if (Math.min(i.tileLengthMm, i.tileWidthMm) >= COMBINED_FROM_MM) {
-        warnings.push({ code: "combined_method", level: "info" });
-      }
+      steps.push({ code: "rate_notch", values: { side: row.maxSideMm / 10, notch: row.notchMm, rate } });
+    }
+    // Tile-size notes apply to both methods: the datasheet rate is a minimum («от») for big tiles.
+    const shortSideMm = Math.min(i.tileLengthMm, i.tileWidthMm);
+    if (sideMm > row.maxSideMm) {
+      warnings.push({ code: "large_format", level: "warning", values: { rate: row.kgPerM2 } });
+    } else if (shortSideMm >= COMBINED_FROM_MM) {
+      warnings.push({ code: "combined_method", level: shortSideMm >= LARGE_COMBINED_MM ? "warning" : "info" });
     }
 
     const kg = coverage({ areaM2, ratePerM2: rate });
