@@ -25,6 +25,10 @@ const input = z.object({
   trimMm: z.number().int().min(0).max(300),
   /** Wall area one pack of paste covers, from the pack (norm `wallpaperPaste.coverage`). */
   pasteCoverageM2: z.number().min(1).max(200),
+  /** Primer under the wallpaper, one coat (norm `primer.consumption`), one canister size as in paint. */
+  primer: z.boolean(),
+  primerRateLPerM2: z.number().min(0.05).max(1),
+  primerPackL: z.number().min(0.5).max(50),
 });
 
 export type OboiInput = z.infer<typeof input>;
@@ -76,6 +80,9 @@ export const oboi: ToolModule<OboiInput> = {
     match: "straight",
     trimMm: 100,
     pasteCoverageM2: 30,
+    primer: true,
+    primerRateLPerM2: 0.15,
+    primerPackL: 10,
   }),
   compute(i): ToolResult {
     const warnings: Warning[] = [];
@@ -192,6 +199,29 @@ export const oboi: ToolModule<OboiInput> = {
     items.push(paste);
     steps.push({ code: "area", values: { gross: walls.grossM2, openings: walls.openingsM2, area: walls.areaM2 } });
     steps.push({ code: "paste", values: { area: walls.areaM2, coverage: i.pasteCoverageM2, packs: paste.packs } });
+    if (i.primer) {
+      const primerL = walls.areaM2 * i.primerRateLPerM2;
+      const primer = purchase(
+        "primer",
+        "related",
+        { value: primerL, unit: "l" },
+        {
+          kind: "canister",
+          size: { value: i.primerPackL, unit: "l" },
+        },
+      );
+      items.push(primer);
+      steps.push({
+        code: "primer",
+        values: {
+          area: walls.areaM2,
+          rate: i.primerRateLPerM2,
+          litres: primerL,
+          packs: primer.packs,
+          size: i.primerPackL,
+        },
+      });
+    }
 
     return {
       items,

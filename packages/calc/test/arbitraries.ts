@@ -74,6 +74,9 @@ const oboi: ToolArbitrary<OboiInput> = {
       match: f.constantFrom("straight" as const, "offset" as const),
       trimMm: f.integer({ min: 0, max: 300 }),
       pasteCoverageM2: f.double({ min: 1, max: 200, noNaN: true }),
+      primer: f.boolean(),
+      primerRateLPerM2: f.double({ min: 0.05, max: 1, noNaN: true }),
+      primerPackL: f.double({ min: 0.5, max: 50, noNaN: true }),
     }),
   grow,
 };

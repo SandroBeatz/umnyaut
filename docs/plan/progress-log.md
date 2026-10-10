@@ -42,6 +42,11 @@ Each entry:
 
 ### 2026-10-10
 
+- **P6.11** Connected wall list, local only: «В список» on purchase tools (replaces the disabled «Сохранить»), «Список для комнаты» under the result on every tool page (`features/room-list`, `umnyaut:list:v1`). Each work is recomputed with the current “My room”, items merged by `mergeItems()` — wallpaper on the walls + paint on the ceiling buy one 10 л primer canister instead of two; «Добавьте в список» offers the other purchase tool of the category; copy and clear. Wallpaper gained primer under the wallpaper (spec chain обои → клей → грунтовка; toggle, 0,15 л/м², one canister size like paint) and `nextSteps` → paint. Unit tests for migration, own-input and the merge; Playwright journey wallpaper → paint ceiling → one canister → room length changes the list → remove a work.
+  - Where: `feature/phase-6-wave-1`
+  - Notes: can sets from different works are merged per size, not re-optimised (P11.1). The full planner `/remont/`, saving and «Мои расчёты» stay in Phases 7 and 11.
+  - Deviation: room-binding helpers moved from `widgets/calculator-shell` to `entities/room`, purchase grouping to `entities/tool`, so the shell and the list share them ([Calculator Shell](../ui/calculator-shell-and-pages.md) v1.4).
+
 - **— (decisions)** Owner: (1) wallpaper keeps the worst-case pattern start per roll; new info hint `repeat_lucky_start` gives the roll count for a lucky start (`cutStrips` with `luckyStart`) and says «лишние рулоны не вскрывайте» — shown only when it is smaller (e.g. H 3 m, repeat 64 cm: 16 vs 12); (2) paint keeps least overbuy until pack prices. Recorded in [Norm Sources — Wave 1](../code/norm-sources-wave-1.md) and [Calculation Engine](../code/calc-engine.md).
   - Where: `feature/phase-6-wave-1`
 

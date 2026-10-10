@@ -67,16 +67,29 @@ export const oboi: ToolDef = {
       label: "Клей: площадь на пачку",
       hint: "Проверьте по пачке: для тяжёлых обоев меньше",
     },
+    { kind: "toggle", name: "primer", label: "Грунтовать стены под обои" },
+    {
+      kind: "number",
+      min: 0.05,
+      max: 1,
+      step: 0.01,
+      unit: "л/м²",
+      name: "primerRateLPerM2",
+      label: "Расход грунтовки",
+      hint: "На канистре: 0,1–0,2 л/м²",
+    },
+    { kind: "number", min: 0.5, max: 50, step: 0.5, unit: "л", name: "primerPackL", label: "Объём канистры" },
   ],
   presets: [
     { id: "r053", label: "0,53 × 10 м", values: { rollWidthMm: 530, rollLengthMm: 10_050 } },
     { id: "r106", label: "1,06 × 10 м", values: { rollWidthMm: 1060, rollLengthMm: 10_050 } },
     { id: "r106x25", label: "1,06 × 25 м", values: { rollWidthMm: 1060, rollLengthMm: 25_000 } },
   ],
-  nextSteps: ["ploshchad-sten"],
+  nextSteps: ["kraska", "ploshchad-sten"],
   items: {
     wallpaper: { title: "Обои", photo: "wallpaper" },
     "wallpaper-glue": { title: "Обойный клей", photo: "wallpaper-glue" },
+    primer: { title: "Грунтовка", photo: "primer" },
   },
   summary: {
     strips: "Полос во всю высоту",
@@ -101,6 +114,7 @@ export const oboi: ToolDef = {
     rolls: "Рулонов: {rolls}, самый большой остаток {tail} м",
     area: "Площадь оклейки = {gross} − {openings} = {area} м²",
     paste: "Клей = {area} / {coverage} м² на пачку → {packs}",
+    primer: "Грунтовка = {area} × {rate} л/м² = {litres} л → {packs} × {size} л",
   },
   warnings: {
     opening_too_tall: "Проём {height} м выше стены {wall} м. Проверьте высоту проёма или потолка",
@@ -113,5 +127,11 @@ export const oboi: ToolDef = {
     roll_tight:
       "Полосы занимают рулон почти целиком: остаётся {slack} м. Рулон может быть короче на 1,5% — возьмите один про запас",
   },
-  norms: ["wallpaper.rollWidth", "wallpaper.trimAllowance", "wallpaper.rollLengthTolerance", "wallpaperPaste.coverage"],
+  norms: [
+    "wallpaper.rollWidth",
+    "wallpaper.trimAllowance",
+    "wallpaper.rollLengthTolerance",
+    "wallpaperPaste.coverage",
+    "primer.consumption",
+  ],
 };

@@ -1,6 +1,7 @@
-import type { Country, PurchaseItem, ToolResult } from "@umnyaut/calc";
+import type { Country, ToolResult } from "@umnyaut/calc";
 import { packNouns, shell, type ToolDef, unitLabels } from "@umnyaut/catalog";
 import { formatMoney, formatNumber, formatQuantity, NBSP, plural } from "@umnyaut/ui/format";
+import { groupPurchases, purchaseTexts, setText } from "@/entities/tool";
 import { fill } from "@/shared/lib";
 
 const forms = ([one, few, many]: readonly [string, string, string]) => ({ one, few, many });
@@ -36,32 +37,10 @@ const stepNumber = (value: number) => formatNumber(value, { maxFraction: 3 });
 const texts = (values: Readonly<Record<string, number>> | undefined, format: (n: number) => string) =>
   Object.fromEntries(Object.entries(values ?? {}).map(([k, v]) => [k, format(v)]));
 
-/** Lines with one key are one purchase: a can set (9 л + 2,7 л) comes from `compute()` as one line per size. */
-function groupByKey(items: readonly PurchaseItem[]) {
-  const groups = new Map<string, PurchaseItem[]>();
-  for (const item of items) groups.set(item.key, [...(groups.get(item.key) ?? []), item]);
-  return [...groups.values()].map((lines) => {
-    const first = lines[0] as PurchaseItem;
-    const sum = (pick: (i: PurchaseItem) => number) => lines.reduce((total, i) => total + pick(i), 0);
-    return {
-      first,
-      lines,
-      packs: sum((i) => i.packs),
-      need: sum((i) => i.need.value),
-      leftover: sum((i) => i.leftover.value),
-      // Sold by volume or weight: the buyer needs the can sizes, not only their number.
-      sized: first.pack.size.unit === "l" || first.pack.size.unit === "kg",
-    };
-  });
-}
-
 /** Turns codes and numbers from `compute()` into Russian text from the catalog. */
 export function describeResult(tool: ToolDef, result: ToolResult, country: Country): ResultView {
   const quantity = (value: number, unit: keyof typeof unitLabels) => `${number(value)}${NBSP}${unitLabels[unit]}`;
-  const sizeText = (item: PurchaseItem) => quantity(item.pack.size.value, item.pack.size.unit);
-  const setText = (lines: readonly PurchaseItem[]) =>
-    lines.map((line) => `${formatNumber(line.packs)}${NBSP}×${NBSP}${sizeText(line)}`).join(" + ");
-  const groups = groupByKey(result.items);
+  const groups = groupPurchases(result.items);
   const mainGroup = groups.find((g) => g.first.role === "main");
   const mainItem = mainGroup?.first;
   let main: MainFigure | undefined;
@@ -89,18 +68,14 @@ export function describeResult(tool: ToolDef, result: ToolResult, country: Count
 
   const related = groups
     .filter((g) => g.first.role === "related")
-    .map(({ first, lines, packs, sized }) => {
-      const detail = !sized
-        ? undefined
-        : lines.length > 1
-          ? setText(lines)
-          : fill(shell.result.each, { size: sizeText(first) });
+    .map((group) => {
+      const { quantity, detail } = purchaseTexts(group);
       return {
-        key: first.key,
-        title: tool.items?.[first.key]?.title ?? first.key,
-        quantity: formatQuantity(packs, forms(packNouns[first.pack.kind])),
+        key: group.first.key,
+        title: tool.items?.[group.first.key]?.title ?? group.first.key,
+        quantity,
         ...(detail ? { detail } : {}),
-        photo: tool.items?.[first.key]?.photo,
+        photo: tool.items?.[group.first.key]?.photo,
       };
     });
 

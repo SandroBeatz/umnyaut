@@ -1,12 +1,12 @@
 ---
-version: 1.3
+version: 1.4
 date: 2026-10-10
 category: code
 ---
 
 # Calculation Engine (`@umnyaut/calc`)
 
-> Version 1.3 · 2026-10-10 · [Code](../code/)
+> Version 1.4 · 2026-10-10 · [Code](../code/)
 
 ## Overview
 
@@ -14,7 +14,7 @@ category: code
 
 The package does not know about React, HTTP, or the database. Its only dependency is Zod. It is also the single biggest product risk (a wrong formula means a person buys the wrong amount), so it carries the strictest testing rules in the repo.
 
-> Status: core implemented (Phase 4): types, blocks `geometry`/`packs`/`waste`/`coverage`, golden harness, invariants, reviewer export, `ProjectData` v1 and a `mergeItems()` stub. Live tools: room area, wall area (Phase 5), wallpaper and paint (Phase 6) with the `strips` engine (`cutStrips`) and can sets (`purchaseSet`). A can set returns one line per size with the same key: golden expectations and the monotonic invariant compare the sum per key (total bought must not drop when the area grows). Engines `rows`, `grid`, `frame`, `power` arrive with their tools.
+> Status: core implemented (Phase 4): types, blocks `geometry`/`packs`/`waste`/`coverage`, golden harness, invariants, reviewer export, `ProjectData` v1 and a `mergeItems()` stub. Live tools: room area, wall area (Phase 5), wallpaper and paint (Phase 6) with the `strips` engine (`cutStrips`) and can sets (`purchaseSet`). The wall list (P6.11) merges works with `mergeItems()` — same key and pack summed, rounded once (walls primer + ceiling primer = one 10 л canister); can sets from different works are merged per size, not re-optimised (P11.1). A can set returns one line per size with the same key: golden expectations and the monotonic invariant compare the sum per key (total bought must not drop when the area grows). Engines `rows`, `grid`, `frame`, `power` arrive with their tools.
 
 ## Architecture
 

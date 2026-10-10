@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useCountry } from "@/entities/country";
 import { roomDimensions, useRoomStore } from "@/entities/room";
 import { RoomBar } from "@/features/edit-room";
+import { AddToList, RoomList } from "@/features/room-list";
 import { ResultActions, shareUrl } from "@/features/share-result";
 import { AdSlot } from "@/shared/ui";
 import { useCalculator } from "../model/useCalculator";
@@ -65,10 +66,20 @@ export function CalculatorShell({ category, toolId, checkedAt }: CalculatorShell
           </div>
           <div className="flex flex-col gap-4 lg:sticky lg:top-[88px] lg:col-span-7">
             <ResultPanel ref={panel} tool={tool} view={view} example={calc.example} stale={calc.stale} />
-            <ResultActions title={tool.title} getText={getText} getUrl={getUrl} />
+            <ResultActions
+              title={tool.title}
+              getText={getText}
+              getUrl={getUrl}
+              primary={
+                view.mode === "buy" ? (
+                  <AddToList tool={tool} values={values} defaults={defaults} className="min-w-32 flex-1" />
+                ) : undefined
+              }
+            />
             <AdSlot placement="after-result" />
           </div>
         </div>
+        <RoomList />
         <NextSteps tool={tool} />
         <HowCalculated tool={tool} steps={view.steps} checkedAt={checkedAt} />
       </div>

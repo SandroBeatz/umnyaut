@@ -235,7 +235,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 - [ ] P6.8 Tile (L) — `grid` engine from centre/corner, whole vs cut tiles, boxes.
 - [ ] P6.9 Layout schemes for laminate and tile **only if time remains** (else Phase 10).
 - [ ] P6.10 Reviewer export of wave 1 (C10) sent to the master (A26).
-- [ ] P6.11 Minimal local-only connected wall list: shared room → wall area → wallpaper or paint → glue/primer; `mergeItems()` combines duplicates and exposes the next calculation. Saving, projects and the full works picker remain Phase 7/11.
+- [x] P6.11 Minimal local-only connected wall list: shared room → wall area → wallpaper or paint → glue/primer; `mergeItems()` combines duplicates and exposes the next calculation. Saving, projects and the full works picker remain Phase 7/11.
 - [ ] P6.12 Re-check the Phase 4 decisions against real tools and reviewer feedback ([Calculation Engine → Decisions to verify](../code/calc-engine.md#decisions-to-verify-in-real-testing)): `ceilPacks` tolerance, minimum one pack for a tiny need, norms filled with sources, harness running on real tools, `calc:export` on CI and Mac.
 
 **Exit gate:** 10 tools; first connected wall path produces one merged list; each tool has ≥ 10 golden with primary sources; overlapping tools have ≥ 3 explained Qalculator comparisons; `formula-reviewer` PASS; reviewer feedback scheduled.

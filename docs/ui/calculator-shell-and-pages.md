@@ -1,12 +1,12 @@
 ---
-version: 1.3
+version: 1.4
 date: 2026-10-10
 category: ui
 ---
 
 # Calculator Shell, Pages and Routing
 
-> Version 1.3 · 2026-10-10 · [UI](../ui/)
+> Version 1.4 · 2026-10-10 · [UI](../ui/)
 
 ## Overview
 
@@ -79,6 +79,7 @@ From 1024 px: form 5/12 columns left, result 7/12 right and sticky (top offset 8
 | “My room” | Zustand + persist (localStorage) | `umnyaut:room:v1` |
 | Last packs/prices per tool | localStorage | `umnyaut:tool:<id>:v1` |
 | Country | localStorage | `umnyaut:country` |
+| Room list (P6.11) | Zustand + persist (localStorage) | `umnyaut:list:v1` — `{ tool, input }` per tool, own fields only |
 | Planner draft | localStorage | `umnyaut:planner:draft` |
 | Shareable calc | URL param | `/pol/laminat/?s=<base64url JSON of non-default fields>` |
 | Saved project | Supabase | `/p/a8H2k` |
@@ -128,6 +129,7 @@ Variations are `catalog` entries (URL, titles, default overrides, own text). Fro
 | `?s=` | base64url (UTF-8) JSON of fields that differ from `defaults()`; decoded values go through the tool's Zod schema, garbage is ignored. Canonical is always the clean URL |
 | Tools with items | The main item's name sits in the mascot header line (under «Нужно купить»), not above the number, so a purchase tool keeps the same height as a geometry tool; the number row is photo + count + «need · останется» caption |
 | Can sets | Lines of one item key are one purchase: the main figure is the total count («4 банки») with the sizes in the caption («1 × 9 л + 1 × 2,7 л + 2 × 0,9 л · останется 0,59 л»); a related item sold by volume or weight shows its size under the title («по 10 л») |
+| Room list | `features/room-list` (P6.11, local only): on purchase tools the disabled «Сохранить» becomes «В список» → «В списке» → «Обновить в списке» when the tool's own input changes. «Список для комнаты» under the result on every tool page: works as removable chips, each recomputed with the current “My room” (defaults → stored input → room → schema → compute), items merged by `mergeItems()` and grouped like the result card, «Скопировать список», «Очистить», and «Добавьте в список» with purchase tools of the same categories not in the list yet. Server HTML has no list (read after mount). Room-binding helpers moved to `entities/room`, purchase grouping to `entities/tool`, so the shell and the list share them. Saving and the full planner stay in Phases 7 and 11 |
 | Select fields | Up to 4 options render as a full-width segment; `dropdown: true` puts the select in half a row (paint «Что красим» next to the height) |
 | Length units | A length field with `unit: "m"` follows the form's м/см switch; `cm` and `mm` fields keep their own unit (wallpaper repeat and trim in cm) |
 | Phone budget | Asserted by Playwright for every live tool: the main number ends at 643 px on wall area and wallpaper, 579 px on paint (390 × 844) |
