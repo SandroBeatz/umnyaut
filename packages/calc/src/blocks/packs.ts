@@ -97,18 +97,22 @@ export function bestPackSet(need: number, options: readonly PackOption[]): PackS
   const better = (c: number, n: number, a: number) =>
     c < (cost[a] as number) - 1e-9 || (Math.abs(c - (cost[a] as number)) <= 1e-9 && n < (count[a] as number));
 
+  // Plain loops: this runs up to SET_MAX_STEPS × options times, a closure per step is too slow.
+  const stepCost = valid.map((o, k) => (usePrice ? o.price : (sizes[k] as number)));
   for (let a = 1; a <= limit; a++) {
-    valid.forEach((option, k) => {
+    for (let k = 0; k < sizes.length; k++) {
       const s = sizes[k] as number;
-      if (s > a || cost[a - s] === Number.POSITIVE_INFINITY) return;
-      const c = (cost[a - s] as number) + (usePrice ? option.price : s);
+      if (s > a) continue;
+      const prev = cost[a - s] as number;
+      if (prev === Number.POSITIVE_INFINITY) continue;
+      const c = prev + (stepCost[k] as number);
       const n = (count[a - s] as number) + 1;
       if (better(c, n, a)) {
         cost[a] = c;
         count[a] = n;
         last[a] = k;
       }
-    });
+    }
   }
 
   let best = -1;
