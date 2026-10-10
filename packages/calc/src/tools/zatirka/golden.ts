@@ -54,7 +54,7 @@ export const golden: GoldenFile<ZatirkaInput> = {
     {
       name: "Porcelain 60 × 60 cm, joint 2 mm, depth 10 mm",
       input: { tileLengthMm: 600, tileWidthMm: 600, jointMm: 2, depthMm: 10 },
-      expected: { items: { grout: { packs: 2, need: 3.2637 } }, summary: { rate: 0.15 } },
+      expected: { items: { grout: { packs: 2, need: 2.320853333 } }, summary: { rate: 0.106666667 } },
       source: {
         kind: "manual",
         ref: `${FORMULA}. формула 1200 / 360 000 × 2 × 10 × 1,6 = 0,107; таблица CE 40 для 60 × 60 и шва 2 — 0,15. Берём большее: 0,15 × 19,78 × 1,1 = 3,264 кг → 2 упаковки`,
@@ -63,7 +63,7 @@ export const golden: GoldenFile<ZatirkaInput> = {
     {
       name: "Rectangular tile 30 × 60 cm, joint 2 mm, depth 9 mm",
       input: { tileLengthMm: 600, tileWidthMm: 300, jointMm: 2, depthMm: 9 },
-      expected: { items: { grout: { packs: 3, need: 4.89555 } }, summary: { rate: 0.225 } },
+      expected: { items: { grout: { packs: 2, need: 3.133152 } }, summary: { rate: 0.144 } },
       source: {
         kind: "manual",
         ref: `${FORMULA}. формула 900 / 180 000 × 2 × 9 × 1,6 = 0,144; таблица CE 40, ближайший формат 20 × 60 и шов 2 — 0,3, на 30 × 60: 0,3 × (900 / 180 000) / (800 / 120 000) = 0,225. Берём большее: 0,225 × 19,78 × 1,1 = 4,896 кг → 3 упаковки`,
@@ -92,6 +92,40 @@ export const golden: GoldenFile<ZatirkaInput> = {
       input: { shape: "l", lengthMm: 6000, widthMm: 5000, cutLengthMm: 3000, cutWidthMm: 2000 },
       expected: { items: { grout: { packs: 4, need: 6.7584 } }, summary: { area: 24 } },
       source: { kind: "manual", ref: `${FORMULA}. 24 м² × 0,256 × 1,1 = 6,758 кг → 4 упаковки` },
+    },
+    {
+      name: "Cross-check with the CE 40 table: 40 × 40, joint 2, thick porcelain 12.5 mm",
+      input: {
+        lengthMm: 5000,
+        widthMm: 2000,
+        tileLengthMm: 400,
+        tileWidthMm: 400,
+        jointMm: 2,
+        depthMm: 12.5,
+        reservePct: 0,
+      },
+      expected: { items: { grout: { packs: 1, need: 2 } }, summary: { rate: 0.2 } },
+      source: {
+        kind: "datasheet",
+        ref: `${CE40}: 40 × 40, шов 2 — 0,2 кг/м². Формула при глубине 12,5 мм: 800 / 160 000 × 2 × 12,5 × 1,6 = 0,2 — совпадает; таблица рассчитана на толстый керамогранит`,
+      },
+    },
+    {
+      name: "Cross-check with the CE 40 table: 60 × 60, joint 2, porcelain 14 mm",
+      input: {
+        lengthMm: 5000,
+        widthMm: 2000,
+        tileLengthMm: 600,
+        tileWidthMm: 600,
+        jointMm: 2,
+        depthMm: 14,
+        reservePct: 0,
+      },
+      expected: { items: { grout: { packs: 1, need: 1.493333333 } }, summary: { rate: 0.149333333 } },
+      source: {
+        kind: "datasheet",
+        ref: `${CE40}: 60 × 60, шов 2 — ≈ 0,15 кг/м². Формула при глубине 14 мм: 1200 / 360 000 × 2 × 14 × 1,6 = 0,149 — совпадает с округлением таблицы`,
+      },
     },
     {
       name: "5 kg packs",

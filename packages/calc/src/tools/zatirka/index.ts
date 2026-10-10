@@ -36,28 +36,7 @@ export type ZatirkaInput = z.infer<typeof input>;
 
 /** Norm `grout.density`, kg/dm³ (Ceresit; owner's choice over Mapei's ≈ 1,5). */
 export const GROUT_DENSITY = 1.6;
-/**
- * CE 40 PREMIUM consumption table (S18) for large formats: tile mm, joint mm, kg/m². From a 40 cm side the
- * Ceresit formula gives up to a third less than this table, so the larger of the two wins (owner, 2026-10-10).
- */
-export const CE40_LARGE: readonly { a: number; b: number; joint: number; rate: number }[] = [
-  { a: 400, b: 400, joint: 2, rate: 0.2 },
-  { a: 600, b: 200, joint: 2, rate: 0.3 },
-  { a: 600, b: 600, joint: 2, rate: 0.15 },
-  { a: 1200, b: 600, joint: 2, rate: 0.1 },
-];
-const LARGE_FROM_MM = 400;
 const shape = (a: number, b: number) => (a + b) / (a * b);
-
-/** The nearest table row by format, scaled to this tile and joint (rate ∝ joint × (A + B) / (A × B)). */
-function tableRate(a: number, b: number, joint: number): number | undefined {
-  const long = Math.max(a, b);
-  const short = Math.min(a, b);
-  if (long < LARGE_FROM_MM) return undefined;
-  const distance = (r: (typeof CE40_LARGE)[number]) => Math.abs(Math.log(long / r.a)) + Math.abs(Math.log(short / r.b));
-  const row = [...CE40_LARGE].sort((x, y) => distance(x) - distance(y))[0] as (typeof CE40_LARGE)[number];
-  return row.rate * (joint / row.joint) * (shape(a, b) / shape(row.a, row.b));
-}
 
 /** Joint range the grout is made for (CE 40: 1–10 mm). */
 const MIN_JOINT_MM = 1;
@@ -133,9 +112,9 @@ export const zatirka: ToolModule<ZatirkaInput> = {
 
     const a = i.tileLengthMm;
     const b = i.tileWidthMm;
-    const formula = shape(a, b) * i.jointMm * i.depthMm * GROUT_DENSITY;
-    const table = tableRate(a, b, i.jointMm);
-    const rate = table !== undefined && table > formula ? table : formula;
+    // The CE 40 table (S18) agrees with this formula at its own joint depth (12,5–14 mm for large porcelain,
+    // ≈ 6 mm for small tiles), so the real tile thickness is what matters — golden cross-checks both.
+    const rate = shape(a, b) * i.jointMm * i.depthMm * GROUT_DENSITY;
     const kg = coverage({ areaM2, ratePerM2: rate, wastePct: i.reservePct });
     const grout = purchase(
       "grout",
@@ -151,7 +130,6 @@ export const zatirka: ToolModule<ZatirkaInput> = {
         code: "rate",
         values: { a, b, joint: i.jointMm, depth: i.depthMm, density: GROUT_DENSITY, rate },
       },
-      ...(table !== undefined && table > formula ? [{ code: "rate_table", values: { formula, table } }] : []),
       { code: "grout", values: { area: areaM2, rate, reserve: i.reservePct, kg, pack: i.packKg, packs: grout.packs } },
     );
 

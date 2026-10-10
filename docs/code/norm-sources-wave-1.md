@@ -54,7 +54,7 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | `tileAdhesive.notch3`, `tileAdhesive.notch4`, `tileAdhesive.notch6`, `tileAdhesive.notch8`, `tileAdhesive.notch10`, `tileAdhesive.notch12` | 1,7 / 2,0 / 2,7 / 3,6 / 4,2 / 5,5 kg/m² for notch 3 / 4 / 6 / 8 / 10 / 12 mm, tile up to 5 / 10 / 15 / 25 / 30 / 60 cm | S2 (4, 6, 10 also S1) | confirmed; **notch 8 changed 3,2 → 3,6, awaiting owner** | S1 (blog) gives 3,2 for 8 mm and tiles up to 20 cm; the product page gives 3,6 up to 25 cm — we take the datasheet (larger). Beyond 60 cm the table says «от 5,5»: warning. S1 also gives V = S × Vст × h |
 | `tileAdhesive.maxLayer` | 10 mm | S2 | confirmed | Warning above it in the layer mode |
 | `tileAdhesive.backButter` | 1 mm on the tile back from 30 × 30 (+1,2 kg/m²) | S2 (method and 1,2 kg/m² per mm) | **default, unconfirmed** (owner, 2026-10-10) | The datasheet requires the combined method but gives no thickness; field «Слой на плитку» |
-| `CE40_LARGE` (calc table) | CE 40 rates for 40 × 40, 20 × 60, 60 × 60, 120 × 60 at a 2 mm joint | S18 | confirmed (owner: take the larger) | From a 40 cm side the grout rate is max(formula, nearest row scaled to the tile and joint) |
+| CE 40 table (golden cross-check) | 40 × 40 j2 0,2; 60 × 60 j2 0,15 kg/m² | S18 | confirmed | Reproduced exactly by the Ceresit formula at 12,5 / 14 mm joint depth — the table assumes thick porcelain, so the formula with the real tile thickness is used; two golden examples cross-check it |
 | `tileAdhesive.perMm` | 1,2 kg/m² per 1 mm of layer | S2 | confirmed | For a user-entered layer thickness |
 | `tileAdhesive.bag` | 25 kg | S2 | confirmed | Preset; 5 kg second preset |
 | `grout.density` | 1,6 | S3 | confirmed (owner: 1,6) | Mapei S4 implies ~1,5; we keep the larger value. S4 rows are golden cross-checks with that difference explained |
@@ -94,7 +94,8 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | 2026-10-09 | Laminate diagonal / herringbone waste | 15% with the note «по опыту укладчиков» until the master confirms |
 | 2026-10-10 | Plinth fasteners | Add, every 40 cm (manual S21 then found: «max 30–40 cm») |
 | 2026-10-10 | Adhesive reserve from 30 × 30 | A 1 mm layer on the tile (+1,2 kg/m²), unconfirmed thickness |
-| 2026-10-10 | Grout formula vs CE 40 table | Take the larger |
+| 2026-10-10 | Grout formula vs CE 40 table | First «take the larger»; then (owner: «как считаешь нужным») the formula with the real tile thickness — the table equals the formula at 12,5–14 mm depth, so «larger» overbought 50–75 % on 8–9 mm tiles |
+| 2026-10-10 | Linoleum 5 m roll width | Not added — only widths from sources |
 | 2026-10-10 | Plinth 2,5 m source | Find the datasheet → Arbiton INDO TDS (S20) |
 | 2026-10-10 | Tile adhesive 8 mm notch: S1 3,2 (tile ≤ 20 cm) vs S2 3,6 (tile ≤ 25 cm) | 3,6 from the datasheet (reviewer confirmed both sources; kept) |
 | 2026-10-10 | Wallpaper: worst-case pattern start per roll | Keep it (never under-buys); show an info hint with the lucky-start roll count and «лишние не вскрывайте» |
