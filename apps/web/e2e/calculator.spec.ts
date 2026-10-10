@@ -4,6 +4,7 @@ const ROOM = "/osnova/ploshchad-komnaty/";
 const WALLS = "/osnova/ploshchad-sten/";
 const WALLPAPER = "/steny/oboi/";
 const PAINT = "/steny/kraska/";
+const PLINTH = "/pol/plintus/";
 /** Visible area of Safari on a 390 × 844 iPhone (design spec §12). */
 const FIRST_SCREEN = 660;
 
@@ -17,7 +18,7 @@ async function type(page: Page, label: string, value: string) {
 }
 
 test("the result number is on the first phone screen of every tool", async ({ page }) => {
-  for (const path of [ROOM, WALLS, WALLPAPER, PAINT]) {
+  for (const path of [ROOM, WALLS, WALLPAPER, PAINT, PLINTH]) {
     await page.goto(path);
     const box = await result(page).boundingBox();
     expect(box, path).not.toBeNull();
@@ -175,4 +176,15 @@ test("room list: wallpaper on the walls and paint on the ceiling share one prime
 
   await list.getByRole("button", { name: "Убрать «Обои» из списка" }).click();
   await expect(rows.filter({ hasText: "Обои" })).toHaveCount(0);
+});
+
+test("plinth: planks and fittings, an L-shaped room adds corners", async ({ page }) => {
+  await page.goto(PLINTH);
+  // 17,8 − 0,8 = 17 м → 7 планок по 2,5 м.
+  await expect(result(page)).toHaveText("7");
+  await expect(page.getByText(/^4\sштуки$/)).toBeVisible();
+
+  await page.getByRole("button", { name: /Ещё параметры/ }).click();
+  await page.getByRole("radio", { name: "Г-образная" }).click();
+  await expect(page.locator("#result").getByText("Наружный угол")).toBeVisible();
 });

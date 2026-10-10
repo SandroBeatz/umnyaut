@@ -2,12 +2,13 @@ import type { ToolId } from "@umnyaut/calc";
 import { type CategoryDef, type CategorySlug, categories } from "./categories";
 import { kraska } from "./tools/kraska";
 import { oboi } from "./tools/oboi";
+import { plintus } from "./tools/plintus";
 import { ploshchadKomnaty } from "./tools/ploshchad-komnaty";
 import { ploshchadSten } from "./tools/ploshchad-sten";
 import type { ToolDef } from "./tools/types";
 
 /** All tools in display order. Routes, sitemap and navigation are generated from this list. */
-export const tools: readonly ToolDef[] = [ploshchadKomnaty, ploshchadSten, oboi, kraska];
+export const tools: readonly ToolDef[] = [ploshchadKomnaty, ploshchadSten, oboi, kraska, plintus];
 
 export const strings = {
   draftNotice: "Калькулятор скоро появится.",

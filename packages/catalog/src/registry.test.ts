@@ -53,6 +53,8 @@ describe("registry", () => {
     expect(kraska.coverageM2PerL).toBe(value("paint.coverage"));
     expect(kraska.coats).toBe(value("paint.coats"));
     expect(kraska.primerRateLPerM2).toBe(value("primer.consumption"));
+    expect(toolModules.oboi.defaults({ country: "RU" }).primerRateLPerM2).toBe(value("primer.consumption"));
+    expect(toolModules.plintus.defaults({ country: "RU" }).plankLengthMm / 1000).toBe(value("plinth.length"));
   });
 
   it("active categories are exactly those with tools", () => {

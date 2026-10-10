@@ -13,7 +13,7 @@ export interface Quantity {
 
 /** How the item is sold. `kind` picks the noun in catalog (пачка, рулон, мешок…); `size` is what one holds. */
 export interface Pack {
-  kind: "pack" | "roll" | "bag" | "bucket" | "can" | "canister" | "box" | "piece" | "tube";
+  kind: "pack" | "roll" | "bag" | "bucket" | "can" | "canister" | "box" | "piece" | "plank" | "tube";
   size: Quantity;
 }
 

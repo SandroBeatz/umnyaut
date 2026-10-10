@@ -2,6 +2,7 @@ import type fc from "fast-check";
 import type { ToolId } from "../src/tools";
 import type { KraskaInput } from "../src/tools/kraska";
 import type { OboiInput } from "../src/tools/oboi";
+import type { PlintusInput } from "../src/tools/plintus";
 import type { PloshchadKomnatyInput } from "../src/tools/ploshchad-komnaty";
 import type { PloshchadStenInput } from "../src/tools/ploshchad-sten";
 
@@ -108,9 +109,24 @@ const kraska: ToolArbitrary<KraskaInput> = {
   grow,
 };
 
+const plintus: ToolArbitrary<PlintusInput> = {
+  input: (f) =>
+    f.record({
+      shape: f.constantFrom("rect" as const, "l" as const),
+      lengthMm: lengthMm(f),
+      widthMm: lengthMm(f),
+      cutLengthMm: f.integer({ min: 0, max: 60_000 }),
+      cutWidthMm: f.integer({ min: 0, max: 60_000 }),
+      openings: f.array(opening(f), { maxLength: 20 }),
+      plankLengthMm: f.integer({ min: 1000, max: 6000 }),
+    }),
+  grow,
+};
+
 export const arbitraries: Partial<Record<ToolId, ToolArbitrary<never>>> = {
   "ploshchad-komnaty": ploshchadKomnaty as ToolArbitrary<never>,
   "ploshchad-sten": ploshchadSten as ToolArbitrary<never>,
   oboi: oboi as ToolArbitrary<never>,
   kraska: kraska as ToolArbitrary<never>,
+  plintus: plintus as ToolArbitrary<never>,
 };

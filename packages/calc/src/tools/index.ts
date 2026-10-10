@@ -1,6 +1,7 @@
 import type { ToolModule } from "../types";
 import { kraska } from "./kraska";
 import { oboi } from "./oboi";
+import { plintus } from "./plintus";
 import { ploshchadKomnaty } from "./ploshchad-komnaty";
 import { ploshchadSten } from "./ploshchad-sten";
 
@@ -10,6 +11,7 @@ export const toolModules = {
   "ploshchad-sten": ploshchadSten,
   oboi,
   kraska,
+  plintus,
 } as const satisfies Record<string, ToolModule>;
 
 export type ToolId = keyof typeof toolModules;

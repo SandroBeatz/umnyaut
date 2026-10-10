@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-10
 
+- **P6.1 (partial)** Plinth calculator `plintus` v1 (`/pol/plintus/`, live — opens the «Пол» category): run = perimeter − door widths (windows ignored), planks = ⌈run / plank⌉ with offcuts joined (business spec example 17 м → 7 планок), joiners = planks − 1, inner corners 4 or 5 + 1 outer for an L-shape (shape and cut-out from “My room”), 2 end caps per door. New pack kind `plank`; fittings use the `plinth-fittings` photo. 12 golden examples derived by hand, all matched; Playwright journey and first-screen check.
+  - Where: `feature/phase-6-wave-1`
+  - Notes: P6.1 stays open until `formula-reviewer` and the release check. Doors are not placed on walls, so no per-wall cutting (whole pieces per wall would buy more planks); Qalculator benchmark pending.
+
 - **P6.11** Connected wall list, local only: «В список» on purchase tools (replaces the disabled «Сохранить»), «Список для комнаты» under the result on every tool page (`features/room-list`, `umnyaut:list:v1`). Each work is recomputed with the current “My room”, items merged by `mergeItems()` — wallpaper on the walls + paint on the ceiling buy one 10 л primer canister instead of two; «Добавьте в список» offers the other purchase tool of the category; copy and clear. Wallpaper gained primer under the wallpaper (spec chain обои → клей → грунтовка; toggle, 0,15 л/м², one canister size like paint) and `nextSteps` → paint. Unit tests for migration, own-input and the merge; Playwright journey wallpaper → paint ceiling → one canister → room length changes the list → remove a work.
   - Where: `feature/phase-6-wave-1`
   - Notes: can sets from different works are merged per size, not re-optimised (P11.1). The full planner `/remont/`, saving and «Мои расчёты» stay in Phases 7 and 11.
