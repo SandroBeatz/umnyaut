@@ -15,13 +15,13 @@ export const golden: GoldenFile<LaminatInput> = {
       name: "Mockup room 4.6 × 4.3 m, board 1285 × 192, 9 per pack (defaults)",
       input: {},
       expected: {
-        items: { laminate: { packs: 11 }, underlay: { packs: 2, need: 19.78 } },
-        summary: { rows: 23, boards: 92, lastRow: 56 },
+        items: { laminate: { packs: 10 }, underlay: { packs: 2, need: 19.78 } },
+        summary: { rows: 23, boards: 85, lastRow: 56 },
         warnings: ["other_direction_cheaper"],
       },
       source: {
         kind: "manual",
-        ref: `${RULES}. Замок с двух концов: правая часть обрезка (после резки конца ряда) может только начать ряд, левая (после резки начала) — только закончить. Ряды по 4580: 1) 1285 + 2 × 1285 + 725 → правый обрезок 560; 2) 560 дал бы хвост 165, целая доска повторит стыки — режем 985 (левый обрезок 300), конец 1025 из новой доски; 3) целая + 2 + 725 (ещё 560). Каждый ряд — 4 доски: 23 × 4 = 92 / 9 → 11 пачек. Макет обещал 10 — он не учитывал замки; поперёк — 80 досок, 9 пачек`,
+        ref: `${RULES}. Замок с двух концов: правая часть обрезка может только начать ряд, левая — только закончить. Ряды по 4580, первые восемь вручную: 985 (рез, левая часть 300 в запас концов) + 2 + 1025 → 4; 425 (рез, левая 860) + 3 + конец 300 из запаса → 4; 725 (рез, левая 560) + 3, без конца → 4; целая + 2 + конец 725 из 860 → 3; 300 (рез, левая 985) + 3 + конец 425 из 560 → 4; 1025 (рез) + 2 + конец 985 из запаса → 3; 725 + 3 → 4; целая + 2 + 725 → 4. Все куски ≥ 30 см, стыки соседних рядов ≥ 30 см. 23 ряда → 85 досок (раскладка проверена по правилам построчно, test/rows-plan.test.ts) / 9 → 10 пачек; поперёк — 80 досок, 9 пачек`,
       },
     },
     {
@@ -72,11 +72,11 @@ export const golden: GoldenFile<LaminatInput> = {
       name: "Last row of 30 mm: warning",
       input: { widthMm: 4274 },
       expected: {
-        items: { laminate: { packs: 11 } },
+        items: { laminate: { packs: 10 } },
         summary: { rows: 23, lastRow: 30 },
         warnings: ["narrow_last_row"],
       },
-      source: { kind: "manual", ref: `${RULES}. 4254 − 22 × 192 = 30 мм < 50; ряды те же, 92 доски → 11 пачек` },
+      source: { kind: "manual", ref: `${RULES}. 4254 − 22 × 192 = 30 мм < 50; ряды те же, 85 досок → 10 пачек` },
     },
     {
       name: "Diagonal: area + 15 % «по опыту укладчиков»",
@@ -98,9 +98,18 @@ export const golden: GoldenFile<LaminatInput> = {
       source: { kind: "manual", ref: "19,78 × 1,15 / 2,22048 → 11 пачек" },
     },
     {
+      name: "Rows of 2060 mm: a cut start that pays off rows later",
+      input: { lengthMm: 2080, widthMm: 4436 },
+      expected: { items: { laminate: { packs: 5 } }, summary: { rows: 23, boards: 39 } },
+      source: {
+        kind: "manual",
+        ref: `${RULES}. Ряд 2060 = 1,6 доски: по правилам замков и смещения 23 ряда укладываются из 39 досок (оптимум полного перебора рецензента; раньше пошаговый выбор брал 46). Раскладка проверена построчно (test/rows-plan.test.ts). 39 / 9 → 5 пачек`,
+      },
+    },
+    {
       name: "Without underlay",
       input: { underlay: false },
-      expected: { items: { laminate: { packs: 11 } }, absentItems: ["underlay"] },
+      expected: { items: { laminate: { packs: 10 } }, absentItems: ["underlay"] },
       source: { kind: "manual", ref: "Подложка выключена" },
     },
     {

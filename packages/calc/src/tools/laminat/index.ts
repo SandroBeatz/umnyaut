@@ -40,7 +40,8 @@ function straight(i: LaminatInput, alongLength: boolean) {
     minPieceMm: i.minOffsetMm,
     minOffsetMm: i.minOffsetMm,
   });
-  return { rows, lastRowMm, boards: laid.boards, packs: Math.ceil(laid.boards / i.boardsPerPack) };
+  const relaxed = (laid.plan ?? []).some((r) => r.relaxed);
+  return { rows, lastRowMm, boards: laid.boards, packs: Math.ceil(laid.boards / i.boardsPerPack), relaxed };
 }
 
 /**
@@ -100,6 +101,8 @@ export const laminat: ToolModule<LaminatInput> = {
           values: { last: lay.lastRowMm / 10, trim: (lay.lastRowMm + i.boardWidthMm) / 20 },
         });
       }
+      if (lay.relaxed)
+        warnings.push({ code: "offset_impossible", level: "warning", values: { offset: i.minOffsetMm / 10 } });
       if (other.packs < lay.packs) {
         warnings.push({ code: "other_direction_cheaper", level: "info", values: { packs: other.packs } });
       }

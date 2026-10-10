@@ -218,9 +218,9 @@ test("linoleum: the best width and the cut length, a pinned width", async ({ pag
   await expect(page.getByText(/ширина 4\sм · 34,4\sм²/)).toBeVisible();
 });
 
-test("laminate: the mockup room — 11 packs (92 boards), 9 across; diagonal adds 15 %", async ({ page }) => {
+test("laminate: the mockup room — 10 packs (85 boards), 9 across; diagonal adds 15 %", async ({ page }) => {
   await page.goto(LAMINATE);
-  await expect(result(page)).toHaveText("11");
+  await expect(result(page)).toHaveText("10");
   await expect(page.getByText("Если класть ряды в другую сторону, хватит 9 пачек")).toBeVisible();
 
   await page.getByRole("button", { name: "Укладка" }).click();
