@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-10
 
+- **P6.10 (partial)** Reviewer handout for the master: `pnpm review:export` (`tooling/scripts/review-export.ts`) writes [docs/review/wave-1-master.md](../review/wave-1-master.md) — 10 live tools, 134 golden examples in Russian (parameters by field label, our answer in packs, hand derivation with sources, warnings with numbers, norms with «не подтверждено» marks, Qalculator observations) and 23 open questions per tool. [Reviewer Handouts](../review/README.md) explains regeneration and how corrections come back.
+  - Where: `feature/phase-6-wave-1`
+  - Notes: P6.10 stays open until the owner sends the file to the master (A26) and the feedback is scheduled.
+
 - **P6.3 (decision)** Grout back to the Ceresit formula with the real tile thickness: scaling a CE 40 table row to the real depth reproduces the formula exactly (40 × 40, joint 2, 12,5 mm → 0,2 kg/m²; 60 × 60, 14 mm → 0,149 ≈ 0,15), so the table assumes thick porcelain and «take the larger» overbought on 8–9 mm tiles and jumped at 40 cm. Two cross-check golden examples; depth hint names 9–14 mm for 60 × 60. Linoleum keeps sourced widths only (no 5 м). Owner: «как считаешь нужным».
   - Where: `feature/phase-6-wave-1`
 
