@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-10
 
+- **— (decisions applied)** Owner: (1) plinth fasteners every 40 cm — the Arbiton INDO installation manual (new S21) then turned up: «max 30–40 cm» for screws, so the norm is confirmed; toggle for glue or tape; (2) tile adhesive from 30 × 30 adds a 1 mm layer on the tile (+1,2 kg/m², thickness unconfirmed) — mockup floor 4 → 5 bags; (3) grout from a 40 cm side takes the larger of the formula and the nearest CE 40 table row scaled to the tile and joint — 60 × 60: 0,107 → 0,15 kg/m², 30 × 60: 0,144 → 0,225; (4) plinth 2,5 м: Arbiton INDO product page («Длина (см) 250», S13) and TDS 2500 × 70 × 26 мм (S20) replace the catalogue links; IDEAL Классик 2,2 м (S14). 8 mm notch stays 3,6. Golden, content and the Playwright adhesive check updated; norms register v1.5.
+  - Where: `feature/phase-6-wave-1`
+
 - **P6.12** Phase 4 decisions re-checked against the 10 wave-1 tools — table «Phase 6 check» in [Calculation Engine](../code/calc-engine.md) v1.5: `ceilPacks` tolerance and the minimum-one-pack rule stay (tools clamp near-zero geometry themselves), norms filled (45 from 19 sources), harness proven on real tools, `calc:export` runs on macOS and now on CI (new step, > 100 rows); pack choice by money stays open until prices.
   - Where: `feature/phase-6-wave-1`
 

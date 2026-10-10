@@ -106,6 +106,7 @@ export const zatirka: ToolDef = {
     floor_l: "Пол = {length} × {width} − вырез {cutLength} × {cutWidth} = {area} м²",
     walls: "Стены = {gross} − окна и двери {openings} = {area} м²",
     rate: "Расход = ({a} + {b}) / ({a} × {b}) × шов {joint} × глубина {depth} × {density} = {rate} кг/м² (размеры в мм)",
+    rate_table: "По формуле {formula} кг/м², по таблице производителя для такого формата {table} — берём большее",
     grout: "Затирка = {area} × {rate} + запас {reserve}% = {kg} кг → упаковок по {pack} кг: {packs}",
   },
   warnings: {

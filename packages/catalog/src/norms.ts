@@ -32,11 +32,13 @@ const S = {
   S10: "Quick-Step, «Монтаж ламината», https://www.quick-step.ru/laminate/installation/",
   S11: "Tarkett, «Укладка линолеума и уход», https://www.tarkett.ru/hub/vidy-napolnykh-pokrytiy/ukladka-linoleuma-i-ukhod/",
   S12: "ГОСТ 7251-2016 «Линолеум поливинилхлоридный…», https://docs.cntd.ru/document/1200141418",
-  S13: "Arbiton, каталог плинтусов, https://arbiton.com/ru/plintus",
-  S14: "IDEAL, каталог плинтусов, https://ideal.ru/product/plintusy/",
+  S13: "Arbiton INDO, карточка изделия (длина 250 см), https://arbiton.com/ru/plintus/belyye-plintusy/plintusy-arbiton-indo-belyi-matovyi-40",
+  S14: "IDEAL Классик, карточка изделия (2,2 м), https://ideal.ru/product/plintusy/plintus-napolnyy-ideal-klassik/",
   S17: "ARTSIMPLE (SURGAZ), инструкция по поклейке обоев, https://artsimple.ru/instruction",
   S18: "Ceresit CE 40 PREMIUM, https://www.ceresit.ru/ru/products/tiling/grouts-and-sealants/ce_40_aquastatic/",
   S19: "KERAMA MARAZZI, «Как рассчитать количество плитки», https://ufa.kerama-marazzi.com/blog/stati/kak-rasschitat-kolichestvo-plitki-podrobnoe-rukovodstvo/",
+  S20: "Arbiton INDO, технический лист (2500 × 70 × 26 мм), https://pim.decora.pl/files/lctdTKqqOtvc572y.pdf",
+  S21: "Arbiton INDO, инструкция по монтажу (4 способа, шаг 30–40 см), https://pim.decora.pl/files/wils3fj3u4fgwr3c.pdf",
 } as const;
 
 const norm = (value: number, unit: string, source: string, extra: Partial<Norm> = {}): Norm => ({
@@ -58,6 +60,10 @@ export const norms: Readonly<Record<string, Norm>> = {
   "tileAdhesive.notch10": norm(4.2, "кг/м²", `${S.S2}; ${S.S1}`, { note: "шпатель 10 мм, плитка до 30 см" }),
   "tileAdhesive.notch12": norm(5.5, "кг/м²", S.S2, { note: "шпатель 12 мм, плитка до 60 см, «от 5,5»" }),
   "tileAdhesive.maxLayer": norm(10, "мм", S.S2),
+  "tileAdhesive.backButter": norm(1, "мм", S.S2, {
+    unconfirmed: true,
+    note: "паспорт требует слой на плитку от 30 × 30, но толщину не даёт; 1 мм — решение владельца",
+  }),
   "tileAdhesive.perMm": norm(1.2, "кг/м² на 1 мм", S.S2),
   "tileAdhesive.bag": norm(25, "кг", S.S2),
   "grout.density": norm(1.6, "кг/дм³", S.S3, { note: "у Mapei Keracolor FF по таблице ≈ 1,5; берём больше" }),
@@ -105,7 +111,8 @@ export const norms: Readonly<Record<string, Norm>> = {
   "linoleum.wallTrim": norm(10, "мм", S.S11, { note: "в источнике 0,5–1 см" }),
   "linoleum.rollWidthMin": norm(1.2, "м", S.S12),
   "linoleum.rollWidthMax": norm(2.4, "м", S.S12, { note: "по таблице 1 до 3 м" }),
-  "plinth.length": norm(2.5, "м", `${S.S13}; ${S.S14}`),
+  "plinth.length": norm(2.5, "м", `${S.S13}; ${S.S20}`, { note: "2,2 м — IDEAL Классик (S14), пресет" }),
+  "plinth.fastenerSpacing": norm(400, "мм", S.S21, { note: "в инструкции: шаг не больше 30–40 см" }),
 };
 
 export const getNorm = (id: string, from: Readonly<Record<string, Norm>> = norms): Norm | undefined => from[id];

@@ -5,7 +5,9 @@ type Opening = PlintusInput["openings"][number];
 const door = (widthMm: number, count = 1): Opening => ({ type: "door", widthMm, heightMm: 2000, count });
 
 const PLANK =
-  "Планка 2,5 м (2,2 м — второй размер): каталоги Arbiton, https://arbiton.com/ru/plintus, и IDEAL, https://ideal.ru/product/plintusy/";
+  "Планка 2500 × 70 × 26 мм: Arbiton INDO, https://arbiton.com/ru/plintus/belyye-plintusy/plintusy-arbiton-indo-belyi-matovyi-40 (TDS https://pim.decora.pl/files/lctdTKqqOtvc572y.pdf); 2,2 м — IDEAL Классик";
+const MANUAL =
+  "Arbiton INDO, инструкция по монтажу: 4 способа (клей, скотч, скобы, саморезы), шаг крепления не больше 30–40 см, https://pim.decora.pl/files/wils3fj3u4fgwr3c.pdf";
 
 /**
  * Hand derivations. Run = perimeter − door widths (windows don't touch the floor); planks = ⌈run / plank⌉,
@@ -24,6 +26,7 @@ export const golden: GoldenFile<PlintusInput> = {
           "plinth-corner-in": { packs: 4 },
           "plinth-cap": { packs: 2 },
           "plinth-joiner": { packs: 6 },
+          "plinth-fastener": { packs: 43 },
         },
         absentItems: ["plinth-corner-out"],
         summary: { run: 17, perimeter: 17.8 },
@@ -31,7 +34,7 @@ export const golden: GoldenFile<PlintusInput> = {
       },
       source: {
         kind: "manual",
-        ref: `${PLANK}. Бизнес-спецификация: «периметр 17,8 м минус дверь — 17 м, это 7 планок по 2,5 м». 7 × 2,5 = 17,5, остаток 0,5; стыков 6; 4 угла; дверь — 2 заглушки`,
+        ref: `${PLANK}. Бизнес-спецификация: «периметр 17,8 м минус дверь — 17 м, это 7 планок по 2,5 м». 7 × 2,5 = 17,5, остаток 0,5; стыков 6; 4 угла; дверь — 2 заглушки. ${MANUAL}: 17 / 0,4 = 42,5 → 43 крепежа`,
       },
     },
     {
@@ -130,6 +133,18 @@ export const golden: GoldenFile<PlintusInput> = {
         },
       },
       source: { kind: "manual", ref: "40 − 2,8 = 37,2 / 2,5 = 14,88 → 15 планок" },
+    },
+    {
+      name: "Fasteners every 30 cm",
+      input: { fastenerSpacingMm: 300 },
+      expected: { items: { "plinth-fastener": { packs: 57 } } },
+      source: { kind: "datasheet", ref: `${MANUAL}. 17 / 0,3 = 56,7 → 57` },
+    },
+    {
+      name: "Glued or taped: no fasteners",
+      input: { fasteners: false },
+      expected: { items: { plinth: { packs: 7 } }, absentItems: ["plinth-fastener"] },
+      source: { kind: "datasheet", ref: `${MANUAL}: клей и скотч — без дюбелей` },
     },
     {
       name: "Plank 2 m",

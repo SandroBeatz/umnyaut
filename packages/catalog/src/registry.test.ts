@@ -55,6 +55,8 @@ describe("registry", () => {
     expect(kraska.primerRateLPerM2).toBe(value("primer.consumption"));
     expect(toolModules.oboi.defaults({ country: "RU" }).primerRateLPerM2).toBe(value("primer.consumption"));
     expect(toolModules.plintus.defaults({ country: "RU" }).plankLengthMm / 1000).toBe(value("plinth.length"));
+    expect(toolModules.plintus.defaults({ country: "RU" }).fastenerSpacingMm).toBe(value("plinth.fastenerSpacing"));
+    expect(toolModules.klej.defaults({ country: "RU" }).backButterMm).toBe(value("tileAdhesive.backButter"));
     for (const row of NOTCH_TABLE)
       expect(row.kgPerM2, `notch ${row.notchMm}`).toBe(value(`tileAdhesive.notch${row.notchMm}`));
     expect(toolModules.klej.defaults({ country: "RU" }).bagKg).toBe(value("tileAdhesive.bag"));

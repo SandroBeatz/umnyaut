@@ -28,6 +28,8 @@ const input = z.object({
   layerMm: z.number().min(1).max(20),
   /** Norm `tileAdhesive.bag`. */
   bagKg: z.number().min(1).max(50),
+  /** Combined method from 30 × 30: a thin layer on the tile back, mm (norm `tileAdhesive.backButter`, unconfirmed). */
+  backButterMm: z.number().min(0).max(5),
 });
 
 export type KlejInput = z.infer<typeof input>;
@@ -78,6 +80,7 @@ export const klej: ToolModule<KlejInput> = {
     method: "notch",
     layerMm: 3,
     bagKg: 25,
+    backButterMm: 1,
   }),
   compute(i): ToolResult {
     const warnings: Warning[] = [];
@@ -134,7 +137,17 @@ export const klej: ToolModule<KlejInput> = {
     if (sideMm > row.maxSideMm) {
       warnings.push({ code: "large_format", level: "warning", values: { rate: row.kgPerM2 } });
     } else if (shortSideMm >= COMBINED_FROM_MM) {
-      warnings.push({ code: "combined_method", level: shortSideMm >= LARGE_COMBINED_MM ? "warning" : "info" });
+      warnings.push({
+        code: "combined_method",
+        level: shortSideMm >= LARGE_COMBINED_MM ? "warning" : "info",
+        values: { layer: i.backButterMm },
+      });
+    }
+    // Combined method: the datasheet rate is the trowelled base; the tile back gets 1,2 kg/m² per mm on top.
+    if (shortSideMm >= COMBINED_FROM_MM && i.backButterMm > 0) {
+      const extra = PER_MM * i.backButterMm;
+      steps.push({ code: "back_butter", values: { layer: i.backButterMm, perMm: PER_MM, extra, rate: rate + extra } });
+      rate += extra;
     }
 
     const kg = coverage({ areaM2, ratePerM2: rate });

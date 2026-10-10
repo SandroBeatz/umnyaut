@@ -20,6 +20,10 @@ const input = z.object({
   openings: z.array(opening).max(20).readonly(),
   /** Norm `plinth.length`. */
   plankLengthMm: z.number().int().min(1000).max(6000),
+  /** Screw-and-dowel mounting; off for glue or tape. */
+  fasteners: z.boolean(),
+  /** Norm `plinth.fastenerSpacing` (Arbiton INDO manual: max 30–40 cm). */
+  fastenerSpacingMm: z.number().int().min(100).max(1000),
 });
 
 export type PlintusInput = z.infer<typeof input>;
@@ -47,6 +51,8 @@ export const plintus: ToolModule<PlintusInput> = {
       { type: "window", widthMm: 1200, heightMm: 1400, count: 1 },
     ],
     plankLengthMm: 2500,
+    fasteners: true,
+    fastenerSpacingMm: 400,
   }),
   compute(i): ToolResult {
     const warnings: Warning[] = [];
@@ -99,6 +105,14 @@ export const plintus: ToolModule<PlintusInput> = {
       ...(caps > 0 ? [piece("plinth-cap", caps)] : []),
       ...(joiners > 0 ? [piece("plinth-joiner", joiners)] : []),
     ];
+    if (i.fasteners) {
+      const fasteners = Math.ceil(runMm / i.fastenerSpacingMm);
+      items.push(piece("plinth-fastener", fasteners));
+      steps.push({
+        code: "fasteners",
+        values: { run: mmToM(runMm), spacing: mmToM(i.fastenerSpacingMm), count: fasteners },
+      });
+    }
     steps.push(
       { code: "planks", values: { run: mmToM(runMm), plank: mmToM(i.plankLengthMm), planks: plinth.packs } },
       { code: "corners", values: { inner: innerCorners, outer: outerCorners } },

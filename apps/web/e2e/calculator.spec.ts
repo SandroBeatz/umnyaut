@@ -196,8 +196,8 @@ test("plinth: planks and fittings, an L-shaped room adds corners", async ({ page
 
 test("tile adhesive and grout follow the tile size", async ({ page }) => {
   await page.goto(ADHESIVE);
-  // 19,78 м² × 4,2 кг/м² (шпатель 10 мм) = 83,1 кг → 4 мешка по 25 кг.
-  await expect(result(page)).toHaveText("4");
+  // 19,78 м² × (4,2 + 1,2 на плитку) = 106,8 кг → 5 мешков по 25 кг.
+  await expect(result(page)).toHaveText("5");
   await page.getByRole("radio", { name: "10 × 10" }).click();
   // × 2,0 кг/м² = 39,6 кг → 2 мешка.
   await expect(result(page)).toHaveText("2");

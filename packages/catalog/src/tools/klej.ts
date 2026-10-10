@@ -90,6 +90,16 @@ export const klej: ToolDef = {
       when: { method: "layer" },
     },
     { kind: "number", min: 1, max: 50, step: 1, unit: "кг", name: "bagKg", label: "Мешок" },
+    {
+      kind: "number",
+      min: 0,
+      max: 5,
+      step: 0.5,
+      unit: "мм",
+      name: "backButterMm",
+      label: "Слой на плитку",
+      hint: "Для плитки от 30 × 30 см; производитель толщину не указывает",
+    },
   ],
   presets: [
     { id: "t10", label: "10 × 10", values: { tileLengthMm: 100, tileWidthMm: 100 } },
@@ -106,13 +116,14 @@ export const klej: ToolDef = {
     walls: "Стены = {gross} − окна и двери {openings} = {area} м²",
     rate_notch: "Плитка до {side} см — шпатель {notch} мм, расход от {rate} кг/м²",
     rate_layer: "Расход = {perMm} кг/м² на 1 мм × {layer} мм = {rate} кг/м²",
+    back_butter: "Слой на плитку {layer} мм × {perMm} = {extra} кг/м²; всего {rate} кг/м²",
     adhesive: "Клей = {area} × {rate} = {kg} кг → мешков по {bag} кг: {bags}",
   },
   warnings: {
     openings_exceed_walls: "Окна и двери больше площади стен. Проверьте их размеры",
     cut_too_large: "Вырез не меньше самой комнаты — считаем пол прямоугольным. Проверьте размеры выреза",
     combined_method:
-      "Плитку от 30 × 30 см кладут комбинированным способом: тонкий слой клея ещё и на плитку. Расход будет выше — посчитайте по толщине слоя или возьмите мешок про запас",
+      "Плитку от 30 × 30 см кладут комбинированным способом: клей наносят и на основание, и на плитку. Добавили слой {layer} мм на плитку — поменяйте в поле «Слой на плитку»",
     large_format:
       "Плитка больше 60 см — за пределами таблицы производителя, взят расход от {rate} кг/м². Её кладут комбинированным способом, клея уйдёт больше — уточните по паспорту",
     layer_too_thick:
@@ -124,6 +135,7 @@ export const klej: ToolDef = {
     "tileAdhesive.notch12",
     "tileAdhesive.perMm",
     "tileAdhesive.maxLayer",
+    "tileAdhesive.backButter",
     "tileAdhesive.bag",
   ],
 };

@@ -12,13 +12,13 @@ export const golden: GoldenFile<KlejInput> = {
       name: "Floor 4.6 × 4.3 m, tile 30 × 30 cm (defaults)",
       input: {},
       expected: {
-        items: { "tile-adhesive": { packs: 4, need: 83.076, leftover: 16.924 } },
-        summary: { adhesiveKg: 83.076, area: 19.78, notch: 10 },
+        items: { "tile-adhesive": { packs: 5, need: 106.812, leftover: 18.188 } },
+        summary: { adhesiveKg: 106.812, area: 19.78, notch: 10 },
         warnings: ["combined_method"],
       },
       source: {
         kind: "datasheet",
-        ref: `${CM11}. 19,78 × 4,2 = 83,076 кг / 25 = 3,3 → 4 мешка; от 30 × 30 — комбинированный способ`,
+        ref: `${CM11}. от 30 × 30 — комбинированный способ: 4,2 + слой 1 мм на плитку 1,2 = 5,4 кг/м² × 19,78 = 106,812 кг / 25 = 4,3 → 5 мешков (толщина слоя на плитке в паспорте не указана — 1 мм, решение владельца)`,
       },
     },
     {
@@ -61,16 +61,16 @@ export const golden: GoldenFile<KlejInput> = {
       name: "Porcelain 60 × 60 cm",
       input: { tileLengthMm: 600, tileWidthMm: 600 },
       expected: {
-        items: { "tile-adhesive": { packs: 5, need: 108.79 } },
+        items: { "tile-adhesive": { packs: 6, need: 132.526 } },
         summary: { notch: 12 },
         warnings: ["combined_method"],
       },
-      source: { kind: "datasheet", ref: `${CM11}. 19,78 × 5,5 = 108,79 кг → 5 мешков` },
+      source: { kind: "datasheet", ref: `${CM11}. (5,5 + 1,2) × 19,78 = 132,526 кг → 6 мешков` },
     },
     {
       name: "Large format 60 × 120 cm: beyond the table",
       input: { tileLengthMm: 1200, tileWidthMm: 600 },
-      expected: { items: { "tile-adhesive": { packs: 5, need: 108.79 } }, warnings: ["large_format"] },
+      expected: { items: { "tile-adhesive": { packs: 6, need: 132.526 } }, warnings: ["large_format"] },
       source: {
         kind: "datasheet",
         ref: `${CM11}. Таблица кончается на 60 см «от 5,5 кг/м²» — берём 5,5 и предупреждаем`,
@@ -79,23 +79,26 @@ export const golden: GoldenFile<KlejInput> = {
     {
       name: "By layer thickness 3 mm",
       input: { method: "layer", layerMm: 3 },
-      expected: { items: { "tile-adhesive": { packs: 3, need: 71.208 } }, warnings: ["combined_method"] },
+      expected: { items: { "tile-adhesive": { packs: 4, need: 94.944 } }, warnings: ["combined_method"] },
       source: {
         kind: "datasheet",
-        ref: `${CM11}. 19,78 × 1,2 × 3 = 71,208 кг → 3 мешка (формула V = S × Vст × h, Ceresit)`,
+        ref: `${CM11}. (1,2 × 3 + 1,2) × 19,78 = 94,944 кг → 4 мешка (формула V = S × Vст × h, Ceresit)`,
       },
     },
     {
       name: "Layer 12 mm is thicker than allowed",
       input: { method: "layer", layerMm: 12 },
-      expected: { items: { "tile-adhesive": { packs: 12, need: 284.832 } }, warnings: ["layer_too_thick"] },
-      source: { kind: "datasheet", ref: `${CM11}: слой не больше 10 мм. 19,78 × 1,2 × 12 = 284,832 кг → 12 мешков` },
+      expected: { items: { "tile-adhesive": { packs: 13, need: 308.568 } }, warnings: ["layer_too_thick"] },
+      source: {
+        kind: "datasheet",
+        ref: `${CM11}: слой не больше 10 мм. (14,4 + 1,2) × 19,78 = 308,568 кг → 13 мешков`,
+      },
     },
     {
       name: "5 kg bags",
       input: { bagKg: 5 },
-      expected: { items: { "tile-adhesive": { packs: 17, need: 83.076, leftover: 1.924 } } },
-      source: { kind: "datasheet", ref: `${CM11} (фасовка 5 кг). 83,076 / 5 = 16,6 → 17 мешков` },
+      expected: { items: { "tile-adhesive": { packs: 22, need: 106.812, leftover: 3.188 } } },
+      source: { kind: "datasheet", ref: `${CM11} (фасовка 5 кг). 106,812 / 5 = 21,4 → 22 мешка` },
     },
     {
       name: "Exactly two bags",
@@ -106,11 +109,17 @@ export const golden: GoldenFile<KlejInput> = {
     {
       name: "L-shaped floor 6 × 5 m with a 3 × 2 m cut-out",
       input: { shape: "l", lengthMm: 6000, widthMm: 5000, cutLengthMm: 3000, cutWidthMm: 2000 },
-      expected: { items: { "tile-adhesive": { packs: 5, need: 100.8 } }, summary: { area: 24 } },
+      expected: { items: { "tile-adhesive": { packs: 6, need: 129.6 } }, summary: { area: 24 } },
       source: {
         kind: "datasheet",
-        ref: `${CM11}. 30 − 6 = 24 м² × 4,2 = 100,8 кг → 5 мешков (прямоугольник дал бы 6)`,
+        ref: `${CM11}. 30 − 6 = 24 м² × 5,4 = 129,6 кг → 6 мешков (прямоугольник дал бы 7)`,
       },
+    },
+    {
+      name: "Without the layer on the tile: the bare datasheet rate",
+      input: { backButterMm: 0 },
+      expected: { items: { "tile-adhesive": { packs: 4, need: 83.076 } } },
+      source: { kind: "datasheet", ref: `${CM11}. 19,78 × 4,2 = 83,076 кг → 4 мешка` },
     },
     {
       name: "Wall openings larger than the walls: nothing to buy",
