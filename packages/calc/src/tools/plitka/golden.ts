@@ -128,6 +128,18 @@ export const golden: GoldenFile<PlitkaInput> = {
       source: { kind: "manual", ref: "Стены 10 м², окна 20 м² — класть нечего" },
     },
     {
+      name: "L-shaped floor 6 × 5 m with a 3 × 2 m cut-out",
+      input: { shape: "l", lengthMm: 6000, widthMm: 5000, cutLengthMm: 3000, cutWidthMm: 2000 },
+      expected: {
+        items: { tile: { packs: 28, need: 330 }, "tile-adhesive": { packs: 6, need: 129.6 } },
+        summary: { whole: 264, cut: 36, area: 24 },
+      },
+      source: {
+        kind: "manual",
+        ref: `${KM}. Прямоугольник 6 × 5: 6000 — 19 целых и 243, 5000 — 16 целых и 152: 304 + 19 + 16 + 1 = 340. В вырезе 3 × 2 наверняка лежат ⌊(3000 − 300) / 303⌋ × ⌊(2000 − 300) / 303⌋ = 8 × 5 = 40 целых — их не берём: 300 × 1,1 = 330 / 12 → 28. Клей на 24 м² × 5,4 = 129,6 кг → 6 мешков`,
+      },
+    },
+    {
       name: "Without adhesive and grout",
       input: { adhesive: false, grout: false },
       expected: { items: { tile: { packs: 22 } }, absentItems: ["tile-adhesive", "grout"] },

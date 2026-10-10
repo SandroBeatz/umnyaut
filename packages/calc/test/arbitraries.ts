@@ -184,56 +184,74 @@ const zatirka: ToolArbitrary<ZatirkaInput> = {
 
 const linoleum: ToolArbitrary<LinoleumInput> = {
   input: (f) =>
-    f.record({
-      lengthMm: lengthMm(f),
-      widthMm: lengthMm(f),
-      rollWidthMm: f.oneof(f.constant(0), f.integer({ min: 500, max: 6000 })),
-      overlapMm: f.integer({ min: 0, max: 300 }),
-      allowanceMm: f.integer({ min: 0, max: 300 }),
-      repeatMm: f.integer({ min: 0, max: 2000 }),
-      cutStepMm: f.integer({ min: 10, max: 1000 }),
-    }),
+    f
+      .record({
+        shape: f.constantFrom("rect" as const, "l" as const),
+        lengthMm: lengthMm(f),
+        widthMm: lengthMm(f),
+        cutLengthMm: f.integer({ min: 0, max: 60_000 }),
+        cutWidthMm: f.integer({ min: 0, max: 60_000 }),
+        rollWidthMm: f.oneof(f.constant(0), f.integer({ min: 500, max: 6000 })),
+        overlapMm: f.integer({ min: 0, max: 300 }),
+        allowanceMm: f.integer({ min: 0, max: 300 }),
+        repeatMm: f.integer({ min: 0, max: 2000 }),
+        cutStepMm: f.integer({ min: 10, max: 1000 }),
+      })
+      // Rectangles only for the growth property: with «fewest seams first» (Tarkett) a larger L-shaped room may
+      // switch to one seam more, and its short sheets can then buy slightly less — correct for each room, not a
+      // defect; L-shapes are covered by golden examples.
+      .map((v) => ({ ...v, shape: "rect" as const })),
   grow,
 };
 
 const laminat: ToolArbitrary<LaminatInput> = {
   input: (f) =>
-    f.record({
-      lengthMm: lengthMm(f),
-      widthMm: lengthMm(f),
-      direction: f.constantFrom("length" as const, "width" as const),
-      method: f.constantFrom("straight" as const, "diagonal" as const, "herringbone" as const),
-      boardLengthMm: f.integer({ min: 300, max: 3000 }),
-      boardWidthMm: f.integer({ min: 50, max: 500 }),
-      boardsPerPack: f.integer({ min: 1, max: 50 }),
-      gapMm: f.integer({ min: 0, max: 30 }),
-      minOffsetMm: f.integer({ min: 100, max: 1000 }),
-      wastePct: f.double({ min: 0, max: 40, noNaN: true }),
-      underlay: f.boolean(),
-      underlayRollM2: f.double({ min: 1, max: 100, noNaN: true }),
-    }),
+    f
+      .record({
+        shape: f.constantFrom("rect" as const, "l" as const),
+        lengthMm: lengthMm(f),
+        widthMm: lengthMm(f),
+        cutLengthMm: f.integer({ min: 0, max: 60_000 }),
+        cutWidthMm: f.integer({ min: 0, max: 60_000 }),
+        direction: f.constantFrom("length" as const, "width" as const),
+        method: f.constantFrom("straight" as const, "diagonal" as const, "herringbone" as const),
+        boardLengthMm: f.integer({ min: 300, max: 3000 }),
+        boardWidthMm: f.integer({ min: 50, max: 500 }),
+        boardsPerPack: f.integer({ min: 1, max: 50 }),
+        gapMm: f.integer({ min: 0, max: 30 }),
+        minOffsetMm: f.integer({ min: 100, max: 1000 }),
+        wastePct: f.double({ min: 0, max: 40, noNaN: true }),
+        underlay: f.boolean(),
+        underlayRollM2: f.double({ min: 1, max: 100, noNaN: true }),
+      })
+      .map(validCut),
   grow,
 };
 
 const plitka: ToolArbitrary<PlitkaInput> = {
   input: (f) =>
-    f.record({
-      surface: f.constantFrom("floor" as const, "walls" as const),
-      lengthMm: f.integer({ min: 300, max: 20_000 }),
-      widthMm: f.integer({ min: 300, max: 20_000 }),
-      heightMm: f.integer({ min: 1000, max: 10_000 }),
-      openings: f.array(opening(f), { maxLength: 20 }),
-      tileLengthMm: f.integer({ min: 20, max: 3000 }),
-      tileWidthMm: f.integer({ min: 20, max: 3000 }),
-      jointMm: f.double({ min: 0, max: 20, noNaN: true }),
-      layout: f.constantFrom("straight" as const, "diagonal" as const),
-      start: f.constantFrom("corner" as const, "center" as const),
-      reservePct: f.double({ min: 0, max: 30, noNaN: true }),
-      tilesPerBox: f.integer({ min: 1, max: 200 }),
-      adhesive: f.boolean(),
-      grout: f.boolean(),
-      tileThicknessMm: f.double({ min: 3, max: 30, noNaN: true }),
-    }),
+    f
+      .record({
+        surface: f.constantFrom("floor" as const, "walls" as const),
+        shape: f.constantFrom("rect" as const, "l" as const),
+        lengthMm: f.integer({ min: 300, max: 20_000 }),
+        widthMm: f.integer({ min: 300, max: 20_000 }),
+        cutLengthMm: f.integer({ min: 0, max: 30_000 }),
+        cutWidthMm: f.integer({ min: 0, max: 30_000 }),
+        heightMm: f.integer({ min: 1000, max: 10_000 }),
+        openings: f.array(opening(f), { maxLength: 20 }),
+        tileLengthMm: f.integer({ min: 20, max: 3000 }),
+        tileWidthMm: f.integer({ min: 20, max: 3000 }),
+        jointMm: f.double({ min: 0, max: 20, noNaN: true }),
+        layout: f.constantFrom("straight" as const, "diagonal" as const),
+        start: f.constantFrom("corner" as const, "center" as const),
+        reservePct: f.double({ min: 0, max: 30, noNaN: true }),
+        tilesPerBox: f.integer({ min: 1, max: 200 }),
+        adhesive: f.boolean(),
+        grout: f.boolean(),
+        tileThicknessMm: f.double({ min: 3, max: 30, noNaN: true }),
+      })
+      .map(validCut),
   grow,
 };
 

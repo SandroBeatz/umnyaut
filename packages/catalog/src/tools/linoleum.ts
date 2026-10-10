@@ -29,6 +29,37 @@ export const linoleum: ToolDef = {
       ],
     },
     {
+      kind: "select",
+      name: "shape",
+      label: "Форма комнаты",
+      room: "shape",
+      options: [
+        { value: "rect", label: "Прямоугольная" },
+        { value: "l", label: "Г-образная" },
+      ],
+    },
+    {
+      kind: "length",
+      unit: "m",
+      min: 0,
+      max: 100_000,
+      name: "cutLengthMm",
+      label: "Длина выреза",
+      hint: "Угол, которого нет у комнаты",
+      room: "cutLength",
+      when: { shape: "l" },
+    },
+    {
+      kind: "length",
+      unit: "m",
+      min: 0,
+      max: 100_000,
+      name: "cutWidthMm",
+      label: "Ширина выреза",
+      room: "cutWidth",
+      when: { shape: "l" },
+    },
+    {
       kind: "length",
       unit: "cm",
       min: 0,
@@ -67,6 +98,7 @@ export const linoleum: ToolDef = {
     seams: "Швов",
     boughtArea: "Площадь покупки",
     waste: "Уйдёт в обрезки",
+    floorArea: "Площадь пола",
   },
   steps: {
     room: "Комната {length} × {width} = {area} м²",
@@ -76,6 +108,7 @@ export const linoleum: ToolDef = {
     best: "Берём {width} м: швов {seams}, отрез {length} м, {area} м² — меньше швов, затем меньше площадь",
   },
   warnings: {
+    cut_too_large: "Вырез не меньше самой комнаты — считаем её прямоугольной. Проверьте размеры выреза",
     seams: "Швов: {seams}. Стыки полотен сваривают холодной сваркой — купите её вместе с линолеумом",
   },
   norms: ["linoleum.seamOverlap", "linoleum.rollWidthMin", "linoleum.rollWidthMax"],

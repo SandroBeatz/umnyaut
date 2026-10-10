@@ -10,6 +10,8 @@
 export interface RowsInput {
   rowLengthMm: number;
   rows: number;
+  /** Rows of different lengths, laid in this order (an L-shaped room); overrides `rowLengthMm` × `rows`. */
+  rowLengthsMm?: readonly number[];
   boardLengthMm: number;
   /** Shortest piece allowed in a row (also the shortest offcut worth keeping). */
   minPieceMm: number;
@@ -30,7 +32,8 @@ export interface RowsResult {
 
 export interface RowPlan {
   start: number;
-  startFrom: "pool" | "whole" | "cut";
+  /** `pool` — a start-side offcut; `end-pool` — an end-side piece used for a one-piece row. */
+  startFrom: "pool" | "end-pool" | "whole" | "cut";
   end: number;
   endFrom: "pool" | "new" | "none";
   /** No start met the rules (row too short for them): laid from a whole board anyway. */
@@ -75,39 +78,53 @@ const POOL = 8;
 
 export function layRows(input: RowsInput): RowsResult {
   const board = Math.round(input.boardLengthMm);
-  const row = Math.round(input.rowLengthMm);
-  const rows = Math.max(Math.trunc(input.rows), 0);
+  const lengths = (
+    input.rowLengthsMm ?? Array.from({ length: Math.max(Math.trunc(input.rows), 0) }, () => input.rowLengthMm)
+  ).map((l) => Math.round(l));
   const minPiece = Math.min(input.minPieceMm, board);
   const minOffset = Math.min(input.minOffsetMm, Math.floor(board / 2));
 
-  // A row no longer than a board is a single piece cut at both ends: any offcut long enough will do.
-  if (row <= board) {
-    const pool: number[] = [];
-    let boards = 0;
-    let wasteMm = 0;
-    for (let r = 0; r < rows; r++) {
-      const k = pool.reduce((best, p, j) => (p >= row && (best < 0 || p < (pool[best] as number)) ? j : best), -1);
-      if (k >= 0) wasteMm += (pool.splice(k, 1)[0] as number) - row;
-      else {
-        boards++;
-        if (board - row >= minPiece) pool.push(board - row);
-        else wasteMm += board - row;
-      }
-    }
-    return { boards, reusedStarts: 0, wasteMm: wasteMm + pool.reduce((sum, p) => sum + p, 0) };
-  }
-
-  const endOf = (start: number) => (row - start) % board;
-  const fits = (start: number, previous: number | undefined) =>
+  const endOf = (row: number, start: number) => (row - start) % board;
+  const fits = (row: number, start: number, previous: number | undefined) =>
     start >= minPiece &&
     start <= board &&
     (previous === undefined || phaseGap(start, previous, board) >= minOffset) &&
     // The row end must not be a sliver either.
-    (endOf(start) === 0 || endOf(start) >= minPiece);
+    (endOf(row, start) === 0 || endOf(row, start) >= minPiece);
 
-  /** Lays one row from a state with a given start; `fromPool` = a start-side offcut used whole. */
-  const lay = (st: State, start: number, source: "pool" | "whole" | "cut"): State => {
-    const next: State = { ...st, starts: [...st.starts], ends: [...st.ends], previous: start };
+  const copy = (st: State, previous: number | undefined): State => ({
+    ...st,
+    starts: [...st.starts],
+    ends: [...st.ends],
+    previous,
+  });
+
+  /** A row no longer than a board: one piece cut at both ends, no joints — any offcut long enough will do. */
+  const single = (st: State, row: number): State[] => {
+    const out: State[] = [];
+    for (const [pool, from] of [
+      ["starts", "pool"],
+      ["ends", "end-pool"],
+    ] as const) {
+      const k = st[pool].reduce((b, p, j) => (p >= row && (b < 0 || p < (st[pool][b] as number)) ? j : b), -1);
+      if (k < 0) continue;
+      const next = copy(st, undefined);
+      next.wasteMm += (next[pool].splice(k, 1)[0] as number) - row;
+      next.plan = { row: { start: row, startFrom: from, end: 0, endFrom: "none" }, previous: st.plan };
+      out.push(next);
+    }
+    const next = copy(st, undefined);
+    next.boards++;
+    if (board - row >= minPiece && next.starts.length < POOL) next.starts.push(board - row);
+    else next.wasteMm += board - row;
+    next.plan = { row: { start: row, startFrom: "whole", end: 0, endFrom: "none" }, previous: st.plan };
+    out.push(next);
+    return out;
+  };
+
+  /** Lays one row from a state with a given start. */
+  const lay = (st: State, row: number, start: number, source: "pool" | "whole" | "cut"): State => {
+    const next = copy(st, start);
     let endFrom: RowPlan["endFrom"] = "none";
     const keep = (pool: number[], rest: number) => {
       if (rest >= minPiece && pool.length < POOL) pool.push(rest);
@@ -122,7 +139,7 @@ export function layRows(input: RowsInput): RowsResult {
       if (source === "cut") keep(next.ends, board - start);
     }
     next.boards += Math.floor((row - start) / board);
-    const end = endOf(start);
+    const end = endOf(row, start);
     if (end > 0) {
       // The shortest end-side piece that is long enough; else a new board, whose right part may start a row.
       const k = next.ends.reduce((b, p, j) => (p >= end && (b < 0 || p < (next.ends[b] as number)) ? j : b), -1);
@@ -139,11 +156,12 @@ export function layRows(input: RowsInput): RowsResult {
     return next;
   };
 
-  /** Candidate starts for a row: pooled offcuts, a whole board, and cuts that shift the joints or match a pooled end. */
-  const moves = (st: State): State[] => {
+  /** Candidate starts: pooled offcuts, a whole board, and cuts that shift the joints or match a pooled end. */
+  const moves = (st: State, row: number): State[] => {
+    if (row <= board) return single(st, row);
     const out: State[] = [];
-    for (const p of new Set(st.starts)) if (fits(p, st.previous)) out.push(lay(st, p, "pool"));
-    if (fits(board, st.previous)) out.push(lay(st, board, "whole"));
+    for (const p of new Set(st.starts)) if (fits(row, p, st.previous)) out.push(lay(st, row, p, "pool"));
+    if (fits(row, board, st.previous)) out.push(lay(st, row, board, "whole"));
     const p = st.previous ?? 0;
     const cuts = new Set<number>([
       p - minOffset,
@@ -154,12 +172,11 @@ export function layRows(input: RowsInput): RowsResult {
       board - minPiece,
       // A start whose row end is exactly a pooled end-side piece.
       ...st.ends.map((e) => row - e),
-      // A start that leaves a reusable left part and a row end that leaves a reusable right part.
       row - (board - minPiece),
     ]);
     for (const raw of cuts) {
       const c = ((Math.round(raw) % board) + board) % board;
-      if (c > 0 && c < board && fits(c, st.previous)) out.push(lay(st, c, "cut"));
+      if (c > 0 && c < board && fits(row, c, st.previous)) out.push(lay(st, row, c, "cut"));
     }
     return out;
   };
@@ -169,19 +186,19 @@ export function layRows(input: RowsInput): RowsResult {
   let beam: State[] = [
     { boards: 0, reusedStarts: 0, wasteMm: 0, previous: undefined, starts: [], ends: [], plan: undefined },
   ];
-  for (let r = 0; r < rows; r++) {
+  for (const row of lengths) {
     const seen = new Map<string, State>();
     for (const st of beam) {
-      for (const next of moves(st)) {
+      for (const next of moves(st, row)) {
         const k = key(next);
         const old = seen.get(k);
         if (!old || next.boards < old.boards) seen.set(k, next);
       }
     }
-    // No legal start at all (rules too strict for this row): fall back to a whole board, rules relaxed.
+    // No legal start at all (rules too strict for this row): a whole board anyway, marked relaxed.
     if (seen.size === 0) {
       for (const st of beam) {
-        const next = lay(st, board, "whole");
+        const next = lay(st, row, board, "whole");
         if (next.plan) next.plan.row.relaxed = true;
         seen.set(key(next), next);
       }

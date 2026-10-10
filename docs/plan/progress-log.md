@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-10
 
+- **P6.6–P6.8 (release blockers, part 2)** L-shaped floors (req. 3), shape and cut-out from “My room”: laminate — `layRows` takes per-row lengths (rows wholly inside the cut-out band are shorter, laid after the full ones in one pass, offcuts carried over; one-piece rows use either pool); linoleum — sheets wholly inside the band are cut shorter; tile — whole tiles surely inside the cut-out are left out, tiles along its inner edges stay as cut. Golden by hand: laminate 6 × 5 − 3 × 2 → 98 boards = the length bound (optimal), 3 × 2 − 2 × 1 → 19; linoleum 6 × 5 − 3 × 2 at 2,5 м → 13 м (rectangle 15); tile 6 × 5 − 3 × 2 → 330 tiles, 28 boxes, adhesive and grout on 24 m². The rule checker covers random L-shaped row sets.
+  - Where: `feature/phase-6-wave-1`
+  - Deviation: the linoleum growth invariant runs on rectangles only — with «fewest seams first» a larger L-shaped room can switch to one more seam and buy slightly less (fast-check: 67,4 → 66,7 m²), correct for each room; documented in `test/arbitraries.ts`.
+
 - **P6.1–P6.8 (release blockers, part 1)** Owner: fix the blockers now, schemes later. (1) Cost (req. 5): `priced()` wrapper in `calc` adds optional `price_<item>` fields to the 8 purchase tools and sets `result.cost` — packs × price per pack, or bought × price per unit (paint per litre, linoleum per m²), «за м²» from the tool's area, `missing` for items without a price; the shell already shows «Итого … · … за м² · без N позиций». One priced golden example per tool (totals by hand), `costOf` unit tests, Playwright check. (2) Tile related items (req. 4): adhesive and grout come with the tile, computed by the adhesive and grout modules themselves for the same surface, tile and joint (+ «Толщина плитки» for the grout depth; toggles). (3) Laminate (req. 2): «Запас на диагональ и ёлочку» is a field (15 % default from the norm).
   - Where: `feature/phase-6-wave-1`
 

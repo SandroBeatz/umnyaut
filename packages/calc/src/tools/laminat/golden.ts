@@ -113,6 +113,27 @@ export const golden: GoldenFile<LaminatInput> = {
       source: { kind: "manual", ref: "19,78 × 1,2 = 23,736 м² / 2,22048 = 10,7 → 11 пачек" },
     },
     {
+      name: "L-shaped room 6 × 5 m with a 3 × 2 m cut-out: the length bound is reached",
+      input: { shape: "l", lengthMm: 6000, widthMm: 5000, cutLengthMm: 3000, cutWidthMm: 2000 },
+      expected: {
+        items: { laminate: { packs: 11 }, underlay: { packs: 3 } },
+        summary: { rows: 26, boards: 98, floorArea: 24 },
+      },
+      source: {
+        kind: "manual",
+        ref: `${RULES}. 26 рядов; ряды целиком в полосе выреза (2 м) — последние 26 − ⌈(5000 − 2000 − 10) / 192⌉ = 10, длиной 6000 − 3000 − 20 = 2980; 16 рядов по 5980. Нижняя граница по длине: (16 × 5980 + 10 × 2980) / 1285 = 97,6 → 98 досок — раскладка достигает её, значит оптимальна. 98 / 9 → 11 пачек; подложка 24 м² → 3 рулона`,
+      },
+    },
+    {
+      name: "L-shaped room 3 × 2 m with a 2 × 1 m cut-out: short rows of one piece",
+      input: { shape: "l", lengthMm: 3000, widthMm: 2000, cutLengthMm: 2000, cutWidthMm: 1000 },
+      expected: { items: { laminate: { packs: 3 } }, summary: { rows: 11, boards: 19, floorArea: 4 } },
+      source: {
+        kind: "manual",
+        ref: `${RULES}. 6 рядов по 2980 (как в комнате 3 × 2: 3 + 2 + 2 + 3 + 2 + 2 = 14 досок, обрезки 875 и 465 уходят в следующие ряды), 5 коротких рядов по 980 — каждый из новой доски (обрезки короче 980): 14 + 5 = 19 / 9 → 3 пачки`,
+      },
+    },
+    {
       name: "Without underlay",
       input: { underlay: false },
       expected: { items: { laminate: { packs: 10 } }, absentItems: ["underlay"] },

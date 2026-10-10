@@ -15,8 +15,12 @@ const opening = z.object({
 
 const input = z.object({
   surface: z.enum(["floor", "walls"]),
+  shape: z.enum(["rect", "l"]),
   lengthMm: length,
   widthMm: length,
+  /** Corner cut-out of an L-shaped floor (from “My room”). */
+  cutLengthMm: z.number().int().min(0).max(100_000),
+  cutWidthMm: z.number().int().min(0).max(100_000),
   heightMm: z.number().int().min(1000).max(10_000),
   openings: z.array(opening).max(20).readonly(),
   /** Along the room length on the floor, horizontal on walls. */
@@ -53,8 +57,11 @@ export const plitka: ToolModule<PlitkaInput> = {
   input,
   defaults: () => ({
     surface: "floor",
+    shape: "rect",
     lengthMm: 4600,
     widthMm: 4300,
+    cutLengthMm: 1500,
+    cutWidthMm: 1200,
     heightMm: 2700,
     openings: [
       { type: "door", widthMm: 800, heightMm: 2000, count: 1 },
@@ -83,12 +90,23 @@ export const plitka: ToolModule<PlitkaInput> = {
     let areaM2: number;
 
     if (i.surface === "floor") {
-      areaM2 = mm2ToM2(i.lengthMm * i.widthMm);
+      const l = i.shape === "l" && i.cutLengthMm > 0 && i.cutWidthMm > 0;
+      const real = l && i.cutLengthMm < i.lengthMm && i.cutWidthMm < i.widthMm;
+      if (l && !real) warnings.push({ code: "cut_too_large", level: "warning" });
+      areaM2 = mm2ToM2(i.lengthMm * i.widthMm - (real ? i.cutLengthMm * i.cutWidthMm : 0));
       if (i.layout === "straight") {
         const g = gridArea(i.lengthMm, i.widthMm, i.tileLengthMm, i.tileWidthMm, i.jointMm, i.start);
         whole = g.whole;
         cut = g.cut;
         if (g.cut > 0) narrowest = g.narrowestMm;
+        if (real) {
+          // Whole tiles surely inside the cut-out are not needed; tiles along its inner edges stay (now cut).
+          const inside =
+            Math.max(Math.floor((i.cutLengthMm - i.tileLengthMm) / pitchX), 0) *
+            Math.max(Math.floor((i.cutWidthMm - i.tileWidthMm) / pitchY), 0);
+          whole = Math.max(whole - inside, 0);
+          steps.push({ code: "cut_out", values: { tiles: inside } });
+        }
       }
     } else {
       const openings = i.openings.filter((o) => o.count > 0);
@@ -156,6 +174,9 @@ export const plitka: ToolModule<PlitkaInput> = {
     const related: PurchaseItem[] = [];
     const surface = {
       surface: i.surface,
+      shape: i.shape,
+      cutLengthMm: i.cutLengthMm,
+      cutWidthMm: i.cutWidthMm,
       lengthMm: i.lengthMm,
       widthMm: i.widthMm,
       heightMm: i.heightMm,

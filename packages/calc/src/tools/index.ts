@@ -29,7 +29,7 @@ export const toolModules = {
   }),
   klej: priced(klej, { items: { "tile-adhesive": "pack" }, area: "area" }),
   zatirka: priced(zatirka, { items: { grout: "pack" }, area: "area" }),
-  linoleum: priced(linoleum, { items: { linoleum: "unit" }, area: (i) => (i.lengthMm * i.widthMm) / 1_000_000 }),
+  linoleum: priced(linoleum, { items: { linoleum: "unit" }, area: "floorArea" }),
   laminat: priced(laminat, { items: { laminate: "pack", underlay: "pack" }, area: "floorArea" }),
   plitka: priced(plitka, { items: { tile: "pack", "tile-adhesive": "pack", grout: "pack" }, area: "area" }),
 } as const satisfies Record<string, ToolModule>;

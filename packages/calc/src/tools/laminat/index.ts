@@ -5,8 +5,12 @@ import type { PurchaseItem, Step, ToolModule, ToolResult, Warning } from "../../
 const length = z.number().int().min(300).max(100_000);
 
 const input = z.object({
+  shape: z.enum(["rect", "l"]),
   lengthMm: length,
   widthMm: length,
+  /** Corner cut-out of an L-shaped room (from “My room”). */
+  cutLengthMm: z.number().int().min(0).max(100_000),
+  cutWidthMm: z.number().int().min(0).max(100_000),
   /** Rows run along the room length or its width. */
   direction: z.enum(["length", "width"]),
   method: z.enum(["straight", "diagonal", "herringbone"]),
@@ -30,14 +34,32 @@ const MIN_LAST_ROW_MM = 50;
 /** Norms `laminate.waste.diagonal`, `laminate.waste.herringbone` (unconfirmed, owner's 15 %). */
 export const LAMINATE_WASTE_PCT = { diagonal: 15, herringbone: 15 } as const;
 
+/** The cut-out if it makes a real L-shape (smaller than the room both ways), else none. */
+const cutOf = (i: LaminatInput) =>
+  i.shape === "l" && i.cutLengthMm > 0 && i.cutWidthMm > 0 && i.cutLengthMm < i.lengthMm && i.cutWidthMm < i.widthMm
+    ? { along: i.cutLengthMm, across: i.cutWidthMm }
+    : undefined;
+
 function straight(i: LaminatInput, alongLength: boolean) {
   const along = (alongLength ? i.lengthMm : i.widthMm) - 2 * i.gapMm;
   const across = (alongLength ? i.widthMm : i.lengthMm) - 2 * i.gapMm;
   const rows = Math.max(Math.ceil(across / i.boardWidthMm), 1);
   const lastRowMm = across - (rows - 1) * i.boardWidthMm;
+  // L-shape: rows lying wholly inside the cut-out band (laid last, from the full side) are shorter.
+  const cut = cutOf(i);
+  const cutAlong = cut ? (alongLength ? cut.along : cut.across) : 0;
+  const cutAcross = cut ? (alongLength ? cut.across : cut.along) : 0;
+  const fullRows = cut
+    ? Math.min(
+        Math.max(Math.ceil(((alongLength ? i.widthMm : i.lengthMm) - cutAcross - i.gapMm) / i.boardWidthMm), 0),
+        rows,
+      )
+    : rows;
+  const short = Math.max(along - cutAlong, 1);
   const laid = layRows({
     rowLengthMm: Math.max(along, 1),
     rows,
+    rowLengthsMm: Array.from({ length: rows }, (_, k) => (k < fullRows ? Math.max(along, 1) : short)),
     boardLengthMm: i.boardLengthMm,
     minPieceMm: i.minOffsetMm,
     minOffsetMm: i.minOffsetMm,
@@ -56,7 +78,10 @@ export const laminat: ToolModule<LaminatInput> = {
   version: 1,
   input,
   defaults: () => ({
+    shape: "rect",
     lengthMm: 4600,
+    cutLengthMm: 1500,
+    cutWidthMm: 1200,
     widthMm: 4300,
     direction: "length",
     method: "straight",
@@ -72,7 +97,11 @@ export const laminat: ToolModule<LaminatInput> = {
   compute(i): ToolResult {
     const warnings: Warning[] = [];
     const steps: Step[] = [];
-    const floorM2 = mm2ToM2(i.lengthMm * i.widthMm);
+    if (i.shape === "l" && !cutOf(i) && i.cutLengthMm > 0 && i.cutWidthMm > 0) {
+      warnings.push({ code: "cut_too_large", level: "warning" });
+    }
+    const cut = cutOf(i);
+    const floorM2 = mm2ToM2(i.lengthMm * i.widthMm - (cut ? cut.along * cut.across : 0));
     const boardM2 = mm2ToM2(i.boardLengthMm * i.boardWidthMm);
     const packM2 = boardM2 * i.boardsPerPack;
     const pack = { kind: "pack" as const, size: { value: packM2, unit: "m2" as const } };

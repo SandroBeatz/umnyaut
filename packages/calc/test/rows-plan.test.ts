@@ -9,19 +9,34 @@ import { layRows, type RowsInput } from "../src/blocks/rows";
  * down). Every piece ≥ minPiece; end joints of neighbouring rows ≥ minOffset apart; boards counted.
  */
 function check(input: RowsInput): string[] {
-  const { rowLengthMm: row, boardLengthMm: board, minPieceMm: min, minOffsetMm: offset, rows } = input;
+  const { boardLengthMm: board, minPieceMm: min, minOffsetMm: offset } = input;
+  const lengths = input.rowLengthsMm ?? Array.from({ length: input.rows }, () => input.rowLengthMm);
   const result = layRows(input);
   const errors: string[] = [];
-  if (row <= board) return errors;
   const plan = result.plan ?? [];
-  if (plan.length !== rows) errors.push(`plan has ${plan.length} rows, expected ${rows}`);
+  if (plan.length !== lengths.length) errors.push(`plan has ${plan.length} rows, expected ${lengths.length}`);
   const rights: number[] = [];
   const lefts: number[] = [];
   let boards = 0;
   let previous: number | undefined;
   plan.forEach((r, k) => {
+    const row = lengths[k] as number;
     // A relaxed row (no legal start exists) is only counted, not judged.
     const at = `row ${k + 1}`;
+    if (row <= Math.min(board, input.boardLengthMm)) {
+      // One piece cut at both ends: from either pool (any piece long enough) or a new board.
+      const pool = r.startFrom === "pool" ? rights : r.startFrom === "end-pool" ? lefts : undefined;
+      if (pool) {
+        const i = pool.reduce((b, p, j) => (p >= row && (b < 0 || p < (pool[b] as number)) ? j : b), -1);
+        if (i < 0) errors.push(`${at}: no piece ≥ ${row} in the pool`);
+        else pool.splice(i, 1);
+      } else {
+        boards++;
+        if (board - row >= min) rights.push(board - row);
+      }
+      previous = undefined;
+      return;
+    }
     const err = (e: string) => {
       if (!r.relaxed) err(`${e}`);
     };
@@ -70,6 +85,26 @@ describe("layRows plan follows the laying rules", () => {
       expect(check({ rowLengthMm: row, rows, boardLengthMm: board, minPieceMm: 300, minOffsetMm: 300 })).toEqual([]);
     }
   });
+
+  it("random L-shaped rooms: long rows, then short ones", () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1500, max: 9000 }),
+        fc.integer({ min: 200, max: 8000 }),
+        fc.integer({ min: 1, max: 20 }),
+        fc.integer({ min: 1, max: 20 }),
+        fc.integer({ min: 900, max: 2000 }),
+        (long, short, a, b, board) => {
+          const rowLengthsMm = [...Array(a).fill(long), ...Array(b).fill(Math.min(short, long))];
+          return (
+            check({ rowLengthMm: 0, rows: 0, rowLengthsMm, boardLengthMm: board, minPieceMm: 300, minOffsetMm: 300 })
+              .length === 0
+          );
+        },
+      ),
+      { numRuns: 300 },
+    );
+  }, 60_000);
 
   it("random rooms", () => {
     fc.assert(

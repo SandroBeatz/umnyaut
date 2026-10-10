@@ -27,6 +27,37 @@ export const laminat: ToolDef = {
     { kind: "preset", label: "Доска", presets: ["b1285", "b1380", "b1292"], main: true },
     {
       kind: "select",
+      name: "shape",
+      label: "Форма комнаты",
+      room: "shape",
+      options: [
+        { value: "rect", label: "Прямоугольная" },
+        { value: "l", label: "Г-образная" },
+      ],
+    },
+    {
+      kind: "length",
+      unit: "m",
+      min: 0,
+      max: 100_000,
+      name: "cutLengthMm",
+      label: "Длина выреза",
+      hint: "Угол, которого нет у комнаты",
+      room: "cutLength",
+      when: { shape: "l" },
+    },
+    {
+      kind: "length",
+      unit: "m",
+      min: 0,
+      max: 100_000,
+      name: "cutWidthMm",
+      label: "Ширина выреза",
+      room: "cutWidth",
+      when: { shape: "l" },
+    },
+    {
+      kind: "select",
       name: "direction",
       label: "Ряды идут",
       options: [
@@ -97,6 +128,7 @@ export const laminat: ToolDef = {
     underlay: "Подложка = {area} м² / {roll} м² в рулоне → {rolls}",
   },
   warnings: {
+    cut_too_large: "Вырез не меньше самой комнаты — считаем её прямоугольной. Проверьте размеры выреза",
     narrow_last_row:
       "Последний ряд выйдет {last} см — уже 5 см. Подрежьте первый ряд, чтобы оба крайних ряда были по {trim} см",
     offset_impossible:

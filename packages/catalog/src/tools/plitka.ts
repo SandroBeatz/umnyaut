@@ -26,6 +26,37 @@ export const plitka: ToolDef = {
     },
     { kind: "preset", label: "Плитка", presets: ["t20", "t30", "t3060", "t60"], main: true },
     {
+      kind: "select",
+      name: "shape",
+      label: "Форма комнаты",
+      room: "shape",
+      options: [
+        { value: "rect", label: "Прямоугольная" },
+        { value: "l", label: "Г-образная" },
+      ],
+    },
+    {
+      kind: "length",
+      unit: "m",
+      min: 0,
+      max: 100_000,
+      name: "cutLengthMm",
+      label: "Длина выреза",
+      hint: "Угол, которого нет у комнаты",
+      room: "cutLength",
+      when: { shape: "l" },
+    },
+    {
+      kind: "length",
+      unit: "m",
+      min: 0,
+      max: 100_000,
+      name: "cutWidthMm",
+      label: "Ширина выреза",
+      room: "cutWidth",
+      when: { shape: "l" },
+    },
+    {
       kind: "length",
       unit: "m",
       min: 1000,
@@ -123,6 +154,8 @@ export const plitka: ToolDef = {
   },
   steps: {
     openings: "Окна и двери закрывают {tiles} целых плиток — их не берём",
+    cut_out:
+      "В вырезе Г-образной комнаты наверняка лежат {tiles} целых плиток — их не берём; плитки по его краям остаются в расчёте",
     grid: "Раскладка: целых {whole}, подрезанных {cut} — всего {pieces} плиток",
     reserve: "С запасом {pct}% на подрезку и бой: {pieces} → {tiles}",
     diagonal: "Диагональ: {area} м² / {tile} м² + {pct}% = {tiles} плиток",
@@ -131,6 +164,7 @@ export const plitka: ToolDef = {
     grout: "Затирка — как в калькуляторе затирки для этого шва и толщины: {kg} кг, упаковок {packs}",
   },
   warnings: {
+    cut_too_large: "Вырез не меньше самой комнаты — считаем её прямоугольной. Проверьте размеры выреза",
     openings_exceed_walls: "Окна и двери больше площади стен. Проверьте их размеры",
     narrow_cut: "У края выйдет узкая подрезка {cut} см. Попробуйте раскладку от центра",
   },

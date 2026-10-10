@@ -110,6 +110,15 @@ export const golden: GoldenFile<LinoleumInput> = {
       },
     },
     {
+      name: "L-shaped room 6 × 5 m with a 3 × 2 m cut-out, 2.5 m roll",
+      input: { shape: "l", lengthMm: 6000, widthMm: 5000, cutLengthMm: 3000, cutWidthMm: 2000, rollWidthMm: 2500 },
+      expected: { items: { linoleum: { packs: 130 } }, summary: { sheets: 3, seams: 2, length: 13, boughtArea: 32.5 } },
+      source: {
+        kind: "manual",
+        ref: `${TARKETT}. Поперёк (полотна вдоль 5 м, поперёк 6 м): 3 полотна с начала 0; 2,45; 4,9 — третье целиком в полосе выреза (с 3 м), оно короче на 2 м: 5 + 5 + 3 = 13 м = 32,5 м². Вдоль длины: 6 + 6 + 3 = 15 м. Прямоугольник дал бы 15 м поперёк`,
+      },
+    },
+    {
       name: "Length rounded up to the 10 cm cut step",
       input: { lengthMm: 4620, widthMm: 2400 },
       expected: {
