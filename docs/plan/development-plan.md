@@ -233,7 +233,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 - [ ] P6.6 Linoleum (M) — `strips` variants by width × direction, seams, sorted by price.
 - [ ] P6.7 Laminate (L) — `rows` engine (offset, trimming, offcut reuse, narrow last row warning); underlay + plinth related; diagonal/herringbone as waste. Golden incl. mockup case (4.6 × 4.3, 2.22 m² → 10 packs, 23 rows).
 - [ ] P6.8 Tile (L) — `grid` engine from centre/corner, whole vs cut tiles, boxes.
-- [ ] P6.9 Layout schemes for laminate and tile **only if time remains** (else Phase 10).
+- [ ] P6.9 Layout schemes for laminate and tile **only if time remains** (else Phase 10). → **Moved to Phase 10** (owner, 2026-10-10); release-check requirement 15 for wallpaper, laminate, linoleum and tile waits for it.
 - [ ] P6.10 Reviewer export of wave 1 (C10) sent to the master (A26).
 - [x] P6.11 Minimal local-only connected wall list: shared room → wall area → wallpaper or paint → glue/primer; `mergeItems()` combines duplicates and exposes the next calculation. Saving, projects and the full works picker remain Phase 7/11.
 - [x] P6.12 Re-check the Phase 4 decisions against real tools and reviewer feedback ([Calculation Engine → Decisions to verify](../code/calc-engine.md#decisions-to-verify-in-real-testing)): `ceilPacks` tolerance, minimum one pack for a tiny need, norms filled with sources, harness running on real tools, `calc:export` on CI and Mac.
@@ -324,7 +324,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 - [ ] P10.1 Blocks `frame`, `power`; norms per country (tariffs, climate regions) in catalog.
 - [ ] P10.2 Tools in order: Radiators, Electricity usage, Lighting, Putty, Primer, Plaster, Vinyl/parquet (reuse `rows`), Screed, Stretch ceiling, Drywall (L). Disclaimers for radiators and screed.
-- [ ] P10.3 `LayoutScheme` SVG (whole / hatched cut / orange reused dot, legend, text summary, fullscreen on tap, simplify > 2,000 pieces); schemes for laminate and tile; lighting points.
+- [ ] P10.3 `LayoutScheme` SVG (whole / hatched cut / orange reused dot, legend, text summary, fullscreen on tap, simplify > 2,000 pieces); schemes for laminate (from `RowsResult.plan`), tile, wallpaper and linoleum — moved here from P6.9 (release-check requirement 15); lighting points.
 - [ ] P10.4 Category pages potolok, elektrika, klimat (+ icons, photos).
 - [ ] P10.5 Texts (C20) and release check per tool; reviewer pass on wave 2 (C10).
 

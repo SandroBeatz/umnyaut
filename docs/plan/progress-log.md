@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-10
 
+- **P6.6, P6.9, release check v1.1** Linoleum cold welding is a related item: seams × the longer room side (safe side, monotonic) ÷ 20 m per tube (`linoleum.weldPerTube`, unconfirmed — retailer cards for Tarkett type A; the manufacturer gives no figure), with a price field. P6.9 layout schemes moved to Phase 10 (owner) — P10.3 now lists laminate (from `RowsResult.plan`), tile, wallpaper, linoleum. [Wave 1 — Release Check](../review/wave-1-release-check.md) v1.1: room/wall area, paint, plinth, adhesive, grout READY; wallpaper, laminate, linoleum, tile READY except requirement 15 (scheme, Phase 10). Also fixed in the rule checker: a recursive `err()` that hid real violations behind a stack overflow, and the integer half-board offset cap; 20 000 random straight and L-shaped plans clean.
+  - Where: `feature/phase-6-wave-1`
+
 - **P6.6–P6.8 (release blockers, part 2)** L-shaped floors (req. 3), shape and cut-out from “My room”: laminate — `layRows` takes per-row lengths (rows wholly inside the cut-out band are shorter, laid after the full ones in one pass, offcuts carried over; one-piece rows use either pool); linoleum — sheets wholly inside the band are cut shorter; tile — whole tiles surely inside the cut-out are left out, tiles along its inner edges stay as cut. Golden by hand: laminate 6 × 5 − 3 × 2 → 98 boards = the length bound (optimal), 3 × 2 − 2 × 1 → 19; linoleum 6 × 5 − 3 × 2 at 2,5 м → 13 м (rectangle 15); tile 6 × 5 − 3 × 2 → 330 tiles, 28 boxes, adhesive and grout on 24 m². The rule checker covers random L-shaped row sets.
   - Where: `feature/phase-6-wave-1`
   - Deviation: the linoleum growth invariant runs on rectangles only — with «fewest seams first» a larger L-shaped room can switch to one more seam and buy slightly less (fast-check: 67,4 → 66,7 m²), correct for each room; documented in `test/arbitraries.ts`.

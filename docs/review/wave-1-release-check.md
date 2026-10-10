@@ -1,39 +1,41 @@
 ---
-version: 1.0
+version: 1.1
 date: 2026-10-10
 category: plan
 ---
 
 # Wave 1 — Release Check
 
-> Version 1.0 · 2026-10-10 · [Reviewer Handouts](./README.md)
+> Version 1.1 · 2026-10-10 · [Reviewer Handouts](./README.md)
 
 ## Overview
 
 `calculator-release-check` against the 16-requirement standard (`.claude/skills/calculator-release-check/references/standard.md`) on `feature/phase-6-wave-1` after the formula reviews. Content (body 300–600 words, `{{norm.*}}` substitutions) is completed in Phase 8 by plan and is listed, not blocking. Lighthouse runs in Phase 9.
 
-| Tool | Verdict | Blockers |
+| Tool | Verdict (v1.1) | Open |
 |---|---|---|
 | ploshchad-komnaty | READY | — |
 | ploshchad-sten | READY | — |
-| oboi | NOT READY | 5 cost, 15 scheme |
-| kraska | NOT READY | 5 cost |
-| plintus | NOT READY | 5 cost |
-| laminat | NOT READY | 2 diagonal % not editable, 3 L-shape, 5 cost, 15 scheme |
-| linoleum | NOT READY | 3 L-shape, 4 related (seam welding), 5 cost, 15 scheme |
-| plitka | NOT READY | 3 L-shape, 4 related (adhesive, grout), 5 cost, 15 scheme |
-| klej | NOT READY | 5 cost |
-| zatirka | NOT READY | 5 cost |
+| oboi | READY except 15 | scheme → Phase 10 (owner) |
+| kraska | READY | 16: cans are a fixed set, not presets (non-blocking) |
+| plintus | READY | — |
+| laminat | READY except 15 | scheme → Phase 10 |
+| linoleum | READY except 15 | scheme → Phase 10; 16: widths are a dropdown (non-blocking) |
+| plitka | READY except 15 | scheme → Phase 10 |
+| klej | READY | — |
+| zatirka | READY | — |
+
+v1.0 of this check (the same day) found blockers 2, 3, 4, 5; they were fixed: pack prices for every purchase tool (`priced()`), L-shaped floors for laminate, linoleum and tile, tile adhesive and grout and linoleum cold welding as related items, editable laminate diagonal %. Requirement 15 moved to Phase 10 by the owner.
 
 ## Requirements
 
 | # | Requirement | Status across purchase tools | Evidence |
 |---|---|---|---|
 | 1 | Purchase units | ✅ all | `purchase()` / `purchaseSet()`, integer packs, `bought`, `leftover`; invariants on 20–40 thousand inputs |
-| 2 | Waste by method | ✅ except laminate | tile reserve, grout reserve, linoleum allowance, wallpaper trim are fields; laminate diagonal/herringbone 15 % is fixed |
-| 3 | Openings & shape | ✅ wallpaper, paint, plinth, adhesive, grout; ❌ laminate, linoleum, tile | openings fields; L-shape from “My room” in plinth, adhesive, grout; floors of laminate, linoleum, tile are rectangles |
-| 4 | Related materials | ✅ wallpaper (paste, primer), paint (primer), plinth (fittings, fasteners), laminate (underlay); ❌ tile, linoleum | tile → adhesive and grout are next steps, not items; linoleum seam welding is a note only |
-| 5 | Cost | ❌ all | no `kind: "price"` field in any tool; `result.cost` never set (shell can show it) |
+| 2 | Waste by method | ✅ all (v1.1) | tile reserve, grout reserve, linoleum allowance, wallpaper trim are fields; laminate diagonal/herringbone 15 % is fixed |
+| 3 | Openings & shape | ✅ all (v1.1: L-shaped floors for laminate, linoleum, tile) | openings fields; L-shape from “My room” in plinth, adhesive, grout; floors of laminate, linoleum, tile are rectangles |
+| 4 | Related materials | ✅ all (v1.1: tile adhesive and grout, linoleum cold welding) | tile → adhesive and grout are next steps, not items; linoleum seam welding is a note only |
+| 5 | Cost | ✅ all (v1.1: `price_<item>` fields, total, per m², «без N позиций») | no `kind: "price"` field in any tool; `result.cost` never set (shell can show it) |
 | 6 | Warnings | ✅ all | warning codes in calc, Russian text in catalog |
 | 7 | How calculated | ✅ all | steps with the user's numbers |
 | 8 | Norm source | ✅ all | 45+ norms with `source` + `checkedAt`; registry and norm-sources tests |
@@ -43,7 +45,7 @@ category: plan
 | 12 | Phone input | ✅ all | length fields with units and bounds; first screen ≤ 660 px in Playwright |
 | 13 | Room remembered | ✅ all | room-bound fields; room list recomputes from “My room” |
 | 14 | Save & send | ✅ global | `ResultActions`, `?s=`; «В список» for purchase tools |
-| 15 | Scheme | ❌ wallpaper, laminate, tile, linoleum | no `result.layout` yet (plan P6.9, else Phase 10) |
+| 15 | Scheme | → Phase 10 (owner) for wallpaper, laminate, tile, linoleum | no `result.layout` yet (plan P6.9, else Phase 10) |
 | 16 | Presets | ✅ except paint, linoleum | paint cans and linoleum widths are fixed sets / a dropdown, not presets |
 
 ## Non-blocking

@@ -87,10 +87,22 @@ export const linoleum: ToolDef = {
       hint: "Шаг рисунка; каждое следующее полотно режут длиннее, чтобы совпал рисунок",
     },
     { kind: "length", unit: "cm", min: 1, max: 100, name: "cutStepMm", label: "Шаг отреза в магазине" },
+    { kind: "toggle", name: "weld", label: "Холодная сварка швов" },
+    {
+      kind: "number",
+      min: 1,
+      max: 100,
+      step: 1,
+      unit: "м",
+      name: "weldPerTubeM",
+      label: "Сварка: метров шва на тюбик",
+      hint: "Проверьте на тюбике; тип А — около 20 м",
+    },
     { kind: "price", item: "linoleum", name: "price_linoleum", label: "Цена за м²" },
+    { kind: "price", item: "seam-weld", name: "price_seam-weld", label: "Цена тюбика сварки" },
   ],
   nextSteps: ["plintus", "ploshchad-komnaty"],
-  items: { linoleum: { title: "Линолеум", photo: "linoleum" } },
+  items: { linoleum: { title: "Линолеум", photo: "linoleum" }, "seam-weld": { title: "Холодная сварка" } },
   summary: {
     length: "Длина отреза",
     width: "Ширина рулона",
@@ -109,7 +121,7 @@ export const linoleum: ToolDef = {
   },
   warnings: {
     cut_too_large: "Вырез не меньше самой комнаты — считаем её прямоугольной. Проверьте размеры выреза",
-    seams: "Швов: {seams}. Стыки полотен сваривают холодной сваркой — купите её вместе с линолеумом",
+    seams: "Швов: {seams}. Стыки полотен сваривают холодной сваркой — она уже в списке покупок",
   },
-  norms: ["linoleum.seamOverlap", "linoleum.rollWidthMin", "linoleum.rollWidthMax"],
+  norms: ["linoleum.weldPerTube", "linoleum.seamOverlap", "linoleum.rollWidthMin", "linoleum.rollWidthMax"],
 };

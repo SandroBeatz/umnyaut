@@ -1,12 +1,12 @@
 ---
-version: 1.5
+version: 1.6
 date: 2026-10-10
 category: code
 ---
 
 # Norm Sources — Wave 1
 
-> Version 1.5 · 2026-10-10 · [Code](../code/)
+> Version 1.6 · 2026-10-10 · [Code](../code/)
 
 ## Overview
 
@@ -74,6 +74,7 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | `laminate.waste.diagonal` | 15% | — | **default, unconfirmed** (owner: keep with a note) | Labelled «по опыту укладчиков»; to be confirmed by the master (A26) |
 | `laminate.waste.herringbone` | 15% | — | **default, unconfirmed** | Same note |
 | `underlay.rollArea` | 10 m² per roll | — (shop packs, content plan C03) | **default, unconfirmed** | Field «Подложка: м² в рулоне», hint «проверьте по упаковке»; Quick-Step and others sell 5–15 m² |
+| `linoleum.weldPerTube` | 20 m of seam per 44 g tube (type A) | — (retailer product cards; Tarkett publishes no figure) | **default, unconfirmed** | Related item «Холодная сварка»; seams counted along the longer room side (safe side, monotonic); type T ≈ 7 m, type C ≈ 15 m |
 | `linoleum.seamOverlap` | 50 mm (3–5 cm) | S11 | confirmed | Pattern matching per seam |
 | `linoleum.wallTrim` | 10 mm (0,5–1 cm) | S11 | confirmed | |
 | `linoleum.rollWidthMin`, `linoleum.rollWidthMax` | 1,2 / 2,4 m (table 1 allows up to 3 m) | S12 | confirmed | Market presets 1,5 … 4 m (C03) |
@@ -95,6 +96,7 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | 2026-10-10 | Plinth fasteners | Add, every 40 cm (manual S21 then found: «max 30–40 cm») |
 | 2026-10-10 | Adhesive reserve from 30 × 30 | A 1 mm layer on the tile (+1,2 kg/m²), unconfirmed thickness |
 | 2026-10-10 | Grout formula vs CE 40 table | First «take the larger»; then (owner: «как считаешь нужным») the formula with the real tile thickness — the table equals the formula at 12,5–14 mm depth, so «larger» overbought 50–75 % on 8–9 mm tiles |
+| 2026-10-10 | Layout schemes (P6.9) | Moved to Phase 10; the `rows` plan (`RowsResult.plan`) is already recorded for the laminate scheme |
 | 2026-10-10 | Linoleum 5 m roll width | Not added — only widths from sources |
 | 2026-10-10 | Plinth 2,5 m source | Find the datasheet → Arbiton INDO TDS (S20) |
 | 2026-10-10 | Tile adhesive 8 mm notch: S1 3,2 (tile ≤ 20 cm) vs S2 3,6 (tile ≤ 25 cm) | 3,6 from the datasheet (reviewer confirmed both sources; kept) |

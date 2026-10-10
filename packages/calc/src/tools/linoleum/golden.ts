@@ -16,7 +16,7 @@ export const golden: GoldenFile<LinoleumInput> = {
       name: "Mockup room 4.6 × 4.3 m: no width covers it, best is 2.5 m across with one seam (defaults)",
       input: {},
       expected: {
-        items: { linoleum: { packs: 86 } },
+        items: { linoleum: { packs: 86 }, "seam-weld": { packs: 1, need: 4.6 } },
         summary: { width: 2.5, length: 8.6, sheets: 2, seams: 1, boughtArea: 21.5, waste: 1.72 },
         warnings: ["seams"],
       },
@@ -142,7 +142,10 @@ export const golden: GoldenFile<LinoleumInput> = {
     {
       name: "Hall 12 × 8 m: two seams with 3 m rolls",
       input: { lengthMm: 12_000, widthMm: 8000 },
-      expected: { items: { linoleum: { packs: 360 } }, summary: { width: 3, sheets: 3, seams: 2, boughtArea: 108 } },
+      expected: {
+        items: { linoleum: { packs: 360 }, "seam-weld": { packs: 2, need: 24 } },
+        summary: { width: 3, sheets: 3, seams: 2, boughtArea: 108 },
+      },
       source: {
         kind: "manual",
         ref: "Меньше двух швов нельзя (2 × 4 − 0,05 < 8). Два шва: 3 м вдоль длины 3 × 12 = 36 м = 108 м²; 3,5 м — 126 м²; поперёк — от 3 швов",

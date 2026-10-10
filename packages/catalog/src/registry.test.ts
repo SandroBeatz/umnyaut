@@ -66,6 +66,7 @@ describe("registry", () => {
     expect(zatirka.jointMm).toBe(value("tile.joint.floor"));
     expect(zatirka.packKg).toBe(value("grout.pack"));
     expect(toolModules.linoleum.defaults({ country: "RU" }).overlapMm).toBe(value("linoleum.seamOverlap"));
+    expect(toolModules.linoleum.defaults({ country: "RU" }).weldPerTubeM).toBe(value("linoleum.weldPerTube"));
     const laminat = toolModules.laminat.defaults({ country: "RU" });
     expect(laminat.gapMm).toBe(value("laminate.expansionGap"));
     expect(laminat.minOffsetMm).toBe(value("laminate.minOffset"));

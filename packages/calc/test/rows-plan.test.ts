@@ -38,12 +38,13 @@ function check(input: RowsInput): string[] {
       return;
     }
     const err = (e: string) => {
-      if (!r.relaxed) err(`${e}`);
+      if (!r.relaxed) errors.push(`${at}: ${e}`);
     };
     if (r.start < min || r.start > board) err(`start ${r.start} out of range`);
     if (previous !== undefined) {
       const d = Math.abs(r.start - previous) % board;
-      if (Math.min(d, board - d) < Math.min(offset, board / 2)) err(`joints ${Math.min(d, board - d)} apart`);
+      if (Math.min(d, board - d) < Math.min(offset, Math.floor(board / 2)))
+        err(`joints ${Math.min(d, board - d)} apart`);
     }
     if (r.startFrom === "pool") {
       const i = rights.indexOf(r.start);

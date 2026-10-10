@@ -19,6 +19,9 @@ const input = z.object({
   allowanceMm: z.number().int().min(0).max(300),
   /** Pattern repeat: each sheet after the first is cut up to one repeat longer to match the pattern. */
   repeatMm: z.number().int().min(0).max(2000),
+  /** Seam welding: metres of seam one tube closes (norm `linoleum.weldPerTube`, unconfirmed). */
+  weld: z.boolean(),
+  weldPerTubeM: z.number().min(1).max(100),
   /** Shop cut step. */
   cutStepMm: z.number().int().min(10).max(1000),
 });
@@ -93,6 +96,8 @@ export const linoleum: ToolModule<LinoleumInput> = {
     overlapMm: 50,
     allowanceMm: 0,
     repeatMm: 0,
+    weld: true,
+    weldPerTubeM: 20,
     cutStepMm: 100,
   }),
   compute(i): ToolResult {
@@ -116,6 +121,23 @@ export const linoleum: ToolModule<LinoleumInput> = {
       },
     );
     const boughtM2 = mm2ToM2(best.areaMm2);
+    const items = [item];
+    // Cold welding: each seam counted along the longer side of the room — the safe side whichever way the
+    // sheets run (and it never drops when the room grows).
+    const seamM = (best.sheets - 1) * mmToM(Math.max(i.lengthMm, i.widthMm));
+    if (i.weld && seamM > 0) {
+      items.push(
+        purchase(
+          "seam-weld",
+          "related",
+          { value: seamM, unit: "m" },
+          {
+            kind: "tube",
+            size: { value: i.weldPerTubeM, unit: "m" },
+          },
+        ),
+      );
+    }
 
     const steps: Step[] = [
       { code: "room", values: { length: mmToM(i.lengthMm), width: mmToM(i.widthMm), area: floorM2 } },
@@ -133,7 +155,7 @@ export const linoleum: ToolModule<LinoleumInput> = {
     });
 
     return {
-      items: [item],
+      items,
       summary: [
         { key: "length", value: mmToM(best.boughtMm), unit: "m" },
         { key: "width", value: mmToM(best.widthMm), unit: "m" },
