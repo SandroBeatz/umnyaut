@@ -1,3 +1,11 @@
+import type { ToolId } from "@umnyaut/calc";
+
+/** One step of «Порядок работ»: what to do and the tools that compute it (alternatives side by side). */
+export interface WorkStep {
+  title: string;
+  tools: readonly ToolId[];
+}
+
 /** Category slugs from docs/ui/calculator-shell-and-pages.md. A category page exists only once it has a tool. */
 export interface CategoryDef {
   slug: string;
@@ -8,13 +16,55 @@ export interface CategoryDef {
   photo?: string;
   /** What the category holds, for its card: «Ламинат, линолеум, плинтус». */
   note?: string;
+  /** «Порядок работ» on the category page; every step links to its tools. */
+  steps?: readonly WorkStep[];
 }
 
 export const categories = [
-  { slug: "osnova", title: "Основа", icon: "osnova", note: "Площадь комнаты и стен" },
-  { slug: "pol", title: "Пол", icon: "pol", note: "Ламинат, линолеум, плинтус" },
-  { slug: "steny", title: "Стены", icon: "steny", note: "Обои, краска, грунтовка" },
-  { slug: "plitka", title: "Плитка", icon: "plitka", note: "Плитка, клей, затирка" },
+  {
+    slug: "osnova",
+    title: "Основа",
+    icon: "osnova",
+    note: "Площадь комнаты и стен",
+    steps: [
+      { title: "Измерьте пол: площадь и периметр", tools: ["ploshchad-komnaty"] },
+      { title: "Посчитайте стены без окон и дверей", tools: ["ploshchad-sten"] },
+      { title: "Выберите покрытие пола", tools: ["laminat", "linoleum"] },
+      { title: "Выберите отделку стен", tools: ["oboi", "kraska"] },
+    ],
+  },
+  {
+    slug: "pol",
+    title: "Пол",
+    icon: "pol",
+    note: "Ламинат, линолеум, плинтус",
+    steps: [
+      { title: "Измерьте площадь и периметр пола", tools: ["ploshchad-komnaty"] },
+      { title: "Посчитайте покрытие", tools: ["laminat", "linoleum"] },
+      { title: "Посчитайте плинтус и фурнитуру", tools: ["plintus"] },
+    ],
+  },
+  {
+    slug: "steny",
+    title: "Стены",
+    icon: "steny",
+    note: "Обои, краска, грунтовка",
+    steps: [
+      { title: "Посчитайте площадь стен без окон и дверей", tools: ["ploshchad-sten"] },
+      { title: "Посчитайте обои с клеем или краску с грунтовкой", tools: ["oboi", "kraska"] },
+    ],
+  },
+  {
+    slug: "plitka",
+    title: "Плитка",
+    icon: "plitka",
+    note: "Плитка, клей, затирка",
+    steps: [
+      { title: "Посчитайте плитку в коробках", tools: ["plitka"] },
+      { title: "Посчитайте клей под плитку", tools: ["klej"] },
+      { title: "Посчитайте затирку для швов", tools: ["zatirka"] },
+    ],
+  },
   { slug: "potolok", title: "Потолок" },
   { slug: "elektrika", title: "Электрика" },
   { slug: "klimat", title: "Климат" },

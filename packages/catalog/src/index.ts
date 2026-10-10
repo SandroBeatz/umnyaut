@@ -6,7 +6,7 @@ export const site = {
     "Введите размеры комнаты один раз — получите проверенный список покупок для всего ремонта в пачках, рулонах и мешках.",
 } as const;
 
-export { type CategoryDef, type CategorySlug, categories, reservedSegments } from "./categories";
+export { type CategoryDef, type CategorySlug, categories, reservedSegments, type WorkStep } from "./categories";
 export { type CountryConfig, countries, DEFAULT_COUNTRY } from "./countries";
 export { devUi } from "./dev-ui";
 export { type ExampleItem, type HomeWork, home, type MethodIcon } from "./home";

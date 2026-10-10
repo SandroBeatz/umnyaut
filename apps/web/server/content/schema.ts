@@ -38,3 +38,23 @@ export function lengthWarnings(frontmatter: Frontmatter): string[] {
     return length > LIMITS[key] ? [`${key} is ${length} characters, limit ${LIMITS[key]}`] : [];
   });
 }
+
+/** Frontmatter of `content/categories/<slug>.md`: snippet, H1, the description line under it and ≥ 3 FAQ. */
+export const categoryFrontmatterSchema = z.object({
+  title: text,
+  description: text,
+  h1: text,
+  lead: text,
+  updatedAt: date,
+  faq: z.array(z.object({ q: text, a: text })).min(3, "at least 3 FAQ entries"),
+});
+
+export type CategoryFrontmatter = z.infer<typeof categoryFrontmatterSchema>;
+
+/** Same limits for a category: title, description and H1 (the lead has no snippet role). */
+export function categoryLengthWarnings(frontmatter: CategoryFrontmatter): string[] {
+  return (["title", "description", "h1"] as const).flatMap((key) => {
+    const length = [...frontmatter[key]].length;
+    return length > LIMITS[key] ? [`${key} is ${length} characters, limit ${LIMITS[key]}`] : [];
+  });
+}

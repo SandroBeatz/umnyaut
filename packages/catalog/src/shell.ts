@@ -150,6 +150,9 @@ export const shell = {
   },
   category: {
     tools: "Калькуляторы раздела",
+    steps: "Порядок работ",
+    step: "Шаг {n}",
+    or: "или",
   },
   faq: "Вопросы и ответы",
 } as const;

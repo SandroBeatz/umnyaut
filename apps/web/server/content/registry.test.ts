@@ -2,9 +2,9 @@ import "server-only";
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { type ToolModule, toolModules } from "@umnyaut/calc";
-import { tools } from "@umnyaut/catalog";
+import { activeCategories, tools } from "@umnyaut/catalog";
 import { describe, expect, it } from "vitest";
-import { loadToolContent, TOOL_CONTENT_DIR } from "./load";
+import { CATEGORY_CONTENT_DIR, loadCategoryContent, loadToolContent, TOOL_CONTENT_DIR } from "./load";
 
 /** Plan P4.7, the part only apps/web can see: module ↔ catalog ↔ content ↔ golden. */
 const calcTools = join(process.cwd(), "../../packages/calc/src/tools");
@@ -35,5 +35,14 @@ describe("registry ↔ content ↔ golden", () => {
       expect(loadToolContent(tool.id), `content/tools/${tool.id}.md`).toBeDefined();
       expect(existsSync(join(calcTools, tool.id, "golden.ts")), `${tool.id}/golden.ts`).toBe(true);
     }
+  });
+
+  it("every active category has content; every category file belongs to a category", () => {
+    const slugs = activeCategories().map((c) => c.slug);
+    for (const slug of slugs) expect(loadCategoryContent(slug), `content/categories/${slug}.md`).toBeDefined();
+    const files = existsSync(CATEGORY_CONTENT_DIR)
+      ? readdirSync(CATEGORY_CONTENT_DIR).filter((f) => f.endsWith(".md"))
+      : [];
+    expect(files.filter((f) => !slugs.includes(f.replace(/\.md$/, "")))).toEqual([]);
   });
 });

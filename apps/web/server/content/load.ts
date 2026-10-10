@@ -4,7 +4,14 @@ import { join } from "node:path";
 import { norms as catalogNorms, type Norm } from "@umnyaut/catalog";
 import matter from "gray-matter";
 import { renderMarkdown, substituteNorms } from "./render";
-import { type Frontmatter, frontmatterSchema, lengthWarnings } from "./schema";
+import {
+  type CategoryFrontmatter,
+  categoryFrontmatterSchema,
+  categoryLengthWarnings,
+  type Frontmatter,
+  frontmatterSchema,
+  lengthWarnings,
+} from "./schema";
 
 export interface ToolContent {
   frontmatter: Frontmatter;
@@ -55,5 +62,59 @@ export function loadToolContent(id: string, dir = TOOL_CONTENT_DIR): ToolContent
   const content = existsSync(file) ? parseToolContent(readFileSync(file, "utf8"), `content/tools/${id}.md`) : undefined;
   for (const warning of content?.warnings ?? []) console.warn(`⚠ ${warning}`);
   cache.set(file, content);
+  return content;
+}
+
+export interface CategoryContent {
+  frontmatter: CategoryFrontmatter;
+  html: string;
+  faq: { q: string; a: string }[];
+  warnings: string[];
+}
+
+export const CATEGORY_CONTENT_DIR = join(process.cwd(), "content/categories");
+
+/** Parses `content/categories/<slug>.md`; same rules as a tool page (schema, norms, sanitised HTML). */
+export function parseCategoryContent(
+  source: string,
+  file: string,
+  norms: Readonly<Record<string, Norm>> = catalogNorms,
+): CategoryContent {
+  const { data, content } = matter(source);
+  const parsed = categoryFrontmatterSchema.safeParse(data);
+  if (!parsed.success) {
+    const issues = parsed.error.issues.map((i) => `${i.path.join(".") || "frontmatter"}: ${i.message}`).join("; ");
+    throw new Error(`${file}: ${issues}`);
+  }
+  try {
+    const sub = (text: string) => substituteNorms(text, norms);
+    const frontmatter = {
+      ...parsed.data,
+      title: sub(parsed.data.title),
+      description: sub(parsed.data.description),
+      lead: sub(parsed.data.lead),
+    };
+    return {
+      frontmatter,
+      html: renderMarkdown(sub(content)),
+      faq: frontmatter.faq.map(({ q, a }) => ({ q: sub(q), a: renderMarkdown(sub(a)) })),
+      warnings: categoryLengthWarnings(frontmatter).map((w) => `${file}: ${w}`),
+    };
+  } catch (error) {
+    throw new Error(`${file}: ${(error as Error).message}`);
+  }
+}
+
+const categoryCache = new Map<string, CategoryContent | undefined>();
+
+/** Content of `content/categories/<slug>.md`, or undefined while a category has none. */
+export function loadCategoryContent(slug: string, dir = CATEGORY_CONTENT_DIR): CategoryContent | undefined {
+  const file = join(dir, `${slug}.md`);
+  if (categoryCache.has(file)) return categoryCache.get(file);
+  const content = existsSync(file)
+    ? parseCategoryContent(readFileSync(file, "utf8"), `content/categories/${slug}.md`)
+    : undefined;
+  for (const warning of content?.warnings ?? []) console.warn(`⚠ ${warning}`);
+  categoryCache.set(file, content);
   return content;
 }

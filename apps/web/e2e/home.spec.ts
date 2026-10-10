@@ -30,4 +30,10 @@ test("home: “My room” recomputes the example and carries over to a tool", as
   await page.getByRole("link", { name: /^Пол/ }).first().click();
   await expect(page).toHaveURL("/pol/");
   await expect(page.getByText(/Моя комната: 6\s×\s3\s×\s2,7\sм/)).toBeVisible();
+
+  // Category: work order leads into the tools, the room comes along.
+  await expect(page.getByRole("heading", { name: "Порядок работ" })).toBeVisible();
+  await page.getByRole("link", { name: "Плинтус", exact: true }).click();
+  await expect(page).toHaveURL("/pol/plintus/");
+  await expect(page.getByRole("textbox", { name: "Длина комнаты" })).toHaveValue("6");
 });
