@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { countries } from "./countries";
-import { getNorm } from "./norms";
+import { normTitles } from "./norm-titles";
+import { getNorm, norms } from "./norms";
 import { packNouns } from "./units";
 
 describe("norms, countries, units", () => {
@@ -16,5 +17,9 @@ describe("norms, countries, units", () => {
 
   it("every pack kind has three plural forms", () => {
     for (const forms of Object.values(packNouns)) expect(forms).toHaveLength(3);
+  });
+
+  it("every norm has a Russian title for «Методика», and every title a norm", () => {
+    expect(Object.keys(normTitles).sort()).toEqual(Object.keys(norms).sort());
   });
 });

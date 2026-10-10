@@ -58,3 +58,15 @@ export function categoryLengthWarnings(frontmatter: CategoryFrontmatter): string
     return length > LIMITS[key] ? [`${key} is ${length} characters, limit ${LIMITS[key]}`] : [];
   });
 }
+
+/** Frontmatter of `content/pages/<slug>.md` (Методика, О проекте, Политика, Контакты, Партнёрам). */
+export const pageFrontmatterSchema = z.object({
+  title: text,
+  description: text,
+  h1: text,
+  updatedAt: date,
+  /** Owner has not approved the text yet: the page is built but not indexed. */
+  draft: z.boolean().default(false),
+});
+
+export type PageFrontmatter = z.infer<typeof pageFrontmatterSchema>;

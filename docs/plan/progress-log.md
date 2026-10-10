@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-10
 
+- **P8.3 (partly)** Info pages `/metodika/`, `/o-proekte/`, `/politika/`, `/kontakty/`, `/partneram/` under `app/(info)/`: text from `content/pages/<slug>.md` (schema with `draft` → `noindex`), 680 px column, «Обновлено» date, cat `hello` only on «О проекте». «Методика» describes what the code does (layout engines, one `ceilPacks` at the end, reserves only where a source says, ≥ 10 golden per tool) and ends with a norm table built from catalog data — value, source links, check date, «проверьте по этикетке» for unconfirmed norms (their working notes stay internal); new `normTitles` with a test that every norm has one. Footer gets a separate «О сервисе» column from `navigation.infoPages`.
+  - Where: `feature/phase-8-site-pages`
+  - Notes (owner): «О проекте», «Политика», «Контакты», «Партнёрам» are drafts written from the specs (`draft: true`, not indexed) — approve or rewrite (C15–C17), add the author to «О проекте» and the operator details to the policy (152-ФЗ), and create the `hello@umnyaut.com` mailbox (P0.3) the pages link to. The policy lists only what exists now (local storage, link sharing, web-server log, Metrika after consent); saved projects, own counter and rate limits join it with Phase 7/9.
+
 - **P8.2** Category pages for osnova, pol, steny, plitka: H1 and lead from `content/categories/<slug>.md` (new frontmatter schema: title, description, h1, lead, ≥ 3 FAQ; loader `loadCategoryContent`, registry test that every active category has a file), “My room”, tool cards, «Порядок работ» — numbered steps from catalog `CategoryDef.steps`, each step links to its tools («Ламинат или Линолеум»), text and FAQ. Text + FAQ block extracted to `shared/ui/PageText` and reused by the tool page. Metadata title/description from the Markdown. Texts checked against what the tools actually do (tile on walls takes perimeter and height, waste is its own field).
   - Where: `feature/phase-8-site-pages`
   - Notes: category texts were written here, not by `seo-content-writer`; owner review with the tool texts in P8.5. Category photos (G06) still missing — cards show the icon.

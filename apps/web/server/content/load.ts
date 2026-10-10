@@ -11,6 +11,8 @@ import {
   type Frontmatter,
   frontmatterSchema,
   lengthWarnings,
+  type PageFrontmatter,
+  pageFrontmatterSchema,
 } from "./schema";
 
 export interface ToolContent {
@@ -117,4 +119,35 @@ export function loadCategoryContent(slug: string, dir = CATEGORY_CONTENT_DIR): C
   for (const warning of content?.warnings ?? []) console.warn(`⚠ ${warning}`);
   categoryCache.set(file, content);
   return content;
+}
+
+export interface PageContent {
+  frontmatter: PageFrontmatter;
+  html: string;
+}
+
+export const PAGE_CONTENT_DIR = join(process.cwd(), "content/pages");
+
+/** Parses `content/pages/<slug>.md`: schema, norms substituted, sanitised HTML. */
+export function parsePageContent(
+  source: string,
+  file: string,
+  norms: Readonly<Record<string, Norm>> = catalogNorms,
+): PageContent {
+  const { data, content } = matter(source);
+  const parsed = pageFrontmatterSchema.safeParse(data);
+  if (!parsed.success) {
+    const issues = parsed.error.issues.map((i) => `${i.path.join(".") || "frontmatter"}: ${i.message}`).join("; ");
+    throw new Error(`${file}: ${issues}`);
+  }
+  try {
+    return { frontmatter: parsed.data, html: renderMarkdown(substituteNorms(content, norms)) };
+  } catch (error) {
+    throw new Error(`${file}: ${(error as Error).message}`);
+  }
+}
+
+/** Content of an info page. Throws when the file is missing: every info route has its text. */
+export function loadPageContent(slug: string, dir = PAGE_CONTENT_DIR): PageContent {
+  return parsePageContent(readFileSync(join(dir, `${slug}.md`), "utf8"), `content/pages/${slug}.md`);
 }

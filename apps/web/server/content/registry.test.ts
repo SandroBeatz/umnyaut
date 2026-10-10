@@ -2,9 +2,9 @@ import "server-only";
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { type ToolModule, toolModules } from "@umnyaut/calc";
-import { activeCategories, tools } from "@umnyaut/catalog";
+import { activeCategories, navigation, tools } from "@umnyaut/catalog";
 import { describe, expect, it } from "vitest";
-import { CATEGORY_CONTENT_DIR, loadCategoryContent, loadToolContent, TOOL_CONTENT_DIR } from "./load";
+import { CATEGORY_CONTENT_DIR, loadCategoryContent, loadPageContent, loadToolContent, TOOL_CONTENT_DIR } from "./load";
 
 /** Plan P4.7, the part only apps/web can see: module ↔ catalog ↔ content ↔ golden. */
 const calcTools = join(process.cwd(), "../../packages/calc/src/tools");
@@ -44,5 +44,13 @@ describe("registry ↔ content ↔ golden", () => {
       ? readdirSync(CATEGORY_CONTENT_DIR).filter((f) => f.endsWith(".md"))
       : [];
     expect(files.filter((f) => !slugs.includes(f.replace(/\.md$/, "")))).toEqual([]);
+  });
+
+  it("every info page in the navigation has a valid text and a route", () => {
+    for (const { href } of navigation.infoPages) {
+      const slug = href.replaceAll("/", "");
+      expect(() => loadPageContent(slug), href).not.toThrow();
+      expect(existsSync(join(process.cwd(), "app/(info)", slug, "page.tsx")), `app/(info)/${slug}`).toBe(true);
+    }
   });
 });
