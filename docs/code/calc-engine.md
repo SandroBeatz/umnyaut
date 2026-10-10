@@ -1,12 +1,12 @@
 ---
-version: 1.4
+version: 1.5
 date: 2026-10-10
 category: code
 ---
 
 # Calculation Engine (`@umnyaut/calc`)
 
-> Version 1.4 · 2026-10-10 · [Code](../code/)
+> Version 1.5 · 2026-10-10 · [Code](../code/)
 
 ## Overview
 
@@ -153,6 +153,19 @@ Taken in Phase 4 without real tools. Re-check each one once the first formulas, 
 | 4 | Harness proven only on a demo tool | Golden and invariant runs skip `version: 0`; the harness is tested on `test/fixtures/demo-tool.ts` | The first real tool (P5.8) must show up in `golden.test.ts` and `invariants.test.ts` as executed, not skipped, and fail when a golden number is broken on purpose | P5.8 |
 | 5 | `tsx` with disabled `esbuild` postinstall | `allowBuilds: { esbuild: false }` in `pnpm-workspace.yaml`; the platform binary comes from esbuild's optional package | Run `pnpm calc:export` on CI (Linux) and on the owner's Mac once real golden files exist | P6.10 |
 | 6 | Pack choice by litres, not by money | `bestPackSet` without prices minimises overbuy in litres, then pack count. Paint uses it (0,9 / 2,7 / 9 л) — owner, 2026-10-10: keep least overbuy until prices, even where one 9 л can is likely cheaper than 3 × 2,7 л; primer stays one canister size because 7 × 1 л would beat 10 л | Add pack price fields (`kind: "price"` per size) and switch both to the cheapest set; compare with real shop prices per country | Phase 7+ (prices), owner decision |
+
+### Phase 6 check (P6.12, 2026-10-10)
+
+| # | Verdict | Evidence from the 10 wave-1 tools |
+|---|---|---|
+| 1 | Keep relative 1e‑9 | Exact pack multiples in golden for paint (9 л), adhesive (50 кг), grout (2 кг), wallpaper (3 × 3,35 м = 10,05), linoleum (4,0 м), tile (70 шт.): none bought an extra pack. Inputs are integer mm, so float noise never reached a real boundary; the reviewer probed +ε (15,002 м → 7 планок) and it held |
+| 2 | Keep; tools clamp | Phantom packs from near-zero geometry were found and handled in the tools, not in `ceilPacks`: a 3 mm gap above a door bought a whole roll (wallpaper now drops pieces under 5 cm); openings ≥ walls return no items (wallpaper, paint, adhesive, grout, tile); doors ≥ perimeter (plinth) |
+| 3 | Done | 45 norms from 19 sources (S1–S19) in [Norm Sources — Wave 1](./norm-sources-wave-1.md); 7 working defaults flagged `unconfirmed`; catalog tests keep every calc default equal to its norm |
+| 4 | Done | All 10 tools run golden and invariants; deep property runs (20–30 thousand inputs) found real defects the 300-run CI pass missed: wallpaper monotonicity with zero strips, fractional can sizes in `bestPackSet`, a zero linoleum sheet step, an oversized cut-out turning into a real L-shape. CI keeps 600 runs with a 30 s timeout |
+| 5 | Mac ✅, CI step added | `pnpm calc:export` writes 128 rows on macOS; the CI job runs it on Linux and checks > 100 rows |
+| 6 | Open (prices) | Least overbuy in litres stays for paint; primer one canister size (owner, 2026-10-10) |
+
+New rules learnt in Phase 6: one line per pack size with the same item key (can sets) — golden and invariants compare sums per key; goods bought by the running metre are compared by area (`Pack.width`); a rule found by fast-check gets a golden example or a documented arbitrary constraint, never a weaker test.
 
 ## Configuration
 

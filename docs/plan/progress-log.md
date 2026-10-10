@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-10
 
+- **P6.12** Phase 4 decisions re-checked against the 10 wave-1 tools — table «Phase 6 check» in [Calculation Engine](../code/calc-engine.md) v1.5: `ceilPacks` tolerance and the minimum-one-pack rule stay (tools clamp near-zero geometry themselves), norms filled (45 from 19 sources), harness proven on real tools, `calc:export` runs on macOS and now on CI (new step, > 100 rows); pack choice by money stays open until prices.
+  - Where: `feature/phase-6-wave-1`
+
 - **P6.8 (partial)** Tile `plitka` v1 (`/plitka/plitka/`, live) with the new `grid` block: along each span whole tiles with joints from a corner (one cut at the far wall) or symmetric from the centre (a joint or a tile in the middle, whichever leaves the wider cut); every cut piece takes a tile (piece method, S19 Kerama Marazzi); walls one by one, whole tiles inside doors and windows left out; reserve 10 % straight (S19) on top of the piece count, diagonal = area / tile × 1,15; boxes from «плиток в коробке» (12 for 30 × 30 — unconfirmed default). Info hint when a cut is narrower than a quarter tile («попробуйте от центра»). 12 golden examples by hand, all matched; 30 000-input property check clean. Wave 1 is now 10 live tools.
   - Where: `feature/phase-6-wave-1`
   - Notes: P6.8 stays open until `formula-reviewer` and the release check. Not modelled: offcut reuse between edge strips (Kerama Marazzi counts one tile per cut), L-shaped rooms, decor/border tiles. In theory a few millimetres more of room can make the centre layout fit exactly and need fewer tiles; the property test grows rooms by 1 m. Whether the 10 % reserve should apply on top of the piece count (conservative) or only to the area method is for the owner/master.

@@ -42,6 +42,8 @@ jobs:
         run: pnpm turbo run typecheck test build
       - name: Server HTML has title, one H1, canonical and result numbers
         run: pnpm --filter web html:check
+      - name: Reviewer export runs (tsx on Linux)
+        run: pnpm calc:export --csv --out "$RUNNER_TEMP/golden.csv" && test "$(wc -l < "$RUNNER_TEMP/golden.csv")" -gt 100
 
   e2e:
     name: Playwright (phone)
