@@ -16,6 +16,7 @@ export type {
 export * from "./project";
 export { type ToolId, toolModules } from "./tools";
 export { NOTCH_TABLE } from "./tools/klej";
+export { LAMINATE_WASTE_PCT } from "./tools/laminat";
 export { GROUT_DENSITY } from "./tools/zatirka";
 export type {
   CalcContext,

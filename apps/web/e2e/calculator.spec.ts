@@ -6,6 +6,7 @@ const WALLPAPER = "/steny/oboi/";
 const PAINT = "/steny/kraska/";
 const PLINTH = "/pol/plintus/";
 const LINOLEUM = "/pol/linoleum/";
+const LAMINATE = "/pol/laminat/";
 const ADHESIVE = "/plitka/klej/";
 const GROUT = "/plitka/zatirka/";
 /** Visible area of Safari on a 390 × 844 iPhone (design spec §12). */
@@ -21,7 +22,7 @@ async function type(page: Page, label: string, value: string) {
 }
 
 test("the result number is on the first phone screen of every tool", async ({ page }) => {
-  for (const path of [ROOM, WALLS, WALLPAPER, PAINT, PLINTH, LINOLEUM, ADHESIVE, GROUT]) {
+  for (const path of [ROOM, WALLS, WALLPAPER, PAINT, PLINTH, LINOLEUM, LAMINATE, ADHESIVE, GROUT]) {
     await page.goto(path);
     const box = await result(page).boundingBox();
     expect(box, path).not.toBeNull();
@@ -214,4 +215,15 @@ test("linoleum: the best width and the cut length, a pinned width", async ({ pag
   await page.getByRole("button", { name: "Ширина рулона" }).click();
   await page.getByRole("radio", { name: "4 м" }).click();
   await expect(page.getByText(/ширина 4\sм · 34,4\sм²/)).toBeVisible();
+});
+
+test("laminate: the mockup case — 10 packs, 23 rows, underlay; diagonal adds 15 %", async ({ page }) => {
+  await page.goto(LAMINATE);
+  await expect(result(page)).toHaveText("10");
+  await expect(page.getByText("Если класть ряды в другую сторону, хватит 9 пачек")).toBeVisible();
+
+  await page.getByRole("button", { name: "Укладка" }).click();
+  await page.getByRole("radio", { name: "Диагональ" }).click();
+  // 19,78 × 1,15 / 2,22 = 10,2 → 11
+  await expect(result(page)).toHaveText("11");
 });

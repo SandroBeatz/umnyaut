@@ -1,6 +1,7 @@
 import type { ToolModule } from "../types";
 import { klej } from "./klej";
 import { kraska } from "./kraska";
+import { laminat } from "./laminat";
 import { linoleum } from "./linoleum";
 import { oboi } from "./oboi";
 import { plintus } from "./plintus";
@@ -18,6 +19,7 @@ export const toolModules = {
   klej,
   zatirka,
   linoleum,
+  laminat,
 } as const satisfies Record<string, ToolModule>;
 
 export type ToolId = keyof typeof toolModules;

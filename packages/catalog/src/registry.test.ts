@@ -1,4 +1,4 @@
-import { GROUT_DENSITY, NOTCH_TABLE, toolModules } from "@umnyaut/calc";
+import { GROUT_DENSITY, LAMINATE_WASTE_PCT, NOTCH_TABLE, toolModules } from "@umnyaut/calc";
 import { describe, expect, it } from "vitest";
 import { type CategoryDef, categories, reservedSegments } from "./categories";
 import { norms } from "./norms";
@@ -64,6 +64,12 @@ describe("registry", () => {
     expect(zatirka.jointMm).toBe(value("tile.joint.floor"));
     expect(zatirka.packKg).toBe(value("grout.pack"));
     expect(toolModules.linoleum.defaults({ country: "RU" }).overlapMm).toBe(value("linoleum.seamOverlap"));
+    const laminat = toolModules.laminat.defaults({ country: "RU" });
+    expect(laminat.gapMm).toBe(value("laminate.expansionGap"));
+    expect(laminat.minOffsetMm).toBe(value("laminate.minOffset"));
+    expect(laminat.underlayRollM2).toBe(value("underlay.rollArea"));
+    expect(LAMINATE_WASTE_PCT.diagonal).toBe(value("laminate.waste.diagonal"));
+    expect(LAMINATE_WASTE_PCT.herringbone).toBe(value("laminate.waste.herringbone"));
   });
 
   it("active categories are exactly those with tools", () => {

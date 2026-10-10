@@ -90,6 +90,10 @@ export const norms: Readonly<Record<string, Norm>> = {
     unconfirmed: true,
     note: "первоисточника нет; ждёт мастера-рецензента",
   }),
+  "underlay.rollArea": norm(10, "м² в рулоне", "фасовка подложек в магазинах (C03)", {
+    unconfirmed: true,
+    note: "проверьте по упаковке; бывает 5, 10, 15 м²",
+  }),
   "linoleum.seamOverlap": norm(50, "мм", S.S11, { note: "в источнике 3–5 см" }),
   "linoleum.wallTrim": norm(10, "мм", S.S11, { note: "в источнике 0,5–1 см" }),
   "linoleum.rollWidthMin": norm(1.2, "м", S.S12),

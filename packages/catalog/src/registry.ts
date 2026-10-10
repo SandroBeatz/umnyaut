@@ -2,6 +2,7 @@ import type { ToolId } from "@umnyaut/calc";
 import { type CategoryDef, type CategorySlug, categories } from "./categories";
 import { klej } from "./tools/klej";
 import { kraska } from "./tools/kraska";
+import { laminat } from "./tools/laminat";
 import { linoleum } from "./tools/linoleum";
 import { oboi } from "./tools/oboi";
 import { plintus } from "./tools/plintus";
@@ -16,6 +17,7 @@ export const tools: readonly ToolDef[] = [
   ploshchadSten,
   oboi,
   kraska,
+  laminat,
   plintus,
   linoleum,
   klej,

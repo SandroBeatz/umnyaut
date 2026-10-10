@@ -68,6 +68,7 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | `laminate.expansionGap` | 10 mm (10–15) | S9 | confirmed | Per wall |
 | `laminate.waste.diagonal` | 15% | — | **default, unconfirmed** (owner: keep with a note) | Labelled «по опыту укладчиков»; to be confirmed by the master (A26) |
 | `laminate.waste.herringbone` | 15% | — | **default, unconfirmed** | Same note |
+| `underlay.rollArea` | 10 m² per roll | — (shop packs, content plan C03) | **default, unconfirmed** | Field «Подложка: м² в рулоне», hint «проверьте по упаковке»; Quick-Step and others sell 5–15 m² |
 | `linoleum.seamOverlap` | 50 mm (3–5 cm) | S11 | confirmed | Pattern matching per seam |
 | `linoleum.wallTrim` | 10 mm (0,5–1 cm) | S11 | confirmed | |
 | `linoleum.rollWidthMin`, `linoleum.rollWidthMax` | 1,2 / 2,4 m (table 1 allows up to 3 m) | S12 | confirmed | Market presets 1,5 … 4 m (C03) |
