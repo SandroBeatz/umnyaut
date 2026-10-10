@@ -9,7 +9,7 @@ export const site = {
 export { type CategoryDef, type CategorySlug, categories, reservedSegments } from "./categories";
 export { type CountryConfig, countries, DEFAULT_COUNTRY } from "./countries";
 export { devUi } from "./dev-ui";
-export { comingSoon, type FeatureIcon } from "./home";
+export { type ExampleItem, type HomeWork, home, type MethodIcon } from "./home";
 export { getNorm, type Norm, norms } from "./norms";
 export { activeCategories, getCategory, getTool, strings, toolPath, tools, toolsIn } from "./registry";
 export { navigation, shell } from "./shell";

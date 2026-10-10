@@ -6,13 +6,15 @@ export interface CategoryDef {
   icon?: string;
   /** Category photo key in the image pipeline (`cat-<slug>`), once the photo exists (G06). */
   photo?: string;
+  /** What the category holds, for its card: «Ламинат, линолеум, плинтус». */
+  note?: string;
 }
 
 export const categories = [
-  { slug: "osnova", title: "Основа", icon: "osnova" },
-  { slug: "pol", title: "Пол", icon: "pol" },
-  { slug: "steny", title: "Стены", icon: "steny" },
-  { slug: "plitka", title: "Плитка", icon: "plitka" },
+  { slug: "osnova", title: "Основа", icon: "osnova", note: "Площадь комнаты и стен" },
+  { slug: "pol", title: "Пол", icon: "pol", note: "Ламинат, линолеум, плинтус" },
+  { slug: "steny", title: "Стены", icon: "steny", note: "Обои, краска, грунтовка" },
+  { slug: "plitka", title: "Плитка", icon: "plitka", note: "Плитка, клей, затирка" },
   { slug: "potolok", title: "Потолок" },
   { slug: "elektrika", title: "Электрика" },
   { slug: "klimat", title: "Климат" },

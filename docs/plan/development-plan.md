@@ -274,7 +274,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 **Tasks**
 
-- [ ] P8.1 Home (`views/home`): hero (mascot `hello`, headline, badges), “Моя комната” card with room scheme SVG (isometric box with live dimensions) and work chips, orange button «Выбрать расчёт» (until planner), example strip «Для комнаты 12 м² нужно» computed at build, categories grid (only categories with tools), popular tools (static order now), «Как мы считаем», footer.
+- [x] P8.1 Home (`views/home`): hero (mascot `hello`, headline, badges), “Моя комната” card with room scheme SVG (isometric box with live dimensions) and work chips, orange button «Выбрать расчёт» (until planner), example strip «Для комнаты 12 м² нужно» computed at build, categories grid (only categories with tools), popular tools (static order now), «Как мы считаем», footer.
 - [ ] P8.2 Category pages for osnova, pol, steny, plitka: tool cards, «Порядок работ» stepper, text + FAQ.
 - [ ] P8.3 Info pages (`app/(info)/…`): `/metodika/`, `/o-proekte/`, `/politika/`, `/kontakty/`, `/partneram/` with C14–C17.
 - [ ] P8.4 `not-found.tsx` (mascot `oops`, six popular tools).

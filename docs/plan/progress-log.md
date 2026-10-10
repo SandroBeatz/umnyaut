@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-10
 
+- **P8.1** Home page per the mockup «Главная · телефон / от 1024 px» with the decided H1 «Одна комната — весь список покупок»: hero (badge, mascot `hello` with bubble, three badges), “My room” card (isometric `RoomScheme` with live dimensions, length/width/height bound to “My room”, work chips, orange «Выбрать расчёт» that keeps the room and moves focus to the categories), mint strip «Для комнаты N м² нужно» computed by the tools themselves for the room and the selected works (server renders the 4 × 3 × 2,7 м example, the stored room replaces it after mount), categories with notes, six popular tools (static order in catalog), «Как мы считаем» with a link to `/metodika/`. New: `ToggleChips` (multi-select) in `packages/ui`, `widgets/home-room`, catalog `home` (replaces the coming-soon stub), category `note`. Tests: catalog `home.test.ts` (every example card is an item its tool returns), widget model tests, Playwright `e2e/home.spec.ts`.
+  - Where: `feature/phase-8-site-pages`
+  - Deviation: chips are «Пол» (laminate + plinth), «Стены» (wallpaper), «Потолок» (paint on the ceiling), «Плитка» (tile) and choose the example cards until the planner uses them (P11.5); no м/см switch on the card; no mascot `point` in «Как мы считаем» (pose not in the image pipeline, and the hero already has the one cat). `/metodika/` comes with P8.3.
+
 - **— (CI race)** The two one-off `pnpm check` failures today were `web:typecheck` (`next typegen`) and `web:build` writing `.next/types` at the same time (`ENOENT … routes.d.ts`). `turbo.json`: `build` now depends on the package's own `typecheck`, so they never overlap. The commit before this one was pushed after such a failed run; a rerun passed with no change.
   - Where: `feature/phase-6-wave-1`
 
