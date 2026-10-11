@@ -2,7 +2,8 @@ import { GROUT_DENSITY, LAMINATE_WASTE_PCT, NOTCH_TABLE, TILE_DIAGONAL_RESERVE_P
 import { describe, expect, it } from "vitest";
 import { type CategoryDef, categories, reservedSegments } from "./categories";
 import { norms } from "./norms";
-import { activeCategories, getTool, toolPath, tools } from "./registry";
+import { toolPath } from "./paths";
+import { activeCategories, getTool, tools } from "./registry";
 import type { ToolDef } from "./tools/types";
 import { type RegistryInput, validateRegistry } from "./validate";
 

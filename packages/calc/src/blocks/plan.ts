@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod/mini";
 import type { CutCorner, LayoutMark, Opening, PlanWall } from "../types";
 
 /**
@@ -8,18 +8,24 @@ import type { CutCorner, LayoutMark, Opening, PlanWall } from "../types";
  */
 
 /** Places of one opening on the plan (see `OpeningPlace`). */
-export const openingPlacesSchema = z
-  .array(z.object({ wall: z.number().int().min(0).max(11), offsetMm: z.number().int().min(0).max(100_000) }))
-  .max(50)
-  .readonly();
+export const openingPlacesSchema = z.readonly(
+  z
+    .array(
+      z.object({
+        wall: z.int().check(z.minimum(0), z.maximum(11)),
+        offsetMm: z.int().check(z.minimum(0), z.maximum(100_000)),
+      }),
+    )
+    .check(z.maxLength(50)),
+);
 
 /** One opening input schema for every tool, so placements survive when the room moves between tools. */
 export const openingInputSchema = z.object({
   type: z.enum(["door", "window"]),
-  widthMm: z.number().int().min(100).max(10_000),
-  heightMm: z.number().int().min(100).max(10_000),
-  count: z.number().int().min(0).max(50),
-  places: openingPlacesSchema.optional(),
+  widthMm: z.int().check(z.minimum(100), z.maximum(10_000)),
+  heightMm: z.int().check(z.minimum(100), z.maximum(10_000)),
+  count: z.int().check(z.minimum(0), z.maximum(50)),
+  places: z.optional(openingPlacesSchema),
 });
 
 export const cutCornerSchema = z.enum(["ne", "se", "sw", "nw"]);

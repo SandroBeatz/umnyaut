@@ -1,10 +1,10 @@
-import { z } from "zod";
+import * as z from "zod/mini";
 import { gridArea, mm2ToM2, mmToM, openingInputSchema, purchase, wallAreaM2 } from "../../blocks";
 import type { PurchaseItem, Room, Step, ToolModule, ToolResult, Warning } from "../../types";
 import { klej } from "../klej";
 import { zatirka } from "../zatirka";
 
-const length = z.number().int().min(300).max(100_000);
+const length = z.int().check(z.minimum(300), z.maximum(100_000));
 
 /** Shared with every tool, so the plan places of openings survive between tools. */
 const opening = openingInputSchema;
@@ -15,25 +15,25 @@ const input = z.object({
   lengthMm: length,
   widthMm: length,
   /** Corner cut-out of an L-shaped floor (from “My room”). */
-  cutLengthMm: z.number().int().min(0).max(100_000),
-  cutWidthMm: z.number().int().min(0).max(100_000),
-  heightMm: z.number().int().min(1000).max(10_000),
-  openings: z.array(opening).max(20).readonly(),
+  cutLengthMm: z.int().check(z.minimum(0), z.maximum(100_000)),
+  cutWidthMm: z.int().check(z.minimum(0), z.maximum(100_000)),
+  heightMm: z.int().check(z.minimum(1000), z.maximum(10_000)),
+  openings: z.readonly(z.array(opening).check(z.maxLength(20))),
   /** Along the room length on the floor, horizontal on walls. */
-  tileLengthMm: z.number().int().min(20).max(3000),
+  tileLengthMm: z.int().check(z.minimum(20), z.maximum(3000)),
   /** Across on the floor, vertical on walls. */
-  tileWidthMm: z.number().int().min(20).max(3000),
-  jointMm: z.number().min(0).max(20),
+  tileWidthMm: z.int().check(z.minimum(20), z.maximum(3000)),
+  jointMm: z.number().check(z.minimum(0), z.maximum(20)),
   layout: z.enum(["straight", "diagonal"]),
   start: z.enum(["corner", "center"]),
   /** Norm `tile.reserve` (straight), `tile.reserve.diagonal` replaces it for the diagonal. */
-  reservePct: z.number().min(0).max(30),
-  tilesPerBox: z.number().int().min(1).max(200),
+  reservePct: z.number().check(z.minimum(0), z.maximum(30)),
+  tilesPerBox: z.int().check(z.minimum(1), z.maximum(200)),
   /** Related: tile adhesive and grout, counted by the adhesive and grout tools with this tile and joint. */
   adhesive: z.boolean(),
   grout: z.boolean(),
   /** Grout depth = tile thickness. */
-  tileThicknessMm: z.number().min(3).max(30),
+  tileThicknessMm: z.number().check(z.minimum(3), z.maximum(30)),
 });
 
 export type PlitkaInput = z.infer<typeof input>;

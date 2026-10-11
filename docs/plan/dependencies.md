@@ -1,12 +1,12 @@
 ---
-version: 1.3
-date: 2026-10-09
+version: 1.4
+date: 2026-10-11
 category: plan
 ---
 
 # Dependencies Manifest
 
-> Version 1.3 · 2026-10-09 · [Plan](../plan/)
+> Version 1.4 · 2026-10-11 · [Plan](../plan/)
 
 ## Overview
 
@@ -51,7 +51,7 @@ Every tool, CLI and npm package the stack in the technical spec requires, groupe
 
 | Package | Version | Kind | Why |
 |---|---|---|---|
-| `zod` | 4.6.5 | dependency | **Only** runtime dependency allowed |
+| `zod` | 4.6.5 | dependency | **Only** runtime dependency allowed; imported as `zod/mini` (P9.11: smaller client bundle) |
 | `fast-check` | 4.10.2 | dev | Invariant/property tests |
 | `tsx` | 4.23.15 | dev | Runs `scripts/export-golden.ts` (`pnpm calc:export`); its `esbuild` postinstall is disabled via `allowBuilds` in `pnpm-workspace.yaml` (the platform binary ships as an optional package) |
 | `vitest`, `@vitest/coverage-v8` | 5.0.3 | dev | Tests with the 95% line gate (`vitest run --coverage`) |
@@ -68,19 +68,18 @@ Every tool, CLI and npm package the stack in the technical spec requires, groupe
 | Package | Version | Kind | Why |
 |---|---|---|---|
 | `react`, `react-dom` | 19.3.0 | peer | Components |
-| `radix-ui` | 1.7.0 | dependency | Primitives under shadcn/ui (dialog, select, tabs, accordion, toggle-group) |
+| `radix-ui` | 1.7.0 | dependency | Dialog, popover, tabs, accordion (dev page), `Slot`. Since P9.11 overlays load on first use; toggle and radio groups, select list and toasts are own code |
 | `class-variance-authority` | 0.7.1 | dependency | Variants (`primary`, `accent`, `secondary`, `ghost`, `danger`, `icon`) |
 | `clsx` | 2.1.1 | dependency | Class composition |
 | `tailwind-merge` | 3.7.0 | dependency | `cn()` helper |
 | `lucide-react` | 1.53.0 | dependency | Icons |
 | `vaul` | 1.1.2 | dependency | Bottom sheet (shadcn Drawer) on phone |
-| `sonner` | 2.0.8 | dependency | Toasts (“Ссылка скопирована”) |
 | `subset-font` | 2.9.0 | dev | Subsets the full Onest variable TTF (google/fonts, pinned commit) to `onest-var.woff2` — fontsource ships it split by unicode range, so it was dropped |
 | `@testing-library/react` | 16.3.3 | dev | Component tests |
 | `@testing-library/user-event` | 14.6.7 | dev | Interactions |
 | `jsdom` | 30.1.2 | dev | Test DOM |
 
-shadcn/ui is not a dependency: components are generated with `pnpm dlx shadcn@latest add <component>` and copied into `packages/ui` (button, dialog, drawer, accordion, tabs, select, toggle-group, sonner).
+shadcn/ui is not a dependency: components are generated with `pnpm dlx shadcn@latest add <component>` and copied into `packages/ui` (button, dialog, drawer, accordion, tabs). Select, toggle groups and toasts were replaced by own lighter code in P9.11.
 
 ### `packages/db` — Phase 7
 

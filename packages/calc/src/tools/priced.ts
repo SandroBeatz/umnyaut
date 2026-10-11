@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod/mini";
 import type { Cost, PurchaseItem, ToolModule, ToolResult } from "../types";
 
 /** How a price field is meant: per pack bought (roll, bag, box, plank) or per unit (litre of paint, m² of linoleum). */
@@ -50,8 +50,10 @@ export function costOf(
  */
 export function priced<I>(module: ToolModule<I>, config: PriceConfig<I>): ToolModule<I> {
   const keys = Object.keys(config.items);
-  const shape = Object.fromEntries(keys.map((k) => [priceField(k), z.number().min(0).max(100_000_000).optional()]));
-  const input = (module.input as unknown as z.ZodObject<z.ZodRawShape>).extend(shape) as unknown as z.ZodType<I>;
+  const shape = Object.fromEntries(
+    keys.map((k) => [priceField(k), z.optional(z.number().check(z.minimum(0), z.maximum(100_000_000)))]),
+  );
+  const input = z.extend(module.input as unknown as z.ZodMiniObject, shape) as unknown as z.ZodMiniType<I>;
   return {
     ...module,
     input,

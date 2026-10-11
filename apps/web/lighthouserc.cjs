@@ -2,10 +2,11 @@
 // (docs/practices/engineering-practices.md → Performance budget). Run: `pnpm --filter web lighthouse`
 // after `pnpm build`. The planner page joins the list with Phase 11.
 //
-// Baseline 2026-10-11 (local, 3 runs, median): performance 0.91–0.92, LCP 2.7–3.5 s (the H1, render delay),
-// script 351 KB gzip on a tool page (React + Next ≈ 118, zod ≈ 37, calc + catalog ≈ 45, sonner, vaul, Radix).
-// Performance, LCP and JS weight are warnings until the performance pass (P9.11) brings them under the budget;
-// SEO, accessibility, CLS, fonts and third parties already pass and fail the build.
+// After the performance pass (P9.11, 2026-10-11): first-screen JS (`node scripts/js-weight.mjs`) is 240 KB gzip on
+// a tool page (was 330), 158 KB on a text page (was 208); React + Next alone are ≈ 136 KB. Simulated LCP follows
+// the JS bytes requested before the first paint: 2.1–2.6 s on text pages, ≈ 3.5 s on a tool page (observed LCP is
+// ≈ 0.1 s locally). Performance, LCP and JS weight stay warnings until the owner settles the budget (open question
+// 12 in the development plan); SEO, accessibility, CLS, fonts and third parties pass and fail the build.
 const KB = 1024;
 
 module.exports = {

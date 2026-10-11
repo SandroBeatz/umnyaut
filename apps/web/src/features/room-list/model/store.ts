@@ -1,5 +1,5 @@
 import { type ToolId, toolModules } from "@umnyaut/calc";
-import { z } from "zod";
+import * as z from "zod/mini";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -10,7 +10,7 @@ export interface ListEntry {
 }
 
 const entrySchema = z.object({
-  tool: z.string().refine((id): id is ToolId => id in toolModules),
+  tool: z.string().check(z.refine((id) => id in toolModules)),
   input: z.record(z.string(), z.unknown()),
 });
 

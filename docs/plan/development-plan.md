@@ -308,7 +308,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 - [ ] P9.8 IndexNow step in deploy workflow (sitemap diff); submit sitemap in Webmaster + Search Console.
 - [ ] P9.9 Monitoring (A23, A24): 5-min checks from RU and KZ; disk/restart alerts; weekly `pg_dump` (A25).
 - [ ] P9.10 Playwright: full 5 scenarios from tech spec §15 green.
-- [ ] P9.11 Performance pass to the P9.7 budget (measured 2026-10-11: 351 KB JS gzip on a tool page, LCP 2.7–3.5 s): `zod/mini` (or no zod) in the client bundle of `calc`, `Sheet`/`vaul` and `sonner` loaded on first use, Radix accordion → `details`; then the Lighthouse warnings in `apps/web/lighthouserc.cjs` become errors.
+- [ ] P9.11 Performance pass to the P9.7 budget (measured 2026-10-11: 351 KB JS gzip on a tool page, LCP 2.7–3.5 s): `zod/mini` (or no zod) in the client bundle of `calc`, `Sheet`/`vaul` and `sonner` loaded on first use, Radix accordion → `details`; then the Lighthouse warnings in `apps/web/lighthouserc.cjs` become errors. **Done except the budget itself** — tool page 330 → 240 KB, text page 208 → 158 KB; the 150 KB / LCP 2.0 s target is below what React + Next (≈ 136 KB) leave room for, see open question 12.
 
 **Exit gate = Checkpoint M1 (30 Nov):** all pages indexed (or submitted and crawling) in Yandex and Google; formulas covered by tests; events arriving in Metrika; Lighthouse thresholds pass. *If not met — no new tools, fix tech (business spec §4).*
 
@@ -475,6 +475,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 | 9 | «сколько пачек ламината нужно» = 0 demand; mockup uses it | Done 2026-10-11: laminate `question` is «Сколько нужно ламината на комнату» | P8.5 |
 | 10 | TypeScript 7.0 is latest; ecosystem support unverified | Spike | P1.2 |
 | 11 | Local Node is v26; spec pins Node 24 LTS | `.nvmrc` 24 | P1.1 |
+| 12 | Performance budget (tech spec §15): JS ≤ 150 KB gzip and simulated LCP ≤ 2.0 s on a tool page. React + Next 16 alone are ≈ 136 KB; after P9.11 a tool page ships 240 KB (calculator, catalog, `zod/mini`, form) and Lighthouse simulates LCP ≈ 3.5 s (observed ≈ 0.1 s). Deferring the calculator code behind the first paint was tried and dropped: App Router updates make React throw away the server HTML (CLS 0.7) | Owner: keep the lab budget for text pages and set the tool page to ≤ 250 KB / LCP ≤ 3.5 s lab, judged by field LCP (Metrika, CrUX p75 ≤ 2.5 s) — or keep 150 KB and plan a lighter calculator runtime | P9.11 |
 
 ## Cross-references
 

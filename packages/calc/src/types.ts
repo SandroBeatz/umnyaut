@@ -1,4 +1,4 @@
-import type { z } from "zod";
+import type { z } from "zod/mini";
 
 /** Contract from docs/code/calc-engine.md (tech spec §5). Lengths are integer millimetres, areas m², volumes m³. */
 export type Country = "RU" | "KZ" | "BY" | "KG";
@@ -181,7 +181,7 @@ export interface ToolModule<I = unknown, R extends ToolResult = ToolResult> {
   id: string;
   /** Bump when the formula changes. 0 = placeholder without a formula (no golden examples required yet). */
   version: number;
-  input: z.ZodType<I>;
+  input: z.ZodMiniType<I>;
   defaults(ctx: CalcContext): I;
   /** Never throws on schema-valid input: doubtful input gives a warning. */
   compute(input: I, ctx: CalcContext): R;
