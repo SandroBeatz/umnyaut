@@ -1,5 +1,5 @@
 import { activeCategories, shell, toolPath, toolsIn } from "@umnyaut/catalog";
-import { categoryIcons, Logo, Mascot, Popover, PopoverContent, PopoverTrigger } from "@umnyaut/ui";
+import { categoryIcons, Logo, Mascot, PopoverMenu } from "@umnyaut/ui";
 import { ChevronDown, LayoutGrid } from "lucide-react";
 import Link from "next/link";
 import { CountryPicker } from "@/features/pick-country";
@@ -22,40 +22,43 @@ export function SiteHeader() {
           <Logo label="" />
         </Link>
         <nav aria-label={shell.header.calculators} className="hidden lg:block">
-          <Popover>
-            <PopoverTrigger className="inline-flex h-12 items-center gap-1 rounded-md px-3 text-body-strong text-text hover:bg-surface-sunken">
-              {shell.header.calculators}
-              <ChevronDown aria-hidden="true" className="size-4" />
-            </PopoverTrigger>
-            <PopoverContent className="grid w-[min(720px,90vw)] grid-cols-3 gap-4 p-4">
-              {groups.map(({ category, tools }) => {
-                const Icon = iconOf(category.slug);
-                return (
-                  <div key={category.slug}>
-                    <Link
-                      href={`/${category.slug}/`}
-                      className="flex min-h-12 items-center gap-2 text-body-strong text-text hover:text-primary-hover"
-                    >
-                      <Icon aria-hidden="true" className="size-5 text-primary-hover" />
-                      {category.title}
-                    </Link>
-                    <ul>
-                      {tools.map((tool) => (
-                        <li key={tool.id}>
-                          <Link
-                            href={toolPath(tool)}
-                            className="flex min-h-10 items-center text-small text-text-muted hover:text-primary-hover"
-                          >
-                            {tool.title}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                );
-              })}
-            </PopoverContent>
-          </Popover>
+          <PopoverMenu
+            className="inline-flex h-12 items-center gap-1 rounded-md px-3 text-body-strong text-text hover:bg-surface-sunken"
+            label={
+              <>
+                {shell.header.calculators}
+                <ChevronDown aria-hidden="true" className="size-4" />
+              </>
+            }
+            panelClassName="grid w-[min(720px,90vw)] grid-cols-3 gap-4 p-4"
+          >
+            {groups.map(({ category, tools }) => {
+              const Icon = iconOf(category.slug);
+              return (
+                <div key={category.slug}>
+                  <Link
+                    href={`/${category.slug}/`}
+                    className="flex min-h-12 items-center gap-2 text-body-strong text-text hover:text-primary-hover"
+                  >
+                    <Icon aria-hidden="true" className="size-5 text-primary-hover" />
+                    {category.title}
+                  </Link>
+                  <ul>
+                    {tools.map((tool) => (
+                      <li key={tool.id}>
+                        <Link
+                          href={toolPath(tool)}
+                          className="flex min-h-10 items-center text-small text-text-muted hover:text-primary-hover"
+                        >
+                          {tool.title}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </PopoverMenu>
         </nav>
         <div className="ml-auto flex items-center">
           <CountryPicker />

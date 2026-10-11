@@ -14,6 +14,7 @@ export { devUi } from "./dev-ui";
 export { type ExampleItem, type HomeWork, home, type MethodIcon } from "./home";
 export { normTitles } from "./norm-titles";
 export { getNorm, type Norm, norms } from "./norms";
+export { toolPath } from "./paths";
 export { redirects } from "./redirects";
 export {
   activeCategories,
@@ -21,7 +22,6 @@ export {
   getTool,
   popularTools,
   strings,
-  toolPath,
   tools,
   toolsIn,
 } from "./registry";

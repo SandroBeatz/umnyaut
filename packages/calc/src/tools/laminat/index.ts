@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod/mini";
 import {
   cornerFlips,
   coverage,
@@ -14,33 +14,33 @@ import {
 } from "../../blocks";
 import type { Layout, LayoutMark, PurchaseItem, Step, ToolModule, ToolResult, Warning } from "../../types";
 
-const length = z.number().int().min(300).max(100_000);
+const length = z.int().check(z.minimum(300), z.maximum(100_000));
 
 const input = z.object({
   shape: z.enum(["rect", "l"]),
   lengthMm: length,
   widthMm: length,
   /** Corner cut-out of an L-shaped room (from “My room”). */
-  cutLengthMm: z.number().int().min(0).max(100_000),
-  cutWidthMm: z.number().int().min(0).max(100_000),
+  cutLengthMm: z.int().check(z.minimum(0), z.maximum(100_000)),
+  cutWidthMm: z.int().check(z.minimum(0), z.maximum(100_000)),
   /** Where the cut-out sits on the plan (scheme only). */
   cutCorner: cutCornerSchema,
   /** Doors and windows; only their places on the plan are used (scheme and laying guide), never the count. */
-  openings: z.array(openingInputSchema).max(20).readonly(),
+  openings: z.readonly(z.array(openingInputSchema).check(z.maxLength(20))),
   /** Rows run along the room length or its width. */
   direction: z.enum(["length", "width"]),
   method: z.enum(["straight", "diagonal", "herringbone"]),
-  boardLengthMm: z.number().int().min(300).max(3000),
-  boardWidthMm: z.number().int().min(50).max(500),
-  boardsPerPack: z.number().int().min(1).max(50),
+  boardLengthMm: z.int().check(z.minimum(300), z.maximum(3000)),
+  boardWidthMm: z.int().check(z.minimum(50), z.maximum(500)),
+  boardsPerPack: z.int().check(z.minimum(1), z.maximum(50)),
   /** Expansion gap at each wall (norm `laminate.expansionGap`). */
-  gapMm: z.number().int().min(0).max(30),
+  gapMm: z.int().check(z.minimum(0), z.maximum(30)),
   /** Joint offset between rows and the shortest piece (norm `laminate.minOffset`). */
-  minOffsetMm: z.number().int().min(100).max(1000),
+  minOffsetMm: z.int().check(z.minimum(100), z.maximum(1000)),
   /** Diagonal and herringbone waste, % (norms `laminate.waste.*`, unconfirmed). */
-  wastePct: z.number().min(0).max(40),
+  wastePct: z.number().check(z.minimum(0), z.maximum(40)),
   underlay: z.boolean(),
-  underlayRollM2: z.number().min(1).max(100),
+  underlayRollM2: z.number().check(z.minimum(1), z.maximum(100)),
 });
 
 export type LaminatInput = z.infer<typeof input>;

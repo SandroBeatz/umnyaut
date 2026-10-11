@@ -2,9 +2,9 @@
 
 import type { Layout, LayoutPiece, Opening } from "@umnyaut/calc";
 import { lengthUnitLabels, shell, type ToolDef } from "@umnyaut/catalog";
-import { Button, Dialog, DialogContent, DialogTrigger } from "@umnyaut/ui";
+import { Button, LazyDialog, preloadDialog } from "@umnyaut/ui";
 import { ChevronDown, Maximize2, PencilRuler } from "lucide-react";
-import { useId } from "react";
+import { useId, useRef, useState } from "react";
 import { FloorPlan } from "@/entities/room";
 import { PlanEditor, type PlanRoom } from "@/features/edit-room-plan";
 import { fill } from "@/shared/lib";
@@ -130,6 +130,12 @@ export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }:
   const guide = guideLines(tool, layout);
   const placedAny = (openings ?? []).some((o) => (o.places?.length ?? 0) > 0);
   const title = fill(s.summary, { rows, whole, cut });
+  const [fullscreen, setFullscreen] = useState(false);
+  const opener = useRef<HTMLElement | null>(null);
+  const enlarge = (event: { currentTarget: HTMLElement }) => {
+    opener.current = event.currentTarget;
+    setFullscreen(true);
+  };
 
   return (
     <section
@@ -160,31 +166,39 @@ export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }:
 
       {/* Desktop: the picture on the left (7/12), legend, steps and cut list on the right (5/12). */}
       <div className="flex flex-col gap-3 lg:col-span-7">
-        <Dialog>
-          <DialogTrigger asChild>
-            <button
-              type="button"
-              aria-label={s.enlarge}
-              className="block w-full cursor-zoom-in rounded-md focus-visible:outline-2"
-            >
-              <SchemePicture layout={layout} className="w-full lg:max-h-[640px]" />
-            </button>
-          </DialogTrigger>
-          <DialogTrigger asChild>
-            <Button variant="ghost" className="self-start">
-              <Maximize2 aria-hidden="true" />
-              {s.enlarge}
-            </Button>
-          </DialogTrigger>
-          <DialogContent
-            title={s.title}
-            description={title}
-            closeLabel={shell.close}
-            className="max-w-[min(96vw,1100px)]"
-          >
-            <SchemePicture layout={layout} className="max-h-[80dvh] w-full" />
-          </DialogContent>
-        </Dialog>
+        <button
+          type="button"
+          aria-label={s.enlarge}
+          aria-haspopup="dialog"
+          className="block w-full cursor-zoom-in rounded-md focus-visible:outline-2"
+          onClick={enlarge}
+          onPointerEnter={preloadDialog}
+          onFocus={preloadDialog}
+        >
+          <SchemePicture layout={layout} className="w-full lg:max-h-[640px]" />
+        </button>
+        <Button
+          variant="ghost"
+          className="self-start"
+          aria-haspopup="dialog"
+          onClick={enlarge}
+          onPointerEnter={preloadDialog}
+          onFocus={preloadDialog}
+        >
+          <Maximize2 aria-hidden="true" />
+          {s.enlarge}
+        </Button>
+        <LazyDialog
+          open={fullscreen}
+          onOpenChange={setFullscreen}
+          returnFocus={opener}
+          title={s.title}
+          description={title}
+          closeLabel={shell.close}
+          className="max-w-[min(96vw,1100px)]"
+        >
+          <SchemePicture layout={layout} className="max-h-[80dvh] w-full" />
+        </LazyDialog>
       </div>
 
       <div className="flex flex-col gap-3 lg:col-span-5">

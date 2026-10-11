@@ -43,14 +43,15 @@ function check(files, rule) {
 }
 
 const isRelative = (spec) => spec.startsWith("./") || spec.startsWith("../");
+const isZod = (spec) => spec === "zod" || spec.startsWith("zod/");
 const isTest = (file) => /\.test\.tsx?$/.test(file);
 const pkg = (name) => join(root, "packages", name, "src");
 const web = join(root, "apps/web");
 
-// packages/calc: zod + relative only; no clock, randomness or network.
+// packages/calc: zod + relative only; no clock, randomness or network. `zod/mini` is the same package (smaller client bundle).
 check(walk(pkg("calc")), (file, text, imports) => [
   ...imports
-    .filter((s) => !isRelative(s) && s !== "zod" && !(isTest(file) && ["vitest", "fast-check"].includes(s)))
+    .filter((s) => !isRelative(s) && !isZod(s) && !(isTest(file) && ["vitest", "fast-check"].includes(s)))
     .map((s) => `calc may import only zod, got "${s}"`),
   ...[
     [/\bDate\.now\s*\(/, "Date.now()"],
@@ -68,7 +69,8 @@ check(walk(pkg("catalog")), (file, _text, imports) =>
     .filter(
       (s) =>
         !isRelative(s) &&
-        !["zod", "@umnyaut/calc"].includes(s) &&
+        !isZod(s) &&
+        s !== "@umnyaut/calc" &&
         !(isTest(file) && (s === "vitest" || s.startsWith("node:"))),
     )
     .map((s) => `catalog may import only @umnyaut/calc and zod, got "${s}"`),

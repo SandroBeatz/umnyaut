@@ -1,4 +1,3 @@
-import type { ToolId } from "@umnyaut/calc";
 import { type CategoryDef, type CategorySlug, categories } from "./categories";
 import { home } from "./home";
 import { klej } from "./tools/klej";
@@ -46,10 +45,6 @@ export function toolsIn(category: CategorySlug | string): ToolDef[] {
 /** Categories that have at least one tool, in catalog order. */
 export function activeCategories(): CategoryDef[] {
   return categories.filter((category) => toolsIn(category.slug).length > 0);
-}
-
-export function toolPath(tool: { category: CategorySlug; id: ToolId }): string {
-  return `/${tool.category}/${tool.id}/`;
 }
 
 /** Popular tools of the home and 404 pages with their card note; a tool that is not live is skipped. */

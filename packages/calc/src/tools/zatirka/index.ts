@@ -1,8 +1,8 @@
-import { z } from "zod";
+import * as z from "zod/mini";
 import { coverage, mm2ToM2, mmToM, openingInputSchema, purchase, wallAreaM2 } from "../../blocks";
 import type { Room, Step, ToolModule, ToolResult, Warning } from "../../types";
 
-const length = z.number().int().min(300).max(100_000);
+const length = z.int().check(z.minimum(300), z.maximum(100_000));
 
 /** Shared with every tool, so the plan places of openings survive between tools. */
 const opening = openingInputSchema;
@@ -13,19 +13,19 @@ const input = z.object({
   lengthMm: length,
   widthMm: length,
   /** Corner cut-out of an L-shaped floor (from “My room”); the walls keep the rectangle's perimeter. */
-  cutLengthMm: z.number().int().min(0).max(100_000),
-  cutWidthMm: z.number().int().min(0).max(100_000),
-  heightMm: z.number().int().min(1000).max(10_000),
-  openings: z.array(opening).max(20).readonly(),
-  tileLengthMm: z.number().int().min(20).max(3000),
-  tileWidthMm: z.number().int().min(20).max(3000),
+  cutLengthMm: z.int().check(z.minimum(0), z.maximum(100_000)),
+  cutWidthMm: z.int().check(z.minimum(0), z.maximum(100_000)),
+  heightMm: z.int().check(z.minimum(1000), z.maximum(10_000)),
+  openings: z.readonly(z.array(opening).check(z.maxLength(20))),
+  tileLengthMm: z.int().check(z.minimum(20), z.maximum(3000)),
+  tileWidthMm: z.int().check(z.minimum(20), z.maximum(3000)),
   /** Norms `tile.joint.floor` / `tile.joint.wall`. */
-  jointMm: z.number().min(0.5).max(20),
+  jointMm: z.number().check(z.minimum(0.5), z.maximum(20)),
   /** Joint depth = tile thickness. */
-  depthMm: z.number().min(1).max(30),
+  depthMm: z.number().check(z.minimum(1), z.maximum(30)),
   /** Norm `grout.reserve`. */
-  reservePct: z.number().min(0).max(30),
-  packKg: z.number().min(0.5).max(25),
+  reservePct: z.number().check(z.minimum(0), z.maximum(30)),
+  packKg: z.number().check(z.minimum(0.5), z.maximum(25)),
 });
 
 export type ZatirkaInput = z.infer<typeof input>;

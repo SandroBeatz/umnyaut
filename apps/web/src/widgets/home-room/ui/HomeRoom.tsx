@@ -10,7 +10,7 @@ import { useCountry } from "@/entities/country";
 import { hydrateRoom, type RoomDraft, RoomScheme, useRoomStore } from "@/entities/room";
 import { materialImages } from "@/shared/config";
 import { fill } from "@/shared/lib";
-import { type ExampleCard, exampleCards, exampleRoom } from "../model/example";
+import { defaultWorks, type ExampleCard, exampleCards, exampleRoom, isInitialExample } from "../model/example";
 
 const t = home.room;
 const m = unitLabels.m;
@@ -40,6 +40,8 @@ export interface HomeRoomProps {
   hero: ReactNode;
   /** Id of the categories section the orange button scrolls to. */
   categoriesId: string;
+  /** Cards of the first state, computed on the server (`initialExample()`): hydration recomputes nothing. */
+  initialCards: readonly ExampleCard[];
 }
 
 /**
@@ -47,17 +49,20 @@ export interface HomeRoomProps {
  * нужно». The server renders the 4 × 3 м example; the stored room replaces it after mount and every edit
  * writes back to “My room”, so the tools open with the same dimensions.
  */
-export function HomeRoom({ hero, categoriesId }: HomeRoomProps) {
+export function HomeRoom({ hero, categoriesId, initialCards }: HomeRoomProps) {
   const stored = useRoomStore((s) => s.room);
   const country = useCountry();
-  const [works, setWorks] = useState<string[]>(() => home.works.filter((w) => w.selected).map((w) => w.id));
+  const [works, setWorks] = useState<string[]>(defaultWorks);
 
   useEffect(() => {
     void hydrateRoom();
   }, []);
 
   const room = useMemo(() => exampleRoom(stored), [stored]);
-  const cards = useMemo(() => exampleCards(room, works, country), [room, works, country]);
+  const cards = useMemo(
+    () => (isInitialExample(room, works, country) ? initialCards : exampleCards(room, works, country)),
+    [room, works, country, initialCards],
+  );
 
   const change = (part: Part, value: number | null) => {
     if (value === null) return;
@@ -162,7 +167,7 @@ function ExampleStrip({ room, cards }: { room: ReturnType<typeof exampleRoom>; c
               <li key={card.key}>
                 <Link
                   href={card.href}
-                  aria-label={`${card.title}: ${card.quantity}. ${fill(e.open, { title: card.tool.title })}`}
+                  aria-label={`${card.title}: ${card.quantity}. ${fill(e.open, { title: card.toolTitle })}`}
                   className="group flex h-full flex-col gap-3 rounded-lg border border-border bg-surface p-3 shadow-sm transition-colors hover:border-border-input sm:flex-row sm:items-center sm:p-4"
                 >
                   <MaterialThumb image={photoOf(card.photo)} fallbackIcon={<Package />} alt="" size={64} />

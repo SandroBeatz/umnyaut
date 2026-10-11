@@ -25,7 +25,7 @@ describe("ResponsiveSheet", () => {
     mockWidth(true);
     render(ui);
     await userEvent.click(screen.getByRole("button", { name: "Изменить" }));
-    const dialog = screen.getByRole("dialog", { name: "Моя комната" });
+    const dialog = await screen.findByRole("dialog", { name: "Моя комната" });
     expect(dialog.className).toContain("max-w-[480px]");
     expect(screen.getByRole("button", { name: "Закрыть" })).toBeTruthy();
   });
@@ -34,7 +34,7 @@ describe("ResponsiveSheet", () => {
     mockWidth(false);
     render(ui);
     await userEvent.click(screen.getByRole("button", { name: "Изменить" }));
-    const dialog = screen.getByRole("dialog", { name: "Моя комната" });
+    const dialog = await screen.findByRole("dialog", { name: "Моя комната" });
     expect(dialog.className).toContain("bottom-0");
     expect(screen.queryByRole("button", { name: "Закрыть" })).toBeNull();
   });

@@ -1,7 +1,7 @@
 "use client";
 
 import { countries, getCountry, shell } from "@umnyaut/catalog";
-import { cn, Popover, PopoverClose, PopoverContent, PopoverTrigger } from "@umnyaut/ui";
+import { cn, PopoverMenu } from "@umnyaut/ui";
 import { Check, ChevronDown } from "lucide-react";
 import { setCountry, useCountry } from "@/entities/country";
 
@@ -16,38 +16,48 @@ export function CountryPicker({ tone = "default", className }: CountryPickerProp
   const current = useCountry();
   const country = getCountry(current);
   return (
-    <Popover>
-      <PopoverTrigger
-        aria-label={`${shell.header.country}: ${country.title}`}
-        className={cn(
-          "inline-flex h-12 items-center gap-1 rounded-full px-3 text-small font-semibold transition-colors",
-          tone === "onDark" ? "text-white hover:bg-white/10" : "text-text hover:bg-surface-sunken",
-          className,
-        )}
-      >
-        <span className="tabular-nums">
-          {country.code} · {country.sign}
-        </span>
-        <ChevronDown aria-hidden="true" className="size-4" />
-      </PopoverTrigger>
-      <PopoverContent align="end" aria-label={shell.country.title}>
-        <p className="px-3 pt-1 pb-2 text-caption text-text-muted">{shell.country.description}</p>
-        <ul>
-          {countries.map((c) => (
-            <li key={c.code}>
-              <PopoverClose
-                className="flex h-12 w-full items-center gap-3 rounded-md px-3 text-left text-body text-text hover:bg-surface-sunken"
-                onClick={() => setCountry(c.code)}
-                aria-current={c.code === current ? "true" : undefined}
-              >
-                <span className="flex-1">{c.title}</span>
-                <span className="text-text-muted">{c.sign}</span>
-                <Check aria-hidden="true" className={cn("size-5 text-primary", c.code !== current && "invisible")} />
-              </PopoverClose>
-            </li>
-          ))}
-        </ul>
-      </PopoverContent>
-    </Popover>
+    <PopoverMenu
+      aria-label={`${shell.header.country}: ${country.title}`}
+      className={cn(
+        "inline-flex h-12 items-center gap-1 rounded-full px-3 text-small font-semibold transition-colors",
+        tone === "onDark" ? "text-white hover:bg-white/10" : "text-text hover:bg-surface-sunken",
+        className,
+      )}
+      label={
+        <>
+          <span className="tabular-nums">
+            {country.code} · {country.sign}
+          </span>
+          <ChevronDown aria-hidden="true" className="size-4" />
+        </>
+      }
+      align="end"
+      panelLabel={shell.country.title}
+    >
+      {(close) => (
+        <>
+          <p className="px-3 pt-1 pb-2 text-caption text-text-muted">{shell.country.description}</p>
+          <ul>
+            {countries.map((c) => (
+              <li key={c.code}>
+                <button
+                  type="button"
+                  className="flex h-12 w-full items-center gap-3 rounded-md px-3 text-left text-body text-text hover:bg-surface-sunken"
+                  onClick={() => {
+                    setCountry(c.code);
+                    close();
+                  }}
+                  aria-current={c.code === current ? "true" : undefined}
+                >
+                  <span className="flex-1">{c.title}</span>
+                  <span className="text-text-muted">{c.sign}</span>
+                  <Check aria-hidden="true" className={cn("size-5 text-primary", c.code !== current && "invisible")} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </PopoverMenu>
   );
 }

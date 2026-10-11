@@ -1,8 +1,8 @@
-import { z } from "zod";
+import * as z from "zod/mini";
 import { cutStrips, mmToM, openingInputSchema, purchase, wallAreaM2 } from "../../blocks";
 import type { PurchaseItem, Room, Step, ToolModule, ToolResult, Warning } from "../../types";
 
-const length = z.number().int().min(300).max(100_000);
+const length = z.int().check(z.minimum(300), z.maximum(100_000));
 
 /** Shared with every tool, so the plan places of openings survive between tools. */
 const opening = openingInputSchema;
@@ -10,21 +10,21 @@ const opening = openingInputSchema;
 const input = z.object({
   lengthMm: length,
   widthMm: length,
-  heightMm: z.number().int().min(1000).max(10_000),
-  openings: z.array(opening).max(20).readonly(),
-  rollWidthMm: z.number().int().min(300).max(1500),
-  rollLengthMm: z.number().int().min(5000).max(50_000),
+  heightMm: z.int().check(z.minimum(1000), z.maximum(10_000)),
+  openings: z.readonly(z.array(opening).check(z.maxLength(20))),
+  rollWidthMm: z.int().check(z.minimum(300), z.maximum(1500)),
+  rollLengthMm: z.int().check(z.minimum(5000), z.maximum(50_000)),
   /** Pattern repeat (раппорт); 0 = plain or free match. */
-  repeatMm: z.number().int().min(0).max(1500),
+  repeatMm: z.int().check(z.minimum(0), z.maximum(1500)),
   match: z.enum(["straight", "offset"]),
   /** Trim allowance per strip, top and bottom together (norm `wallpaper.trimAllowance`). */
-  trimMm: z.number().int().min(0).max(300),
+  trimMm: z.int().check(z.minimum(0), z.maximum(300)),
   /** Wall area one pack of paste covers, from the pack (norm `wallpaperPaste.coverage`). */
-  pasteCoverageM2: z.number().min(1).max(200),
+  pasteCoverageM2: z.number().check(z.minimum(1), z.maximum(200)),
   /** Primer under the wallpaper, one coat (norm `primer.consumption`), one canister size as in paint. */
   primer: z.boolean(),
-  primerRateLPerM2: z.number().min(0.05).max(1),
-  primerPackL: z.number().min(0.5).max(50),
+  primerRateLPerM2: z.number().check(z.minimum(0.05), z.maximum(1)),
+  primerPackL: z.number().check(z.minimum(0.5), z.maximum(50)),
 });
 
 export type OboiInput = z.infer<typeof input>;

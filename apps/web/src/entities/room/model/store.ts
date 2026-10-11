@@ -1,5 +1,5 @@
 import { type CutCorner, cutCornerSchema, type Opening, openingPlacesSchema } from "@umnyaut/calc";
-import { z } from "zod";
+import * as z from "zod/mini";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -19,27 +19,28 @@ export interface RoomDraft {
   openings?: readonly Opening[];
 }
 
-const mm = z.number().int().positive().max(100_000);
+const mm = z.int().check(z.positive(), z.maximum(100_000));
 const roomSchema = z.object({
-  shape: z.enum(["rect", "l"]).optional(),
-  lengthMm: mm.optional(),
-  widthMm: mm.optional(),
-  heightMm: mm.optional(),
-  cutLengthMm: z.number().int().min(0).max(100_000).optional(),
-  cutWidthMm: z.number().int().min(0).max(100_000).optional(),
-  cutCorner: cutCornerSchema.optional(),
-  openings: z
-    .array(
-      z.object({
-        type: z.enum(["door", "window"]),
-        widthMm: mm,
-        heightMm: mm,
-        count: z.number().int().min(0).max(50),
-        places: openingPlacesSchema.optional(),
-      }),
-    )
-    .max(20)
-    .optional(),
+  shape: z.optional(z.enum(["rect", "l"])),
+  lengthMm: z.optional(mm),
+  widthMm: z.optional(mm),
+  heightMm: z.optional(mm),
+  cutLengthMm: z.optional(z.int().check(z.minimum(0), z.maximum(100_000))),
+  cutWidthMm: z.optional(z.int().check(z.minimum(0), z.maximum(100_000))),
+  cutCorner: z.optional(cutCornerSchema),
+  openings: z.optional(
+    z
+      .array(
+        z.object({
+          type: z.enum(["door", "window"]),
+          widthMm: mm,
+          heightMm: mm,
+          count: z.int().check(z.minimum(0), z.maximum(50)),
+          places: z.optional(openingPlacesSchema),
+        }),
+      )
+      .check(z.maxLength(20)),
+  ),
 });
 
 export const ROOM_KEY = "umnyaut:room:v1";

@@ -1,17 +1,17 @@
-import { z } from "zod";
+import * as z from "zod/mini";
 import { floorAreaM2, mm2ToM2, mmToM, perimeterMm } from "../../blocks";
 import type { Room, Step, ToolModule, ToolResult, Warning } from "../../types";
 
-const length = z.number().int().min(300).max(100_000);
-const optional = z.number().int().min(0).max(20_000);
+const length = z.int().check(z.minimum(300), z.maximum(100_000));
+const optional = z.int().check(z.minimum(0), z.maximum(20_000));
 
 const input = z.object({
   shape: z.enum(["rect", "l"]),
   lengthMm: length,
   widthMm: length,
   /** Corner cut-out of an L-shaped room; ignored for a rectangle. */
-  cutLengthMm: z.number().int().min(0).max(100_000),
-  cutWidthMm: z.number().int().min(0).max(100_000),
+  cutLengthMm: z.int().check(z.minimum(0), z.maximum(100_000)),
+  cutWidthMm: z.int().check(z.minimum(0), z.maximum(100_000)),
   /** Niche: adds its area; its two side walls add 2 × depth to the perimeter. */
   nicheLengthMm: optional,
   nicheDepthMm: optional,
