@@ -40,7 +40,40 @@ Each entry:
 
 ## Log
 
+### 2026-10-11
+
+- **P7.6 (partly)** Country configs: currency, locale, sign, country chip in header and footer and time-zone detection were already in place (Phase 5). Added `CountryConfig.typicalPrices` (typical pack price per purchase item key) + `pricesCheckedAt`; a price field shows «Обычно около 1 300 ₽, проверено …» in the country's currency when a price is set (checked by temporarily setting one). New `getCountry()`; catalog test: every typical price names an item that has a price field, is positive and has a check date.
+  - Where: `feature/phase-8-site-pages`
+  - Notes: the prices themselves are C07 (owner): typical pack prices per country for laminate, underlay, plinth and fittings, linoleum, wallpaper, glue, primer, paint, tile, adhesive, grout — with the date of the shop check. Until then the hint stays hidden; nothing is invented.
+
+- **P8.8** Release check v1.2 with content ([Wave 1 — Release Check](../review/wave-1-release-check.md)): all tests and the build pass; the no-JS HTML of every tool page has one H1, canonical, the result number and 6 FAQ; bodies 301–389 words; frontmatter within limits; norms in text via substitutions. Verdicts unchanged — 10 READY, requirement 15 (scheme) in Phase 10.
+  - Where: `feature/phase-8-site-pages`
+  - Notes: manual items stay open — real-phone walkthrough (phase 8 exit gate), owner text review, master sign-off, Lighthouse and Metrika (Phase 9).
+
+- **P8.7** Desktop layouts checked against the mockups at 1024 and 1440 px: the tool page already had 5/7 columns with the sticky result (Phase 5); the form column is now a card from 1024 px like «Размеры и материал» in the mockup (phone unchanged, first-screen budget still green). Home: hero left, “My room” card right from 1024 px (done in P8.1). All 17 Playwright journeys pass.
+  - Where: `feature/phase-8-site-pages`
+  - Notes: P8.6 waits for the owner's category photos (G06) and the optional desktop hero (G07); material photos (G05) are already in the image pipeline.
+
+- **P8.5 (partly)** All 10 tool texts brought to the `tool-content` rules: body 301–389 words (was 137–296), 6 FAQ each (was 4) with two new questions from the Wordstat CSV per tool («сколько … на комнату 12 м²», «расход … на 1 м2», «расчёт плитки для ванной»…), sections «Частые ошибки» and «Что посчитать дальше» with links along the room chain, worked examples checked against `compute()` (one wrong can set in a draft answer caught and fixed: 12 м² of walls → 2 × 2,7 л + 2 × 0,9 л), norm numbers replaced by `{{norm.…}}` (paint coverage, primer, laminate offset/last row/waste, underlay roll, plinth length/fastener step, linoleum overlap/weld, tile reserves, adhesive rates/layer/bag, grout density/reserve/max joint), laminate `question` → «Сколько нужно ламината на комнату» (open question 9), an internal «проверит мастер-рецензент» removed from the laminate FAQ. All descriptions ≤ 160 after substitution.
+  - Where: `feature/phase-8-site-pages`
+  - Notes: left for the owner — read and approve the 10 texts (C11). Category texts (P8.2) and info drafts (P8.3) go into the same review.
+
 ### 2026-10-10
+
+- **P8.4** `app/not-found.tsx` → `views/not-found`: cat `oops` 160/240 px, «Такой страницы нет», the six popular tools (now `popularTools()` in catalog, shared with the home page), «На главную»; `noindex, follow`. Unknown first-level and tool segments return 404 with this page.
+  - Where: `feature/phase-8-site-pages`
+
+- **P8.3 (partly)** Info pages `/metodika/`, `/o-proekte/`, `/politika/`, `/kontakty/`, `/partneram/` under `app/(info)/`: text from `content/pages/<slug>.md` (schema with `draft` → `noindex`), 680 px column, «Обновлено» date, cat `hello` only on «О проекте». «Методика» describes what the code does (layout engines, one `ceilPacks` at the end, reserves only where a source says, ≥ 10 golden per tool) and ends with a norm table built from catalog data — value, source links, check date, «проверьте по этикетке» for unconfirmed norms (their working notes stay internal); new `normTitles` with a test that every norm has one. Footer gets a separate «О сервисе» column from `navigation.infoPages`.
+  - Where: `feature/phase-8-site-pages`
+  - Notes (owner): «О проекте», «Политика», «Контакты», «Партнёрам» are drafts written from the specs (`draft: true`, not indexed) — approve or rewrite (C15–C17), add the author to «О проекте» and the operator details to the policy (152-ФЗ), and create the `hello@umnyaut.com` mailbox (P0.3) the pages link to. The policy lists only what exists now (local storage, link sharing, web-server log, Metrika after consent); saved projects, own counter and rate limits join it with Phase 7/9.
+
+- **P8.2** Category pages for osnova, pol, steny, plitka: H1 and lead from `content/categories/<slug>.md` (new frontmatter schema: title, description, h1, lead, ≥ 3 FAQ; loader `loadCategoryContent`, registry test that every active category has a file), “My room”, tool cards, «Порядок работ» — numbered steps from catalog `CategoryDef.steps`, each step links to its tools («Ламинат или Линолеум»), text and FAQ. Text + FAQ block extracted to `shared/ui/PageText` and reused by the tool page. Metadata title/description from the Markdown. Texts checked against what the tools actually do (tile on walls takes perimeter and height, waste is its own field).
+  - Where: `feature/phase-8-site-pages`
+  - Notes: category texts were written here, not by `seo-content-writer`; owner review with the tool texts in P8.5. Category photos (G06) still missing — cards show the icon.
+
+- **P8.1** Home page per the mockup «Главная · телефон / от 1024 px» with the decided H1 «Одна комната — весь список покупок»: hero (badge, mascot `hello` with bubble, three badges), “My room” card (isometric `RoomScheme` with live dimensions, length/width/height bound to “My room”, work chips, orange «Выбрать расчёт» that keeps the room and moves focus to the categories), mint strip «Для комнаты N м² нужно» computed by the tools themselves for the room and the selected works (server renders the 4 × 3 × 2,7 м example, the stored room replaces it after mount), categories with notes, six popular tools (static order in catalog), «Как мы считаем» with a link to `/metodika/`. New: `ToggleChips` (multi-select) in `packages/ui`, `widgets/home-room`, catalog `home` (replaces the coming-soon stub), category `note`. Tests: catalog `home.test.ts` (every example card is an item its tool returns), widget model tests, Playwright `e2e/home.spec.ts`.
+  - Where: `feature/phase-8-site-pages`
+  - Deviation: chips are «Пол» (laminate + plinth), «Стены» (wallpaper), «Потолок» (paint on the ceiling), «Плитка» (tile) and choose the example cards until the planner uses them (P11.5); no м/см switch on the card; no mascot `point` in «Как мы считаем» (pose not in the image pipeline, and the hero already has the one cat). `/metodika/` comes with P8.3.
 
 - **— (CI race)** The two one-off `pnpm check` failures today were `web:typecheck` (`next typegen`) and `web:build` writing `.next/types` at the same time (`ENOENT … routes.d.ts`). `turbo.json`: `build` now depends on the package's own `typecheck`, so they never overlap. The commit before this one was pushed after such a failed run; a rerun passed with no change.
   - Where: `feature/phase-6-wave-1`

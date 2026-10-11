@@ -14,6 +14,7 @@ export const shell = {
   breadcrumbs: { label: "Навигация", home: "Главная", back: "Назад" },
   footer: {
     categories: "Калькуляторы",
+    about: "О сервисе",
     country: "Страна",
     note: "Расчёты в целых упаковках. Цены — ориентир, проверяйте в магазине.",
   },
@@ -41,6 +42,8 @@ export const shell = {
     range: "От {min} до {max} {unit}",
     required: "Введите значение",
     fromRoom: "Из «Моей комнаты»",
+    /** Hint under a price field from the country's typical prices. */
+    typicalPrice: "Обычно около {price}, проверено {date}",
     decrement: "Меньше",
     increment: "Больше",
   },
@@ -150,11 +153,44 @@ export const shell = {
   },
   category: {
     tools: "Калькуляторы раздела",
+    steps: "Порядок работ",
+    step: "Шаг {n}",
+    or: "или",
   },
   faq: "Вопросы и ответы",
+  notFound: {
+    title: "Такой страницы нет",
+    lead: "Возможно, ссылка устарела или в адресе опечатка. Вот что считают чаще всего:",
+    home: "На главную",
+    mascotAlt: "Кот Умняут растерянно разводит лапами",
+    metaTitle: "Страница не найдена",
+  },
+  info: {
+    updated: "Обновлено {date}",
+    mascotAlt: "Кот Умняут в рабочем комбинезоне машет лапой",
+  },
 } as const;
 
-/** Header and footer navigation. Planner, «Мои расчёты» and info pages join once their routes exist. */
+/** Header and footer navigation. Planner and «Мои расчёты» join once their routes exist. */
 export const navigation = {
-  infoPages: [] as readonly { href: string; label: string }[],
+  infoPages: [
+    { href: "/metodika/", label: "Методика" },
+    { href: "/o-proekte/", label: "О проекте" },
+    { href: "/kontakty/", label: "Контакты" },
+    { href: "/partneram/", label: "Партнёрам" },
+    { href: "/politika/", label: "Политика конфиденциальности" },
+  ] as readonly { href: string; label: string }[],
+} as const;
+
+/** «Методика»: the norm table built from catalog norms (sources and dates are data, not text). */
+export const methodology = {
+  norms: "Нормы и источники",
+  normsLead:
+    "Каждое число, которое не следует из геометрии, взято из паспорта материала, ГОСТа или инструкции производителя.",
+  norm: "Норма",
+  value: "Значение",
+  source: "Источник",
+  checked: "Проверено",
+  unconfirmed: "Типовое значение — проверьте по этикетке",
+  other: "Другие нормы",
 } as const;

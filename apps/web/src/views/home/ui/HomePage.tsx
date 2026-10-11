@@ -1,88 +1,134 @@
-import { comingSoon, type FeatureIcon, tools } from "@umnyaut/catalog";
-import { IconCircle, Mascot } from "@umnyaut/ui";
-import { BadgeCheck, type LucideIcon, Package, Ruler } from "lucide-react";
+import { activeCategories, type CategoryDef, home, type MethodIcon, popularTools } from "@umnyaut/catalog";
+import { Button, categoryIcons, IconCircle, Mascot } from "@umnyaut/ui";
+import { ArrowRight, Calculator, CalendarCheck, Check, type LucideIcon, Package } from "lucide-react";
+import Link from "next/link";
 import { ToolCard } from "@/entities/tool";
 import { mascotImages } from "@/shared/config";
+import { HomeRoom } from "@/widgets/home-room";
 
-const icons: Record<FeatureIcon, LucideIcon> = { package: Package, ruler: Ruler, check: BadgeCheck };
+const CATEGORIES_ID = "categories";
+const methodIcons: Record<MethodIcon, LucideIcon> = { package: Package, formula: Calculator, date: CalendarCheck };
 
-const blueprint = {
-  backgroundImage:
-    "linear-gradient(var(--color-border) 1px, transparent 1px), linear-gradient(90deg, var(--color-border) 1px, transparent 1px)",
-  backgroundSize: "32px 32px",
-  maskImage: "radial-gradient(ellipse 80% 70% at 70% 30%, #000 20%, transparent 75%)",
-} as const;
-
-/** "Coming soon" hero until the full home page (Phase 8); header and footer come from the root layout. */
+/** Home page (design spec §13 «Главная»); header and footer come from the root layout. */
 export function HomePage() {
+  const popular = popularTools();
+
   return (
-    <div className="relative isolate flex flex-1 flex-col overflow-hidden">
-      <div aria-hidden="true" className="absolute inset-0 -z-10 opacity-60" style={blueprint} />
+    <main className="flex flex-1 flex-col">
+      <HomeRoom hero={<Hero />} categoriesId={CATEGORIES_ID} />
 
-      <main className="mx-auto grid w-full max-w-[1200px] flex-1 content-start gap-6 px-4 py-6 sm:px-6 lg:content-center lg:items-center lg:grid-cols-[1.1fr_1fr] lg:gap-6 lg:px-8 lg:py-12">
-        <section className="order-2 lg:order-1">
-          <p className="inline-flex items-center gap-2 rounded-full bg-primary-soft px-3 py-1.5 font-medium text-primary-hover text-xs uppercase tracking-wide">
-            <span aria-hidden="true" className="relative flex size-2">
-              <span className="absolute inline-flex size-full rounded-full motion-safe:animate-ping bg-accent opacity-60" />
-              <span className="relative inline-flex size-2 rounded-full bg-accent" />
-            </span>
-            {comingSoon.badge}
-          </p>
+      <section aria-labelledby={CATEGORIES_ID} className="mx-auto w-full max-w-[1200px] px-4 pt-10 sm:px-6 lg:px-8">
+        <h2 id={CATEGORIES_ID} tabIndex={-1} className="scroll-mt-24 text-h2 outline-none">
+          {home.categories.title}
+        </h2>
+        <ul className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {activeCategories().map((category) => (
+            <li key={category.slug}>
+              <CategoryCard category={category} />
+            </li>
+          ))}
+        </ul>
+      </section>
 
-          <h1 className="mt-5 text-display">
-            {comingSoon.titleLead} <span className="text-primary">{comingSoon.titleAccent}</span>
-          </h1>
+      <section aria-labelledby="home-popular" className="mx-auto w-full max-w-[1200px] px-4 pt-10 sm:px-6 lg:px-8">
+        <h2 id="home-popular" className="text-h2">
+          {home.popular.title}
+        </h2>
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {popular.map(({ tool, note }) => (
+            <li key={tool.id}>
+              <ToolCard tool={tool} note={note} />
+            </li>
+          ))}
+        </ul>
+      </section>
 
-          <p className="mt-4 max-w-[34rem] text-base text-text-muted leading-6 lg:text-lg lg:leading-7">
-            {comingSoon.lead}
-          </p>
-
-          <ul className="mt-8 grid gap-3 sm:grid-cols-3 lg:mt-10">
-            {comingSoon.features.map((feature) => {
-              const Icon = icons[feature.icon];
+      <section aria-labelledby="home-method" className="mx-auto w-full max-w-[1200px] px-4 pt-10 sm:px-6 lg:px-8">
+        <div className="rounded-xl bg-surface-mint p-5 sm:p-8">
+          <h2 id="home-method" className="text-h2">
+            {home.method.title}
+          </h2>
+          <ul className="mt-5 grid gap-5 sm:grid-cols-3">
+            {home.method.points.map((point) => {
+              const Icon = methodIcons[point.icon];
               return (
-                <li key={feature.icon} className="rounded-lg border border-border bg-surface p-4 shadow-sm">
-                  <IconCircle>
+                <li key={point.icon} className="flex gap-3 sm:flex-col">
+                  <IconCircle className="bg-surface">
                     <Icon />
                   </IconCircle>
-                  <h2 className="mt-3 font-bold text-base leading-6">{feature.title}</h2>
-                  <p className="mt-1 text-sm text-text-muted leading-5">{feature.text}</p>
+                  <span className="flex flex-col">
+                    <span className="text-body-strong">{point.title}</span>
+                    <span className="text-small text-text-muted">{point.text}</span>
+                  </span>
                 </li>
               );
             })}
           </ul>
+          <Button asChild variant="secondary" className="mt-6">
+            <Link href="/metodika/">
+              {home.method.link}
+              <ArrowRight aria-hidden="true" />
+            </Link>
+          </Button>
+        </div>
+      </section>
+    </main>
+  );
+}
 
-          <h2 className="mt-8 text-h3 lg:mt-10">{comingSoon.live}</h2>
-          <ul className="mt-3 grid gap-3 sm:grid-cols-2">
-            {tools
-              .filter((tool) => tool.status === "live")
-              .map((tool) => (
-                <li key={tool.id}>
-                  <ToolCard tool={tool} />
-                </li>
-              ))}
-          </ul>
-        </section>
-
-        <figure className="order-1 flex items-center gap-3 lg:order-2 lg:flex-col lg:items-end lg:gap-0">
-          <figcaption className="relative order-1 max-w-[13rem] flex-1 rounded-xl border border-border bg-surface px-3 py-2 font-semibold text-sm leading-5 shadow-md lg:order-0 lg:mr-6 lg:mb-2 lg:flex-none lg:text-base lg:leading-6">
-            {comingSoon.bubble}
-            <span
-              aria-hidden="true"
-              className="absolute top-1/2 -right-[7px] size-3 -translate-y-1/2 rotate-45 border-border border-t border-r bg-surface lg:top-auto lg:right-auto lg:-bottom-[7px] lg:left-1/3 lg:translate-y-0 lg:rotate-[135deg]"
-            />
-          </figcaption>
-          <Mascot
-            image={mascotImages.hello}
-            size={140}
-            sizeLg={400}
-            alt={comingSoon.mascotAlt}
-            spot
-            priority
-            className="order-2 lg:order-1 lg:self-center"
+function Hero() {
+  return (
+    <div>
+      <p className="inline-flex rounded-full bg-primary-soft px-3 py-1.5 font-semibold text-caption text-primary-hover uppercase tracking-wide">
+        {home.badge}
+      </p>
+      <h1 className="mt-4 text-display">
+        {home.titleLead} <span className="text-primary">{home.titleAccent}</span>
+      </h1>
+      <p className="mt-4 max-w-[34rem] text-base text-text-muted leading-6 lg:text-lg lg:leading-7">{home.lead}</p>
+      <figure className="mt-5 flex items-center gap-3">
+        <Mascot image={mascotImages.hello} size={140} sizeLg={200} alt={home.mascotAlt} spot priority />
+        <figcaption className="relative max-w-[15rem] rounded-xl border border-border bg-surface px-3 py-2 font-semibold text-small shadow-md lg:text-body">
+          {home.bubble}
+          <span
+            aria-hidden="true"
+            className="absolute top-1/2 -left-[7px] size-3 -translate-y-1/2 rotate-45 border-border border-b border-l bg-surface"
           />
-        </figure>
-      </main>
+        </figcaption>
+      </figure>
+      <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2">
+        {home.badges.map((badge) => (
+          <li key={badge} className="flex items-center gap-1.5 font-medium text-small">
+            <Check aria-hidden="true" className="size-4 text-primary" strokeWidth={3} />
+            {badge}
+          </li>
+        ))}
+      </ul>
     </div>
+  );
+}
+
+function CategoryCard({ category }: { category: CategoryDef }) {
+  const Icon = categoryIcons[category.slug as keyof typeof categoryIcons] ?? Calculator;
+  return (
+    <Link
+      href={`/${category.slug}/`}
+      className="group relative flex h-full min-h-40 flex-col overflow-hidden rounded-lg border border-border bg-surface p-4 shadow-sm transition-colors hover:border-border-input"
+    >
+      <span className="text-body-strong text-text group-hover:text-primary-hover">{category.title}</span>
+      {category.note ? <span className="mt-0.5 pr-2 text-small text-text-muted">{category.note}</span> : null}
+      <span
+        aria-hidden="true"
+        className="mt-auto inline-flex size-10 items-center justify-center rounded-full border border-border text-primary"
+      >
+        <ArrowRight className="size-5" />
+      </span>
+      <span
+        aria-hidden="true"
+        className="absolute -right-3 -bottom-4 flex size-20 items-center justify-center sm:size-24 rounded-[46%_54%_48%_52%/52%_46%_54%_48%] bg-primary-soft pr-2 pb-3 text-primary-hover"
+      >
+        <Icon className="size-8 sm:size-9" />
+      </span>
+    </Link>
   );
 }
