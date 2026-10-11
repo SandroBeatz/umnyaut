@@ -136,6 +136,27 @@ describe("tile floor scheme", () => {
     );
   });
 
+  it("a door only in the cut-out's walls: no promise of a whole tile at it", () => {
+    // L with the cut-out bottom right: wall 3 (index 2) is the cut-out's bottom edge at y = 3100.
+    const door = {
+      type: "door",
+      widthMm: 800,
+      heightMm: 2000,
+      count: 1,
+      places: [{ wall: 2, offsetMm: 300 }],
+    } as const;
+    const layout = plitka.compute({ ...defaults, shape: "l", openings: [door] }, ctx).layout;
+    const codes = layout?.guide.map((s) => s.code) ?? [];
+    expect(codes).not.toContain("start_door");
+    expect(codes).not.toContain("place_door");
+  });
+
+  it("a cut under a quarter of a long tile's side suggests the centre start", () => {
+    const result = plitka.compute({ ...defaults, tileLengthMm: 600, tileWidthMm: 300, lengthMm: 4320, widthMm: 4340 }, ctx);
+    // Along the length: 7 × 603 = 4221, cut 99 mm < 600 / 4 (wider than a quarter of 300); across: 98 mm ≥ 300 / 4.
+    expect(result.layout?.guide.map((s) => s.code)).toContain("try_center");
+  });
+
   it("from the centre: axes instead of a start corner, equal cuts at opposite walls", () => {
     const layout = plitka.compute({ ...defaults, start: "center" }, ctx).layout;
     expect(layout?.marks.filter((m) => m.kind === "seam")).toHaveLength(2);

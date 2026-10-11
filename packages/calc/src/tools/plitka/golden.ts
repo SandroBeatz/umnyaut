@@ -67,6 +67,15 @@ export const golden: GoldenFile<PlitkaInput> = {
       },
     },
     {
+      name: "A 3 mm rest at the far wall is a gap, not a cut row (v2)",
+      input: { lengthMm: 3033, widthMm: 2118, openings: [] },
+      expected: { items: { tile: { packs: 7, need: 77 } }, summary: { whole: 70, cut: 0 }, warnings: [] },
+      source: {
+        kind: "manual",
+        ref: "10 × 300 + 9 × 3 = 3027; остаётся 6 мм — шов у плитки и 3 мм у стены, резать нечего: 70 целых × 1,1 = 77 / 12 → 7. В v1 это было 7 подрезанных плиток по 3 мм и 85 штук",
+      },
+    },
+    {
       name: "Same room without reserve",
       input: { lengthMm: 3027, widthMm: 2118, reservePct: 0 },
       expected: { items: { tile: { packs: 6, need: 70, leftover: 2 } } },
