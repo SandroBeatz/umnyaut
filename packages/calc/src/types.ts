@@ -152,6 +152,16 @@ export interface LayoutRow {
   restToRow?: number;
 }
 
+/** One sheet of a strip layout (linoleum), in laying order: what to cut from the roll. */
+export interface LayoutSheet {
+  /** Cut from the roll, mm: the room along the sheet plus allowance, plus the pattern repeat after the first. */
+  lengthMm: number;
+  /** Part of the roll width left on the floor after the seams and the walls are trimmed, mm. */
+  floorWidthMm: number;
+  /** Lies wholly in the narrow part of an L-shaped room, so it is cut shorter. */
+  short: boolean;
+}
+
 /** Geometry for the single `LayoutScheme` SVG component; text for `guide` codes lives in catalog. */
 export interface Layout {
   kind: "rows" | "grid" | "strips" | "points" | "outline";
@@ -163,6 +173,7 @@ export interface Layout {
   pieces: readonly LayoutPiece[];
   marks: readonly LayoutMark[];
   rows?: readonly LayoutRow[];
+  sheets?: readonly LayoutSheet[];
   /** Laying steps in order: code + numbers. */
   guide: readonly Step[];
   stats: { whole: number; cut: number; reused: number; wasteM2: number };

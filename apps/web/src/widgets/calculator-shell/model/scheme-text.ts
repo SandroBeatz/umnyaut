@@ -1,10 +1,11 @@
-import type { Layout, LayoutRow } from "@umnyaut/calc";
+import type { Layout, LayoutRow, LayoutSheet } from "@umnyaut/calc";
 import { shell, type ToolDef } from "@umnyaut/catalog";
 import { formatNumber } from "@umnyaut/ui/format";
 import { fill } from "@/shared/lib";
 
 const s = shell.scheme;
 const cm = (mm: number) => formatNumber(mm / 10, { maxFraction: 1 });
+const m = (mm: number) => formatNumber(mm / 1000, { maxFraction: 2 });
 
 /** Laying steps in Russian from the guide codes (catalog `ToolDef.guide`). */
 export function guideLines(tool: ToolDef, layout: Layout): string[] {
@@ -58,4 +59,13 @@ export function rowLines(rows: readonly LayoutRow[]): { title: string; parts: st
       parts,
     };
   });
+}
+
+/** One line per sheet for «Что отрезать от рулона»: «Полотно 2: отрез 4,7 м · на полу 2,18 м по ширине». */
+export function sheetLines(sheets: readonly LayoutSheet[]): { title: string; parts: string[] }[] {
+  const t = s.strips;
+  return sheets.map((sheet, k) => ({
+    title: `${fill(t.sheet, { n: k + 1 })} · ${fill(t.cut, { length: m(sheet.lengthMm) })}`,
+    parts: [fill(t.floor, { width: m(sheet.floorWidthMm) }), ...(sheet.short ? [t.short] : [])],
+  }));
 }

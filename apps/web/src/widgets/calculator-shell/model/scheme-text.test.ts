@@ -1,7 +1,7 @@
 import { toolModules } from "@umnyaut/calc";
 import { getTool } from "@umnyaut/catalog";
 import { describe, expect, it } from "vitest";
-import { guideLines, rowLines } from "./scheme-text";
+import { guideLines, rowLines, sheetLines } from "./scheme-text";
 
 describe("layout scheme texts", () => {
   const tool = getTool("pol", "laminat");
@@ -50,5 +50,26 @@ describe("layout scheme texts", () => {
     ]);
     expect(lines[1]?.parts[0]).toBe("начать с обрезка 56 см из ряда 1");
     expect(lines[1]?.parts.at(-1)).toBe("остаток 112 см — в отходы");
+  });
+
+  it("a sheet says how much to cut and how wide it lies", () => {
+    expect(
+      sheetLines([
+        { lengthMm: 4300, floorWidthMm: 2475, short: false },
+        { lengthMm: 2800, floorWidthMm: 1210, short: true },
+      ]),
+    ).toEqual([
+      { title: "Полотно 1 · отрез 4,3 м", parts: ["на полу 2,48 м по ширине"] },
+      { title: "Полотно 2 · отрез 2,8 м", parts: ["на полу 1,21 м по ширине", "короткое — в узкой части комнаты"] },
+    ]);
+  });
+
+  it("every linoleum guide code of the example has Russian text", () => {
+    const linoleum = getTool("pol", "linoleum");
+    const layout = toolModules.linoleum.compute(toolModules.linoleum.defaults(ctx) as never, ctx).layout;
+    if (!linoleum || !layout) throw new Error("no linoleum layout");
+    const lines = guideLines(linoleum, layout);
+    expect(lines[0]).toBe("Раскатайте полотно 1 вдоль стены 4 от угла «Старт», следующие — рядом, рулон 2,5 м");
+    expect(lines.every((l) => !/\{|\}|_/.test(l))).toBe(true);
   });
 });

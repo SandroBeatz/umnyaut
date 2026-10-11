@@ -13,10 +13,12 @@ export {
 } from "./geometry";
 export { type GridArea, type GridLine, gridArea, gridLine } from "./grid";
 export { type RowsLayoutInput, rowsLayout, traceRows } from "./layout-rows";
+export { type SheetsLayoutInput, seamInDoor, sheetsLayout } from "./layout-sheets";
 export { bestPackSet, ceilPacks, PACK_EPSILON, type PackOption, type PackSet, purchase, purchaseSet } from "./packs";
 export {
   cornerFlips,
   cutCornerSchema,
+  lightDirection,
   type Outline,
   openingInputSchema,
   openingPlacesSchema,
@@ -24,6 +26,8 @@ export {
   type Point,
   placeOpenings,
   roomOutline,
+  type StartInput,
+  startOf,
 } from "./plan";
 export { layRows, type RowPlan, type RowsInput, type RowsResult } from "./rows";
 export { cutStrips, type StripCut, type StripCutInput } from "./strips";

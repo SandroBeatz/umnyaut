@@ -6,7 +6,7 @@ export interface FloorPlanProps {
   /** Room contour in mm, plan frame (x along the length, y along the width down), clockwise. */
   outline: readonly (readonly [number, number])[];
   walls: readonly PlanWall[];
-  /** Doors, windows, the start corner. */
+  /** Doors, windows, the start corner, seams. */
   marks?: readonly LayoutMark[];
   /** Units after the dimensions («м»). */
   unit: string;
@@ -127,6 +127,22 @@ export function FloorPlan({
                 className="stroke-surface"
               />
             </g>
+          );
+        }
+        if (m.kind === "seam") {
+          return (
+            <line
+              // biome-ignore lint/suspicious/noArrayIndexKey: marks have no id; the list is rebuilt on every change
+              key={i}
+              x1={m.x1}
+              y1={m.y1}
+              x2={m.x2}
+              y2={m.y2}
+              vectorEffect="non-scaling-stroke"
+              strokeWidth={2}
+              strokeDasharray="6 4"
+              className="stroke-text"
+            />
           );
         }
         if (m.kind === "start") {
