@@ -162,6 +162,17 @@ export interface LayoutSheet {
   short: boolean;
 }
 
+/** One straight run of an outline layout (plinth): a wall or its part between corners and doors. */
+export interface LayoutRun {
+  /** Wall index (the UI shows it 1-based). */
+  wall: number;
+  lengthMm: number;
+  /** Pieces along the run in laying order: a `whole` plank, one `cut` from a new plank, the `rest` of the plank before. */
+  pieces: readonly { lengthMm: number; plank: number; from: "whole" | "cut" | "rest" }[];
+  /** Left of the last plank after this run: it starts the next run (the last run: spare). */
+  carryMm: number;
+}
+
 /** Geometry for the single `LayoutScheme` SVG component; text for `guide` codes lives in catalog. */
 export interface Layout {
   kind: "rows" | "grid" | "strips" | "points" | "outline";
@@ -174,6 +185,7 @@ export interface Layout {
   marks: readonly LayoutMark[];
   rows?: readonly LayoutRow[];
   sheets?: readonly LayoutSheet[];
+  runs?: readonly LayoutRun[];
   /** Laying steps in order: code + numbers. */
   guide: readonly Step[];
   stats: { whole: number; cut: number; reused: number; wasteM2: number };

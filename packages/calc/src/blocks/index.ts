@@ -13,6 +13,7 @@ export {
 } from "./geometry";
 export { type GridArea, type GridLine, gridArea, gridLine } from "./grid";
 export { type RowsLayoutInput, rowsLayout, traceRows } from "./layout-rows";
+export { type RunsLayoutInput, runsLayout, wallRuns } from "./layout-runs";
 export { type SheetsLayoutInput, seamInDoor, sheetsLayout } from "./layout-sheets";
 export { bestPackSet, ceilPacks, PACK_EPSILON, type PackOption, type PackSet, purchase, purchaseSet } from "./packs";
 export {
