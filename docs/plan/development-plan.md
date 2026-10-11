@@ -1,12 +1,12 @@
 ---
-version: 2.3
+version: 2.4
 date: 2026-10-11
 category: plan
 ---
 
 # Development Plan
 
-> Version 2.3 · 2026-10-11 · [Plan](../plan/)
+> Version 2.4 · 2026-10-11 · [Plan](../plan/)
 
 ## Overview
 
@@ -298,16 +298,17 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 **Tasks**
 
-- [ ] P9.1 Cookie banner (strict mode: Metrika not loaded before «Принять»; equal buttons; 6-month hide after refusal; footer “Настройки cookie”).
+- [x] P9.1 Cookie banner (strict mode: Metrika not loaded before «Принять»; equal buttons; 6-month hide after refusal; footer “Настройки cookie”).
 - [ ] P9.2 `shared/analytics/track()` typed `EventMap`; adapters: own counter (`sendBeacon('/api/e')` → `events_daily`) always, Metrika after consent (URL without `s`); common params (country, source, category, variation); `calc_completed` logic (≥ 2 fields + 5 s visible, `via`); `js_error`.
 - [ ] P9.3 `POST /api/e` with limits.
-- [ ] P9.4 `generateMetadata` from frontmatter; canonical everywhere; JSON-LD (`WebApplication`, `FAQPage`, `BreadcrumbList`, `Organization`, `WebSite`).
-- [ ] P9.5 `sitemap.ts` (lastmod from text/formula change), `robots.ts` (disallow `/api/`, Yandex `Clean-param: s`), `manifest.ts` (PWA icons G08), OG image G09, 301 map in catalog.
-- [ ] P9.6 Security headers in Caddy/Next: CSP (self, Metrika, Telegram), HSTS, nosniff, Referrer-Policy, `frame-ancestors` per route table.
+- [x] P9.4 `generateMetadata` from frontmatter; canonical everywhere; JSON-LD (`WebApplication`, `FAQPage`, `BreadcrumbList`, `Organization`, `WebSite`).
+- [x] P9.5 `sitemap.ts` (lastmod from text/formula change), `robots.txt` route (disallow `/api/`, Yandex `Clean-param: s`), `manifest.ts` (PWA icons G08), OG image G09, 301 map in catalog.
+- [x] P9.6 Security headers in Caddy/Next: CSP (self, Metrika, Telegram), HSTS, nosniff, Referrer-Policy, `frame-ancestors` per route table.
 - [ ] P9.7 Lighthouse CI thresholds on home, a tool, (planner later): perf ≥ 90, SEO 100, a11y ≥ 95, LCP ≤ 2.0 s, CLS ≤ 0.05, JS ≤ 150 KB gz, CSS ≤ 15 KB.
 - [ ] P9.8 IndexNow step in deploy workflow (sitemap diff); submit sitemap in Webmaster + Search Console.
 - [ ] P9.9 Monitoring (A23, A24): 5-min checks from RU and KZ; disk/restart alerts; weekly `pg_dump` (A25).
 - [ ] P9.10 Playwright: full 5 scenarios from tech spec §15 green.
+- [ ] P9.11 Performance pass to the P9.7 budget (measured 2026-10-11: 351 KB JS gzip on a tool page, LCP 2.7–3.5 s): `zod/mini` (or no zod) in the client bundle of `calc`, `Sheet`/`vaul` and `sonner` loaded on first use, Radix accordion → `details`; then the Lighthouse warnings in `apps/web/lighthouserc.cjs` become errors.
 
 **Exit gate = Checkpoint M1 (30 Nov):** all pages indexed (or submitted and crawling) in Yandex and Google; formulas covered by tests; events arriving in Metrika; Lighthouse thresholds pass. *If not met — no new tools, fix tech (business spec §4).*
 

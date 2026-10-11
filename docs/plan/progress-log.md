@@ -1,12 +1,12 @@
 ---
-version: 1.2
+version: 1.3
 date: 2026-10-11
 category: plan
 ---
 
 # Progress Log
 
-> Version 1.2 · 2026-10-11 · [Plan](../plan/)
+> Version 1.3 · 2026-10-11 · [Plan](../plan/)
 
 ## Overview
 
@@ -41,6 +41,29 @@ Each entry:
 ## Log
 
 ### 2026-10-11
+
+- **P9.1** Cookie banner in strict mode: `features/cookie-consent` — a 90 px bar on a phone (≤ 96), one line + two equal `secondary` buttons «Принять» / «Отклонить», policy link, rendered after mount only (no banner in static HTML); choice in `umnyaut:consent:v1`, a refusal hides it for 183 days, «Настройки cookie» in the footer reopens it; a refusal after acceptance removes `_ym*` cookies and reloads if the counter was running. The sticky result bar stands on the banner (`--cookie-h`). e2e `consent.spec.ts`.
+  - Where: `feature/phase-9-launch`
+- **P9.2 (partly)** `shared/analytics`: typed `EventMap`, `track()` with common params (country, category, source `web`), Metrika adapter — loaded only after «Принять» and only on `umnyaut.com`, hits by hand with `s` removed from the URL, Webvisor on. Wired: `tool_view`, `calc_started`, `calc_completed` (≥ 2 distinct fields + result seen 5 s, `via` panel/sticky), `calc_adjusted`, `price_added`, `how_opened`, `next_tool_clicked`, `project_shared`, `result_copied`, `js_error` (≤ 5 per page).
+  - Where: `feature/phase-9-launch`
+  - Notes: the counter id goes into `apps/web/src/shared/config/analytics.ts` once the owner creates it (P0.4, A10) — until then nothing loads. The own counter (`/api/e` → `events_daily`, P9.3) waits for Supabase.
+  - Deviation: the counter id is a constant in code, not `METRIKA_ID` env — it is public, and a build-time env would need Docker build args; staging never loads it (host check).
+- **P9.4** Open Graph on every page (title, description, URL, shared image — Next replaces the layout's object, so `openGraph()` builds the whole one) and JSON-LD: `WebApplication` + `BreadcrumbList` + `FAQPage` on a tool, `BreadcrumbList` + `FAQPage` on a category, `Organization` + `WebSite` on home (`shared/lib/seo.ts`, `shared/ui/JsonLd`; FAQ answers as plain text). `site.url` in catalog is the one origin.
+  - Where: `feature/phase-9-launch`
+  - Deviation: no `schema-dts` — five small builders with a test were enough.
+- **P9.5** `sitemap.xml` from the registry (live tools, categories with a live tool, non-draft info pages, home; `lastmod` = latest `updatedAt`/`checkedAt`, so a formula change must bump the text's `updatedAt`), `robots.txt` (only `/api/` closed, Yandex `Clean-param: s`), `manifest.webmanifest`, icons 180/192/512 (maskable) and the OG image 1200 × 630 from `pnpm --filter web brand-images` (G08, G09), empty 301 map `catalog/redirects.ts` wired into `next.config`.
+  - Where: `feature/phase-9-launch`
+  - Deviation: `robots.txt` is a static route, not `robots.ts` — the metadata API has no `Clean-param`. The OG text is set in Arial (system font in the generator), not Onest.
+- **P9.6** Headers from `apps/web/security-headers.ts` on every production response (Vercel and VPS alike): CSP (self + `'unsafe-inline'` scripts — static pages cannot carry a nonce — Metrika hosts, `frame-ancestors` self + Telegram), HSTS, nosniff, Referrer-Policy, Permissions-Policy.
+  - Where: `feature/phase-9-launch`
+- **P9.7 (partly)** Lighthouse CI (`@lhci/cli`, `apps/web/lighthouserc.cjs`, new CI job, reports as an artifact) on home, laminate, wallpaper, mobile, 3 runs. Passing and enforced: SEO 100, accessibility 0.99–1, CLS 0, one font, no third party before interaction. **Not met** and set to warnings: performance 0.91–0.92 (borderline), LCP 2.7–3.5 s (the H1, render delay), JS 351 KB gzip vs 150 (React + Next ≈ 118, zod ≈ 37, calc + catalog ≈ 45, sonner ≈ 22, vaul ≈ 20, Radix). New task P9.11 — the performance pass.
+  - Where: `feature/phase-9-launch`
+- **P9.8 (partly)** IndexNow: `/indexnow.txt` serves `INDEXNOW_KEY` from the server env; the deploy workflow saves the live sitemap before the swap and after the smoke test sends new or changed URLs to Yandex (`scripts/indexnow.mjs`, tested). Skipped while the key is unset.
+  - Where: `feature/phase-9-launch`
+  - Notes (owner): generate a key into the VPS `web.env`; submit the sitemap in Webmaster and Search Console after launch.
+- **— (formula review, laminate v2)** `formula-reviewer` pass on the rows-engine fix: **APPROVE WITH NOTES**. Four goldens re-derived by hand (corridor 13 boards / 2 packs, mockup 85 / 10, 3 × 2 m 26 / 3, plus two new cases); v2 never worse than v1 on 6 000 rectangles and 8 000 L-shapes the tool builds; own plan checker found no offset or piece-length violations; scheme replay agrees on 3 000 rooms up to 120 rows. Added its two goldens (corridor 0,47 × 20 m → 52 boards / 7 packs; strip 0,32 × 5 m → 7 boards / 1 pack).
+  - Where: `feature/phase-9-launch`
+  - Notes: minor, also in v1 — the 24-state search can miss the cheapest plan by one board (13 rows of 1300 mm: 15 instead of 14, same packs); rows ordered short-first (never built by the tool) can be one board worse in v2. Follow-up for the rows engine, not a release blocker.
 
 - **P16.4 (content)** Laminate text: new section «Схема укладки» — the plan under the result shows the very layout the packs were counted on, what the marks mean, placing the door and window for the start corner and direction, the cut list per row, fullscreen. 402 words; worked examples re-checked on laminate v2 (5 × 3,6 м → 76 boards, 9 packs; 12 м² → 51 boards). The scheme is not printed (print shows the shopping list only), so the text does not promise it.
   - Where: `feature/layout-guides` · PR #154

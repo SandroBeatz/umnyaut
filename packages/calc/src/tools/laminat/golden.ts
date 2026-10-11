@@ -164,6 +164,24 @@ export const golden: GoldenFile<LaminatInput> = {
       },
     },
     {
+      name: "Corridor 0,47 × 20 m laid across: the offcut pool fills many times",
+      input: { lengthMm: 470, widthMm: 20000, boardLengthMm: 1292, boardWidthMm: 194, boardsPerPack: 8 },
+      expected: { items: { laminate: { packs: 7 } }, summary: { rows: 103, boards: 52 } },
+      source: {
+        kind: "manual",
+        ref: `${RULES}. Ряд 450 мм, (20000 − 20) / 194 → 103 ряда. С доски 1292 — два ряда по 450, остаток 392 короче ряда. 103 / 2 → 52 доски / 8 → 7 пачек (formula-reviewer, 2026-10-11)`,
+      },
+    },
+    {
+      name: "Strip 0,32 × 5 m: four pieces from every board",
+      input: { lengthMm: 320, widthMm: 5000, boardLengthMm: 1292, boardWidthMm: 194, boardsPerPack: 8 },
+      expected: { items: { laminate: { packs: 1 } }, summary: { rows: 26, boards: 7 } },
+      source: {
+        kind: "manual",
+        ref: `${RULES}. Ряд 320 − 20 = 300 мм, 26 рядов. С доски 1292 — четыре куска по 300 (1200). 26 / 4 → 7 досок → 1 пачка (formula-reviewer, 2026-10-11)`,
+      },
+    },
+    {
       name: "With pack prices: total cost",
       input: { price_laminate: 1800, price_underlay: 600 } as Partial<LaminatInput>,
       expected: { costTotal: 19200 },

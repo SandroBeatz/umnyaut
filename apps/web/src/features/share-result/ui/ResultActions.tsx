@@ -16,6 +16,8 @@ export interface ResultActionsProps {
   getUrl(): string;
   /** Replaces the disabled «Сохранить» (purchase tools put «В список» here). */
   primary?: ReactNode;
+  /** For analytics: what was done (`link` — share sheet or copied link, `text` — text + link copied). */
+  onAction?(action: "link" | "copy" | "print"): void;
 }
 
 async function copy(text: string, done: string) {
@@ -31,9 +33,10 @@ async function copy(text: string, done: string) {
  * «Сохранить» (disabled until projects exist, Phase 7), «Отправить» (system share sheet, or the link is copied),
  * «Скопировать» (text + link), «Печать». No request to the server.
  */
-export function ResultActions({ title, getText, getUrl, primary }: ResultActionsProps) {
+export function ResultActions({ title, getText, getUrl, primary, onAction }: ResultActionsProps) {
   const send = async () => {
     const url = getUrl();
+    onAction?.("link");
     if (typeof navigator.share === "function") {
       try {
         await navigator.share({ title: fill(shell.share.title, { tool: title }), text: getText(), url });
@@ -62,12 +65,22 @@ export function ResultActions({ title, getText, getUrl, primary }: ResultActions
       <button
         type="button"
         className={iconButton}
-        onClick={() => copy(`${getText()}\n${fill(shell.share.link, { url: getUrl() })}`, t.copied)}
+        onClick={() => {
+          onAction?.("copy");
+          void copy(`${getText()}\n${fill(shell.share.link, { url: getUrl() })}`, t.copied);
+        }}
       >
         <Copy aria-hidden="true" />
         {t.copy}
       </button>
-      <button type="button" className={iconButton} onClick={() => window.print()}>
+      <button
+        type="button"
+        className={iconButton}
+        onClick={() => {
+          onAction?.("print");
+          window.print();
+        }}
+      >
         <Printer aria-hidden="true" />
         {t.print}
       </button>

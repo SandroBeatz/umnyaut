@@ -1,16 +1,20 @@
 ---
-version: 1.3
+version: 1.4
 date: 2026-10-11
 category: plan
 ---
 
 # Wave 1 — Release Check
 
-> Version 1.3 · 2026-10-11 · [Reviewer Handouts](./README.md)
+> Version 1.4 · 2026-10-11 · [Reviewer Handouts](./README.md)
 
 ## Overview
 
 `calculator-release-check` against the 16-requirement standard (`.claude/skills/calculator-release-check/references/standard.md`). v1.1 ran on `feature/phase-6-wave-1` after the formula reviews; v1.2 (P8.8) re-ran it on `feature/phase-8-site-pages` with the content: no formula changed since v1.1, so requirements 1–16 keep their status and the content part of the definition of done is now checked too. Lighthouse runs in Phase 9.
+
+## v1.4 — laminate v2 reviewed, Lighthouse measured
+
+`formula-reviewer` approved laminate **version 2** with notes (see the progress log, 2026-10-11): goldens re-derived, no regression on rooms the tool builds, two new goldens. Lighthouse CI now runs on home, laminate and wallpaper: SEO 100, accessibility ≥ 0.99, CLS 0 pass; performance 0.91–0.92, LCP 2.7–3.5 s and JS 351 KB gzip miss the budget — tracked as P9.11, warnings until then. Verdicts unchanged: 10 READY on requirements 1–14 and 16; 15 (scheme) per v1.3.
 
 ## v1.3 — schemes moved to Phase 16, laminate pilot
 

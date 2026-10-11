@@ -1,5 +1,6 @@
-import { getCategory, shell, strings, type ToolDef } from "@umnyaut/catalog";
-import { Breadcrumbs, PageText } from "@/shared/ui";
+import { getCategory, shell, strings, type ToolDef, toolPath } from "@umnyaut/catalog";
+import { ld } from "@/shared/lib";
+import { Breadcrumbs, JsonLd, PageText } from "@/shared/ui";
 import { CalculatorShell } from "@/widgets/calculator-shell";
 import type { ToolText } from "../model/content";
 
@@ -9,8 +10,20 @@ import type { ToolText } from "../model/content";
  */
 export function ToolPage({ tool, text }: { tool: ToolDef; text?: ToolText }) {
   const category = getCategory(tool.category);
+  const path = toolPath(tool);
   return (
     <main className="mx-auto w-full max-w-[1200px] px-4 pb-8 sm:px-6 lg:px-8">
+      <JsonLd
+        data={[
+          ld.tool({ name: text?.h1 ?? tool.title, description: text?.description ?? tool.outcome ?? "", path }),
+          ld.breadcrumbs([
+            { name: shell.breadcrumbs.home, path: "/" },
+            ...(category ? [{ name: category.title, path: `/${category.slug}/` }] : []),
+            { name: tool.title, path },
+          ]),
+          ...(text ? [ld.faq(text.faq)] : []),
+        ]}
+      />
       <Breadcrumbs
         label={shell.breadcrumbs.label}
         trail={[

@@ -8,9 +8,11 @@ import { roomDimensions, useRoomStore } from "@/entities/room";
 import { RoomBar } from "@/features/edit-room";
 import { AddToList, RoomList } from "@/features/room-list";
 import { ResultActions, shareUrl } from "@/features/share-result";
+import { track } from "@/shared/analytics";
 import { AdSlot } from "@/shared/ui";
 
 import { planRoomOf } from "../model/plan";
+import { useCalcEvents } from "../model/useCalcEvents";
 import { useCalculator } from "../model/useCalculator";
 import { describeResult, resultText } from "../model/view";
 import { HowCalculated } from "./HowCalculated";
@@ -51,6 +53,14 @@ export function CalculatorShell({ category, toolId, checkedAt }: CalculatorShell
   }, []);
 
   const { values, defaults } = calc;
+  useCalcEvents({
+    tool,
+    country,
+    values,
+    edits: calc.edits,
+    fieldsChanged: calc.fieldsChanged,
+    panelVisible,
+  });
   const getUrl = useCallback(() => shareUrl(window.location.href, values, defaults), [values, defaults]);
   const getText = () => resultText(tool, view);
   const layout = calc.result.layout;
@@ -76,6 +86,11 @@ export function CalculatorShell({ category, toolId, checkedAt }: CalculatorShell
               title={tool.title}
               getText={getText}
               getUrl={getUrl}
+              onAction={(action) =>
+                action === "copy"
+                  ? track("result_copied", { tool: tool.id })
+                  : track("project_shared", { channel: action })
+              }
               primary={
                 view.mode === "buy" ? (
                   <AddToList tool={tool} values={values} defaults={defaults} className="min-w-32 flex-1" />

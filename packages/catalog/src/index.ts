@@ -1,6 +1,8 @@
 /** Tool registry, categories, presets, norms, countries and Russian UI strings. */
 export const site = {
   name: "Умняут",
+  /** Canonical origin: metadata base, sitemap, JSON-LD. */
+  url: "https://umnyaut.com",
   tagline: "Калькуляторы ремонта: список покупок в упаковках",
   description:
     "Введите размеры комнаты один раз — получите проверенный список покупок для всего ремонта в пачках, рулонах и мешках.",
@@ -12,6 +14,7 @@ export { devUi } from "./dev-ui";
 export { type ExampleItem, type HomeWork, home, type MethodIcon } from "./home";
 export { normTitles } from "./norm-titles";
 export { getNorm, type Norm, norms } from "./norms";
+export { redirects } from "./redirects";
 export {
   activeCategories,
   getCategory,
