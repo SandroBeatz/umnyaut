@@ -139,7 +139,7 @@ interface Layout {
 
 ### Linoleum
 
-Sheets of the chosen width and direction with seam lines; allowance strip at the walls («припуск 5 см на подрезку»); the L-shape's short sheets; guide: seams along the light and outside the doorway, sheet order, where to cut (by the wall after 24 h relaxation — Tarkett), cold welding along the seams.
+Sheets of the chosen width and direction with seam lines; allowance strip at the walls («припуск 5 см на подрезку»); the L-shape's short sheets; guide: seams along the light and outside the doorway, sheet order, where to cut (by the wall after at least two days of rest at ≥ +15 °C — Tarkett), cold welding along the seams.
 
 ### Tile (floor, then walls)
 

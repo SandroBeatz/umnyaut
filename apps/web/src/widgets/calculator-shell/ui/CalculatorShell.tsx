@@ -64,7 +64,9 @@ export function CalculatorShell({ category, toolId, checkedAt }: CalculatorShell
   const getUrl = useCallback(() => shareUrl(window.location.href, values, defaults), [values, defaults]);
   const getText = () => resultText(tool, view);
   const layout = calc.result.layout;
-  const planField = tool.fields.find((field) => field.kind === "plan");
+  // The plan editor of the scheme card edits the doors and windows field: the plan field, or the openings list.
+  const planField =
+    tool.fields.find((field) => field.kind === "plan") ?? tool.fields.find((field) => field.kind === "openings");
 
   return (
     <>

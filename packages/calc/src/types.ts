@@ -152,6 +152,27 @@ export interface LayoutRow {
   restToRow?: number;
 }
 
+/** One sheet of a strip layout (linoleum), in laying order: what to cut from the roll. */
+export interface LayoutSheet {
+  /** Cut from the roll, mm: the room along the sheet plus allowance, plus the pattern repeat after the first. */
+  lengthMm: number;
+  /** Part of the roll width left on the floor after the seams and the walls are trimmed, mm. */
+  floorWidthMm: number;
+  /** Lies wholly in the narrow part of an L-shaped room, so it is cut shorter. */
+  short: boolean;
+}
+
+/** One straight run of an outline layout (plinth): a wall or its part between corners and doors. */
+export interface LayoutRun {
+  /** Wall index (the UI shows it 1-based). */
+  wall: number;
+  lengthMm: number;
+  /** Pieces along the run in laying order: a `whole` plank, one `cut` from a new plank, the `rest` of the plank before. */
+  pieces: readonly { lengthMm: number; plank: number; from: "whole" | "cut" | "rest" }[];
+  /** Left of the last plank after this run: it starts the next run (the last run: spare). */
+  carryMm: number;
+}
+
 /** Geometry for the single `LayoutScheme` SVG component; text for `guide` codes lives in catalog. */
 export interface Layout {
   kind: "rows" | "grid" | "strips" | "points" | "outline";
@@ -163,6 +184,8 @@ export interface Layout {
   pieces: readonly LayoutPiece[];
   marks: readonly LayoutMark[];
   rows?: readonly LayoutRow[];
+  sheets?: readonly LayoutSheet[];
+  runs?: readonly LayoutRun[];
   /** Laying steps in order: code + numbers. */
   guide: readonly Step[];
   stats: { whole: number; cut: number; reused: number; wasteM2: number };

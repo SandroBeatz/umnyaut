@@ -1,4 +1,11 @@
-import { GROUT_DENSITY, LAMINATE_WASTE_PCT, NOTCH_TABLE, TILE_DIAGONAL_RESERVE_PCT, toolModules } from "@umnyaut/calc";
+import {
+  GROUT_DENSITY,
+  LAMINATE_WASTE_PCT,
+  LINOLEUM_WALL_TRIM_MM,
+  NOTCH_TABLE,
+  TILE_DIAGONAL_RESERVE_PCT,
+  toolModules,
+} from "@umnyaut/calc";
 import { describe, expect, it } from "vitest";
 import { type CategoryDef, categories, reservedSegments } from "./categories";
 import { norms } from "./norms";
@@ -58,6 +65,7 @@ describe("registry", () => {
     expect(kraska.primerRateLPerM2).toBe(value("primer.consumption"));
     expect(toolModules.oboi.defaults({ country: "RU" }).primerRateLPerM2).toBe(value("primer.consumption"));
     expect(toolModules.plintus.defaults({ country: "RU" }).plankLengthMm / 1000).toBe(value("plinth.length"));
+    expect(LINOLEUM_WALL_TRIM_MM).toBe(value("linoleum.wallTrim"));
     expect(toolModules.plintus.defaults({ country: "RU" }).fastenerSpacingMm).toBe(value("plinth.fastenerSpacing"));
     expect(toolModules.klej.defaults({ country: "RU" }).backButterMm).toBe(value("tileAdhesive.backButter"));
     for (const row of NOTCH_TABLE)

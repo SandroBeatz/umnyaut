@@ -62,6 +62,7 @@ export function forgetMetrika(): void {
   for (const name of document.cookie.split("; ").map((c) => c.split("=")[0] ?? "")) {
     if (!name.startsWith("_ym")) continue;
     for (const domain of ["", `; domain=${host}`, `; domain=.${host}`]) {
+      // biome-ignore lint/suspicious/noDocumentCookie: Cookie Store API is missing in older Safari and Firefox, and the reload right after needs a synchronous delete
       document.cookie = `${name}=; max-age=0; path=/${domain}`;
     }
   }

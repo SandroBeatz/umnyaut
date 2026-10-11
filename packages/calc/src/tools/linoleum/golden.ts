@@ -119,6 +119,45 @@ export const golden: GoldenFile<LinoleumInput> = {
       },
     },
     {
+      name: "L-shape with allowance: a sheet whose seam is short of the narrow part stays full length (v2)",
+      input: {
+        shape: "l",
+        lengthMm: 6000,
+        widthMm: 3000,
+        cutLengthMm: 2000,
+        cutWidthMm: 1050,
+        rollWidthMm: 2000,
+        allowanceMm: 100,
+        repeatMm: 300,
+      },
+      expected: { items: { linoleum: { packs: 125 } }, summary: { sheets: 2, seams: 1, length: 12.5, boughtArea: 25 } },
+      source: {
+        kind: "manual",
+        ref: `${TARKETT}. Вдоль длины: 6,1 × 3,1 м с припуском, шаг 2 − 0,05 = 1,95 м, 2 полотна. Полотна раскатаны от −5 см (половина припуска), шов посередине нахлёста — 1,95 − 0,05 + 0,025 = 1,925 м, а узкая часть начинается с 3 − 1,05 = 1,95 м: полотно 2 на 2,5 см заходит в широкую часть, значит целой длины. 6,1 + 6,4 (раппорт) = 12,5 м = 25 м². Поперёк — 4 полотна, 3 шва. В v1 полотно 2 укорачивалось: 10,5 м, полоса 2,5 × 200 см без покрытия`,
+      },
+    },
+    {
+      name: "L-shape with allowance and no overlap: the second sheet is full length (v2)",
+      input: {
+        shape: "l",
+        lengthMm: 6000,
+        widthMm: 3000,
+        cutLengthMm: 2000,
+        cutWidthMm: 1000,
+        rollWidthMm: 2000,
+        allowanceMm: 100,
+        overlapMm: 0,
+      },
+      expected: {
+        items: { linoleum: { packs: 122 } },
+        summary: { sheets: 2, seams: 1, length: 12.2, boughtArea: 24.4 },
+      },
+      source: {
+        kind: "manual",
+        ref: "Вдоль длины: 6,1 × 3,1 м, шаг 2 м, 2 полотна; шов на 2 − 0,05 = 1,95 м, узкая часть с 2 м — полотно 2 целой длины: 2 × 6,1 = 12,2 м = 24,4 м². В v1 было 10,2 м и 5 × 200 см пола без покрытия",
+      },
+    },
+    {
       name: "Length rounded up to the 10 cm cut step",
       input: { lengthMm: 4620, widthMm: 2400 },
       expected: {

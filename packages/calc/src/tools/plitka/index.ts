@@ -1,6 +1,28 @@
 import * as z from "zod/mini";
-import { gridArea, mm2ToM2, mmToM, openingInputSchema, purchase, wallAreaM2 } from "../../blocks";
-import type { PurchaseItem, Room, Step, ToolModule, ToolResult, Warning } from "../../types";
+import {
+  cornerFlips,
+  cutCornerSchema,
+  gridArea,
+  gridLayout,
+  mm2ToM2,
+  mmToM,
+  openingInputSchema,
+  placeOpenings,
+  purchase,
+  roomOutline,
+  wallAreaM2,
+} from "../../blocks";
+import type {
+  Layout,
+  LayoutMark,
+  PlanWall,
+  PurchaseItem,
+  Room,
+  Step,
+  ToolModule,
+  ToolResult,
+  Warning,
+} from "../../types";
 import { klej } from "../klej";
 import { zatirka } from "../zatirka";
 
@@ -17,6 +39,8 @@ const input = z.object({
   /** Corner cut-out of an L-shaped floor (from “My room”). */
   cutLengthMm: z.int().check(z.minimum(0), z.maximum(100_000)),
   cutWidthMm: z.int().check(z.minimum(0), z.maximum(100_000)),
+  /** Where the cut-out sits on the plan (floor scheme only). */
+  cutCorner: cutCornerSchema,
   heightMm: z.int().check(z.minimum(1000), z.maximum(10_000)),
   openings: z.readonly(z.array(opening).check(z.maxLength(20))),
   /** Along the room length on the floor, horizontal on walls. */
@@ -41,6 +65,118 @@ export type PlitkaInput = z.infer<typeof input>;
 /** Norm `tile.reserve.diagonal` (Kerama Marazzi). */
 export const TILE_DIAGONAL_RESERVE_PCT = 15;
 
+/** The wall on `side` lying at the room's edge (x or y = `at`): where a column or row of the grid ends. */
+const edgeWall = (walls: readonly PlanWall[], side: PlanWall["side"], at: number) =>
+  walls.findIndex((w) => w.side === side && (side === "left" || side === "right" ? w.x1 === at : w.y1 === at));
+
+/**
+ * Floor scheme, straight laying: the grid the tiles were counted on. From a corner the whole tiles lie at the
+ * start walls and the cut at the opposite ones, so the start corner goes to a placed door (the entrance is seen
+ * first); from the centre the cuts are equal at opposite walls.
+ */
+function floorScheme(i: PlitkaInput, real: boolean, warnings: Warning[]): Layout {
+  const cut = real ? { lengthMm: i.cutLengthMm, widthMm: i.cutWidthMm } : undefined;
+  const outline = roomOutline(i.lengthMm, i.widthMm, cut, i.cutCorner);
+  const { placed, off } = placeOpenings(outline.walls, i.openings);
+  if (off > 0) warnings.push({ code: "opening_off_wall", level: "warning", values: { count: off } });
+  const corner = i.start === "corner";
+  // Only a door in an outer wall: the grid starts at the room's outer corners, so whole tiles can lie there
+  // and not at a door in the cut-out's walls.
+  const outer = (w: PlanWall | undefined) =>
+    w !== undefined &&
+    (w.side === "left"
+      ? w.x1 === 0
+      : w.side === "right"
+        ? w.x1 === i.lengthMm
+        : w.side === "top"
+          ? w.y1 === 0
+          : w.y1 === i.widthMm);
+  const doors = placed.filter((p) => p.type === "door");
+  const door = doors.find((p) => outer(outline.walls[p.wall]));
+  const doorSide = door ? outline.walls[door.wall]?.side : undefined;
+  let flipX = corner && doorSide === "right";
+  let flipY = corner && doorSide === "bottom";
+  let cutOut: { x: number; y: number; w: number; h: number } | undefined;
+  if (cut) {
+    const f = cornerFlips(i.cutCorner);
+    cutOut = {
+      x: f.x ? 0 : i.lengthMm - cut.lengthMm,
+      y: f.y ? 0 : i.widthMm - cut.widthMm,
+      w: cut.lengthMm,
+      h: cut.widthMm,
+    };
+    // The start corner must be a corner of the room, not of the missing cut-out: move it along the door's wall.
+    if (corner && f.x !== flipX && f.y !== flipY) {
+      if (doorSide === "left" || doorSide === "right") flipY = !flipY;
+      else flipX = !flipX;
+    }
+  }
+  const grid = gridLayout({
+    lengthMm: i.lengthMm,
+    widthMm: i.widthMm,
+    tileLengthMm: i.tileLengthMm,
+    tileWidthMm: i.tileWidthMm,
+    jointMm: i.jointMm,
+    start: i.start,
+    flipX,
+    flipY,
+    cutOut,
+  });
+
+  const walls = outline.walls;
+  const left = edgeWall(walls, "left", 0) + 1;
+  const right = edgeWall(walls, "right", i.lengthMm) + 1;
+  const top = edgeWall(walls, "top", 0) + 1;
+  const bottom = edgeWall(walls, "bottom", i.widthMm) + 1;
+  const cutX = grid.columns.filter((c) => c.cut).map((c) => c.size);
+  const cutY = grid.rows.filter((r) => r.cut).map((r) => r.size);
+  const cm = (mm: number) => Math.round(mm) / 10;
+  const marks: LayoutMark[] = placed.map((p) => p.mark);
+  const guide: Step[] = [];
+  if (corner) {
+    const x = flipX ? i.lengthMm : 0;
+    const y = flipY ? i.widthMm : 0;
+    const reach = Math.min(i.lengthMm / 3, 1000);
+    marks.unshift({ kind: "start", x1: x, y1: y, x2: x + (flipX ? -reach : reach), y2: y });
+    guide.push({ code: "start_corner", values: { a: flipY ? bottom : top, b: flipX ? right : left } });
+    if (door) guide.push({ code: "start_door", values: {} });
+    // One cut per axis, at the far wall.
+    if (cutX.length > 0)
+      guide.push({ code: "cut_wall", values: { wall: flipX ? left : right, cut: cm(cutX[0] ?? 0) } });
+    if (cutY.length > 0)
+      guide.push({ code: "cut_wall", values: { wall: flipY ? top : bottom, cut: cm(cutY[0] ?? 0) } });
+    // A cut under a quarter of the tile side it is cut from.
+    if ((cutX[0] ?? i.tileLengthMm) < i.tileLengthMm / 4 || (cutY[0] ?? i.tileWidthMm) < i.tileWidthMm / 4)
+      guide.push({ code: "try_center", values: {} });
+  } else {
+    // The two axes through the middle of the room, drawn like seams.
+    marks.unshift(
+      { kind: "seam", x1: i.lengthMm / 2, y1: 0, x2: i.lengthMm / 2, y2: i.widthMm },
+      { kind: "seam", x1: 0, y1: i.widthMm / 2, x2: i.lengthMm, y2: i.widthMm / 2 },
+    );
+    guide.push({ code: "start_center", values: {} });
+    if (cutX.length > 0) guide.push({ code: "cut_walls", values: { a: left, b: right, cut: cm(cutX[0] ?? 0) } });
+    if (cutY.length > 0) guide.push({ code: "cut_walls", values: { a: top, b: bottom, cut: cm(cutY[0] ?? 0) } });
+  }
+  if (cutX.length === 0 && cutY.length === 0) guide.push({ code: "no_cuts", values: {} });
+  if (cutOut) guide.push({ code: "cut_out", values: {} });
+  if (i.jointMm > 0) guide.push({ code: "joint", values: { joint: i.jointMm } });
+  if (corner && doors.length === 0) guide.push({ code: "place_door", values: {} });
+
+  const cutCount = grid.pieces.filter((p) => p.cut).length;
+  return {
+    kind: "grid",
+    widthMm: i.lengthMm,
+    heightMm: i.widthMm,
+    outline: outline.points,
+    walls,
+    pieces: grid.pieces,
+    marks,
+    guide,
+    stats: { whole: grid.pieces.length - cutCount, cut: cutCount, reused: 0, wasteM2: 0 },
+  };
+}
+
 /**
  * Tile by piece count (Kerama Marazzi): a grid from a corner or from the centre over the floor or each wall;
  * every cut piece takes a tile; whole tiles inside doors and windows are left out (cut tiles around them are
@@ -49,7 +185,8 @@ export const TILE_DIAGONAL_RESERVE_PCT = 15;
  */
 export const plitka: ToolModule<PlitkaInput> = {
   id: "plitka",
-  version: 1,
+  // 2: from a corner, a rest no wider than a joint is a gap at the wall, not a cut tile.
+  version: 2,
   input,
   defaults: () => ({
     surface: "floor",
@@ -58,10 +195,12 @@ export const plitka: ToolModule<PlitkaInput> = {
     widthMm: 4300,
     cutLengthMm: 1500,
     cutWidthMm: 1200,
+    cutCorner: "se",
     heightMm: 2700,
+    // The example plan of every floor tool: door in the bottom wall, window in the left one.
     openings: [
-      { type: "door", widthMm: 800, heightMm: 2000, count: 1 },
-      { type: "window", widthMm: 1200, heightMm: 1400, count: 1 },
+      { type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 2, offsetMm: 600 }] },
+      { type: "window", widthMm: 1200, heightMm: 1400, count: 1, places: [{ wall: 3, offsetMm: 1550 }] },
     ],
     tileLengthMm: 300,
     tileWidthMm: 300,
@@ -84,6 +223,7 @@ export const plitka: ToolModule<PlitkaInput> = {
     let cut = 0;
     let narrowest = Number.POSITIVE_INFINITY;
     let areaM2: number;
+    let layout: Layout | undefined;
 
     if (i.surface === "floor") {
       const l = i.shape === "l" && i.cutLengthMm > 0 && i.cutWidthMm > 0;
@@ -103,6 +243,7 @@ export const plitka: ToolModule<PlitkaInput> = {
           whole = Math.max(whole - inside, 0);
           steps.push({ code: "cut_out", values: { tiles: inside } });
         }
+        layout = floorScheme(i, real, warnings);
       }
     } else {
       const openings = i.openings.filter((o) => o.count > 0);
@@ -211,6 +352,7 @@ export const plitka: ToolModule<PlitkaInput> = {
       ],
       warnings,
       steps,
+      ...(layout ? { layout } : {}),
     };
   },
 };

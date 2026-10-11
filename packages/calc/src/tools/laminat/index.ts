@@ -4,6 +4,7 @@ import {
   coverage,
   cutCornerSchema,
   layRows,
+  lightDirection,
   mm2ToM2,
   openingInputSchema,
   placeOpenings,
@@ -92,17 +93,6 @@ function straight(i: LaminatInput, alongLength: boolean) {
     cut: cut ? { along: cutAlong, across: cutAcross } : undefined,
     wasteMm: laid.wasteMm,
   };
-}
-
-/** Rows that follow the light from the windows: across a window wall. Undecided with none or a tie. */
-function lightDirection(walls: readonly { side: string }[], windows: readonly { wall: number; widthMm: number }[]) {
-  let along = 0;
-  for (const w of windows) {
-    const side = walls[w.wall]?.side;
-    // Light from a top or bottom wall runs along the width: rows along the width follow it.
-    along += side === "left" || side === "right" ? w.widthMm : -w.widthMm;
-  }
-  return along > 0 ? "length" : along < 0 ? "width" : undefined;
 }
 
 /**

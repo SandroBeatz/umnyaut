@@ -1,10 +1,11 @@
-import type { Layout, LayoutRow } from "@umnyaut/calc";
+import type { Layout, LayoutRow, LayoutRun, LayoutSheet } from "@umnyaut/calc";
 import { shell, type ToolDef } from "@umnyaut/catalog";
 import { formatNumber } from "@umnyaut/ui/format";
 import { fill } from "@/shared/lib";
 
 const s = shell.scheme;
 const cm = (mm: number) => formatNumber(mm / 10, { maxFraction: 1 });
+const m = (mm: number) => formatNumber(mm / 1000, { maxFraction: 2 });
 
 /** Laying steps in Russian from the guide codes (catalog `ToolDef.guide`). */
 export function guideLines(tool: ToolDef, layout: Layout): string[] {
@@ -57,5 +58,36 @@ export function rowLines(rows: readonly LayoutRow[]): { title: string; parts: st
       title: `${fill(s.row, { n: k + 1 })} · ${fill(s.width, { width: cm(r.widthMm) })}`,
       parts,
     };
+  });
+}
+
+/** One line per sheet for «Что отрезать от рулона»: «Полотно 2: отрез 4,7 м · на полу 2,18 м по ширине». */
+export function sheetLines(sheets: readonly LayoutSheet[]): { title: string; parts: string[] }[] {
+  const t = s.strips;
+  return sheets.map((sheet, k) => ({
+    title: `${fill(t.sheet, { n: k + 1 })} · ${fill(t.cut, { length: m(sheet.lengthMm) })}`,
+    parts: [fill(t.floor, { width: m(sheet.floorWidthMm) }), ...(sheet.short ? [t.short] : [])],
+  }));
+}
+
+/**
+ * One line per run for «Что резать по стенам»: «Участок 2 · стена 2 · 4,3 м: остаток планки 2 — 0,4 м ·
+ * планка 3 целиком · планка 4: отрезать 1,4 м · остаток 1,1 м → участок 3».
+ */
+export function runLines(runs: readonly LayoutRun[]): { title: string; parts: string[] }[] {
+  const r = s.runs;
+  return runs.map((run, k) => {
+    const parts = run.pieces.map((p) =>
+      p.from === "whole"
+        ? fill(r.whole, { plank: p.plank })
+        : fill(p.from === "rest" ? r.rest : r.cut, { plank: p.plank, length: m(p.lengthMm) }),
+    );
+    if (run.carryMm > 0)
+      parts.push(
+        k < runs.length - 1
+          ? fill(r.carryTo, { length: m(run.carryMm), n: k + 2 })
+          : fill(r.spare, { length: m(run.carryMm) }),
+      );
+    return { title: fill(r.run, { n: k + 1, wall: run.wall + 1, length: m(run.lengthMm) }), parts };
   });
 }
