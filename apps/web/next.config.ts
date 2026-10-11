@@ -1,4 +1,6 @@
+import { redirects } from "@umnyaut/catalog";
 import type { NextConfig } from "next";
+import { securityHeaders } from "./security-headers";
 
 const nextConfig: NextConfig = {
   output: "standalone",
@@ -9,8 +11,13 @@ const nextConfig: NextConfig = {
   async headers() {
     // File names under /img carry a content hash (apps/web/scripts/images.mjs), so they never change.
     return [
+      // Dev needs eval for fast refresh, so the policy applies to production builds only.
+      ...(process.env.NODE_ENV === "production" ? [{ source: "/:path*", headers: securityHeaders() }] : []),
       { source: "/img/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
     ];
+  },
+  async redirects() {
+    return redirects.map(({ from, to }) => ({ source: from, destination: to, permanent: true }));
   },
 };
 

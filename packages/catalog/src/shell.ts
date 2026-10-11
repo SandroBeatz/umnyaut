@@ -17,6 +17,15 @@ export const shell = {
     about: "О сервисе",
     country: "Страна",
     note: "Расчёты в целых упаковках. Цены — ориентир, проверяйте в магазине.",
+    cookies: "Настройки cookie",
+  },
+  /** Strict consent (business spec §12): Metrika loads only after «Принять». */
+  consent: {
+    label: "Cookie",
+    text: "Метрика и cookie — только с согласия.",
+    more: "Подробнее",
+    accept: "Принять",
+    decline: "Отклонить",
   },
   country: {
     title: "Страна",

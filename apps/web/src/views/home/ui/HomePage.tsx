@@ -4,6 +4,8 @@ import { ArrowRight, Calculator, CalendarCheck, Check, type LucideIcon, Package 
 import Link from "next/link";
 import { ToolCard } from "@/entities/tool";
 import { mascotImages } from "@/shared/config";
+import { ld } from "@/shared/lib";
+import { JsonLd } from "@/shared/ui";
 import { HomeRoom } from "@/widgets/home-room";
 
 const CATEGORIES_ID = "categories";
@@ -15,6 +17,7 @@ export function HomePage() {
 
   return (
     <main className="flex flex-1 flex-col">
+      <JsonLd data={[ld.organization(), ld.website()]} />
       <HomeRoom hero={<Hero />} categoriesId={CATEGORIES_ID} />
 
       <section aria-labelledby={CATEGORIES_ID} className="mx-auto w-full max-w-[1200px] px-4 pt-10 sm:px-6 lg:px-8">

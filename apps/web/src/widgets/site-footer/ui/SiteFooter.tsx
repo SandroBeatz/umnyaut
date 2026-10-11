@@ -1,11 +1,12 @@
 import { activeCategories, navigation, shell, site } from "@umnyaut/catalog";
 import { Logo } from "@umnyaut/ui";
 import Link from "next/link";
+import { CookieSettings } from "@/features/cookie-consent";
 import { CountryPicker } from "@/features/pick-country";
 
 /**
- * Navy footer (design spec §11): white logo, categories, info pages, country. «Настройки cookie» and the bot link
- * arrive with the cookie banner (Phase 9) and the bot (Phase 12).
+ * Navy footer (design spec §11): white logo, categories, info pages with «Настройки cookie», country. The bot link
+ * arrives with the bot (Phase 12).
  */
 export function SiteFooter() {
   return (
@@ -37,6 +38,9 @@ export function SiteFooter() {
                 </Link>
               </li>
             ))}
+            <li>
+              <CookieSettings className="flex min-h-12 items-center text-body hover:underline" />
+            </li>
           </ul>
         </nav>
         <div>

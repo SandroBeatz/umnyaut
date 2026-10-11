@@ -1,5 +1,6 @@
 import { type ToolDef, toolPath } from "@umnyaut/catalog";
 import type { Metadata } from "next";
+import { openGraph } from "@/shared/lib";
 import type { ToolText } from "./content";
 
 /**
@@ -7,10 +8,13 @@ import type { ToolText } from "./content";
  * duplicate the page. Draft tools are reachable for checks but never indexed.
  */
 export function toolMetadata(tool: ToolDef, text?: ToolText): Metadata {
+  const title = text?.title ?? tool.title;
+  const description = text?.description ?? tool.outcome ?? "";
   return {
-    title: text?.title ?? tool.title,
+    title,
     ...(text && { description: text.description }),
     alternates: { canonical: toolPath(tool) },
+    openGraph: openGraph(title, description, toolPath(tool)),
     ...(tool.status === "draft" && { robots: { index: false, follow: false } }),
   };
 }

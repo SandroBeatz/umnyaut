@@ -3,8 +3,8 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { ToolCard } from "@/entities/tool";
 import { RoomBar } from "@/features/edit-room";
-import { fill } from "@/shared/lib";
-import { Breadcrumbs, PageText } from "@/shared/ui";
+import { fill, ld } from "@/shared/lib";
+import { Breadcrumbs, JsonLd, PageText } from "@/shared/ui";
 import type { CategoryText } from "../model/content";
 
 const t = shell.category;
@@ -18,6 +18,15 @@ export function CategoryPage({ category, text }: { category: CategoryDef; text?:
 
   return (
     <main className="mx-auto w-full max-w-[1200px] px-4 pb-8 sm:px-6 lg:px-8">
+      <JsonLd
+        data={[
+          ld.breadcrumbs([
+            { name: shell.breadcrumbs.home, path: "/" },
+            { name: category.title, path: `/${category.slug}/` },
+          ]),
+          ...(text ? [ld.faq(text.faq)] : []),
+        ]}
+      />
       <Breadcrumbs
         label={shell.breadcrumbs.label}
         trail={[{ href: "/", label: shell.breadcrumbs.home }]}

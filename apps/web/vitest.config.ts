@@ -5,6 +5,7 @@ import { defineConfig, mergeConfig } from "vitest/config";
 export default mergeConfig(
   baseConfig,
   defineConfig({
+    test: { include: ["src/**/*.test.{ts,tsx}", "server/**/*.test.ts", "scripts/**/*.test.mjs"] },
     resolve: {
       alias: {
         "@/": fileURLToPath(new URL("./src/", import.meta.url)),

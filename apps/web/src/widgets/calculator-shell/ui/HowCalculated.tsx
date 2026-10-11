@@ -1,6 +1,7 @@
 import { getNorm, shell, type ToolDef } from "@umnyaut/catalog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@umnyaut/ui";
 import { ReportError } from "@/features/report-error";
+import { track } from "@/shared/analytics";
 import { fill } from "@/shared/lib";
 
 const h = shell.howCalculated;
@@ -22,7 +23,12 @@ export interface HowCalculatedProps {
 export function HowCalculated({ tool, steps, checkedAt }: HowCalculatedProps) {
   const sources = (tool.norms ?? []).flatMap((id) => getNorm(id)?.source ?? []);
   return (
-    <Accordion type="single" collapsible className="rounded-lg border border-border bg-surface px-4">
+    <Accordion
+      type="single"
+      collapsible
+      onValueChange={(value) => value && track("how_opened", { tool: tool.id })}
+      className="rounded-lg border border-border bg-surface px-4"
+    >
       <AccordionItem value="how">
         <AccordionTrigger>{h.title}</AccordionTrigger>
         <AccordionContent>

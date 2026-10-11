@@ -97,6 +97,9 @@ jobs:
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
           echo "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/id_ed25519
+      - name: Sitemap before the deploy (for IndexNow)
+        if: ${{ !inputs.rollback }}
+        run: curl -fsS "${{ vars.PROD_URL }}/sitemap.xml" -o "$RUNNER_TEMP/sitemap-old.xml" || true
       - name: Sync infra files
         run: scp infra/compose.yml infra/Caddyfile infra/deploy.sh deploy@${{ vars.DEPLOY_HOST }}:/srv/umnyaut/
       - name: Deploy or roll back
@@ -116,3 +119,7 @@ jobs:
           curl -fsS --retry 5 --retry-delay 3 "${{ vars.PROD_URL }}/api/health/" | tee /dev/stderr \
             | grep -q '"version":"${{ needs.image.outputs.tag }}"'
           curl -fsS "${{ vars.PROD_URL }}/" | grep -qE '<h1[ >]'
+      - name: IndexNow for new and changed pages
+        if: ${{ !inputs.rollback }}
+        continue-on-error: true
+        run: node apps/web/scripts/indexnow.mjs "$RUNNER_TEMP/sitemap-old.xml" "${{ vars.PROD_URL }}"

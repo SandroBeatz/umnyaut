@@ -1,5 +1,6 @@
 import { shell, type ToolDef, tools } from "@umnyaut/catalog";
 import { ToolCard } from "@/entities/tool";
+import { track } from "@/shared/analytics";
 
 /** «Дальше по ремонту»: tools that continue the work; “My room” carries the sizes over. */
 export function NextSteps({ tool }: { tool: ToolDef }) {
@@ -12,7 +13,7 @@ export function NextSteps({ tool }: { tool: ToolDef }) {
       </h2>
       <ul className="mt-3 grid gap-3 sm:grid-cols-2">
         {next.map((t) => (
-          <li key={t.id}>
+          <li key={t.id} onClickCapture={() => track("next_tool_clicked", { tool: tool.id, next: t.id })}>
             <ToolCard tool={t} note={shell.nextSteps.carried} />
           </li>
         ))}
