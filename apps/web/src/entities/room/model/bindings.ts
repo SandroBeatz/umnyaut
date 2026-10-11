@@ -4,19 +4,20 @@ import type { RoomDraft } from "./store";
 /** Tool input: field name → value (same shape as `ToolValues` in entities/tool). */
 type Values = Readonly<Record<string, unknown>>;
 
-const ROOM_KEYS: Readonly<Record<RoomBinding | "shape", keyof RoomDraft>> = {
+const ROOM_KEYS: Readonly<Record<RoomBinding | "shape" | "cutCorner", keyof RoomDraft>> = {
   length: "lengthMm",
   width: "widthMm",
   height: "heightMm",
   cutLength: "cutLengthMm",
   cutWidth: "cutWidthMm",
   shape: "shape",
+  cutCorner: "cutCorner",
 };
 
 /** Field name → room key for every field bound to “My room” (openings are always bound). */
 export function roomBindings(fields: readonly FieldDef[]): [string, keyof RoomDraft][] {
   return fields.flatMap((f): [string, keyof RoomDraft][] => {
-    if (f.kind === "openings") return [[f.name, "openings"]];
+    if (f.kind === "openings" || f.kind === "plan") return [[f.name, "openings"]];
     if ((f.kind === "length" || f.kind === "select") && f.room) return [[f.name, ROOM_KEYS[f.room]]];
     return [];
   });

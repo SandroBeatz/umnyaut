@@ -1,12 +1,12 @@
 ---
-version: 1.1
-date: 2026-10-09
+version: 1.2
+date: 2026-10-11
 category: plan
 ---
 
 # Progress Log
 
-> Version 1.1 · 2026-10-09 · [Plan](../plan/)
+> Version 1.2 · 2026-10-11 · [Plan](../plan/)
 
 ## Overview
 
@@ -39,6 +39,13 @@ Each entry:
 - **Where** — short commit SHA (7 chars), PR number, and the environment it reached (`staging`, `prod`, `Vercel`).
 
 ## Log
+
+### 2026-10-11
+
+- **P16.1–P16.4** New Phase 16 (owner request): room plan, layout schemes and laying guides — analysis, data model and a plan for every calculator in [Room Plan, Layout Schemes and Laying Guides](../ui/room-plan-and-layout-guides.md) v1.0; P6.9 and P10.3 point to it. Pilot on laminate (straight laying): openings get optional plan places (wall + offset), the room an L-cut corner; one shared opening schema in all 7 tools; `FloorPlan` SVG, `PlanEditor` popup (form field kind `plan` and a button on the scheme), `LayoutScheme` under the result with legend, «Как укладывать», cut list per row and fullscreen. The scheme is the engine's own plan: `traceRows` replays the offcut pools and must reach the engine's board count (400 random rooms + the 85-board mockup room). No formula change, laminate stays version 1; golden examples unchanged. New tests: `packages/calc/test/layout-rows.test.ts` (14), web plan and scheme texts (5), e2e «laminate scheme» (17 e2e). `pnpm check` and `pnpm e2e` green.
+  - Where: `feature/layout-guides` (worktree `../umnyaut-layout`, from `develop` 68e9a0d)
+  - Notes: guide texts (start from the far wall towards the door, rows along the light) are practice and wait for the master (C10, P16.11). An L-shape always starts on its wide side, even if the door is there. Next: linoleum (P16.5).
+  - Deviation: `LayoutScheme` lives in `widgets/calculator-shell/ui/` instead of `widgets/layout-scheme/` (tech spec): FSD forbids a widget importing another widget; docs updated. On desktop it sits under the result column, not inside the sticky column.
 
 ### 2026-10-10
 

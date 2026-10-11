@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { cutCornerSchema, openingPlacesSchema } from "../blocks/plan";
 
 /** Integer millimetres, 0 … 100 m: wider than any room, narrower than nonsense. */
 const mm = z.number().int().min(0).max(100_000);
@@ -8,6 +9,7 @@ export const openingSchema = z.object({
   widthMm: mm,
   heightMm: mm,
   count: z.number().int().min(0).max(50),
+  places: openingPlacesSchema.optional(),
 });
 
 /** Zod twin of `Room` in ../types — the shape stored in projects and in `umnyaut:room:v1`. */
@@ -17,6 +19,7 @@ export const roomSchema = z.object({
   widthMm: mm,
   heightMm: mm,
   cut: z.object({ lengthMm: mm, widthMm: mm }).optional(),
+  cutCorner: cutCornerSchema.optional(),
   points: z
     .array(z.tuple([mm, mm]).readonly())
     .max(200)

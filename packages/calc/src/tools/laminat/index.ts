@@ -1,6 +1,18 @@
 import { z } from "zod";
-import { coverage, layRows, mm2ToM2, purchase } from "../../blocks";
-import type { PurchaseItem, Step, ToolModule, ToolResult, Warning } from "../../types";
+import {
+  cornerFlips,
+  coverage,
+  cutCornerSchema,
+  layRows,
+  mm2ToM2,
+  openingInputSchema,
+  placeOpenings,
+  purchase,
+  roomOutline,
+  rowsLayout,
+  traceRows,
+} from "../../blocks";
+import type { Layout, LayoutMark, PurchaseItem, Step, ToolModule, ToolResult, Warning } from "../../types";
 
 const length = z.number().int().min(300).max(100_000);
 
@@ -11,6 +23,10 @@ const input = z.object({
   /** Corner cut-out of an L-shaped room (from “My room”). */
   cutLengthMm: z.number().int().min(0).max(100_000),
   cutWidthMm: z.number().int().min(0).max(100_000),
+  /** Where the cut-out sits on the plan (scheme only). */
+  cutCorner: cutCornerSchema,
+  /** Doors and windows; only their places on the plan are used (scheme and laying guide), never the count. */
+  openings: z.array(openingInputSchema).max(20).readonly(),
   /** Rows run along the room length or its width. */
   direction: z.enum(["length", "width"]),
   method: z.enum(["straight", "diagonal", "herringbone"]),
@@ -65,7 +81,102 @@ function straight(i: LaminatInput, alongLength: boolean) {
     minOffsetMm: i.minOffsetMm,
   });
   const relaxed = (laid.plan ?? []).some((r) => r.relaxed);
-  return { rows, lastRowMm, boards: laid.boards, packs: Math.ceil(laid.boards / i.boardsPerPack), relaxed };
+  return {
+    rows,
+    lastRowMm,
+    boards: laid.boards,
+    packs: Math.ceil(laid.boards / i.boardsPerPack),
+    relaxed,
+    plan: laid.plan ?? [],
+    lengths: Array.from({ length: rows }, (_, k) => (k < fullRows ? Math.max(along, 1) : short)),
+    cut: cut ? { along: cutAlong, across: cutAcross } : undefined,
+    wasteMm: laid.wasteMm,
+  };
+}
+
+/** Rows that follow the light from the windows: across a window wall. Undecided with none or a tie. */
+function lightDirection(walls: readonly { side: string }[], windows: readonly { wall: number; widthMm: number }[]) {
+  let along = 0;
+  for (const w of windows) {
+    const side = walls[w.wall]?.side;
+    // Light from a top or bottom wall runs along the width: rows along the width follow it.
+    along += side === "left" || side === "right" ? w.widthMm : -w.widthMm;
+  }
+  return along > 0 ? "length" : along < 0 ? "width" : undefined;
+}
+
+/**
+ * Scheme and laying guide for straight laying, from the very plan the boards were counted on. Canonical frame:
+ * first row at the start wall, rows from its left corner, the L-cut at the far end of the last rows; mirrored
+ * to the plan's cut corner, or (a rectangle) away from a door on the start wall so the laying ends at the door.
+ */
+function scheme(i: LaminatInput, lay: ReturnType<typeof straight>, alongLength: boolean, warnings: Warning[]): Layout {
+  const cut = cutOf(i);
+  const outline = roomOutline(
+    i.lengthMm,
+    i.widthMm,
+    cut ? { lengthMm: cut.along, widthMm: cut.across } : undefined,
+    i.cutCorner,
+  );
+  const { placed, off } = placeOpenings(outline.walls, i.openings);
+  if (off > 0) warnings.push({ code: "opening_off_wall", level: "warning", values: { count: off } });
+  const startSide = alongLength ? "top" : "left";
+  const doorOnStart = placed.some((p) => p.type === "door" && outline.walls[p.wall]?.side === startSide);
+  const flips = cut ? cornerFlips(i.cutCorner) : { x: !alongLength && doorOnStart, y: alongLength && doorOnStart };
+  const traced = traceRows(lay.plan, lay.lengths, i.boardLengthMm, i.minOffsetMm);
+  const across = (alongLength ? i.widthMm : i.lengthMm) - 2 * i.gapMm;
+  traced.rows.forEach((r, k) => {
+    r.widthMm = k === traced.rows.length - 1 ? across - (traced.rows.length - 1) * i.boardWidthMm : i.boardWidthMm;
+  });
+  const { pieces, start, startWall } = rowsLayout({
+    lengthMm: i.lengthMm,
+    widthMm: i.widthMm,
+    alongLength,
+    gapMm: i.gapMm,
+    boardLengthMm: i.boardLengthMm,
+    boardWidthMm: i.boardWidthMm,
+    lastRowMm: lay.lastRowMm,
+    rows: traced.rows,
+    cut: lay.cut,
+    flipX: flips.x,
+    flipY: flips.y,
+    walls: outline.walls,
+  });
+  const reused = pieces.filter((p) => p.reused).length;
+  const guide: Step[] = [{ code: "start", values: { wall: startWall + 1, gap: i.gapMm } }];
+  if (cut) guide.push({ code: "start_l", values: {} });
+  else if (placed.some((p) => p.type === "door")) {
+    const doorAcross = placed.some(
+      (p) => p.type === "door" && outline.walls[p.wall]?.side === (alongLength ? "bottom" : "right"),
+    );
+    if (doorOnStart || doorAcross) guide.push({ code: "start_door", values: {} });
+  }
+  const light = lightDirection(
+    outline.walls,
+    placed.filter((p) => p.type === "window"),
+  );
+  if (light) guide.push({ code: light === i.direction ? "light_along" : "light_across", values: {} });
+  guide.push({ code: "rows", values: { rows: lay.rows, last: lay.lastRowMm / 10 } });
+  if (reused > 0) guide.push({ code: "reuse", values: { count: reused } });
+  if (placed.length === 0) guide.push({ code: "place_openings", values: {} });
+  const marks: LayoutMark[] = [start, ...placed.map((p) => p.mark)];
+  return {
+    kind: "rows",
+    widthMm: i.lengthMm,
+    heightMm: i.widthMm,
+    outline: outline.points,
+    walls: outline.walls,
+    pieces,
+    marks,
+    rows: traced.rows,
+    guide,
+    stats: {
+      whole: pieces.length - pieces.filter((p) => p.cut).length,
+      cut: pieces.filter((p) => p.cut).length,
+      reused,
+      wasteM2: mm2ToM2(lay.wasteMm * i.boardWidthMm),
+    },
+  };
 }
 
 /**
@@ -82,7 +193,13 @@ export const laminat: ToolModule<LaminatInput> = {
     lengthMm: 4600,
     cutLengthMm: 1500,
     cutWidthMm: 1200,
+    cutCorner: "se",
     widthMm: 4300,
+    // Placed on the example plan: door in the bottom wall, window in the left one (rows along the light).
+    openings: [
+      { type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 2, offsetMm: 600 }] },
+      { type: "window", widthMm: 1200, heightMm: 1400, count: 1, places: [{ wall: 3, offsetMm: 1550 }] },
+    ],
     direction: "length",
     method: "straight",
     boardLengthMm: 1285,
@@ -106,6 +223,7 @@ export const laminat: ToolModule<LaminatInput> = {
     const packM2 = boardM2 * i.boardsPerPack;
     const pack = { kind: "pack" as const, size: { value: packM2, unit: "m2" as const } };
     const items: PurchaseItem[] = [];
+    let layout: Layout | undefined;
     const summary: ToolResult["summary"][number][] = [];
 
     if (i.method === "straight") {
@@ -138,6 +256,7 @@ export const laminat: ToolModule<LaminatInput> = {
       if (other.packs < lay.packs) {
         warnings.push({ code: "other_direction_cheaper", level: "info", values: { packs: other.packs } });
       }
+      layout = scheme(i, lay, along, warnings);
       summary.push(
         { key: "rows", value: lay.rows, unit: "pcs" },
         { key: "boards", value: lay.boards, unit: "pcs" },
@@ -166,6 +285,6 @@ export const laminat: ToolModule<LaminatInput> = {
       items.push(underlay);
       steps.push({ code: "underlay", values: { area: floorM2, roll: i.underlayRollM2, rolls: underlay.packs } });
     }
-    return { items, summary, warnings, steps };
+    return layout ? { items, summary, warnings, steps, layout } : { items, summary, warnings, steps };
   },
 };

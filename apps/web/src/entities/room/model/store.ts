@@ -1,4 +1,4 @@
-import type { Opening } from "@umnyaut/calc";
+import { type CutCorner, cutCornerSchema, type Opening, openingPlacesSchema } from "@umnyaut/calc";
 import { z } from "zod";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
@@ -14,6 +14,8 @@ export interface RoomDraft {
   heightMm?: number;
   cutLengthMm?: number;
   cutWidthMm?: number;
+  /** Where the L-cut sits on the plan. */
+  cutCorner?: CutCorner;
   openings?: readonly Opening[];
 }
 
@@ -25,6 +27,7 @@ const roomSchema = z.object({
   heightMm: mm.optional(),
   cutLengthMm: z.number().int().min(0).max(100_000).optional(),
   cutWidthMm: z.number().int().min(0).max(100_000).optional(),
+  cutCorner: cutCornerSchema.optional(),
   openings: z
     .array(
       z.object({
@@ -32,6 +35,7 @@ const roomSchema = z.object({
         widthMm: mm,
         heightMm: mm,
         count: z.number().int().min(0).max(50),
+        places: openingPlacesSchema.optional(),
       }),
     )
     .max(20)

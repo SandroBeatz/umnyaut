@@ -74,7 +74,7 @@ const unroll = (link: PlanLink | undefined): RowPlan[] => {
 /** States kept per row: the cheapest few, so a choice that pays off a few rows later is not lost. */
 const BEAM = 24;
 /** Offcuts kept per pool; more are counted as waste (safe side) so the search stays fast on huge rooms. */
-const POOL = 8;
+export const POOL = 8;
 
 export function layRows(input: RowsInput): RowsResult {
   const board = Math.round(input.boardLengthMm);

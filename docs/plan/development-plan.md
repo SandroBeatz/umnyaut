@@ -1,12 +1,12 @@
 ---
-version: 2.2
-date: 2026-10-09
+version: 2.3
+date: 2026-10-11
 category: plan
 ---
 
 # Development Plan
 
-> Version 2.2 · 2026-10-09 · [Plan](../plan/)
+> Version 2.3 · 2026-10-11 · [Plan](../plan/)
 
 ## Overview
 
@@ -49,6 +49,7 @@ Product sequencing is **depth before breadth**. Qalculator.ru is the mandatory b
 | 13 | Growth operations | Dec – Jan | 2 | **Checkpoint M3** |
 | 14 | Season: wave 3, variations, master mode, AI, monetization tests | Feb – Apr 2027 | 3 | **Checkpoint M6** |
 | 15 | Scale | May – Oct 2027 | 4 | **Checkpoint M12** |
+| 16 | Room plan, layout schemes, laying guides | Oct 2026 – Jan 2027, parallel to 8–10 | 1–2 | Every wave-1 layout tool has a scheme and a guide (requirement 15) |
 
 ---
 
@@ -233,7 +234,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 - [x] P6.6 Linoleum (M) — `strips` variants by width × direction, seams, sorted by price.
 - [x] P6.7 Laminate (L) — `rows` engine (offset, trimming, offcut reuse, narrow last row warning); underlay + plinth related; diagonal/herringbone as waste. Golden incl. mockup case (4.6 × 4.3, 2.22 m² → 10 packs, 23 rows).
 - [x] P6.8 Tile (L) — `grid` engine from centre/corner, whole vs cut tiles, boxes.
-- [ ] P6.9 Layout schemes for laminate and tile **only if time remains** (else Phase 10). → **Moved to Phase 10** (owner, 2026-10-10); release-check requirement 15 for wallpaper, laminate, linoleum and tile waits for it.
+- [ ] P6.9 Layout schemes for laminate and tile **only if time remains** (else Phase 10). → **Moved to Phase 10** (owner, 2026-10-10), then to [Phase 16](#phase-16--room-plan-layout-schemes-and-laying-guides-oct-2026--jan-2027) (owner, 2026-10-11); release-check requirement 15 for wallpaper, laminate, linoleum and tile waits for it.
 - [ ] P6.10 Reviewer export of wave 1 (C10) sent to the master (A26).
 - [x] P6.11 Minimal local-only connected wall list: shared room → wall area → wallpaper or paint → glue/primer; `mergeItems()` combines duplicates and exposes the next calculation. Saving, projects and the full works picker remain Phase 7/11.
 - [x] P6.12 Re-check the Phase 4 decisions against real tools and reviewer feedback ([Calculation Engine → Decisions to verify](../code/calc-engine.md#decisions-to-verify-in-real-testing)): `ceilPacks` tolerance, minimum one pack for a tiny need, norms filled with sources, harness running on real tools, `calc:export` on CI and Mac.
@@ -324,7 +325,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 - [ ] P10.1 Blocks `frame`, `power`; norms per country (tariffs, climate regions) in catalog.
 - [ ] P10.2 Tools in order: Radiators, Electricity usage, Lighting, Putty, Primer, Plaster, Vinyl/parquet (reuse `rows`), Screed, Stretch ceiling, Drywall (L). Disclaimers for radiators and screed.
-- [ ] P10.3 `LayoutScheme` SVG (whole / hatched cut / orange reused dot, legend, text summary, fullscreen on tap, simplify > 2,000 pieces); schemes for laminate (from `RowsResult.plan`), tile, wallpaper and linoleum — moved here from P6.9 (release-check requirement 15); lighting points.
+- [ ] P10.3 → **Moved to [Phase 16](#phase-16--room-plan-layout-schemes-and-laying-guides-oct-2026--jan-2027)** (owner, 2026-10-11), except lighting points, which stay here. Was: `LayoutScheme` SVG (whole / hatched cut / orange reused dot, legend, text summary, fullscreen on tap, simplify > 2,000 pieces); schemes for laminate (from `RowsResult.plan`), tile, wallpaper and linoleum — moved here from P6.9 (release-check requirement 15); lighting points.
 - [ ] P10.4 Category pages potolok, elektrika, klimat (+ icons, photos).
 - [ ] P10.5 Texts (C20) and release check per tool; reviewer pass on wave 2 (C10).
 
@@ -429,6 +430,32 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 - [ ] P15.6 Monetization on all trafficked pages; quarterly legal check.
 
 **Exit gate = Checkpoint M12 (31 Oct 2027):** ≥ 15k visits/month and first revenue; else support mode (≤ 2 h/week).
+
+---
+
+## Phase 16 — Room plan, layout schemes and laying guides (Oct 2026 – Jan 2027)
+
+**Goal:** every calculator with a layout shows the room from above (walls numbered, doors and windows where they really are, L-shapes) and on it the very plan the purchase was counted on, plus a step-by-step laying guide: where to start, which way, what to cut and where each offcut goes. Analysis, data model and per-tool plan: [Room Plan, Layout Schemes and Laying Guides](../ui/room-plan-and-layout-guides.md).
+
+**Runs in parallel** with Phases 8–10; the pilot (laminate) is done first, then one tool at a time in the order below. Replaces P6.9 and P10.3 (except lighting points). **Needs:** C10 (master review of the guide texts). **Install:** nothing new (SVG, no canvas or libraries).
+
+**Tasks**
+
+- [x] P16.1 Room plan model: `Opening.places` (wall + offset, clockwise from the top-left corner), `Room.cutCorner`; one shared opening schema for all tools so places survive between tools; `roomOutline`, `placeOpenings`, `cornerFlips` in `calc/blocks/plan.ts`; room store and `ProjectData` accept both fields (no version bump).
+- [x] P16.2 `FloorPlan` SVG (`entities/room`): contour, wall numbers, overall size, door with swing, window; `PlanEditor` popup (`features/edit-room-plan`): wall and offset per door/window, add/remove; form field kind `plan`.
+- [x] P16.3 `LayoutScheme` (`widgets/calculator-shell`), rows kind: whole / hatched cut / orange reused dot, legend with counts, text summary, start corner, row numbers, «Как укладывать», cut list per row, fullscreen, bands above 2,000 pieces.
+- [x] P16.4 **Pilot — laminate (straight):** `layout` from `RowsResult.plan` (`traceRows` replays the pools and must give the engine's board count; `rowsLayout` mirrors to the cut corner or away from the door); guide: start wall and corner, laying towards the door, rows along the light, rows and last row, offcuts; `opening_off_wall` warning. No formula change (version 1).
+- [ ] P16.5 Linoleum: sheets, seams, allowance, L-shape short sheets; guide (seams along the light, not in the doorway, cutting after relaxation).
+- [ ] P16.6 Tile floor: grid from `gridLine` per axis, edge cuts with widths, start point (centre or corner, whole tiles at a placed door); then walls per wall around placed openings.
+- [ ] P16.7 Plinth: runs split by placed doors, corners, cut list per run.
+- [ ] P16.8 Wallpaper: per-wall strip engine (plumb line from the start corner, wraps at corners, pieces above/below openings, roll cut map) — **formula version 2**, new golden examples, `formula-reviewer` pass; guide (start corner by paper type, direction, step-off).
+- [ ] P16.9 Room area and wall area: `FloorPlan` with placed openings as the result picture; plan in the room card (RoomBar) once positions exist.
+- [ ] P16.10 Laminate diagonal / herringbone scheme; drag-and-drop placing on the plan; free polygon rooms (planner v2).
+- [ ] P16.11 Master review (C10) of every guide text; release check requirement 15 for wallpaper, laminate, linoleum, tile.
+
+**Exit gate:** laminate, linoleum, tile, plinth and wallpaper show a scheme built from their own plan, with a guide reviewed by the master; release check requirement 15 passes for all four layout tools.
+
+**Who:** `calc-engineer` (builders, wallpaper engine), `formula-reviewer` (independent check of every plan), `frontend-builder` (plan, editor, scheme), owner + master (guide texts).
 
 ---
 

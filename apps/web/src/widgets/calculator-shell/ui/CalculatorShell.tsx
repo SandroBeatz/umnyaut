@@ -1,5 +1,6 @@
 "use client";
 
+import type { Opening } from "@umnyaut/calc";
 import { getTool, unitLabels } from "@umnyaut/catalog";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCountry } from "@/entities/country";
@@ -8,9 +9,12 @@ import { RoomBar } from "@/features/edit-room";
 import { AddToList, RoomList } from "@/features/room-list";
 import { ResultActions, shareUrl } from "@/features/share-result";
 import { AdSlot } from "@/shared/ui";
+
+import { planRoomOf } from "../model/plan";
 import { useCalculator } from "../model/useCalculator";
 import { describeResult, resultText } from "../model/view";
 import { HowCalculated } from "./HowCalculated";
+import { LayoutScheme } from "./LayoutScheme";
 import { NextSteps } from "./NextSteps";
 import { PrintSheet } from "./PrintSheet";
 import { ResultPanel } from "./ResultPanel";
@@ -49,6 +53,8 @@ export function CalculatorShell({ category, toolId, checkedAt }: CalculatorShell
   const { values, defaults } = calc;
   const getUrl = useCallback(() => shareUrl(window.location.href, values, defaults), [values, defaults]);
   const getText = () => resultText(tool, view);
+  const layout = calc.result.layout;
+  const planField = tool.fields.find((field) => field.kind === "plan");
 
   return (
     <>
@@ -78,6 +84,17 @@ export function CalculatorShell({ category, toolId, checkedAt }: CalculatorShell
             />
             <AdSlot placement="after-result" />
           </div>
+          {layout ? (
+            <div className="lg:col-span-7 lg:col-start-6">
+              <LayoutScheme
+                tool={tool}
+                layout={layout}
+                room={planRoomOf(values)}
+                openings={planField ? (values[planField.name] as readonly Opening[]) : undefined}
+                onOpeningsChange={planField ? (next) => calc.setValues({ [planField.name]: next }) : undefined}
+              />
+            </div>
+          ) : null}
         </div>
         <RoomList />
         <NextSteps tool={tool} />

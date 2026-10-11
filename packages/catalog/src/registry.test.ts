@@ -35,6 +35,8 @@ describe("registry", () => {
         for (const { key } of result.summary) expect(tool.summary?.[key], `${tool.id} summary.${key}`).toBeDefined();
       }
       for (const { code } of result.steps) expect(tool.steps?.[code], `${tool.id} steps.${code}`).toBeDefined();
+      for (const { code } of result.layout?.guide ?? [])
+        expect(tool.guide?.[code], `${tool.id} guide.${code}`).toBeDefined();
       for (const preset of tool.presets ?? []) {
         const input = { ...module.defaults(ctx), ...preset.values };
         expect(module.input.safeParse(input).success, `${tool.id} preset ${preset.id}`).toBe(true);

@@ -1,17 +1,13 @@
 import { z } from "zod";
-import { gridArea, mm2ToM2, mmToM, purchase, wallAreaM2 } from "../../blocks";
+import { gridArea, mm2ToM2, mmToM, openingInputSchema, purchase, wallAreaM2 } from "../../blocks";
 import type { PurchaseItem, Room, Step, ToolModule, ToolResult, Warning } from "../../types";
 import { klej } from "../klej";
 import { zatirka } from "../zatirka";
 
 const length = z.number().int().min(300).max(100_000);
 
-const opening = z.object({
-  type: z.enum(["door", "window"]),
-  widthMm: z.number().int().min(100).max(10_000),
-  heightMm: z.number().int().min(100).max(10_000),
-  count: z.number().int().min(0).max(50),
-});
+/** Shared with every tool, so the plan places of openings survive between tools. */
+const opening = openingInputSchema;
 
 const input = z.object({
   surface: z.enum(["floor", "walls"]),

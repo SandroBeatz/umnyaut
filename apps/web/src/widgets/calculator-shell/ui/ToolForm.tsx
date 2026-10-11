@@ -2,13 +2,14 @@
 
 import type { Opening } from "@umnyaut/calc";
 import { countries, type FieldDef, lengthUnitLabels, shell, type ToolDef } from "@umnyaut/catalog";
-import { NumberField, PresetChips, Segment, Select, UnitToggle } from "@umnyaut/ui";
+import { Button, NumberField, PresetChips, Segment, Select, UnitToggle } from "@umnyaut/ui";
 import { formatNumber } from "@umnyaut/ui/format";
-import { ChevronDown, Ruler } from "lucide-react";
+import { ChevronDown, MapPin, Ruler } from "lucide-react";
 import { type ReactNode, useId, useState } from "react";
 import { useCountry } from "@/entities/country";
 import { useRoomStore } from "@/entities/room";
 import type { ToolValues } from "@/entities/tool";
+import { PlanEditor } from "@/features/edit-room-plan";
 import { fill } from "@/shared/lib";
 import {
   changedHidden,
@@ -19,6 +20,7 @@ import {
   roomBindings,
   toDisplay,
 } from "../model/fields";
+import { planRoomOf } from "../model/plan";
 import { OpeningsField } from "./OpeningsField";
 
 export interface ToolFormProps {
@@ -171,6 +173,31 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
             onInvalid={onInvalid}
           />
         );
+      case "plan": {
+        const openings = (values[field.name] as readonly Opening[] | undefined) ?? [];
+        const total = openings.reduce((sum, o) => sum + o.count, 0);
+        const placed = openings.reduce((sum, o) => sum + Math.min(o.places?.length ?? 0, o.count), 0);
+        return (
+          <div key={field.name} className="col-span-2 flex flex-col gap-1.5">
+            <span className="text-small font-medium text-text">{label(field)}</span>
+            <div className="flex flex-wrap items-center gap-3">
+              <PlanEditor
+                room={planRoomOf(values)}
+                openings={openings}
+                onChange={(next) => onChange({ [field.name]: next })}
+                trigger={
+                  <Button variant="secondary">
+                    <MapPin aria-hidden="true" />
+                    {placed > 0 ? shell.plan.edit : shell.plan.open}
+                  </Button>
+                }
+              />
+              <span className="text-small text-text-muted">{fill(shell.plan.summary, { placed, total })}</span>
+            </div>
+            {field.hint ? <span className="text-small text-text-muted">{field.hint}</span> : null}
+          </div>
+        );
+      }
       case "preset": {
         const presets = tool.presets ?? [];
         return (
