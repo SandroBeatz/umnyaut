@@ -444,7 +444,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 | 6 | `[ИСТОЧНИК НОРМЫ]` placeholders in mockups | Fill from C01 | P0.7 |
 | 7 | Home headline | Decided 2026-10-09: H1 «Одна комната — весь список покупок», promise below it «Введите размеры один раз — получите проверенный список покупок для всего ремонта»; apply in C13/P0.9 | P0.9 |
 | 8 | Vercel Hobby non-commercial clause | OK until ads; fallback VPS container | P14.6 |
-| 9 | «сколько пачек ламината нужно» = 0 demand; mockup uses it | Use «сколько нужно ламината» | P8.5 |
+| 9 | «сколько пачек ламината нужно» = 0 demand; mockup uses it | Done 2026-10-11: laminate `question` is «Сколько нужно ламината на комнату» | P8.5 |
 | 10 | TypeScript 7.0 is latest; ecosystem support unverified | Spike | P1.2 |
 | 11 | Local Node is v26; spec pins Node 24 LTS | `.nvmrc` 24 | P1.1 |
 
