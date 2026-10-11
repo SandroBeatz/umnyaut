@@ -84,18 +84,17 @@ export function CalculatorShell({ category, toolId, checkedAt }: CalculatorShell
             />
             <AdSlot placement="after-result" />
           </div>
-          {layout ? (
-            <div className="lg:col-span-7 lg:col-start-6">
-              <LayoutScheme
-                tool={tool}
-                layout={layout}
-                room={planRoomOf(values)}
-                openings={planField ? (values[planField.name] as readonly Opening[]) : undefined}
-                onOpeningsChange={planField ? (next) => calc.setValues({ [planField.name]: next }) : undefined}
-              />
-            </div>
-          ) : null}
         </div>
+        {/* Outside the grid: the sticky result column ends with the grid, so the scheme never slides under it. */}
+        {layout ? (
+          <LayoutScheme
+            tool={tool}
+            layout={layout}
+            room={planRoomOf(values)}
+            openings={planField ? (values[planField.name] as readonly Opening[]) : undefined}
+            onOpeningsChange={planField ? (next) => calc.setValues({ [planField.name]: next }) : undefined}
+          />
+        ) : null}
         <RoomList />
         <NextSteps tool={tool} />
         <HowCalculated tool={tool} steps={view.steps} checkedAt={checkedAt} />

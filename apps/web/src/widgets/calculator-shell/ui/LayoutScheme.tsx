@@ -134,9 +134,9 @@ export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }:
   return (
     <section
       aria-labelledby="layout-scheme"
-      className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 shadow-sm lg:p-6"
+      className="grid gap-3 rounded-lg border border-border bg-surface p-4 shadow-sm lg:grid-cols-12 lg:gap-x-6 lg:p-6"
     >
-      <div className="flex flex-wrap items-start justify-between gap-2">
+      <div className="flex flex-wrap items-start justify-between gap-2 lg:col-span-12">
         <div className="min-w-0">
           <h2 id="layout-scheme" className="text-h3 text-text">
             {s.title}
@@ -158,79 +158,84 @@ export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }:
         ) : null}
       </div>
 
-      <Dialog>
-        <DialogTrigger asChild>
-          <button
-            type="button"
-            aria-label={s.enlarge}
-            className="block w-full cursor-zoom-in rounded-md focus-visible:outline-2"
+      {/* Desktop: the picture on the left (7/12), legend, steps and cut list on the right (5/12). */}
+      <div className="flex flex-col gap-3 lg:col-span-7">
+        <Dialog>
+          <DialogTrigger asChild>
+            <button
+              type="button"
+              aria-label={s.enlarge}
+              className="block w-full cursor-zoom-in rounded-md focus-visible:outline-2"
+            >
+              <SchemePicture layout={layout} className="w-full lg:max-h-[640px]" />
+            </button>
+          </DialogTrigger>
+          <DialogTrigger asChild>
+            <Button variant="ghost" className="self-start">
+              <Maximize2 aria-hidden="true" />
+              {s.enlarge}
+            </Button>
+          </DialogTrigger>
+          <DialogContent
+            title={s.title}
+            description={title}
+            closeLabel={shell.close}
+            className="max-w-[min(96vw,1100px)]"
           >
-            <SchemePicture layout={layout} className="w-full" />
-          </button>
-        </DialogTrigger>
-        <DialogTrigger asChild>
-          <Button variant="ghost" className="self-start">
-            <Maximize2 aria-hidden="true" />
-            {s.enlarge}
-          </Button>
-        </DialogTrigger>
-        <DialogContent
-          title={s.title}
-          description={title}
-          closeLabel={shell.close}
-          className="max-w-[min(96vw,1100px)]"
-        >
-          <SchemePicture layout={layout} className="max-h-[80dvh] w-full" />
-        </DialogContent>
-      </Dialog>
+            <SchemePicture layout={layout} className="max-h-[80dvh] w-full" />
+          </DialogContent>
+        </Dialog>
+      </div>
 
-      <ul className="flex flex-wrap gap-x-4 gap-y-2 text-small text-text">
-        <li className="flex items-center gap-1.5">
-          <span aria-hidden="true" className="h-3 w-4 border border-text-subtle bg-surface" />
-          {fill(s.legendWhole, { count: whole })}
-        </li>
-        <li className="flex items-center gap-1.5">
-          <span
-            aria-hidden="true"
-            className="h-3 w-4 border border-text-subtle bg-[repeating-linear-gradient(45deg,var(--color-primary)_0_1px,var(--color-primary-soft)_1px_4px)]"
-          />
-          {fill(s.legendCut, { count: cut })}
-        </li>
-        {reused > 0 ? (
+      <div className="flex flex-col gap-3 lg:col-span-5">
+        <ul className="flex flex-wrap gap-x-4 gap-y-2 text-small text-text">
           <li className="flex items-center gap-1.5">
-            <span aria-hidden="true" className="size-2 rounded-full bg-accent" />
-            {fill(s.legendReused, { count: reused })}
+            <span aria-hidden="true" className="h-3 w-4 border border-text-subtle bg-surface" />
+            {fill(s.legendWhole, { count: whole })}
           </li>
+          <li className="flex items-center gap-1.5">
+            <span
+              aria-hidden="true"
+              className="h-3 w-4 border border-text-subtle bg-[repeating-linear-gradient(45deg,var(--color-primary)_0_1px,var(--color-primary-soft)_1px_4px)]"
+            />
+            {fill(s.legendCut, { count: cut })}
+          </li>
+          {reused > 0 ? (
+            <li className="flex items-center gap-1.5">
+              <span aria-hidden="true" className="size-2 rounded-full bg-accent" />
+              {fill(s.legendReused, { count: reused })}
+            </li>
+          ) : null}
+        </ul>
+
+        {guide.length > 0 ? (
+          <div>
+            <h3 className="text-body-strong text-text">{s.guide}</h3>
+            <ol className="mt-1 flex list-decimal flex-col gap-1 pl-5 text-small text-text">
+              {guide.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ol>
+          </div>
         ) : null}
-      </ul>
 
-      {guide.length > 0 ? (
-        <div>
-          <h3 className="text-body-strong text-text">{s.guide}</h3>
-          <ol className="mt-1 flex list-decimal flex-col gap-1 pl-5 text-small text-text">
-            {guide.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ol>
-        </div>
-      ) : null}
-
-      {layout.rows && layout.rows.length > 0 ? (
-        <details className="group rounded-md border border-border">
-          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-3 text-body-strong text-primary">
-            {s.cutList}
-            <ChevronDown aria-hidden="true" className="size-5 transition-transform group-open:rotate-180" />
-          </summary>
-          <ol className="flex flex-col divide-y divide-border px-3 pb-2 text-small">
-            {rowLines(layout.rows).map((row) => (
-              <li key={row.title} className="py-2">
-                <p className="font-semibold text-text tabular-nums">{row.title}</p>
-                <p className="text-text-muted tabular-nums">{row.parts.join(" · ")}</p>
-              </li>
-            ))}
-          </ol>
-        </details>
-      ) : null}
+        {layout.rows && layout.rows.length > 0 ? (
+          <details className="group rounded-md border border-border">
+            <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-3 text-body-strong text-primary">
+              {s.cutList}
+              <ChevronDown aria-hidden="true" className="size-5 transition-transform group-open:rotate-180" />
+            </summary>
+            <ol className="flex flex-col divide-y divide-border px-3 pb-2 text-small">
+              {rowLines(layout.rows).map((row) => (
+                <li key={row.title} className="py-2">
+                  <p className="font-semibold text-text tabular-nums">{row.title}</p>
+                  <p className="text-text-muted tabular-nums">{row.parts.join(" · ")}</p>
+                </li>
+              ))}
+            </ol>
+          </details>
+        ) : null}
+      </div>
     </section>
   );
 }

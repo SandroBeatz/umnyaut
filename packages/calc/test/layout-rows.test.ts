@@ -168,7 +168,8 @@ describe("rowsLayout", () => {
       ),
       { numRuns: 200 },
     );
-  });
+    // Like the other rows-engine properties: 200 searches take seconds with coverage on CI.
+  }, 60_000);
 });
 
 describe("laminate scheme", () => {
