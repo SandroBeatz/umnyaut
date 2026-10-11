@@ -1,5 +1,5 @@
 import type { LayoutMark, LayoutPiece, LayoutRow, PlanWall } from "../types";
-import { POOL, type RowPlan } from "./rows";
+import { evictIndex, POOL, type RowPlan } from "./rows";
 
 /**
  * Turns a `layRows` plan into what the scheme draws and the cut list says (docs/ui/room-plan-and-layout-guides.md).
@@ -26,8 +26,17 @@ export function traceRows(
   const rows: LayoutRow[] = [];
   let boards = 0;
 
+  /** The engine's `pooled`: a full pool gives up its shortest piece for a longer one. */
   const keep = (pool: Piece[], piece: Piece, capped = true) => {
-    if (piece.len >= minPiece && (!capped || pool.length < POOL)) pool.push(piece);
+    if (piece.len < minPiece) return;
+    if (!capped || pool.length < POOL) pool.push(piece);
+    else {
+      const k = evictIndex(
+        pool.map((p) => p.len),
+        piece.len,
+      );
+      if (k >= 0) pool[k] = piece;
+    }
   };
   /** The shortest piece at least `len` long (first of equals, as the engine picks it). */
   const take = (pool: Piece[], len: number) => {

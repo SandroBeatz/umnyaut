@@ -186,7 +186,8 @@ function scheme(i: LaminatInput, lay: ReturnType<typeof straight>, alongLength: 
  */
 export const laminat: ToolModule<LaminatInput> = {
   id: "laminat",
-  version: 1,
+  // 2: a full offcut pool gives up its shortest piece instead of wasting a longer new one (narrow rooms).
+  version: 2,
   input,
   defaults: () => ({
     shape: "rect",

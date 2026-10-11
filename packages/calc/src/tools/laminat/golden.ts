@@ -155,6 +155,15 @@ export const golden: GoldenFile<LaminatInput> = {
       },
     },
     {
+      name: "Corridor 0,47 × 5 m laid across: two pieces from every board",
+      input: { lengthMm: 470, widthMm: 5000, boardLengthMm: 1292, boardWidthMm: 194, boardsPerPack: 8 },
+      expected: { items: { laminate: { packs: 2 } }, summary: { rows: 26, boards: 13, lastRow: 130 } },
+      source: {
+        kind: "manual",
+        ref: `${RULES}. Ряд 470 − 2 × 10 = 450 мм — короче доски, один кусок. (5000 − 20) / 194 → 26 рядов, последний 130 мм. С доски 1292: 450 + 450, остаток 392 короче ряда. 26 / 2 = 13 досок / 8 → 2 пачки (версия 1 давала 18 досок: остатки по 392 мм забивали запас обрезков, и длинный остаток новой доски выбрасывался)`,
+      },
+    },
+    {
       name: "With pack prices: total cost",
       input: { price_laminate: 1800, price_underlay: 600 } as Partial<LaminatInput>,
       expected: { costTotal: 19200 },

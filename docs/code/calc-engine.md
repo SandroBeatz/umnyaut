@@ -121,7 +121,7 @@ Engines return `Layout` built from the very plan they counted the purchase on; a
 | `packs` | Round to packages, leftover, best can-set with minimal overpay | All with purchases |
 | `waste` | Waste rules by method | Floor, tile, wallpaper, panels |
 | `coverage` | Rate per m² × layers × base coefficient | Paint, primer, putty, plaster, adhesive, grout |
-| `rows` | Row layout: offset, trimming, last row, offcut reuse | Laminate, vinyl, panels, lining |
+| `rows` | Row layout: offset, trimming, last row, offcut reuse (pools capped at 8; a full pool gives up its shortest piece — laminate v2) | Laminate, vinyl, panels, lining |
 | `grid` | Grid from centre or corner: joint, cut tiles | Tile |
 | `strips` | Strips from a roll with repeat and offset | Wallpaper, linoleum, curtains |
 | `frame` | Framing: profiles, hangers, fasteners by pitch | Drywall, drywall ceiling, panel battens |
