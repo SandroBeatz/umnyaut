@@ -16,7 +16,8 @@ export function gridLine(spanMm: number, tileMm: number, jointMm: number, start:
   if (start === "corner") {
     const whole = Math.floor((spanMm + jointMm) / pitch);
     const rest = spanMm - whole * pitch;
-    return { whole, cuts: rest > 0 ? [rest] : [] };
+    // A rest no wider than a joint is a gap at the far wall, not a piece to cut.
+    return { whole, cuts: rest > jointMm ? [rest] : [] };
   }
   // Centre: n whole tiles in the middle, a joint and an equal cut at each end.
   const edge = (n: number) => (spanMm - n * tileMm - (n + 1) * jointMm) / 2;

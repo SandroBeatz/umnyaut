@@ -110,4 +110,16 @@ describe("layout scheme texts", () => {
     expect(lines[0]).toBe("Начните с самого длинного участка — стены 1 от угла «Старт» — и идите по часовой стрелке");
     expect(lines.every((l) => !/\{|\}|_/.test(l))).toBe(true);
   });
+
+  it("every tile guide code of the example has Russian text", () => {
+    const plitka = getTool("plitka", "plitka");
+    const layout = toolModules.plitka.compute(toolModules.plitka.defaults(ctx) as never, ctx).layout;
+    if (!plitka || !layout) throw new Error("no tile layout");
+    const lines = guideLines(plitka, layout);
+    expect(lines[0]).toBe(
+      "Начните от угла «Старт»: у стен 3 и 4 лягут целые плитки, подрезка уйдёт к противоположным стенам",
+    );
+    expect(lines).toContain("У стены 2 крайний ряд подрезается до 5,5 см");
+    expect(lines.every((l) => !/\{|\}|_/.test(l))).toBe(true);
+  });
 });

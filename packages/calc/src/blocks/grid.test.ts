@@ -7,6 +7,9 @@ describe("gridLine", () => {
     expect(gridLine(4600, 300, 3, "corner")).toEqual({ whole: 15, cuts: [55] });
     // 10 tiles and 9 joints fill 3027 exactly.
     expect(gridLine(3027, 300, 3, "corner")).toEqual({ whole: 10, cuts: [] });
+    // 3 mm left after the last joint: a gap at the wall, not a 3 mm piece.
+    expect(gridLine(3033, 300, 3, "corner")).toEqual({ whole: 10, cuts: [] });
+    expect(gridLine(3034, 300, 3, "corner")).toEqual({ whole: 10, cuts: [4] });
   });
 
   it("from the centre: the parity with the wider edge cut", () => {
