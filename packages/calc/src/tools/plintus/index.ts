@@ -1,8 +1,8 @@
-import { z } from "zod";
+import * as z from "zod/mini";
 import { mmToM, openingInputSchema, purchase } from "../../blocks";
 import type { PurchaseItem, Step, ToolModule, ToolResult, Warning } from "../../types";
 
-const length = z.number().int().min(300).max(100_000);
+const length = z.int().check(z.minimum(300), z.maximum(100_000));
 
 /** Shared with every tool, so the plan places of openings survive between tools. */
 const opening = openingInputSchema;
@@ -11,15 +11,15 @@ const input = z.object({
   shape: z.enum(["rect", "l"]),
   lengthMm: length,
   widthMm: length,
-  cutLengthMm: z.number().int().min(0).max(100_000),
-  cutWidthMm: z.number().int().min(0).max(100_000),
-  openings: z.array(opening).max(20).readonly(),
+  cutLengthMm: z.int().check(z.minimum(0), z.maximum(100_000)),
+  cutWidthMm: z.int().check(z.minimum(0), z.maximum(100_000)),
+  openings: z.readonly(z.array(opening).check(z.maxLength(20))),
   /** Norm `plinth.length`. */
-  plankLengthMm: z.number().int().min(1000).max(6000),
+  plankLengthMm: z.int().check(z.minimum(1000), z.maximum(6000)),
   /** Screw-and-dowel mounting; off for glue or tape. */
   fasteners: z.boolean(),
   /** Norm `plinth.fastenerSpacing` (Arbiton INDO manual: max 30–40 cm). */
-  fastenerSpacingMm: z.number().int().min(100).max(1000),
+  fastenerSpacingMm: z.int().check(z.minimum(100), z.maximum(1000)),
 });
 
 export type PlintusInput = z.infer<typeof input>;

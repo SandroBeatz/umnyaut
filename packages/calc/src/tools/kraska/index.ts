@@ -1,8 +1,8 @@
-import { z } from "zod";
+import * as z from "zod/mini";
 import { coverage, mm2ToM2, mmToM, openingInputSchema, purchase, purchaseSet, wallAreaM2 } from "../../blocks";
 import type { PurchaseItem, Room, Step, ToolModule, ToolResult, Warning } from "../../types";
 
-const length = z.number().int().min(300).max(100_000);
+const length = z.int().check(z.minimum(300), z.maximum(100_000));
 
 /** Shared with every tool, so the plan places of openings survive between tools. */
 const opening = openingInputSchema;
@@ -10,23 +10,23 @@ const opening = openingInputSchema;
 const input = z.object({
   lengthMm: length,
   widthMm: length,
-  heightMm: z.number().int().min(1000).max(10_000),
-  openings: z.array(opening).max(20).readonly(),
+  heightMm: z.int().check(z.minimum(1000), z.maximum(10_000)),
+  openings: z.readonly(z.array(opening).check(z.maxLength(20))),
   surface: z.enum(["walls", "ceiling", "both"]),
   /** Norm `paint.coats`. */
-  coats: z.number().int().min(1).max(5),
+  coats: z.int().check(z.minimum(1), z.maximum(5)),
   /** m² one litre covers in one coat, from the can (norm `paint.coverage`). */
-  coverageM2PerL: z.number().min(1).max(30),
+  coverageM2PerL: z.number().check(z.minimum(1), z.maximum(30)),
   /**
    * Can sizes the paint is sold in, whole millilitres (norm source S7: 0,9 / 2,7 / 9 л). Integers keep the
    * can-set search exact: `bestPackSet` works in 1/1000 of a litre.
    */
-  cansMl: z.array(z.number().int().min(100).max(30_000)).min(1).max(6).readonly(),
+  cansMl: z.readonly(z.array(z.int().check(z.minimum(100), z.maximum(30_000))).check(z.minLength(1), z.maxLength(6))),
   primer: z.boolean(),
   /** One coat, l/m² (norm `primer.consumption`). */
-  primerRateLPerM2: z.number().min(0.05).max(1),
+  primerRateLPerM2: z.number().check(z.minimum(0.05), z.maximum(1)),
   /** Canister size, l: one size on purpose — a 1 l + 10 l optimiser by litres would pick 7 × 1 l over 10 l. */
-  primerPackL: z.number().min(0.5).max(50),
+  primerPackL: z.number().check(z.minimum(0.5), z.maximum(50)),
 });
 
 export type KraskaInput = z.infer<typeof input>;

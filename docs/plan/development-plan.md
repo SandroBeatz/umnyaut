@@ -304,11 +304,11 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 - [x] P9.4 `generateMetadata` from frontmatter; canonical everywhere; JSON-LD (`WebApplication`, `FAQPage`, `BreadcrumbList`, `Organization`, `WebSite`).
 - [x] P9.5 `sitemap.ts` (lastmod from text/formula change), `robots.txt` route (disallow `/api/`, Yandex `Clean-param: s`), `manifest.ts` (PWA icons G08), OG image G09, 301 map in catalog.
 - [x] P9.6 Security headers in Caddy/Next: CSP (self, Metrika, Telegram), HSTS, nosniff, Referrer-Policy, `frame-ancestors` per route table.
-- [ ] P9.7 Lighthouse CI thresholds on home, a tool, (planner later): perf ≥ 90, SEO 100, a11y ≥ 95, LCP ≤ 2.0 s, CLS ≤ 0.05, JS ≤ 150 KB gz, CSS ≤ 15 KB.
+- [x] P9.7 Lighthouse CI thresholds on home, a tool, (planner later): perf ≥ 90, SEO 100, a11y ≥ 95, LCP ≤ 2.0 s, CLS ≤ 0.05, JS ≤ 150 KB gz, CSS ≤ 15 KB.
 - [ ] P9.8 IndexNow step in deploy workflow (sitemap diff); submit sitemap in Webmaster + Search Console.
 - [ ] P9.9 Monitoring (A23, A24): 5-min checks from RU and KZ; disk/restart alerts; weekly `pg_dump` (A25).
 - [ ] P9.10 Playwright: full 5 scenarios from tech spec §15 green.
-- [ ] P9.11 Performance pass to the P9.7 budget (measured 2026-10-11: 351 KB JS gzip on a tool page, LCP 2.7–3.5 s): `zod/mini` (or no zod) in the client bundle of `calc`, `Sheet`/`vaul` and `sonner` loaded on first use, Radix accordion → `details`; then the Lighthouse warnings in `apps/web/lighthouserc.cjs` become errors.
+- [x] P9.11 Performance pass to the P9.7 budget (measured 2026-10-11: 351 KB JS gzip on a tool page, LCP 2.7–3.5 s): `zod/mini` (or no zod) in the client bundle of `calc`, `Sheet`/`vaul` and `sonner` loaded on first use, Radix accordion → `details`; then the Lighthouse warnings in `apps/web/lighthouserc.cjs` become errors. Tool page 330 → 240 KB, text page 208 → 158 KB; the budget was re-set by the owner (open question 12) and every gate is an error in CI.
 
 **Exit gate = Checkpoint M1 (30 Nov):** all pages indexed (or submitted and crawling) in Yandex and Google; formulas covered by tests; events arriving in Metrika; Lighthouse thresholds pass. *If not met — no new tools, fix tech (business spec §4).*
 
@@ -475,6 +475,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 | 9 | «сколько пачек ламината нужно» = 0 demand; mockup uses it | Done 2026-10-11: laminate `question` is «Сколько нужно ламината на комнату» | P8.5 |
 | 10 | TypeScript 7.0 is latest; ecosystem support unverified | Spike | P1.2 |
 | 11 | Local Node is v26; spec pins Node 24 LTS | `.nvmrc` 24 | P1.1 |
+| 12 | Performance budget (tech spec §15): JS ≤ 150 KB gzip and simulated LCP ≤ 2.0 s. React + Next 16 alone are ≈ 136 KB, so pages that run a calculator cannot fit; deferring the calculator code was tried and dropped (App Router updates make React discard the server HTML, CLS 0.7) | **Decided 2026-10-11 (owner, option 1):** lab gates per page type, measured with headroom — first-screen JS text 165 / category 195 / home 220 / tool 250 KB gzip (`js:check`), Lighthouse LCP ≤ 3.0 s and performance ≥ 0.90 on text and category pages, LCP ≤ 4.0 s and performance ≥ 0.85 on home and tool pages; SEO 100, a11y ≥ 0.95, CLS ≤ 0.05 everywhere. Quality is judged by field LCP p75 ≤ 2.5 s (Metrika, CrUX) once the counter runs. RU tech spec §15 to be updated | P9.11 |
 
 ## Cross-references
 

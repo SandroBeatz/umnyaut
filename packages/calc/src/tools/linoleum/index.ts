@@ -1,29 +1,29 @@
-import { z } from "zod";
+import * as z from "zod/mini";
 import { mm2ToM2, mmToM, purchase } from "../../blocks";
 import type { Step, ToolModule, ToolResult } from "../../types";
 
-const length = z.number().int().min(300).max(100_000);
+const length = z.int().check(z.minimum(300), z.maximum(100_000));
 
 const input = z.object({
   shape: z.enum(["rect", "l"]),
   lengthMm: length,
   widthMm: length,
   /** Corner cut-out of an L-shaped room (from “My room”). */
-  cutLengthMm: z.number().int().min(0).max(100_000),
-  cutWidthMm: z.number().int().min(0).max(100_000),
+  cutLengthMm: z.int().check(z.minimum(0), z.maximum(100_000)),
+  cutWidthMm: z.int().check(z.minimum(0), z.maximum(100_000)),
   /** 0 = pick the best of the standard widths; otherwise only this width. */
-  rollWidthMm: z.union([z.literal(0), z.number().int().min(500).max(6000)]),
+  rollWidthMm: z.union([z.literal(0), z.int().check(z.minimum(500), z.maximum(6000))]),
   /** Seam overlap for matching the pattern (norm `linoleum.seamOverlap`). */
-  overlapMm: z.number().int().min(0).max(300),
+  overlapMm: z.int().check(z.minimum(0), z.maximum(300)),
   /** Extra on each room dimension for uneven walls; 0 — the room's largest length and width (Tarkett). */
-  allowanceMm: z.number().int().min(0).max(300),
+  allowanceMm: z.int().check(z.minimum(0), z.maximum(300)),
   /** Pattern repeat: each sheet after the first is cut up to one repeat longer to match the pattern. */
-  repeatMm: z.number().int().min(0).max(2000),
+  repeatMm: z.int().check(z.minimum(0), z.maximum(2000)),
   /** Seam welding: metres of seam one tube closes (norm `linoleum.weldPerTube`, unconfirmed). */
   weld: z.boolean(),
-  weldPerTubeM: z.number().min(1).max(100),
+  weldPerTubeM: z.number().check(z.minimum(1), z.maximum(100)),
   /** Shop cut step. */
-  cutStepMm: z.number().int().min(10).max(1000),
+  cutStepMm: z.int().check(z.minimum(10), z.maximum(1000)),
 });
 
 export type LinoleumInput = z.infer<typeof input>;

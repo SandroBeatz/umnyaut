@@ -1,5 +1,5 @@
 import type { Country } from "@umnyaut/calc";
-import { home, packNouns, type ToolDef, toolPath, tools } from "@umnyaut/catalog";
+import { DEFAULT_COUNTRY, home, packNouns, toolPath, tools } from "@umnyaut/catalog";
 import { applyRoom, type RoomDraft } from "@/entities/room";
 import { getToolModule, groupPurchases, purchaseTexts, quantityText } from "@/entities/tool";
 
@@ -15,9 +15,10 @@ export function exampleRoom(room: RoomDraft | null): ExampleRoom {
   };
 }
 
+/** Plain data, so the server can hand the example's cards to the page without the browser recomputing them. */
 export interface ExampleCard {
   key: string;
-  tool: ToolDef;
+  toolTitle: string;
   href: string;
   title: string;
   photo?: string;
@@ -53,7 +54,7 @@ export function exampleCards(room: ExampleRoom, works: readonly string[], countr
       return [
         {
           key: `${tool.id}:${example.item}`,
-          tool,
+          toolTitle: tool.title,
           href: toolPath(tool),
           title: example.title ?? item?.title ?? tool.title,
           photo: item?.photo,
@@ -62,4 +63,25 @@ export function exampleCards(room: ExampleRoom, works: readonly string[], countr
         },
       ];
     });
+}
+
+/** Works selected when the page opens. */
+export const defaultWorks = (): string[] => home.works.filter((w) => w.selected).map((w) => w.id);
+
+/** The page's first state — the example room, default works, the default country — computed on the server. */
+export function initialExample(): ExampleCard[] {
+  return exampleCards(exampleRoom(null), defaultWorks(), DEFAULT_COUNTRY);
+}
+
+const sameRoom = (a: ExampleRoom, b: ExampleRoom) => JSON.stringify(a) === JSON.stringify(b);
+
+/** True while the page still shows its first state, so the server's cards stand and nothing is recomputed. */
+export function isInitialExample(room: ExampleRoom, works: readonly string[], country: Country): boolean {
+  const first = defaultWorks();
+  return (
+    country === DEFAULT_COUNTRY &&
+    sameRoom(room, exampleRoom(null)) &&
+    works.length === first.length &&
+    works.every((w) => first.includes(w))
+  );
 }

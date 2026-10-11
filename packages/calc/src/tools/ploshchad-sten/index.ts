@@ -1,8 +1,8 @@
-import { z } from "zod";
+import * as z from "zod/mini";
 import { mm2ToM2, mmToM, openingInputSchema, wallAreaM2 } from "../../blocks";
 import type { Room, Step, ToolModule, ToolResult, Warning } from "../../types";
 
-const length = z.number().int().min(300).max(100_000);
+const length = z.int().check(z.minimum(300), z.maximum(100_000));
 
 /** Shared with every tool, so the plan places of openings survive between tools. */
 const opening = openingInputSchema;
@@ -10,8 +10,8 @@ const opening = openingInputSchema;
 const input = z.object({
   lengthMm: length,
   widthMm: length,
-  heightMm: z.number().int().min(1000).max(10_000),
-  openings: z.array(opening).max(20).readonly(),
+  heightMm: z.int().check(z.minimum(1000), z.maximum(10_000)),
+  openings: z.readonly(z.array(opening).check(z.maxLength(20))),
 });
 
 export type PloshchadStenInput = z.infer<typeof input>;

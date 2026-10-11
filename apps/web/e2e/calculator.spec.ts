@@ -37,7 +37,7 @@ test("no tool scrolls sideways on a phone, with every section open", async ({ pa
     await page.goto(path);
     const more = page.getByRole("button", { name: /Ещё параметры/ });
     if (await more.count()) await more.click();
-    await page.getByRole("button", { name: "Как посчитано" }).click();
+    await page.locator("summary", { hasText: "Как посчитано" }).click();
     // Closed door and window cards: open them one by one (each click drops one from the list).
     const closed = page.getByRole("button", { name: /^(Дверь|Окно)/, expanded: false });
     while (await closed.count()) await closed.first().click();
@@ -239,7 +239,8 @@ test("laminate: the mockup room — 10 packs (85 boards), 9 across; diagonal add
   await page.getByRole("radio", { name: "Диагональ" }).click();
   // 19,78 × 1,15 / 2,22 = 10,2 → 11
   await expect(result(page)).toHaveText("11");
-  await expect(page.getByText(/по опыту укладчиков/)).toBeVisible();
+  // The closed «Как посчитано» also holds this text (native <details> keeps it in the page).
+  await expect(page.locator("li", { hasText: /по опыту укладчиков/ })).toBeVisible();
 });
 
 test("tile: piece count with reserve, centre start removes the narrow-cut hint", async ({ page }) => {
