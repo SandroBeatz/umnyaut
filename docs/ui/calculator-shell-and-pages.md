@@ -1,5 +1,5 @@
 ---
-version: 1.5
+version: 1.6
 date: 2026-10-11
 category: ui
 ---
@@ -124,6 +124,9 @@ Variations are `catalog` entries (URL, titles, default overrides, own text). Fro
 | Input flow | `useCalculator` (`widgets/calculator-shell/model`) renders defaults with country RU on the server and in the first client render. After mount: a valid `?s=` wins alone (a shared link reproduces exactly); otherwise saved tool values (`umnyaut:tool:<id>:v1`, only fields not bound to the room) and then “My room” are applied |
 | Room binding | `FieldDef.room` (`length`, `width`, `height`, `cutLength`, `cutWidth`; `shape` on a select) and every `openings` field read and write `entities/room`. The room store is a draft: parts are optional, nothing is invented (the room area tool has no height). Zustand `persist` with `skipHydration`, rehydrated after mount |
 | Conditional fields | `FieldDef.when` (`{ shape: "l" }`); a hidden field never counts in «Ещё параметры · N» and its error does not hold the result |
+| Room shape | The shape select and its L-cut fields (`room: shape`, `cutCorner`, `cutLength`, `cutWidth`) always render right after the room length and width, before laying, presets and «Ещё параметры», whatever their `main` flag (`formSections()` in `model/fields.ts`); they never count in «Ещё параметры · N». To keep the 660 px budget the shape is a half-row dropdown when the next open field is half a row (laminate, linoleum, tile tools — they share the row), otherwise a full-width segment without its own label (room area, plinth) |
+| Doors and windows | Each opening card (form `openings` field and the plan editor) is closed to one line — name, size and count, or wall and offset — until tapped (`shared/ui/CollapsibleCard`); a card added with «+ Дверь» / «+ Окно» opens. Closed fields stay mounted, so an error survives closing |
+| Result actions | «Сохранить» / «В список» is the one full button; «Отправить», «Скопировать», «Печать» are the same small icon-over-label buttons |
 | Invalid input | Out of range or empty → red message under the field, the result keeps the last valid input and shows «По прошлым значениям» |
 | Tools without items | Geometry tools return only `summary`; the first entry is the big number, the rest are tiles; labels in `ToolDef.summary`. Header reads «Получилось» instead of «Нужно купить» |
 | `?s=` | base64url (UTF-8) JSON of fields that differ from `defaults()`; decoded values go through the tool's Zod schema, garbage is ignored. Canonical is always the clean URL |
