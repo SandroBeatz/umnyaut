@@ -1,6 +1,6 @@
 import { home } from "@umnyaut/catalog";
 import { describe, expect, it } from "vitest";
-import { exampleCards, exampleRoom } from "./example";
+import { defaultWorks, exampleCards, exampleRoom, initialExample, isInitialExample } from "./example";
 
 const all = home.works.map((w) => w.id);
 
@@ -29,5 +29,20 @@ describe("home example", () => {
 
   it("shows nothing when no work is selected", () => {
     expect(exampleCards(exampleRoom(null), [], "RU")).toEqual([]);
+  });
+});
+
+describe("home example first state", () => {
+  it("the server's cards are what the browser would compute", () => {
+    const room = exampleRoom(null);
+    expect(isInitialExample(room, defaultWorks(), "RU")).toBe(true);
+    expect(initialExample()).toEqual(exampleCards(room, defaultWorks(), "RU"));
+  });
+
+  it("any change leaves the first state", () => {
+    const room = exampleRoom(null);
+    expect(isInitialExample({ ...room, lengthMm: 5000 }, defaultWorks(), "RU")).toBe(false);
+    expect(isInitialExample(room, ["floor"], "RU")).toBe(false);
+    expect(isInitialExample(room, defaultWorks(), "KZ")).toBe(false);
   });
 });
