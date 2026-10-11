@@ -152,7 +152,10 @@ describe("tile floor scheme", () => {
   });
 
   it("a cut under a quarter of a long tile's side suggests the centre start", () => {
-    const result = plitka.compute({ ...defaults, tileLengthMm: 600, tileWidthMm: 300, lengthMm: 4320, widthMm: 4340 }, ctx);
+    const result = plitka.compute(
+      { ...defaults, tileLengthMm: 600, tileWidthMm: 300, lengthMm: 4320, widthMm: 4340 },
+      ctx,
+    );
     // Along the length: 7 × 603 = 4221, cut 99 mm < 600 / 4 (wider than a quarter of 300); across: 98 mm ≥ 300 / 4.
     expect(result.layout?.guide.map((s) => s.code)).toContain("try_center");
   });

@@ -1,6 +1,6 @@
 import type { Country, ToolResult } from "@umnyaut/calc";
 import { packNouns, shell, type ToolDef, unitLabels } from "@umnyaut/catalog";
-import { formatMoney, formatNumber, formatQuantity, NBSP, plural } from "@umnyaut/ui/format";
+import { formatMoney, formatNumber, NBSP, plural } from "@umnyaut/ui/format";
 import { groupPurchases, purchaseTexts, runningLength, setText } from "@/entities/tool";
 import { fill } from "@/shared/lib";
 
