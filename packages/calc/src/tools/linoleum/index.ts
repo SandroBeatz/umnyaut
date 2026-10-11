@@ -82,7 +82,11 @@ function variant(widthMm: number, alongLength: boolean, i: LinoleumInput): Varia
   const cut = cutOf(i);
   const cutAlong = cut ? (alongLength ? cut.along : cut.across) : 0;
   const bandFrom = cut ? (alongLength ? i.widthMm - cut.across : i.lengthMm - cut.along) : Number.POSITIVE_INFINITY;
-  const short = Array.from({ length: sheets }, (_, j) => j * step >= bandFrom);
+  // A sheet's floor part starts at its seam: unrolled at −allowance / 2 + j × step, cut mid-overlap.
+  const short = Array.from(
+    { length: sheets },
+    (_, j) => j > 0 && j * step - i.allowanceMm / 2 + i.overlapMm / 2 >= bandFrom,
+  );
   const lengths = short.map((s, j) => along - (s ? cutAlong : 0) + (j > 0 ? i.repeatMm : 0));
   const needMm = fits ? lengths.reduce((sum, l) => sum + l, 0) : Number.POSITIVE_INFINITY;
   const boughtMm = Math.ceil(needMm / i.cutStepMm) * i.cutStepMm;
@@ -216,7 +220,8 @@ function scheme(i: LinoleumInput, best: Variant, variants: readonly Variant[], w
  */
 export const linoleum: ToolModule<LinoleumInput> = {
   id: "linoleum",
-  version: 1,
+  // 2: a sheet is short only when its seam lies in the L-shape's narrow part (allowance shift counted).
+  version: 2,
   input,
   defaults: () => ({
     shape: "rect",

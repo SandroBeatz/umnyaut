@@ -134,9 +134,10 @@ describe("linoleum scheme", () => {
     const short = layout?.sheets?.filter((s) => s.short) ?? [];
     expect(short.length).toBeGreaterThan(0);
     expect(layout?.guide.map((s) => s.code)).toContain("short");
+    // Short sheets stop at the cut-out; a sheet crossing into the narrow part is hatched (clipped on the plan).
     for (const p of layout?.pieces ?? []) {
-      const inCut = p.x >= 4000 && p.y >= 3600;
-      expect(inCut).toBe(false);
+      if (p.x + p.w > 4000 && p.y + p.h > 3600) expect(p.cut).toBe(true);
+      expect(p.x >= 4000 && p.y >= 3600).toBe(false);
     }
   });
 });
