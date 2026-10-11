@@ -24,7 +24,7 @@ Source spec: `docs/skills/new-calculator.md` (v1.0). Contract and rules: `docs/c
 | `packages/calc/test/arbitraries.ts` (entry, not a file) | fast-check `input` generator within the schema bounds + `grow(input)` that enlarges the area — required by the invariants test |
 | `packages/catalog/src/tools/<id>.ts` | URL, category, titles, `FieldDef[]` (≤ 4 `main`), presets, next steps, warning/step texts (RU), norms with `source` + `checkedAt`, `disclaimer` for electrical/heating/screed |
 | `apps/web/content/tools/<id>.md` | Frontmatter + placeholder body (full text → `tool-content` skill) |
-| `apps/web/src/widgets/layout-scheme/<id>.tsx` | Only if the tool returns `layout` |
+| `result.layout` from `compute()` + `guide` texts in the catalog entry | Only if layout affects the result. One shared `LayoutScheme` (`apps/web/src/widgets/calculator-shell/ui/`) draws it — no per-tool component. See `docs/ui/room-plan-and-layout-guides.md` |
 
 No route files. Plus a short report.
 
@@ -41,7 +41,7 @@ No route files. Plus a short report.
    - New tool starts at `version: 1`.
 5. **Catalog entry.** Russian strings live here. ≤ 4 `main` fields (without which the calc is meaningless); `planner` fields if it joins the planner; presets for standard formats; next-step chain (laminate → underlay → plinth, wallpaper → glue → primer, tile → adhesive → grout, plaster → putty → paint).
 6. **Content stub.** Frontmatter: `title` ≤ 65, `description` ≤ 160, `h1` ≤ 40, `question` ≤ 42, `updatedAt`, `checkedAt`, `example`, ≥ 3 `faq` placeholders. Hand the body to `tool-content`.
-7. **Scheme** only for layout tools; geometry comes from `result.layout`, the component only draws.
+7. **Scheme** only for layout tools: `compute()` returns `layout` built from the same plan as the purchase (pieces, marks, guide codes); the guide texts go into the catalog entry's `guide`; the shared `LayoutScheme` only draws.
 8. **Verify**: calc tests (golden + invariants + coverage ≥ 95%), registry tests, typecheck. Iterate until green. Never weaken a test to pass.
 9. Optionally ask the `formula-reviewer` agent (if built) for an independent check.
 
@@ -61,7 +61,7 @@ Files: …
 
 ## Acceptance checklist
 
-- [ ] Four mandatory files at exact paths; scheme only if `layout` returned
+- [ ] Four mandatory files at exact paths; a layout tool returns `layout` with a catalog `guide` text per code
 - [ ] `golden.ts` ≥ 10 entries, each with non-empty `source`
 - [ ] calc, invariant and registry tests pass; `packages/calc` coverage ≥ 95%
 - [ ] `index.ts` imports only Zod + internal calc; no Russian strings

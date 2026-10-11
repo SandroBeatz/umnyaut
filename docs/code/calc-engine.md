@@ -1,12 +1,12 @@
 ---
-version: 1.6
-date: 2026-10-10
+version: 1.7
+date: 2026-10-11
 category: code
 ---
 
 # Calculation Engine (`@umnyaut/calc`)
 
-> Version 1.6 · 2026-10-10 · [Code](../code/)
+> Version 1.7 · 2026-10-11 · [Code](../code/)
 
 ## Overview
 
@@ -88,12 +88,17 @@ interface Layout {
   kind: 'rows' | 'grid' | 'strips' | 'points' | 'outline';
   widthMm: number;
   heightMm: number;
-  pieces: { x: number; y: number; w: number; h: number; cut: boolean; reused?: boolean }[];
-  stats: { whole: number; cut: number; wasteM2: number };
+  outline: [number, number][];          // room contour, clockwise from the top-left corner
+  walls: PlanWall[];                    // numbered clockwise; the UI shows wall + 1
+  pieces: { x: number; y: number; w: number; h: number; cut: boolean; reused?: boolean; row?: number }[];
+  marks: LayoutMark[];                  // placed doors and windows, the start corner
+  rows?: LayoutRow[];                   // row layouts: what to cut per row, where each offcut comes from and goes
+  guide: Step[];                        // laying steps as codes + numbers; text in catalog `ToolDef.guide`
+  stats: { whole: number; cut: number; reused: number; wasteM2: number };
 }
 ```
 
-Engines return `Layout`; a single `LayoutScheme` component draws it as SVG. Above 2,000 pieces the scheme simplifies to rows.
+Engines return `Layout` built from the very plan they counted the purchase on; a single `LayoutScheme` component draws it as SVG. Above 2,000 pieces the scheme simplifies to rows. Live for laminate (straight laying): `traceRows` + `rowsLayout` in `blocks/layout-rows.ts`. Room plan helpers (`roomOutline`, `placeOpenings`, `cornerFlips`, shared `openingInputSchema` with optional `places`) are in `blocks/plan.ts`; `Room` gains `cutCorner` and `Opening` gains `places` — positions never change a count. Full design and the per-tool plan: [Room Plan, Layout Schemes and Laying Guides](../ui/room-plan-and-layout-guides.md).
 
 ### Calculation rules
 
@@ -116,7 +121,7 @@ Engines return `Layout`; a single `LayoutScheme` component draws it as SVG. Abov
 | `packs` | Round to packages, leftover, best can-set with minimal overpay | All with purchases |
 | `waste` | Waste rules by method | Floor, tile, wallpaper, panels |
 | `coverage` | Rate per m² × layers × base coefficient | Paint, primer, putty, plaster, adhesive, grout |
-| `rows` | Row layout: offset, trimming, last row, offcut reuse | Laminate, vinyl, panels, lining |
+| `rows` | Row layout: offset, trimming, last row, offcut reuse (pools capped at 8; a full pool gives up its shortest piece — laminate v2) | Laminate, vinyl, panels, lining |
 | `grid` | Grid from centre or corner: joint, cut tiles | Tile |
 | `strips` | Strips from a roll with repeat and offset | Wallpaper, linoleum, curtains |
 | `frame` | Framing: profiles, hangers, fasteners by pitch | Drywall, drywall ceiling, panel battens |

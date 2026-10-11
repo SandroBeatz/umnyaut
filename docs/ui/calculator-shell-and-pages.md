@@ -1,12 +1,12 @@
 ---
-version: 1.4
-date: 2026-10-10
+version: 1.5
+date: 2026-10-11
 category: ui
 ---
 
 # Calculator Shell, Pages and Routing
 
-> Version 1.4 · 2026-10-10 · [UI](../ui/)
+> Version 1.5 · 2026-10-11 · [UI](../ui/)
 
 ## Overview
 
@@ -170,7 +170,7 @@ Environment differences (same components, different tokens):
 | `apps/web/src/widgets/calculator-shell/` | `CalculatorShell`, `useCalculator` |
 | `apps/web/src/widgets/result-panel/` | `ResultPanel`, sticky bar, `Warnings` |
 | `apps/web/src/widgets/room-bar/` | `RoomBar` |
-| `apps/web/src/widgets/layout-scheme/` | `LayoutScheme` + per-tool overrides |
+| `apps/web/src/widgets/calculator-shell/ui/LayoutScheme.tsx` | `LayoutScheme` (scheme card, plan editor button, guide, cut list) — see [Room Plan, Layout Schemes and Laying Guides](./room-plan-and-layout-guides.md) |
 | `apps/web/src/entities/room/` | Zustand store `umnyaut:room:v1` |
 | `apps/web/src/features/{save-project,share-result,report-error,pick-country}/` | User actions |
 | `packages/ui/` | Inputs, buttons, sheets, tokens |

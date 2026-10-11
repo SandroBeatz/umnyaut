@@ -73,8 +73,36 @@ const unroll = (link: PlanLink | undefined): RowPlan[] => {
 
 /** States kept per row: the cheapest few, so a choice that pays off a few rows later is not lost. */
 const BEAM = 24;
-/** Offcuts kept per pool; more are counted as waste (safe side) so the search stays fast on huge rooms. */
-const POOL = 8;
+/** Offcuts kept per pool so the search stays fast on huge rooms; past it the shortest one is wasted (safe side). */
+export const POOL = 8;
+
+/**
+ * Index of the pooled piece a new offcut replaces when the pool is full: the shortest one (first of equals),
+ * if the new piece is longer; -1 = waste the new piece. Shared with the scheme's replay (layout-rows.ts).
+ */
+export function evictIndex(pool: readonly number[], piece: number): number {
+  const k = pool.reduce((b, p, j) => (b < 0 || p < (pool[b] as number) ? j : b), -1);
+  return k >= 0 && piece > (pool[k] as number) ? k : -1;
+}
+
+/**
+ * Puts an offcut into a pool: below `minPiece` it is waste; into a full pool it replaces the shortest piece if
+ * longer. Discarding the new piece instead let useless short ends (longer than `minPiece`, shorter than any
+ * row) fill the pool and waste every later board's long rest: a 0,3 m wide room bought 66 boards, not 15.
+ * Returns the waste in mm.
+ */
+function pooled(pool: number[], piece: number, minPiece: number): number {
+  if (piece < minPiece) return piece;
+  if (pool.length < POOL) {
+    pool.push(piece);
+    return 0;
+  }
+  const k = evictIndex(pool, piece);
+  if (k < 0) return piece;
+  const out = pool[k] as number;
+  pool[k] = piece;
+  return out;
+}
 
 export function layRows(input: RowsInput): RowsResult {
   const board = Math.round(input.boardLengthMm);
@@ -118,8 +146,7 @@ export function layRows(input: RowsInput): RowsResult {
     }
     const next = copy(st, undefined);
     next.boards++;
-    if (board - row >= minPiece && next.starts.length < POOL) next.starts.push(board - row);
-    else next.wasteMm += board - row;
+    next.wasteMm += pooled(next.starts, board - row, minPiece);
     next.plan = { row: { start: row, startFrom: "whole", end: 0, endFrom: "none" }, previous: st.plan };
     out.push(next);
     return out;
@@ -130,8 +157,7 @@ export function layRows(input: RowsInput): RowsResult {
     const next = copy(st, start);
     let endFrom: RowPlan["endFrom"] = "none";
     const keep = (pool: number[], rest: number) => {
-      if (rest >= minPiece && pool.length < POOL) pool.push(rest);
-      else next.wasteMm += rest;
+      next.wasteMm += pooled(pool, rest, minPiece);
     };
     if (source === "pool") {
       next.starts.splice(next.starts.indexOf(start), 1);

@@ -1,12 +1,12 @@
 ---
-version: 1.1
-date: 2026-10-09
+version: 1.2
+date: 2026-10-11
 category: plan
 ---
 
 # Progress Log
 
-> Version 1.1 · 2026-10-09 · [Plan](../plan/)
+> Version 1.2 · 2026-10-11 · [Plan](../plan/)
 
 ## Overview
 
@@ -41,6 +41,19 @@ Each entry:
 ## Log
 
 ### 2026-10-11
+
+- **P16.4 (content)** Laminate text: new section «Схема укладки» — the plan under the result shows the very layout the packs were counted on, what the marks mean, placing the door and window for the start corner and direction, the cut list per row, fullscreen. 402 words; worked examples re-checked on laminate v2 (5 × 3,6 м → 76 boards, 9 packs; 12 м² → 51 boards). The scheme is not printed (print shows the shopping list only), so the text does not promise it.
+  - Where: `feature/layout-guides` · PR #154
+  - Notes: owner review of the new section together with the other texts (C11).
+
+- **— (rows engine bug, laminate v2)** CI's random invariant (seed 772847259, also failing on `develop`) found laminate buying fewer boards for a larger room. Cause: the offcut pool cap (8) dropped every new offcut once full, so short useless ends (≥ the 30 cm minimum, shorter than any row) filled it and each later board's long rest was wasted — a 0,47 × 5 m corridor laid across bought 18 boards / 3 packs instead of 13 / 2. Fix: a full pool gives up its shortest piece for a longer one (`pooled`, `evictIndex` in `blocks/rows.ts`, mirrored by the scheme's `traceRows`). Laminate `version` 1 → 2; new golden example «Corridor 0,47 × 5 m laid across»; all other golden examples unchanged; 3 000 random rooms pass the monotonic invariant. Also: the scheme is now a full-width card after the form/result grid (it slid under the sticky result on desktop); the rowsLayout property test got the 60 s timeout the other rows properties have.
+  - Where: `feature/layout-guides` · PR #154
+  - Notes: formula change → needs a `formula-reviewer` pass before release (P6.7 follow-up).
+
+- **P16.1–P16.4** New Phase 16 (owner request): room plan, layout schemes and laying guides — analysis, data model and a plan for every calculator in [Room Plan, Layout Schemes and Laying Guides](../ui/room-plan-and-layout-guides.md) v1.0; P6.9 and P10.3 point to it. Pilot on laminate (straight laying): openings get optional plan places (wall + offset), the room an L-cut corner; one shared opening schema in all 7 tools; `FloorPlan` SVG, `PlanEditor` popup (form field kind `plan` and a button on the scheme), `LayoutScheme` under the result with legend, «Как укладывать», cut list per row and fullscreen. The scheme is the engine's own plan: `traceRows` replays the offcut pools and must reach the engine's board count (400 random rooms + the 85-board mockup room). No formula change, laminate stays version 1; golden examples unchanged. New tests: `packages/calc/test/layout-rows.test.ts` (14), web plan and scheme texts (5), e2e «laminate scheme» (17 e2e). `pnpm check` and `pnpm e2e` green.
+  - Where: `feature/layout-guides` (worktree `../umnyaut-layout`, from `develop` 68e9a0d)
+  - Notes: guide texts (start from the far wall towards the door, rows along the light) are practice and wait for the master (C10, P16.11). An L-shape always starts on its wide side, even if the door is there. Next: linoleum (P16.5).
+  - Deviation: `LayoutScheme` lives in `widgets/calculator-shell/ui/` instead of `widgets/layout-scheme/` (tech spec): FSD forbids a widget importing another widget; docs updated. On desktop it is a full-width card after the form/result grid (picture 7/12, legend and steps 5/12): inside the grid it slid under the sticky result column.
 
 - **P7.6 (partly)** Country configs: currency, locale, sign, country chip in header and footer and time-zone detection were already in place (Phase 5). Added `CountryConfig.typicalPrices` (typical pack price per purchase item key) + `pricesCheckedAt`; a price field shows «Обычно около 1 300 ₽, проверено …» in the country's currency when a price is set (checked by temporarily setting one). New `getCountry()`; catalog test: every typical price names an item that has a price field, is positive and has a check date.
   - Where: `feature/phase-8-site-pages`

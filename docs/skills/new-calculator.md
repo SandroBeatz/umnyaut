@@ -1,6 +1,6 @@
 ---
-spec_version: 1.0
-date: 2026-10-08
+spec_version: 1.1
+date: 2026-10-11
 status: built
 skill_slug: new-calculator
 skill_name: New Calculator
@@ -9,7 +9,7 @@ targets: [claude-code, codex, universal]
 
 # New Calculator — Skill Specification
 
-> Spec v1.0 · 2026-10-08 · status: built · [Skills index](../README.md)
+> Spec v1.1 · 2026-10-11 · status: built · [Skills index](../README.md)
 
 ## 1. Purpose
 
@@ -48,7 +48,7 @@ Exactly these files (scheme only when the tool needs one):
 | `packages/calc/test/arbitraries.ts` (entry, not a file) | fast-check `input` generator within the schema bounds + `grow(input)` that enlarges the area — required by the invariants test |
 | `packages/catalog/src/tools/<id>.ts` | URL, category, titles, `FieldDef[]` (≤ 4 `main`), presets, next steps, warning/step texts, norms with `source` + `checkedAt`, `disclaimer` if electrical/heating/screed |
 | `apps/web/content/tools/<id>.md` | Frontmatter + placeholder body (full text via `tool-content`) |
-| `apps/web/src/widgets/layout-scheme/<id>.tsx` | Only if layout affects the result |
+| `result.layout` from `compute()` + `guide` texts in the catalog entry | Only if layout affects the result. One shared `LayoutScheme` (`apps/web/src/widgets/calculator-shell/ui/`) draws it — no per-tool component. See `docs/ui/room-plan-and-layout-guides.md` |
 
 Plus a short report: formula summary, sources used, any unverified norms, test results.
 
@@ -60,7 +60,7 @@ Plus a short report: formula summary, sources used, any unverified norms, test r
 4. **Implement `index.ts`.** Integer mm internally; full precision until the end; `ceilPacks()` for packages; return warning codes with numbers; `steps` with substituted numbers; never throw on schema-valid input; bump nothing (new tool starts at `version: 1`).
 5. **Catalog entry.** Russian strings only here. Mark ≤ 4 `main` fields (those without which the calc is meaningless), `planner` fields if the tool joins the planner, presets for standard formats, next-step chain (e.g. laminate → underlay → plinth).
 6. **Content stub.** Frontmatter with limits (title ≤ 65, description ≤ 160, h1 ≤ 40, question ≤ 42, example, ≥ 3 FAQ placeholders). Delegate full text to `tool-content`.
-7. **Scheme** only for layout tools; geometry comes from `result.layout`, the component only draws.
+7. **Scheme** only for layout tools: `compute()` returns `layout` built from the same plan as the purchase (pieces, marks, guide codes); the guide texts go into the catalog entry's `guide`; the shared `LayoutScheme` only draws.
 8. **Verify:** run calc tests (golden + invariants + coverage), registry tests, typecheck. Fix until green.
 9. **Report** sources, assumptions, anything needing reviewer confirmation.
 
@@ -78,7 +78,7 @@ Plus a short report: formula summary, sources used, any unverified norms, test r
 
 ## 8. Acceptance criteria
 
-- The four mandatory files exist with the exact paths; scheme file only if `layout` is returned.
+- The four mandatory files exist with the exact paths; a layout tool returns `layout` and has a `guide` text for every guide code.
 - `golden.ts` has ≥ 10 entries, each with a non-empty `source`.
 - `calc` tests, invariants and registry tests pass; `packages/calc` coverage ≥ 95%.
 - `index.ts` imports nothing but Zod and internal `calc` modules; contains no Russian strings.
@@ -103,9 +103,10 @@ Given a tool id and sources: write ≥ 10 golden examples, implement a pure `Too
 
 | Tool | Location | Built from spec v | Date |
 |---|---|---|---|
-| claude-code | .claude/skills/new-calculator/ | 1.0 | 2026-10-08 |
+| claude-code | .claude/skills/new-calculator/ | 1.1 | 2026-10-11 |
 | codex | AGENTS.md#skill-new-calculator | — | — |
 
 ## 11. Changelog
 
 - v1.0 — Initial spec from tech spec §4–5, §8, §19.
+- v1.1 — Scheme: no per-tool component; `result.layout` + catalog `guide` texts, drawn by the shared `LayoutScheme` (Phase 16).

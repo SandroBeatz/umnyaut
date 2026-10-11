@@ -18,7 +18,7 @@ Requirements 1–14 are mandatory for every tool. 15 is mandatory where layout a
 | 12 | Phone input | Numeric keyboard, big fields, m and cm | `kind: 'length'` fields with units; bounds set |
 | 13 | Room remembered | Dimensions carry to the next tool | fields bound via `room: 'length' | 'width' | 'height'` |
 | 14 | Save & send | Link, messenger text, print | shell `ResultActions` (global); `?s=` encodes this tool's input |
-| 15 | Scheme | Where layout affects result | `result.layout` + `layout-scheme/<id>.tsx` |
+| 15 | Scheme | Where layout affects result | `result.layout` (from the purchase's own plan) + catalog `guide` texts; shared `LayoutScheme` |
 | 16 | Presets | Typical sizes, popular products | `{ kind: 'preset' }` with presets in catalog |
 
 ## Definition of done (beyond the 16)

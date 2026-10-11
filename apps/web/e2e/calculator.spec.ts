@@ -240,6 +240,26 @@ test("tile: piece count with reserve, centre start removes the narrow-cut hint",
   await expect(page.getByText(/узкая подрезка/)).toBeHidden();
 });
 
+test("laminate scheme: rows from the count, a guide, the door moved on the plan moves the start", async ({ page }) => {
+  await page.goto(LAMINATE);
+  const scheme = page.locator("section[aria-labelledby=layout-scheme]");
+  await expect(scheme.getByText("Рядов: 23 · целых: 59 · подрезанных: 40")).toBeVisible();
+  await expect(scheme.getByText(/Начните от стены 1 в углу «Старт»/)).toBeVisible();
+  await expect(scheme.getByText(/вдоль света из окна/)).toBeVisible();
+
+  await scheme.getByText("Что резать по рядам").click();
+  await expect(scheme.getByText("Ряд 23 · ширина 5,6 см")).toBeVisible();
+
+  // Door from the bottom wall to the top one: laying now starts at the bottom wall, the count stays.
+  await scheme.getByRole("button", { name: "Изменить план" }).click();
+  const editor = page.getByRole("dialog");
+  await editor.getByRole("button", { name: "Стена", exact: true }).first().click();
+  await page.getByRole("radio", { name: "Стена 1" }).click();
+  await editor.getByRole("button", { name: "Готово" }).click();
+  await expect(scheme.getByText(/Начните от стены 3 в углу «Старт»/)).toBeVisible();
+  await expect(result(page)).toHaveText("10");
+});
+
 test("pack price gives a total and «без N позиций» for items without one", async ({ page }) => {
   await page.goto(LAMINATE);
   await page.getByRole("button", { name: /Ещё параметры/ }).click();

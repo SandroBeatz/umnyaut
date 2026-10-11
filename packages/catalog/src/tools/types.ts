@@ -35,8 +35,8 @@ export type FieldDef =
   | (FieldBase & {
       kind: "select";
       options: readonly { value: string; label: string }[];
-      /** `shape` reads and writes the room shape. */
-      room?: "shape";
+      /** `shape` reads and writes the room shape, `cutCorner` where its L-cut sits on the plan. */
+      room?: "shape" | "cutCorner";
       /** Dropdown in half a row instead of a full-width segment (up to 4 options are a segment by default). */
       dropdown?: boolean;
     })
@@ -44,6 +44,8 @@ export type FieldDef =
   | (FieldBase & { kind: "price" /** Purchase item key the pack price belongs to. */; item: string })
   /** Windows and doors list; always bound to the openings of “My room”. */
   | (FieldBase & { kind: "openings" })
+  /** Doors and windows placed on the room plan (popup editor); bound to the openings of “My room” too. */
+  | (FieldBase & { kind: "plan" })
   | { kind: "preset"; label: string; presets: readonly string[]; main?: boolean };
 
 /** Fills several fields at once («Обычная комната 18 м²»). */
@@ -83,6 +85,8 @@ export interface ToolDef {
   summary?: Readonly<Record<string, string>>;
   /** Text per step code of “How calculated”, same placeholders. */
   steps?: Readonly<Record<string, string>>;
+  /** Text per laying-guide code of the layout scheme («Как укладывать»), same placeholders. */
+  guide?: Readonly<Record<string, string>>;
   /** Norm ids this tool uses (see norms.ts); “How calculated” lists their sources. */
   norms?: readonly string[];
 }

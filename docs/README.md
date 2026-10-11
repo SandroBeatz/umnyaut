@@ -31,27 +31,28 @@ UmnyAut («Умняут») — a connected renovation calculator: enter room dim
 
 | Doc | Version |
 |---|---|
-| [Architecture Overview](./architecture/overview.md) | 1.1 |
+| [Architecture Overview](./architecture/overview.md) | 1.2 |
 | [Product and Domain](./business/product-and-domain.md) | 2.0 |
 | [Competitive Benchmark](./business/competitive-benchmark.md) | 1.0 |
 | [SEO and Analytics](./business/seo-and-analytics.md) | 1.1 |
-| [Calculation Engine](./code/calc-engine.md) | 1.6 |
+| [Calculation Engine](./code/calc-engine.md) | 1.7 |
 | [Reviewer Handouts](./review/README.md) | 1.0 |
-| [Wave 1 — Release Check](./review/wave-1-release-check.md) | 1.1 |
+| [Wave 1 — Release Check](./review/wave-1-release-check.md) | 1.3 |
 | [Norm Sources — Wave 1](./code/norm-sources-wave-1.md) | 1.6 |
 | [Server API and Data](./code/server-api-and-data.md) | 1.2 |
-| [Calculator Shell, Pages and Routing](./ui/calculator-shell-and-pages.md) | 1.4 |
+| [Calculator Shell, Pages and Routing](./ui/calculator-shell-and-pages.md) | 1.5 |
+| [Room Plan, Layout Schemes and Laying Guides](./ui/room-plan-and-layout-guides.md) | 1.0 |
 | [Design System](./design/design-system.md) | 1.2 |
 | [Telegram Bot and Mini App](./integrations/telegram-bot.md) | 1.0 |
 | [AI Vision Features](./integrations/ai-vision.md) | 1.1 |
 | [Environments and CI/CD](./deploy/environments-and-ci.md) | 1.5 |
 | [Prod Server Runbook](./deploy/prod-server-runbook.md) | 1.1 |
 | [Engineering Practices](./practices/engineering-practices.md) | 1.1 |
-| [Development Plan](./plan/development-plan.md) | 2.2 |
+| [Development Plan](./plan/development-plan.md) | 2.3 |
 | [Accounts and Services](./plan/accounts-and-services.md) | 1.1 |
 | [Dependencies](./plan/dependencies.md) | 1.3 |
 | [Content and Assets Plan](./plan/content-plan.md) | 1.2 |
-| [Progress Log](./plan/progress-log.md) | 1.1 |
+| [Progress Log](./plan/progress-log.md) | 1.2 |
 
 ## Skill specifications
 
@@ -62,7 +63,7 @@ Each file in `skills/` is a **spec**: a versioned, host-neutral description of o
 <!-- AUTO: regenerate this table from docs/skills/*.md on every /docs run -->
 | Spec | Version | Status | Built for |
 |---|---|---|---|
-| [New Calculator](./skills/new-calculator.md) | 1.0 | built | claude-code |
+| [New Calculator](./skills/new-calculator.md) | 1.1 | built | claude-code |
 | [Calculator Release Check](./skills/calculator-release-check.md) | 1.0 | built | claude-code |
 | [Tool Content](./skills/tool-content.md) | 1.0 | built | claude-code |
 | [UI Component](./skills/ui-component.md) | 1.0 | built | claude-code |
