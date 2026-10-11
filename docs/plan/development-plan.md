@@ -446,7 +446,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 - [x] P16.2 `FloorPlan` SVG (`entities/room`): contour, wall numbers, overall size, door with swing, window; `PlanEditor` popup (`features/edit-room-plan`): wall and offset per door/window, add/remove; form field kind `plan`.
 - [x] P16.3 `LayoutScheme` (`widgets/calculator-shell`), rows kind: whole / hatched cut / orange reused dot, legend with counts, text summary, start corner, row numbers, «Как укладывать», cut list per row, fullscreen, bands above 2,000 pieces.
 - [x] P16.4 **Pilot — laminate (straight):** `layout` from `RowsResult.plan` (`traceRows` replays the pools and must give the engine's board count; `rowsLayout` mirrors to the cut corner or away from the door); guide: start wall and corner, laying towards the door, rows along the light, rows and last row, offcuts; `opening_off_wall` warning. No formula change (version 1).
-- [ ] P16.5 Linoleum: sheets, seams, allowance, L-shape short sheets; guide (seams along the light, not in the doorway, cutting after relaxation).
+- [x] P16.5 Linoleum: sheets, seams, allowance, L-shape short sheets; guide (seams along the light, not in the doorway, cutting after relaxation).
 - [ ] P16.6 Tile floor: grid from `gridLine` per axis, edge cuts with widths, start point (centre or corner, whole tiles at a placed door); then walls per wall around placed openings.
 - [ ] P16.7 Plinth: runs split by placed doors, corners, cut list per run.
 - [ ] P16.8 Wallpaper: per-wall strip engine (plumb line from the start corner, wraps at corners, pieces above/below openings, roll cut map) — **formula version 2**, new golden examples, `formula-reviewer` pass; guide (start corner by paper type, direction, step-off).

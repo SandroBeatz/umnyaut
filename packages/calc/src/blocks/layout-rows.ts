@@ -1,4 +1,5 @@
 import type { LayoutMark, LayoutPiece, LayoutRow, PlanWall } from "../types";
+import { startOf } from "./plan";
 import { evictIndex, POOL, type RowPlan } from "./rows";
 
 /**
@@ -179,24 +180,5 @@ export function rowsLayout(i: RowsLayoutInput): {
     if (row.end > 0) put(u, row.end, true, row.endFrom === "pool");
   });
 
-  const cornerX = i.flipX ? i.lengthMm : 0;
-  const cornerY = i.flipY ? i.widthMm : 0;
-  const reach = Math.min(spanU / 3, 1000);
-  const dirX = i.alongLength ? (i.flipX ? -1 : 1) : 0;
-  const dirY = i.alongLength ? 0 : i.flipY ? -1 : 1;
-  const start: LayoutMark = {
-    kind: "start",
-    x1: cornerX,
-    y1: cornerY,
-    x2: cornerX + dirX * reach,
-    y2: cornerY + dirY * reach,
-  };
-  // The start wall runs along the rows through the start corner.
-  const side = i.alongLength ? (i.flipY ? "bottom" : "top") : i.flipX ? "right" : "left";
-  const on = (w: PlanWall) => (w.x1 === cornerX && w.y1 === cornerY) || (w.x2 === cornerX && w.y2 === cornerY);
-  const startWall = Math.max(
-    i.walls.findIndex((w) => w.side === side && on(w)),
-    0,
-  );
-  return { pieces, start, startWall };
+  return { pieces, ...startOf(i) };
 }

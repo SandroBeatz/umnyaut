@@ -8,9 +8,10 @@ import { useId, useRef, useState } from "react";
 import { FloorPlan } from "@/entities/room";
 import { PlanEditor, type PlanRoom } from "@/features/edit-room-plan";
 import { fill } from "@/shared/lib";
-import { guideLines, rowLines } from "../model/scheme-text";
+import { guideLines, rowLines, sheetLines } from "../model/scheme-text";
 
 const s = shell.scheme;
+const t = s.strips;
 /** Design spec §11: above this many pieces the scheme draws rows as bands. */
 const MAX_PIECES = 2000;
 
@@ -39,6 +40,20 @@ function bands(pieces: readonly LayoutPiece[]): LayoutPiece[] {
   return [...rows.values()];
 }
 
+/** Card summary and the picture's text alternative: rows and boards, or sheets and seams of a roll. */
+function texts(layout: Layout) {
+  const { whole, cut } = layout.stats;
+  if (layout.kind === "strips") {
+    const counts = {
+      sheets: layout.sheets?.length ?? 0,
+      seams: layout.marks.filter((m) => m.kind === "seam").length,
+    };
+    return { summary: fill(t.summary, counts), label: fill(t.label, counts) };
+  }
+  const counts = { rows: layout.rows?.length ?? 0, whole, cut };
+  return { summary: fill(s.summary, counts), label: fill(s.label, counts) };
+}
+
 /** The plan with every piece: whole outlined, cut hatched teal, reused with the orange dot (design spec §11). */
 function SchemePicture({ layout, className }: { layout: Layout; className?: string }) {
   const hatch = useId();
@@ -58,7 +73,7 @@ function SchemePicture({ layout, className }: { layout: Layout; className?: stri
       marks={layout.marks}
       unit={lengthUnitLabels.m}
       startLabel={s.start}
-      label={fill(s.label, { rows: layout.rows?.length ?? 0, whole: layout.stats.whole, cut: layout.stats.cut })}
+      label={texts(layout).label}
       className={className}
     >
       <defs>
@@ -106,9 +121,9 @@ function SchemePicture({ layout, className }: { layout: Layout; className?: stri
       {[...rowHeads.entries()].map(([row, p]) => (
         <text
           key={row}
-          x={p.x + Math.min(p.w, p.h) * 0.25}
+          x={p.x + Math.min(p.w, p.h, size * 0.08) * 0.25}
           y={p.y + p.h / 2}
-          fontSize={Math.min(p.h, p.w) * 0.55}
+          fontSize={Math.min(p.h, p.w, size * 0.08) * 0.55}
           dominantBaseline="central"
           className="fill-text-muted"
         >
@@ -119,6 +134,26 @@ function SchemePicture({ layout, className }: { layout: Layout; className?: stri
   );
 }
 
+/** «Что резать по рядам» / «Что отрезать от рулона»: one line per row or sheet, folded. */
+function CutList({ title, lines }: { title: string; lines: readonly { title: string; parts: string[] }[] }) {
+  return (
+    <details className="group rounded-md border border-border">
+      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-3 text-body-strong text-primary">
+        {title}
+        <ChevronDown aria-hidden="true" className="size-5 transition-transform group-open:rotate-180" />
+      </summary>
+      <ol className="flex flex-col divide-y divide-border px-3 pb-2 text-small">
+        {lines.map((line) => (
+          <li key={line.title} className="py-2">
+            <p className="font-semibold text-text tabular-nums">{line.title}</p>
+            <p className="text-text-muted tabular-nums">{line.parts.join(" · ")}</p>
+          </li>
+        ))}
+      </ol>
+    </details>
+  );
+}
+
 /**
  * «Схема укладки» card under the result (docs/ui/room-plan-and-layout-guides.md): the plan with the pieces the
  * purchase was counted on, legend with counts, «Как укладывать» steps, the cut list per row, the plan editor
@@ -126,10 +161,11 @@ function SchemePicture({ layout, className }: { layout: Layout; className?: stri
  */
 export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }: LayoutSchemeProps) {
   const { whole, cut, reused } = layout.stats;
-  const rows = layout.rows?.length ?? 0;
+  const strips = layout.kind === "strips";
+  const seams = layout.marks.filter((m) => m.kind === "seam").length;
   const guide = guideLines(tool, layout);
   const placedAny = (openings ?? []).some((o) => (o.places?.length ?? 0) > 0);
-  const title = fill(s.summary, { rows, whole, cut });
+  const title = texts(layout).summary;
   const [fullscreen, setFullscreen] = useState(false);
   const opener = useRef<HTMLElement | null>(null);
   const enlarge = (event: { currentTarget: HTMLElement }) => {
@@ -205,15 +241,21 @@ export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }:
         <ul className="flex flex-wrap gap-x-4 gap-y-2 text-small text-text">
           <li className="flex items-center gap-1.5">
             <span aria-hidden="true" className="h-3 w-4 border border-text-subtle bg-surface" />
-            {fill(s.legendWhole, { count: whole })}
+            {fill(strips ? t.legendWhole : s.legendWhole, { count: whole })}
           </li>
           <li className="flex items-center gap-1.5">
             <span
               aria-hidden="true"
               className="h-3 w-4 border border-text-subtle bg-[repeating-linear-gradient(45deg,var(--color-primary)_0_1px,var(--color-primary-soft)_1px_4px)]"
             />
-            {fill(s.legendCut, { count: cut })}
+            {fill(strips ? t.legendCut : s.legendCut, { count: cut })}
           </li>
+          {seams > 0 ? (
+            <li className="flex items-center gap-1.5">
+              <span aria-hidden="true" className="w-4 border-text border-t-2 border-dashed" />
+              {t.legendSeam}
+            </li>
+          ) : null}
           {reused > 0 ? (
             <li className="flex items-center gap-1.5">
               <span aria-hidden="true" className="size-2 rounded-full bg-accent" />
@@ -234,20 +276,9 @@ export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }:
         ) : null}
 
         {layout.rows && layout.rows.length > 0 ? (
-          <details className="group rounded-md border border-border">
-            <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-3 text-body-strong text-primary">
-              {s.cutList}
-              <ChevronDown aria-hidden="true" className="size-5 transition-transform group-open:rotate-180" />
-            </summary>
-            <ol className="flex flex-col divide-y divide-border px-3 pb-2 text-small">
-              {rowLines(layout.rows).map((row) => (
-                <li key={row.title} className="py-2">
-                  <p className="font-semibold text-text tabular-nums">{row.title}</p>
-                  <p className="text-text-muted tabular-nums">{row.parts.join(" · ")}</p>
-                </li>
-              ))}
-            </ol>
-          </details>
+          <CutList title={s.cutList} lines={rowLines(layout.rows)} />
+        ) : layout.sheets && layout.sheets.length > 0 ? (
+          <CutList title={t.cutList} lines={sheetLines(layout.sheets)} />
         ) : null}
       </div>
     </section>
