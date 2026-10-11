@@ -31,6 +31,20 @@ test("the result number is on the first phone screen of every tool", async ({ pa
   }
 });
 
+test("no tool scrolls sideways on a phone, with every section open", async ({ page }) => {
+  const width = () => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  for (const path of [ROOM, WALLS, WALLPAPER, PAINT, PLINTH, LINOLEUM, LAMINATE, TILE, ADHESIVE, GROUT]) {
+    await page.goto(path);
+    const more = page.getByRole("button", { name: /Ещё параметры/ });
+    if (await more.count()) await more.click();
+    await page.getByRole("button", { name: "Как посчитано" }).click();
+    // Closed door and window cards: open them one by one (each click drops one from the list).
+    const closed = page.getByRole("button", { name: /^(Дверь|Окно)/, expanded: false });
+    while (await closed.count()) await closed.first().click();
+    expect(await width(), path).toBeLessThanOrEqual(0);
+  }
+});
+
 test("room area writes “My room”, wall area picks it up", async ({ page }) => {
   await page.goto(ROOM);
   await expect(page.getByText("Это пример. Введите свои размеры")).toBeVisible();
@@ -86,13 +100,12 @@ test("an L-shaped room shows the cut-out fields and subtracts the corner", async
   await type(page, "Длина комнаты", "6");
   await type(page, "Ширина комнаты", "4");
   await expect(page.getByRole("textbox", { name: "Длина выреза" })).toHaveCount(0);
-  await page.getByRole("button", { name: /Ещё параметры/ }).click();
+  // The shape stands right under the room size, not behind «Ещё параметры».
   await page.getByRole("radio", { name: "Г-образная" }).click();
   await type(page, "Длина выреза", "2");
   await type(page, "Ширина выреза", "1,5");
   await expect(result(page)).toHaveText("21");
-  await page.getByRole("button", { name: "Свернуть параметры" }).click();
-  await expect(page.getByRole("button", { name: /Ещё параметры · 3/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Ещё параметры", exact: true })).toBeVisible();
 });
 
 test("an invalid field keeps the last result and says so", async ({ page }) => {
@@ -189,7 +202,6 @@ test("plinth: planks and fittings, an L-shaped room adds corners", async ({ page
   await expect(result(page)).toHaveText("7");
   await expect(page.getByText(/^4\sштуки$/)).toBeVisible();
 
-  await page.getByRole("button", { name: /Ещё параметры/ }).click();
   await page.getByRole("radio", { name: "Г-образная" }).click();
   await expect(page.locator("#result").getByText("Наружный угол")).toBeVisible();
 });
@@ -253,6 +265,7 @@ test("laminate scheme: rows from the count, a guide, the door moved on the plan 
   // Door from the bottom wall to the top one: laying now starts at the bottom wall, the count stays.
   await scheme.getByRole("button", { name: "Изменить план" }).click();
   const editor = page.getByRole("dialog");
+  await editor.getByRole("button", { name: /^Дверь ·/ }).click();
   await editor.getByRole("button", { name: "Стена", exact: true }).first().click();
   await page.getByRole("radio", { name: "Стена 1" }).click();
   await editor.getByRole("button", { name: "Готово" }).click();

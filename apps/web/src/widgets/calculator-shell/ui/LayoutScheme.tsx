@@ -3,7 +3,7 @@
 import type { Layout, LayoutPiece, Opening } from "@umnyaut/calc";
 import { lengthUnitLabels, shell, type ToolDef } from "@umnyaut/catalog";
 import { Button, Dialog, DialogContent, DialogTrigger } from "@umnyaut/ui";
-import { ChevronDown, MapPin, Maximize2 } from "lucide-react";
+import { ChevronDown, Maximize2, PencilRuler } from "lucide-react";
 import { useId } from "react";
 import { FloorPlan } from "@/entities/room";
 import { PlanEditor, type PlanRoom } from "@/features/edit-room-plan";
@@ -150,7 +150,7 @@ export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }:
             onChange={onOpeningsChange}
             trigger={
               <Button variant="secondary">
-                <MapPin aria-hidden="true" />
+                <PencilRuler aria-hidden="true" />
                 {placedAny ? shell.plan.edit : shell.plan.open}
               </Button>
             }

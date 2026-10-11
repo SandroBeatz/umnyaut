@@ -4,7 +4,7 @@ import type { Opening } from "@umnyaut/calc";
 import { type FieldDef, getCountry, lengthUnitLabels, shell, type ToolDef } from "@umnyaut/catalog";
 import { Button, NumberField, PresetChips, Segment, Select, UnitToggle } from "@umnyaut/ui";
 import { formatMoney, formatNumber } from "@umnyaut/ui/format";
-import { ChevronDown, MapPin, Ruler } from "lucide-react";
+import { ChevronDown, PencilRuler, Ruler } from "lucide-react";
 import { type ReactNode, useId, useState } from "react";
 import { useCountry } from "@/entities/country";
 import { useRoomStore } from "@/entities/room";
@@ -13,11 +13,12 @@ import { PlanEditor } from "@/features/edit-room-plan";
 import { fill } from "@/shared/lib";
 import {
   changedHidden,
+  formSections,
   fromDisplay,
-  isVisible,
   type LengthUnit,
   matchingPreset,
   roomBindings,
+  shapeAsDropdown,
   toDisplay,
 } from "../model/fields";
 import { planRoomOf } from "../model/plan";
@@ -40,8 +41,8 @@ const checkedFormat = new Intl.DateTimeFormat("ru-RU", {
 });
 
 /**
- * Form from `FieldDef[]` (design spec §11–12): main fields two per row, preset chips, then «Ещё параметры · N»
- * with the m/cm switch. From 1024 px everything is open.
+ * Form from `FieldDef[]` (design spec §11–12): main fields two per row with the room shape right under the room
+ * size, preset chips, then «Ещё параметры · N» with the m/cm switch. From 1024 px everything is open.
  */
 export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFormProps) {
   const [unit, setUnit] = useState<LengthUnit>("m");
@@ -62,9 +63,8 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
   };
   const bound = new Map(roomBindings(tool.fields));
 
-  const visible = tool.fields.filter((field) => isVisible(field, values));
-  const main = visible.filter((field) => field.main);
-  const more = visible.filter((field) => !field.main);
+  const { main, more } = formSections(tool.fields, values);
+  const shapeDropdown = shapeAsDropdown(main);
   const changed = changedHidden(tool.fields, values, defaults);
   const hasLengths = tool.fields.some((field) => field.kind === "length" || field.kind === "openings");
 
@@ -146,7 +146,20 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
       case "select": {
         // Options are strings; a numeric input (linoleum roll width) gets its number back.
         const pick = (v: string) => onChange({ [field.name]: typeof values[field.name] === "number" ? Number(v) : v });
-        return field.options.length <= 4 && !field.dropdown ? (
+        if (field.room === "shape" && !shapeDropdown) {
+          // Under the room size the options speak for themselves; the group keeps its name for screen readers.
+          return (
+            <Segment
+              key={field.name}
+              className="col-span-2"
+              label={field.label}
+              options={field.options}
+              value={String(values[field.name])}
+              onValueChange={pick}
+            />
+          );
+        }
+        return field.options.length <= 4 && !field.dropdown && field.room !== "shape" ? (
           <div key={field.name} className="col-span-2 flex flex-col gap-1.5">
             <span className="text-small font-medium text-text">{label(field)}</span>
             <Segment
@@ -203,7 +216,7 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
                 onChange={(next) => onChange({ [field.name]: next })}
                 trigger={
                   <Button variant="secondary">
-                    <MapPin aria-hidden="true" />
+                    <PencilRuler aria-hidden="true" />
                     {placed > 0 ? shell.plan.edit : shell.plan.open}
                   </Button>
                 }
