@@ -33,6 +33,14 @@ describe("plinth scheme", () => {
     expect(layout?.guide.map((s) => s.code)).toEqual(["place_doors"]);
   });
 
+  it("overlapping doors on the plan: no planks, the guide says the doors overlap", () => {
+    const door = (offsetMm: number) =>
+      ({ type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 2, offsetMm }] }) as const;
+    const layout = plintus.compute({ ...defaults, openings: [door(600), door(1000)] }, ctx).layout;
+    expect(layout?.pieces).toEqual([]);
+    expect(layout?.guide.map((s) => s.code)).toEqual(["doors_overlap"]);
+  });
+
   it("whatever the room, plank and placed doors: the scheme lays exactly the planks bought", () => {
     fc.assert(
       fc.property(

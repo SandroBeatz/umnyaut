@@ -99,6 +99,9 @@ function scheme(
     guide: [{ code: "place_doors", values: { doors } }],
     stats: { whole: 0, cut: 0, reused: 0, wasteM2: 0 },
   };
+  // All doors placed but the runs do not add up: two doors overlap on the plan.
+  if (!ready && placedDoors.length === doors && off === 0)
+    return { ...outlineOnly, guide: [{ code: "doors_overlap", values: {} }] };
   if (!ready) return outlineOnly;
 
   const joints = laid.joints.length;
@@ -108,7 +111,7 @@ function scheme(
     { code: corners.outer > 0 ? "corners_outer" : "corners", values: corners },
   ];
   if (caps > 0) guide.push({ code: "caps", values: { caps } });
-  if (joints > 0) guide.push({ code: "joints", values: { joints } });
+  if (joints > 0) guide.push({ code: "joints", values: {} });
   if (i.fasteners) guide.push({ code: "fasteners", values: { spacing: i.fastenerSpacingMm / 10 } });
   const cut = laid.pieces.filter((p) => p.cut).length;
   return {
