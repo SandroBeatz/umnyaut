@@ -280,7 +280,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 - [x] P8.4 `not-found.tsx` (mascot `oops`, six popular tools).
 - [ ] P8.5 Tool texts for all 10 wave‑1 tools (C11) via skill `tool-content`; owner review; FAQ from Wordstat CSV.
 - [ ] P8.6 Material photos G05 and category photos G06 + brush mask; desktop hero G07 (optional).
-- [ ] P8.7 Desktop layouts (≥ 1024): tool page 5/7 columns with sticky result; home two-column hero.
+- [x] P8.7 Desktop layouts (≥ 1024): tool page 5/7 columns with sticky result; home two-column hero.
 - [ ] P8.8 `calculator-release-check` for all 10 tools — now including content.
 
 **Exit gate (mobile gate):** all pages pass a real-phone walkthrough; release check READY for 10 tools.
