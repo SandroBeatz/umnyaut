@@ -27,11 +27,22 @@ export function resultViolations(result: ToolResult): string[] {
   return errors;
 }
 
-/** Monotonic in area: every item present in the smaller result has at least as many packs in the larger one. */
+/** Total bought per item key: a can set has several lines with one key (paint 9 л + 2,7 л). */
+function boughtByKey(result: ToolResult): Map<string, number> {
+  const totals = new Map<string, number>();
+  for (const item of result.items) totals.set(item.key, (totals.get(item.key) ?? 0) + item.bought.value);
+  return totals;
+}
+
+/**
+ * Monotonic in area: every item key present in the smaller result is bought in at least the same amount in
+ * the larger one. Compared per key, not per pack size, because a can set may swap 3 × 0,9 л for 1 × 2,7 л.
+ */
 export function growthViolations(smaller: ToolResult, larger: ToolResult): string[] {
-  return smaller.items.flatMap((item) => {
-    const grown = larger.items.find((i) => i.key === item.key && i.pack.size.value === item.pack.size.value);
-    if (!grown) return [`${item.key}: disappeared when the area grew`];
-    return grown.packs < item.packs ? [`${item.key}: ${item.packs} → ${grown.packs} packs when the area grew`] : [];
+  const grown = boughtByKey(larger);
+  return [...boughtByKey(smaller)].flatMap(([key, bought]) => {
+    const after = grown.get(key);
+    if (after === undefined) return [`${key}: disappeared when the area grew`];
+    return after < bought * (1 - SLACK) ? [`${key}: bought ${bought} → ${after} when the area grew`] : [];
   });
 }

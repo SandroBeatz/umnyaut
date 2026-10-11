@@ -1,15 +1,22 @@
 "use client";
 
+import type { Opening } from "@umnyaut/calc";
 import { getTool, unitLabels } from "@umnyaut/catalog";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCountry } from "@/entities/country";
 import { roomDimensions, useRoomStore } from "@/entities/room";
 import { RoomBar } from "@/features/edit-room";
+import { AddToList, RoomList } from "@/features/room-list";
 import { ResultActions, shareUrl } from "@/features/share-result";
+import { track } from "@/shared/analytics";
 import { AdSlot } from "@/shared/ui";
+
+import { planRoomOf } from "../model/plan";
+import { useCalcEvents } from "../model/useCalcEvents";
 import { useCalculator } from "../model/useCalculator";
 import { describeResult, resultText } from "../model/view";
 import { HowCalculated } from "./HowCalculated";
+import { LayoutScheme } from "./LayoutScheme";
 import { NextSteps } from "./NextSteps";
 import { PrintSheet } from "./PrintSheet";
 import { ResultPanel } from "./ResultPanel";
@@ -46,14 +53,24 @@ export function CalculatorShell({ category, toolId, checkedAt }: CalculatorShell
   }, []);
 
   const { values, defaults } = calc;
+  useCalcEvents({
+    tool,
+    country,
+    values,
+    edits: calc.edits,
+    fieldsChanged: calc.fieldsChanged,
+    panelVisible,
+  });
   const getUrl = useCallback(() => shareUrl(window.location.href, values, defaults), [values, defaults]);
   const getText = () => resultText(tool, view);
+  const layout = calc.result.layout;
+  const planField = tool.fields.find((field) => field.kind === "plan");
 
   return (
     <>
       <div className="flex flex-col gap-6 print:hidden">
         <div className="grid gap-3 lg:grid-cols-12 lg:items-start lg:gap-6">
-          <div className="flex flex-col gap-3 lg:col-span-5">
+          <div className="flex flex-col gap-3 lg:col-span-5 lg:rounded-xl lg:border lg:border-border lg:bg-surface lg:p-6 lg:shadow-sm">
             <RoomBar />
             <ToolForm
               tool={tool}
@@ -65,10 +82,35 @@ export function CalculatorShell({ category, toolId, checkedAt }: CalculatorShell
           </div>
           <div className="flex flex-col gap-4 lg:sticky lg:top-[88px] lg:col-span-7">
             <ResultPanel ref={panel} tool={tool} view={view} example={calc.example} stale={calc.stale} />
-            <ResultActions title={tool.title} getText={getText} getUrl={getUrl} />
+            <ResultActions
+              title={tool.title}
+              getText={getText}
+              getUrl={getUrl}
+              onAction={(action) =>
+                action === "copy"
+                  ? track("result_copied", { tool: tool.id })
+                  : track("project_shared", { channel: action })
+              }
+              primary={
+                view.mode === "buy" ? (
+                  <AddToList tool={tool} values={values} defaults={defaults} className="min-w-32 flex-1" />
+                ) : undefined
+              }
+            />
             <AdSlot placement="after-result" />
           </div>
         </div>
+        {/* Outside the grid: the sticky result column ends with the grid, so the scheme never slides under it. */}
+        {layout ? (
+          <LayoutScheme
+            tool={tool}
+            layout={layout}
+            room={planRoomOf(values)}
+            openings={planField ? (values[planField.name] as readonly Opening[]) : undefined}
+            onOpeningsChange={planField ? (next) => calc.setValues({ [planField.name]: next }) : undefined}
+          />
+        ) : null}
+        <RoomList />
         <NextSteps tool={tool} />
         <HowCalculated tool={tool} steps={view.steps} checkedAt={checkedAt} />
       </div>

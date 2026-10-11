@@ -1,12 +1,12 @@
 ---
-version: 2.2
-date: 2026-10-09
+version: 2.4
+date: 2026-10-11
 category: plan
 ---
 
 # Development Plan
 
-> Version 2.2 · 2026-10-09 · [Plan](../plan/)
+> Version 2.4 · 2026-10-11 · [Plan](../plan/)
 
 ## Overview
 
@@ -49,6 +49,7 @@ Product sequencing is **depth before breadth**. Qalculator.ru is the mandatory b
 | 13 | Growth operations | Dec – Jan | 2 | **Checkpoint M3** |
 | 14 | Season: wave 3, variations, master mode, AI, monetization tests | Feb – Apr 2027 | 3 | **Checkpoint M6** |
 | 15 | Scale | May – Oct 2027 | 4 | **Checkpoint M12** |
+| 16 | Room plan, layout schemes, laying guides | Oct 2026 – Jan 2027, parallel to 8–10 | 1–2 | Every wave-1 layout tool has a scheme and a guide (requirement 15) |
 
 ---
 
@@ -225,18 +226,18 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 **Tasks**
 
-- [ ] P6.1 Plinth (S) — `geometry` + `packs`; corners, caps, joiners.
-- [ ] P6.2 Tile adhesive (S) — `coverage` by notch × format × base.
-- [ ] P6.3 Grout (S) — (A+B)/(A·B) × width × depth × density.
-- [ ] P6.4 Wallpaper (M) — `strips` engine (repeat, offset), rolls, glue.
-- [ ] P6.5 Paint (M) — `coverage` + can-set optimizer, primer related.
-- [ ] P6.6 Linoleum (M) — `strips` variants by width × direction, seams, sorted by price.
-- [ ] P6.7 Laminate (L) — `rows` engine (offset, trimming, offcut reuse, narrow last row warning); underlay + plinth related; diagonal/herringbone as waste. Golden incl. mockup case (4.6 × 4.3, 2.22 m² → 10 packs, 23 rows).
-- [ ] P6.8 Tile (L) — `grid` engine from centre/corner, whole vs cut tiles, boxes.
-- [ ] P6.9 Layout schemes for laminate and tile **only if time remains** (else Phase 10).
+- [x] P6.1 Plinth (S) — `geometry` + `packs`; corners, caps, joiners.
+- [x] P6.2 Tile adhesive (S) — `coverage` by notch × format × base.
+- [x] P6.3 Grout (S) — (A+B)/(A·B) × width × depth × density.
+- [x] P6.4 Wallpaper (M) — `strips` engine (repeat, offset), rolls, glue.
+- [x] P6.5 Paint (M) — `coverage` + can-set optimizer, primer related.
+- [x] P6.6 Linoleum (M) — `strips` variants by width × direction, seams, sorted by price.
+- [x] P6.7 Laminate (L) — `rows` engine (offset, trimming, offcut reuse, narrow last row warning); underlay + plinth related; diagonal/herringbone as waste. Golden incl. mockup case (4.6 × 4.3, 2.22 m² → 10 packs, 23 rows).
+- [x] P6.8 Tile (L) — `grid` engine from centre/corner, whole vs cut tiles, boxes.
+- [ ] P6.9 Layout schemes for laminate and tile **only if time remains** (else Phase 10). → **Moved to Phase 10** (owner, 2026-10-10), then to [Phase 16](#phase-16--room-plan-layout-schemes-and-laying-guides-oct-2026--jan-2027) (owner, 2026-10-11); release-check requirement 15 for wallpaper, laminate, linoleum and tile waits for it.
 - [ ] P6.10 Reviewer export of wave 1 (C10) sent to the master (A26).
-- [ ] P6.11 Minimal local-only connected wall list: shared room → wall area → wallpaper or paint → glue/primer; `mergeItems()` combines duplicates and exposes the next calculation. Saving, projects and the full works picker remain Phase 7/11.
-- [ ] P6.12 Re-check the Phase 4 decisions against real tools and reviewer feedback ([Calculation Engine → Decisions to verify](../code/calc-engine.md#decisions-to-verify-in-real-testing)): `ceilPacks` tolerance, minimum one pack for a tiny need, norms filled with sources, harness running on real tools, `calc:export` on CI and Mac.
+- [x] P6.11 Minimal local-only connected wall list: shared room → wall area → wallpaper or paint → glue/primer; `mergeItems()` combines duplicates and exposes the next calculation. Saving, projects and the full works picker remain Phase 7/11.
+- [x] P6.12 Re-check the Phase 4 decisions against real tools and reviewer feedback ([Calculation Engine → Decisions to verify](../code/calc-engine.md#decisions-to-verify-in-real-testing)): `ceilPacks` tolerance, minimum one pack for a tiny need, norms filled with sources, harness running on real tools, `calc:export` on CI and Mac.
 
 **Exit gate:** 10 tools; first connected wall path produces one merged list; each tool has ≥ 10 golden with primary sources; overlapping tools have ≥ 3 explained Qalculator comparisons; `formula-reviewer` PASS; reviewer feedback scheduled.
 
@@ -274,14 +275,14 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 **Tasks**
 
-- [ ] P8.1 Home (`views/home`): hero (mascot `hello`, headline, badges), “Моя комната” card with room scheme SVG (isometric box with live dimensions) and work chips, orange button «Выбрать расчёт» (until planner), example strip «Для комнаты 12 м² нужно» computed at build, categories grid (only categories with tools), popular tools (static order now), «Как мы считаем», footer.
-- [ ] P8.2 Category pages for osnova, pol, steny, plitka: tool cards, «Порядок работ» stepper, text + FAQ.
+- [x] P8.1 Home (`views/home`): hero (mascot `hello`, headline, badges), “Моя комната” card with room scheme SVG (isometric box with live dimensions) and work chips, orange button «Выбрать расчёт» (until planner), example strip «Для комнаты 12 м² нужно» computed at build, categories grid (only categories with tools), popular tools (static order now), «Как мы считаем», footer.
+- [x] P8.2 Category pages for osnova, pol, steny, plitka: tool cards, «Порядок работ» stepper, text + FAQ.
 - [ ] P8.3 Info pages (`app/(info)/…`): `/metodika/`, `/o-proekte/`, `/politika/`, `/kontakty/`, `/partneram/` with C14–C17.
-- [ ] P8.4 `not-found.tsx` (mascot `oops`, six popular tools).
+- [x] P8.4 `not-found.tsx` (mascot `oops`, six popular tools).
 - [ ] P8.5 Tool texts for all 10 wave‑1 tools (C11) via skill `tool-content`; owner review; FAQ from Wordstat CSV.
 - [ ] P8.6 Material photos G05 and category photos G06 + brush mask; desktop hero G07 (optional).
-- [ ] P8.7 Desktop layouts (≥ 1024): tool page 5/7 columns with sticky result; home two-column hero.
-- [ ] P8.8 `calculator-release-check` for all 10 tools — now including content.
+- [x] P8.7 Desktop layouts (≥ 1024): tool page 5/7 columns with sticky result; home two-column hero.
+- [x] P8.8 `calculator-release-check` for all 10 tools — now including content.
 
 **Exit gate (mobile gate):** all pages pass a real-phone walkthrough; release check READY for 10 tools.
 
@@ -297,16 +298,17 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 **Tasks**
 
-- [ ] P9.1 Cookie banner (strict mode: Metrika not loaded before «Принять»; equal buttons; 6-month hide after refusal; footer “Настройки cookie”).
+- [x] P9.1 Cookie banner (strict mode: Metrika not loaded before «Принять»; equal buttons; 6-month hide after refusal; footer “Настройки cookie”).
 - [ ] P9.2 `shared/analytics/track()` typed `EventMap`; adapters: own counter (`sendBeacon('/api/e')` → `events_daily`) always, Metrika after consent (URL without `s`); common params (country, source, category, variation); `calc_completed` logic (≥ 2 fields + 5 s visible, `via`); `js_error`.
 - [ ] P9.3 `POST /api/e` with limits.
-- [ ] P9.4 `generateMetadata` from frontmatter; canonical everywhere; JSON-LD (`WebApplication`, `FAQPage`, `BreadcrumbList`, `Organization`, `WebSite`).
-- [ ] P9.5 `sitemap.ts` (lastmod from text/formula change), `robots.ts` (disallow `/api/`, Yandex `Clean-param: s`), `manifest.ts` (PWA icons G08), OG image G09, 301 map in catalog.
-- [ ] P9.6 Security headers in Caddy/Next: CSP (self, Metrika, Telegram), HSTS, nosniff, Referrer-Policy, `frame-ancestors` per route table.
+- [x] P9.4 `generateMetadata` from frontmatter; canonical everywhere; JSON-LD (`WebApplication`, `FAQPage`, `BreadcrumbList`, `Organization`, `WebSite`).
+- [x] P9.5 `sitemap.ts` (lastmod from text/formula change), `robots.txt` route (disallow `/api/`, Yandex `Clean-param: s`), `manifest.ts` (PWA icons G08), OG image G09, 301 map in catalog.
+- [x] P9.6 Security headers in Caddy/Next: CSP (self, Metrika, Telegram), HSTS, nosniff, Referrer-Policy, `frame-ancestors` per route table.
 - [ ] P9.7 Lighthouse CI thresholds on home, a tool, (planner later): perf ≥ 90, SEO 100, a11y ≥ 95, LCP ≤ 2.0 s, CLS ≤ 0.05, JS ≤ 150 KB gz, CSS ≤ 15 KB.
 - [ ] P9.8 IndexNow step in deploy workflow (sitemap diff); submit sitemap in Webmaster + Search Console.
 - [ ] P9.9 Monitoring (A23, A24): 5-min checks from RU and KZ; disk/restart alerts; weekly `pg_dump` (A25).
 - [ ] P9.10 Playwright: full 5 scenarios from tech spec §15 green.
+- [ ] P9.11 Performance pass to the P9.7 budget (measured 2026-10-11: 351 KB JS gzip on a tool page, LCP 2.7–3.5 s): `zod/mini` (or no zod) in the client bundle of `calc`, `Sheet`/`vaul` and `sonner` loaded on first use, Radix accordion → `details`; then the Lighthouse warnings in `apps/web/lighthouserc.cjs` become errors.
 
 **Exit gate = Checkpoint M1 (30 Nov):** all pages indexed (or submitted and crawling) in Yandex and Google; formulas covered by tests; events arriving in Metrika; Lighthouse thresholds pass. *If not met — no new tools, fix tech (business spec §4).*
 
@@ -324,7 +326,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 - [ ] P10.1 Blocks `frame`, `power`; norms per country (tariffs, climate regions) in catalog.
 - [ ] P10.2 Tools in order: Radiators, Electricity usage, Lighting, Putty, Primer, Plaster, Vinyl/parquet (reuse `rows`), Screed, Stretch ceiling, Drywall (L). Disclaimers for radiators and screed.
-- [ ] P10.3 `LayoutScheme` SVG (whole / hatched cut / orange reused dot, legend, text summary, fullscreen on tap, simplify > 2,000 pieces); schemes for laminate and tile; lighting points.
+- [ ] P10.3 → **Moved to [Phase 16](#phase-16--room-plan-layout-schemes-and-laying-guides-oct-2026--jan-2027)** (owner, 2026-10-11), except lighting points, which stay here. Was: `LayoutScheme` SVG (whole / hatched cut / orange reused dot, legend, text summary, fullscreen on tap, simplify > 2,000 pieces); schemes for laminate (from `RowsResult.plan`), tile, wallpaper and linoleum — moved here from P6.9 (release-check requirement 15); lighting points.
 - [ ] P10.4 Category pages potolok, elektrika, klimat (+ icons, photos).
 - [ ] P10.5 Texts (C20) and release check per tool; reviewer pass on wave 2 (C10).
 
@@ -432,6 +434,32 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 ---
 
+## Phase 16 — Room plan, layout schemes and laying guides (Oct 2026 – Jan 2027)
+
+**Goal:** every calculator with a layout shows the room from above (walls numbered, doors and windows where they really are, L-shapes) and on it the very plan the purchase was counted on, plus a step-by-step laying guide: where to start, which way, what to cut and where each offcut goes. Analysis, data model and per-tool plan: [Room Plan, Layout Schemes and Laying Guides](../ui/room-plan-and-layout-guides.md).
+
+**Runs in parallel** with Phases 8–10; the pilot (laminate) is done first, then one tool at a time in the order below. Replaces P6.9 and P10.3 (except lighting points). **Needs:** C10 (master review of the guide texts). **Install:** nothing new (SVG, no canvas or libraries).
+
+**Tasks**
+
+- [x] P16.1 Room plan model: `Opening.places` (wall + offset, clockwise from the top-left corner), `Room.cutCorner`; one shared opening schema for all tools so places survive between tools; `roomOutline`, `placeOpenings`, `cornerFlips` in `calc/blocks/plan.ts`; room store and `ProjectData` accept both fields (no version bump).
+- [x] P16.2 `FloorPlan` SVG (`entities/room`): contour, wall numbers, overall size, door with swing, window; `PlanEditor` popup (`features/edit-room-plan`): wall and offset per door/window, add/remove; form field kind `plan`.
+- [x] P16.3 `LayoutScheme` (`widgets/calculator-shell`), rows kind: whole / hatched cut / orange reused dot, legend with counts, text summary, start corner, row numbers, «Как укладывать», cut list per row, fullscreen, bands above 2,000 pieces.
+- [x] P16.4 **Pilot — laminate (straight):** `layout` from `RowsResult.plan` (`traceRows` replays the pools and must give the engine's board count; `rowsLayout` mirrors to the cut corner or away from the door); guide: start wall and corner, laying towards the door, rows along the light, rows and last row, offcuts; `opening_off_wall` warning. No formula change (version 1).
+- [ ] P16.5 Linoleum: sheets, seams, allowance, L-shape short sheets; guide (seams along the light, not in the doorway, cutting after relaxation).
+- [ ] P16.6 Tile floor: grid from `gridLine` per axis, edge cuts with widths, start point (centre or corner, whole tiles at a placed door); then walls per wall around placed openings.
+- [ ] P16.7 Plinth: runs split by placed doors, corners, cut list per run.
+- [ ] P16.8 Wallpaper: per-wall strip engine (plumb line from the start corner, wraps at corners, pieces above/below openings, roll cut map) — **formula version 2**, new golden examples, `formula-reviewer` pass; guide (start corner by paper type, direction, step-off).
+- [ ] P16.9 Room area and wall area: `FloorPlan` with placed openings as the result picture; plan in the room card (RoomBar) once positions exist.
+- [ ] P16.10 Laminate diagonal / herringbone scheme; drag-and-drop placing on the plan; free polygon rooms (planner v2).
+- [ ] P16.11 Master review (C10) of every guide text; release check requirement 15 for wallpaper, laminate, linoleum, tile.
+
+**Exit gate:** laminate, linoleum, tile, plinth and wallpaper show a scheme built from their own plan, with a guide reviewed by the master; release check requirement 15 passes for all four layout tools.
+
+**Who:** `calc-engineer` (builders, wallpaper engine), `formula-reviewer` (independent check of every plan), `frontend-builder` (plan, editor, scheme), owner + master (guide texts).
+
+---
+
 ## Open questions and inconsistencies
 
 | # | Item | Resolution / owner | Phase |
@@ -444,7 +472,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 | 6 | `[ИСТОЧНИК НОРМЫ]` placeholders in mockups | Fill from C01 | P0.7 |
 | 7 | Home headline | Decided 2026-10-09: H1 «Одна комната — весь список покупок», promise below it «Введите размеры один раз — получите проверенный список покупок для всего ремонта»; apply in C13/P0.9 | P0.9 |
 | 8 | Vercel Hobby non-commercial clause | OK until ads; fallback VPS container | P14.6 |
-| 9 | «сколько пачек ламината нужно» = 0 demand; mockup uses it | Use «сколько нужно ламината» | P8.5 |
+| 9 | «сколько пачек ламината нужно» = 0 demand; mockup uses it | Done 2026-10-11: laminate `question` is «Сколько нужно ламината на комнату» | P8.5 |
 | 10 | TypeScript 7.0 is latest; ecosystem support unverified | Spike | P1.2 |
 | 11 | Local Node is v26; spec pins Node 24 LTS | `.nvmrc` 24 | P1.1 |
 

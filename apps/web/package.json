@@ -11,6 +11,8 @@
     "test": "vitest run",
     "images": "node scripts/images.mjs",
     "images:check": "node scripts/images.mjs --check",
+    "brand-images": "node scripts/brand-images.mjs",
+    "lighthouse": "lhci autorun",
     "e2e": "playwright test",
     "html:check": "node scripts/check-html.mjs"
   },
@@ -27,6 +29,7 @@
     "zustand": "5.0.15"
   },
   "devDependencies": {
+    "@lhci/cli": "0.15.1",
     "@playwright/test": "1.64.0",
     "@tailwindcss/postcss": "4.3.3",
     "@testing-library/react": "16.3.3",

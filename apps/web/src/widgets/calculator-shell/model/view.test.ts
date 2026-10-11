@@ -76,3 +76,21 @@ describe("describeResult", () => {
     expect(view.short).toMatch(/^10\u00a0пачек · 12/);
   });
 });
+
+describe("can sets", () => {
+  it("paint: one main figure for all can sizes, the sizes in the caption; primer canister with its size", () => {
+    const tool = getTool("steny", "kraska");
+    if (!tool) throw new Error("no tool");
+    const module = toolModules.kraska;
+    const input = { ...module.defaults({ country: "RU" }), surface: "both" as const };
+    const view = describeResult(tool, module.compute(input, { country: "RU" }), "RU");
+    // 12,912 л → 9 + 2,7 + 0,9 + 0,9
+    expect(view.main).toMatchObject({ title: "Краска", value: "4", unit: "банки" });
+    expect(view.main?.caption).toBe(
+      `1${NBSP}×${NBSP}9${NBSP}л + 1${NBSP}×${NBSP}2,7${NBSP}л + 2${NBSP}×${NBSP}0,9${NBSP}л · останется 0,59${NBSP}л`,
+    );
+    expect(view.related).toEqual([
+      expect.objectContaining({ key: "primer", quantity: `1${NBSP}канистра`, detail: `по 10${NBSP}л` }),
+    ]);
+  });
+});

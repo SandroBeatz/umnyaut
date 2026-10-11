@@ -62,10 +62,15 @@ check(walk(pkg("calc")), (file, text, imports) => [
     .map(([, name]) => `calc must stay pure, found ${name}`),
 ]);
 
-// packages/catalog: calc + zod + relative.
+// packages/catalog: calc + zod + relative. Tests may also use vitest and Node built-ins (the norm register test reads docs/).
 check(walk(pkg("catalog")), (file, _text, imports) =>
   imports
-    .filter((s) => !isRelative(s) && !["zod", "@umnyaut/calc"].includes(s) && !(isTest(file) && s === "vitest"))
+    .filter(
+      (s) =>
+        !isRelative(s) &&
+        !["zod", "@umnyaut/calc"].includes(s) &&
+        !(isTest(file) && (s === "vitest" || s.startsWith("node:"))),
+    )
     .map((s) => `catalog may import only @umnyaut/calc and zod, got "${s}"`),
 );
 

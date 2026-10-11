@@ -122,12 +122,15 @@ describe("invariants", () => {
     expect(resultViolations(result())).toEqual([]);
   });
 
-  it("flags fewer packs or a vanished item when the area grows", () => {
+  it("flags less bought or a vanished item when the area grows", () => {
     expect(growthViolations(result(), result({ items: [item(1, 2, 2.5)] }))).toEqual([
-      "paint: 2 → 1 packs when the area grew",
+      "paint: bought 5 → 2.5 when the area grew",
     ]);
     expect(growthViolations(result(), result({ items: [] }))).toEqual(["paint: disappeared when the area grew"]);
     expect(growthViolations(result(), result({ items: [item(3, 7, 7.5)] }))).toEqual([]);
+    // A can set may swap sizes: 2 × 2,5 л → 1 × 9 л is still more paint.
+    const big = { ...item(1, 6, 9), pack: { kind: "bucket" as const, size: { value: 9, unit: "l" as const } } };
+    expect(growthViolations(result(), result({ items: [big] }))).toEqual([]);
   });
 
   it("the property runner holds for the demo tool", () => {

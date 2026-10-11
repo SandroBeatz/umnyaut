@@ -13,8 +13,20 @@ export interface Quantity {
 
 /** How the item is sold. `kind` picks the noun in catalog (пачка, рулон, мешок…); `size` is what one holds. */
 export interface Pack {
-  kind: "pack" | "roll" | "bag" | "bucket" | "can" | "box" | "piece" | "tube";
+  kind: "pack" | "roll" | "bag" | "bucket" | "can" | "canister" | "box" | "piece" | "plank" | "running" | "tube";
   size: Quantity;
+  /**
+   * Roll width of goods sold by the running metre (`kind: "running"`): `size` is then the area of one cut
+   * step (width × step), so needs of different widths stay comparable in m².
+   */
+  width?: Quantity;
+}
+
+/** Where one opening sits on the plan: wall index along the outline (clockwise from the top-left corner). */
+export interface OpeningPlace {
+  wall: number;
+  /** From the wall's first corner (clockwise) to the opening's near edge, mm. */
+  offsetMm: number;
 }
 
 export interface Opening {
@@ -22,7 +34,12 @@ export interface Opening {
   widthMm: number;
   heightMm: number;
   count: number;
+  /** One per counted opening, optional: only the plan and the laying guide use them, never a count. */
+  places?: readonly OpeningPlace[];
 }
+
+/** Corner of the plan the L-shape's cut-out sits in (x along the length to the right, y along the width down). */
+export type CutCorner = "ne" | "se" | "sw" | "nw";
 
 /** “My room”. `cut` is the corner cut-out of an L-shaped room; `points` is a free contour (planner v2). */
 export interface Room {
@@ -31,6 +48,8 @@ export interface Room {
   widthMm: number;
   heightMm: number;
   cut?: { lengthMm: number; widthMm: number };
+  /** Plan position of the cut-out; default `se`. */
+  cutCorner?: CutCorner;
   points?: readonly (readonly [number, number])[];
   openings: readonly Opening[];
 }
@@ -74,22 +93,79 @@ export interface Step {
   values: Readonly<Record<string, number>>;
 }
 
+/** A piece on the plan, mm, plan frame: x along the room length to the right, y along the width down. */
 export interface LayoutPiece {
   x: number;
   y: number;
   w: number;
   h: number;
   cut: boolean;
+  /** Made from an offcut of another row or sheet (the orange dot). */
   reused?: boolean;
+  /** Row or sheet index in laying order. */
+  row?: number;
 }
 
-/** Geometry for the single `LayoutScheme` SVG component. */
+/** Something drawn on the outline: a placed door or window, the start corner, a seam. */
+export interface LayoutMark {
+  kind: "door" | "window" | "start" | "seam";
+  /** Wall index (doors, windows) — the UI shows it 1-based. */
+  wall?: number;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
+/** A wall of the outline, clockwise; `side` is the way it faces the room's inside from. */
+export interface PlanWall {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  lengthMm: number;
+  side: "top" | "right" | "bottom" | "left";
+}
+
+/** One row of a row layout (laminate): what to cut and where every piece comes from. */
+export interface LayoutRow {
+  /** Row length between the gaps, mm. */
+  lengthMm: number;
+  /** Row width across, mm (narrower than a board in the last row). */
+  widthMm: number;
+  start: number;
+  /** `whole` board, a board `cut` to shift the joints, an offcut from the `pool` of another row. */
+  startFrom: "whole" | "cut" | "pool";
+  /** Row the reused start piece came from (0-based). */
+  startFromRow?: number;
+  /** Left part of a board cut for the start, and the row it ends (none = waste). */
+  startRest?: number;
+  startRestToRow?: number;
+  /** Whole boards between the start and the end piece. */
+  whole: number;
+  /** End piece, 0 when the row ends on a whole board or is one piece. */
+  end: number;
+  endFrom: "new" | "pool" | "none";
+  endFromRow?: number;
+  /** What is left of the board the end piece was cut from, and the row it starts (none = waste). */
+  rest?: number;
+  restToRow?: number;
+}
+
+/** Geometry for the single `LayoutScheme` SVG component; text for `guide` codes lives in catalog. */
 export interface Layout {
   kind: "rows" | "grid" | "strips" | "points" | "outline";
   widthMm: number;
   heightMm: number;
+  /** Room contour, clockwise from the top-left corner. */
+  outline: readonly (readonly [number, number])[];
+  walls: readonly PlanWall[];
   pieces: readonly LayoutPiece[];
-  stats: { whole: number; cut: number; wasteM2: number };
+  marks: readonly LayoutMark[];
+  rows?: readonly LayoutRow[];
+  /** Laying steps in order: code + numbers. */
+  guide: readonly Step[];
+  stats: { whole: number; cut: number; reused: number; wasteM2: number };
 }
 
 export interface ToolResult {

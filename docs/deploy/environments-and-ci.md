@@ -1,12 +1,12 @@
 ---
-version: 1.4
-date: 2026-10-09
+version: 1.5
+date: 2026-10-10
 category: deploy
 ---
 
 # Environments and CI/CD
 
-> Version 1.4 · 2026-10-09 · [Deploy](../deploy/)
+> Version 1.5 · 2026-10-10 · [Deploy](../deploy/)
 
 ## Overview
 
@@ -118,7 +118,7 @@ If none passes everything: host the site where visitor reachability is best and 
 | `infra/deploy.sh` | `deploy <tag>` / `rollback` / `status`: start idle slot → wait for Docker health → reload Caddy → stop old slot |
 | `infra/server.env.example` | Compose `.env` on the server (`DOMAIN`, `ACME_EMAIL`) |
 | `apps/web/Dockerfile` | Next standalone image (Node 24 alpine, non-root, `HEALTHCHECK` on `/api/health/`, `APP_VERSION` build arg) |
-| `.github/workflows/ci.yml` | PR checks: Biome, guard, Steiger, tsc, tests, build, server-HTML guard (`html:check`); Playwright phone journeys against `next start` of the CI build (job `e2e`); Docker image + smoke test; infra lint (shellcheck, compose, caddy validate) |
+| `.github/workflows/ci.yml` | PR checks: Biome, guard, Steiger, tsc, tests, build, server-HTML guard (`html:check`); Playwright phone journeys against `next start` of the CI build (job `e2e`); Docker image + smoke test; infra lint (shellcheck, compose, caddy validate); the reviewer export (`pnpm calc:export`, must write > 100 rows) runs in the main job since Phase 6 |
 | `.github/workflows/deploy.yml` | `main` → GHCR → VPS |
 | `.github/workflows/backup.yml` | Weekly encrypted `pg_dump` of prod as an Actions artifact (35 days) |
 | `renovate.json` | Monthly dependency PRs into `develop`, grouped |

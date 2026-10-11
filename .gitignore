@@ -27,3 +27,4 @@ test-results
 .idea
 .DS_Store
 *.sw?
+.lighthouseci

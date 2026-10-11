@@ -19,7 +19,8 @@ export type RoomBinding = "length" | "width" | "height" | "cutLength" | "cutWidt
 
 /**
  * Form described by data (tech spec §6 + design spec §18 `main` flag). Lengths are stored in mm;
- * `unit` is what the field shows first, `min`/`max` are mm.
+ * `min`/`max` are mm. A length with `unit: "m"` follows the form's м/см switch; `cm` and `mm` stay fixed
+ * (wallpaper repeat in cm whatever the room is measured in).
  */
 export type FieldDef =
   | (FieldBase & {
@@ -34,13 +35,17 @@ export type FieldDef =
   | (FieldBase & {
       kind: "select";
       options: readonly { value: string; label: string }[];
-      /** `shape` reads and writes the room shape. */
-      room?: "shape";
+      /** `shape` reads and writes the room shape, `cutCorner` where its L-cut sits on the plan. */
+      room?: "shape" | "cutCorner";
+      /** Dropdown in half a row instead of a full-width segment (up to 4 options are a segment by default). */
+      dropdown?: boolean;
     })
   | (FieldBase & { kind: "toggle" })
   | (FieldBase & { kind: "price" /** Purchase item key the pack price belongs to. */; item: string })
   /** Windows and doors list; always bound to the openings of “My room”. */
   | (FieldBase & { kind: "openings" })
+  /** Doors and windows placed on the room plan (popup editor); bound to the openings of “My room” too. */
+  | (FieldBase & { kind: "plan" })
   | { kind: "preset"; label: string; presets: readonly string[]; main?: boolean };
 
 /** Fills several fields at once («Обычная комната 18 м²»). */
@@ -80,6 +85,8 @@ export interface ToolDef {
   summary?: Readonly<Record<string, string>>;
   /** Text per step code of “How calculated”, same placeholders. */
   steps?: Readonly<Record<string, string>>;
+  /** Text per laying-guide code of the layout scheme («Как укладывать»), same placeholders. */
+  guide?: Readonly<Record<string, string>>;
   /** Norm ids this tool uses (see norms.ts); “How calculated” lists their sources. */
   norms?: readonly string[];
 }

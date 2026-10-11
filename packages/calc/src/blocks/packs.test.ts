@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bestPackSet, ceilPacks, purchase } from "./packs";
+import { bestPackSet, ceilPacks, purchase, purchaseSet } from "./packs";
 
 describe("ceilPacks", () => {
   it("rounds up", () => {
@@ -86,5 +86,39 @@ describe("bestPackSet", () => {
 
   it("huge amounts fall back to the largest pack", () => {
     expect(bestPackSet(2_000_000, [{ size: 1 }, { size: 3 }]).counts).toEqual([0, 666_667]);
+  });
+});
+
+describe("purchaseSet", () => {
+  const cans = [0.9, 2.7, 9];
+  const lines = (need: number) =>
+    purchaseSet("paint", "main", { value: need, unit: "l" }, "can", cans).map((i) => [i.pack.size.value, i.packs]);
+
+  it("one line per can size used, largest first; the need is split so each line passes ceilPacks", () => {
+    const set = purchaseSet("paint", "main", { value: 11.6, unit: "l" }, "can", cans);
+    expect(set.map((i) => [i.pack.size.value, i.packs, i.need.value])).toEqual([
+      [9, 1, 9],
+      [2.7, 1, expect.closeTo(2.6, 9)],
+    ]);
+    expect(set.reduce((sum, i) => sum + i.leftover.value, 0)).toBeCloseTo(0.1, 9);
+  });
+
+  it("small cans when they overpay less; nothing needed gives no lines", () => {
+    expect(lines(1.0)).toEqual([[0.9, 2]]);
+    expect(lines(2.7)).toEqual([[2.7, 1]]);
+    expect(lines(0)).toEqual([]);
+  });
+
+  it("every line's packs match the optimal set across many needs", () => {
+    for (let need = 0.05; need < 40; need += 0.37) {
+      const set = bestPackSet(
+        need,
+        cans.map((size) => ({ size })),
+      );
+      const got = Object.fromEntries(lines(need).map(([size, packs]) => [String(size), packs]));
+      cans.forEach((size, i) => {
+        expect(got[String(size)] ?? 0, `need ${need} size ${size}`).toBe(set.counts[i]);
+      });
+    }
   });
 });

@@ -1,12 +1,12 @@
 ---
-version: 1.1
-date: 2026-10-09
+version: 1.2
+date: 2026-10-10
 category: design
 ---
 
 # Design System
 
-> Version 1.1 · 2026-10-09 · [Design](../design/)
+> Version 1.2 · 2026-10-10 · [Design](../design/)
 
 ## Overview
 
@@ -118,9 +118,9 @@ Ginger tabby in round glasses and navy overalls/apron with the “У” mark, ta
 |---|---|---|---|---|
 | 1 | `hello` | Home hero, bot `/start`, OG image | 1 | `Friendly Orange Tabby Mascot with Raised Paw.png` / `Cheerful Cat Mascot with Blueprint.png` |
 | 2 | `done` | Result header, saved project | 1 | `Winking Cat Mascot with Calculator and Thumbs-Up.png` |
-| 3 | `warn` | Warnings, electrical disclaimers | 1 | `Friendly Orange Tabby Mascot with Raised Paw.png` (to confirm) |
+| 3 | `warn` | Not used in hints (see the rule below); gallery only until another use is approved | 1 | `Friendly Orange Tabby Mascot with Raised Paw.png` (to confirm) |
 | 4 | `oops` | 404, save failure, offline | 1 | `Apologetic Tabby Cat Shrugging.png` |
-| 5 | `head` | Bot avatar, 40 px hints, header ≥ 1024 | 1 | `Cute Orange Tabby Cat Avatar.png` |
+| 5 | `head` | **Every hint, warning and note (40 px)**, bot avatar, header ≥ 1024 | 1 | `Cute Orange Tabby Cat Avatar.png` |
 | 6 | `measure` | My room card, planner step 1 | 2 | `Orange Tabby Measuring Tape Mascot.png` |
 | 7 | `point` | “How we calculate”, next steps | 2 | `Orange Tabby Mascot Pointing with Pencil.png` |
 | 8 | `empty` | Empty “My calculations” | 2 | `Curious Cat and Open Box.png` |
@@ -129,6 +129,8 @@ Ginger tabby in round glasses and navy overalls/apron with the “У” mark, ta
 | 11 | `master` | Master mode entry | 3 | `Construction Cat with Tablet and Hard Hat.png` |
 
 A turnaround sheet (`Orange Tabby Mascot Turnaround Sheet.png`) and 11 poses at 1254 px now exist — this partially resolves the design spec's open question; the spec asked for ≥ 2048 px, so verify they are sufficient for the 400 px hero at 2×. Short videos (`hello-video.mp4`, `done.mp4`, `oops.mp4`, `empty.mp4`, `think.mp4`) also exist, while the spec says “no character animation at launch” — needs a decision (see [Development Plan](../plan/development-plan.md) open questions).
+
+**Rule (owner, 2026-10-10): hints use the cat's head only.** Every hint, warning, note or info line — under the result, in the room list, in the planner, the bot — shows the `head` pose at 40 px, never the whole cat. In code it is the shared `Hint` component (`apps/web/src/shared/ui/Hint.tsx`); a test fails if the whole-cat `warn` pose appears anywhere but the dev gallery.
 
 Sizes: home hero 160 / 400 px; result header 56 / 96 px; hint 40 px head; empty/404 160 / 240 px; saved project 64 / 120 px. Rules: one cat per view; never adds height on a tool page; never covers numbers/fields/scheme; always on a mint spot; bubble text duplicated in normal text; no jokes about input errors; no cat in widget, print, client estimate, or near ads; only a 200 ms fade-in. Export AVIF + WebP via `picture`, 1× and 2×; head ≤ 4 KB, 56–96 px ≤ 10 KB, hero ≤ 60 KB.
 

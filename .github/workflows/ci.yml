@@ -42,6 +42,8 @@ jobs:
         run: pnpm turbo run typecheck test build
       - name: Server HTML has title, one H1, canonical and result numbers
         run: pnpm --filter web html:check
+      - name: Reviewer export runs (tsx on Linux)
+        run: pnpm calc:export --csv --out "$RUNNER_TEMP/golden.csv" && test "$(wc -l < "$RUNNER_TEMP/golden.csv")" -gt 100
 
   e2e:
     name: Playwright (phone)
@@ -67,6 +69,29 @@ jobs:
           name: playwright-traces
           path: apps/web/test-results
           retention-days: 7
+
+  lighthouse:
+    name: Lighthouse (mobile)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build web
+        run: pnpm turbo run build --filter=web
+      - name: Home, laminate, wallpaper against the budget (apps/web/lighthouserc.cjs)
+        run: pnpm --filter web lighthouse
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: apps/web/.lighthouseci
+          retention-days: 14
 
   docker:
     name: Docker image + smoke test

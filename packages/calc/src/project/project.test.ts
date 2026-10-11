@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { purchase } from "../blocks/packs";
+import { toolModules } from "../tools";
 import type { Room } from "../types";
 import { mergeItems } from "./merge";
 import { migrateProject, type ProjectData, roomSchema } from "./schema";
@@ -70,5 +71,18 @@ describe("mergeItems", () => {
       ["grout", 2, 1],
       ["tile-adhesive", 5, 1],
     ]);
+  });
+});
+
+describe("wall list merge", () => {
+  it("primer under wallpaper and under ceiling paint is rounded to canisters once", () => {
+    const ctx = { country: "RU" } as const;
+    const walls = toolModules.oboi.compute(toolModules.oboi.defaults(ctx), ctx);
+    const ceiling = toolModules.kraska.compute({ ...toolModules.kraska.defaults(ctx), surface: "ceiling" }, ctx);
+    // 6,717 + 2,967 = 9,684 л → one 10 л canister, not two.
+    const primer = mergeItems([...walls.items, ...ceiling.items]).filter((i) => i.key === "primer");
+    expect(primer).toHaveLength(1);
+    expect(primer[0]?.packs).toBe(1);
+    expect(primer[0]?.need.value).toBeCloseTo(9.684, 9);
   });
 });

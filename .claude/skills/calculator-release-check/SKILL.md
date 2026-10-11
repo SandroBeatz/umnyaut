@@ -16,7 +16,7 @@ Tool id(s) or “wave N” (wave lists in `docs/business/product-and-domain.md`)
 ## Workflow
 
 1. Load `references/standard.md`.
-2. For each tool, read its five files: `packages/calc/src/tools/<id>/{index,golden}.ts`, `packages/catalog/src/tools/<id>.ts`, `apps/web/content/tools/<id>.md`, optional `apps/web/src/widgets/layout-scheme/<id>.tsx`.
+2. For each tool, read its five files: `packages/calc/src/tools/<id>/{index,golden}.ts`, `packages/catalog/src/tools/<id>.ts`, `apps/web/content/tools/<id>.md`, and for requirement 15 whether `compute()` returns `layout` (drawn by the shared `widgets/calculator-shell/ui/LayoutScheme.tsx`) with a catalog `guide` text per code.
 3. Static check per requirement (evidence hints in the standard file).
 4. Run tests for the tool: golden, invariants, registry, content schema.
 5. Inspect built HTML without JS (build output): `title`, exactly one `H1`, `canonical`, result numbers, FAQ present.

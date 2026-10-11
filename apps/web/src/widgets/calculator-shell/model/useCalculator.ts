@@ -20,8 +20,10 @@ export interface Calculator {
   stale: boolean;
   /** Untouched defaults: the mascot says «Это пример». */
   example: boolean;
-  /** Fields changed by the user since load (for `calc_completed`). */
+  /** Field changes by the user since load. */
   edits: number;
+  /** Distinct fields the user changed since load (for `calc_completed`). */
+  fieldsChanged: number;
   setValues(patch: ToolValues): void;
   setInvalid(name: string, invalid: boolean): void;
 }
@@ -37,6 +39,8 @@ export function useCalculator(tool: ToolDef): Calculator {
   const [values, setAll] = useState<ToolValues>(defaults);
   const [invalid, setInvalidSet] = useState<ReadonlySet<string>>(() => new Set());
   const [edits, setEdits] = useState(0);
+  const changed = useRef(new Set<string>());
+  const [fieldsChanged, setFieldsChanged] = useState(0);
   const country = useCountry();
   const loaded = useRef(false);
 
@@ -83,6 +87,8 @@ export function useCalculator(tool: ToolDef): Calculator {
   const setValues = useCallback(
     (patch: ToolValues) => {
       setEdits((n) => n + 1);
+      for (const name of Object.keys(patch)) changed.current.add(name);
+      setFieldsChanged(changed.current.size);
       setAll((current) => parse({ ...current, ...patch }) ?? current);
       const room = roomPatch(patch, tool.fields);
       if (Object.keys(room).length > 0) useRoomStore.getState().updateRoom(room);
@@ -129,6 +135,7 @@ export function useCalculator(tool: ToolDef): Calculator {
     stale,
     example: edits === 0 && same(values, defaults),
     edits,
+    fieldsChanged,
     setValues,
     setInvalid,
   };

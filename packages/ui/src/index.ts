@@ -16,6 +16,7 @@ export { Sheet, SheetClose, SheetContent, SheetTrigger } from "./components/Shee
 export { Stepper } from "./components/Stepper";
 export { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/Tabs";
 export { Toaster, toast } from "./components/Toast";
+export { type ToggleChip, ToggleChips, type ToggleChipsProps } from "./components/ToggleChips";
 export { type LengthUnit, UnitToggle } from "./components/UnitToggle";
 export * from "./format";
 export { DESKTOP_QUERY, useMediaQuery } from "./hooks/useMediaQuery";

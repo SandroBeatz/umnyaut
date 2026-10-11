@@ -1,5 +1,6 @@
-import { getCategory, shell, strings, type ToolDef } from "@umnyaut/catalog";
-import { Breadcrumbs } from "@/shared/ui";
+import { getCategory, shell, strings, type ToolDef, toolPath } from "@umnyaut/catalog";
+import { ld } from "@/shared/lib";
+import { Breadcrumbs, JsonLd, PageText } from "@/shared/ui";
 import { CalculatorShell } from "@/widgets/calculator-shell";
 import type { ToolText } from "../model/content";
 
@@ -9,8 +10,20 @@ import type { ToolText } from "../model/content";
  */
 export function ToolPage({ tool, text }: { tool: ToolDef; text?: ToolText }) {
   const category = getCategory(tool.category);
+  const path = toolPath(tool);
   return (
     <main className="mx-auto w-full max-w-[1200px] px-4 pb-8 sm:px-6 lg:px-8">
+      <JsonLd
+        data={[
+          ld.tool({ name: text?.h1 ?? tool.title, description: text?.description ?? tool.outcome ?? "", path }),
+          ld.breadcrumbs([
+            { name: shell.breadcrumbs.home, path: "/" },
+            ...(category ? [{ name: category.title, path: `/${category.slug}/` }] : []),
+            { name: tool.title, path },
+          ]),
+          ...(text ? [ld.faq(text.faq)] : []),
+        ]}
+      />
       <Breadcrumbs
         label={shell.breadcrumbs.label}
         trail={[
@@ -25,26 +38,7 @@ export function ToolPage({ tool, text }: { tool: ToolDef; text?: ToolText }) {
         {tool.status === "draft" ? <p className="mt-2 text-small text-accent-text">{strings.draftNotice}</p> : null}
       </div>
       <CalculatorShell category={tool.category} toolId={tool.id} checkedAt={text?.checkedAt} />
-      {text ? (
-        <article className="prose-umnyaut mt-10 max-w-[44rem] print:hidden">
-          {/* biome-ignore lint/security/noDangerouslySetInnerHtml: built from our Markdown and sanitised by rehype-sanitize */}
-          <div dangerouslySetInnerHTML={{ __html: text.html }} />
-          <section aria-labelledby="faq" className="mt-8">
-            <h2 id="faq" className="text-h2">
-              {shell.faq}
-            </h2>
-            <div className="mt-2 divide-y divide-border border-border border-y">
-              {text.faq.map(({ q, a }) => (
-                <section key={q} className="py-4">
-                  <h3 className="text-body-strong">{q}</h3>
-                  {/* biome-ignore lint/security/noDangerouslySetInnerHtml: sanitised like the body */}
-                  <div className="mt-1 text-body text-text-muted" dangerouslySetInnerHTML={{ __html: a }} />
-                </section>
-              ))}
-            </div>
-          </section>
-        </article>
-      ) : null}
+      {text ? <PageText html={text.html} faq={text.faq} faqTitle={shell.faq} className="mt-10 print:hidden" /> : null}
     </main>
   );
 }

@@ -3,6 +3,7 @@
 import { shell } from "@umnyaut/catalog";
 import { Button, toast } from "@umnyaut/ui";
 import { Copy, Printer, Send } from "lucide-react";
+import type { ReactNode } from "react";
 import { fill } from "@/shared/lib";
 
 const t = shell.actions;
@@ -13,6 +14,10 @@ export interface ResultActionsProps {
   /** Called on click so the text and link reflect the current input. */
   getText(): string;
   getUrl(): string;
+  /** Replaces the disabled «Сохранить» (purchase tools put «В список» here). */
+  primary?: ReactNode;
+  /** For analytics: what was done (`link` — share sheet or copied link, `text` — text + link copied). */
+  onAction?(action: "link" | "copy" | "print"): void;
 }
 
 async function copy(text: string, done: string) {
@@ -28,9 +33,10 @@ async function copy(text: string, done: string) {
  * «Сохранить» (disabled until projects exist, Phase 7), «Отправить» (system share sheet, or the link is copied),
  * «Скопировать» (text + link), «Печать». No request to the server.
  */
-export function ResultActions({ title, getText, getUrl }: ResultActionsProps) {
+export function ResultActions({ title, getText, getUrl, primary, onAction }: ResultActionsProps) {
   const send = async () => {
     const url = getUrl();
+    onAction?.("link");
     if (typeof navigator.share === "function") {
       try {
         await navigator.share({ title: fill(shell.share.title, { tool: title }), text: getText(), url });
@@ -47,9 +53,11 @@ export function ResultActions({ title, getText, getUrl }: ResultActionsProps) {
 
   return (
     <div className="flex flex-wrap items-center gap-2 print:hidden">
-      <Button className="min-w-32 flex-1" disabled title={t.saveSoon}>
-        {t.save}
-      </Button>
+      {primary ?? (
+        <Button className="min-w-32 flex-1" disabled title={t.saveSoon}>
+          {t.save}
+        </Button>
+      )}
       <Button variant="secondary" className="min-w-32 flex-1" onClick={send}>
         <Send aria-hidden="true" />
         {t.share}
@@ -57,12 +65,22 @@ export function ResultActions({ title, getText, getUrl }: ResultActionsProps) {
       <button
         type="button"
         className={iconButton}
-        onClick={() => copy(`${getText()}\n${fill(shell.share.link, { url: getUrl() })}`, t.copied)}
+        onClick={() => {
+          onAction?.("copy");
+          void copy(`${getText()}\n${fill(shell.share.link, { url: getUrl() })}`, t.copied);
+        }}
       >
         <Copy aria-hidden="true" />
         {t.copy}
       </button>
-      <button type="button" className={iconButton} onClick={() => window.print()}>
+      <button
+        type="button"
+        className={iconButton}
+        onClick={() => {
+          onAction?.("print");
+          window.print();
+        }}
+      >
         <Printer aria-hidden="true" />
         {t.print}
       </button>

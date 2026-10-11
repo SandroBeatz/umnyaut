@@ -97,18 +97,22 @@ export function bestPackSet(need: number, options: readonly PackOption[]): PackS
   const better = (c: number, n: number, a: number) =>
     c < (cost[a] as number) - 1e-9 || (Math.abs(c - (cost[a] as number)) <= 1e-9 && n < (count[a] as number));
 
+  // Plain loops: this runs up to SET_MAX_STEPS × options times, a closure per step is too slow.
+  const stepCost = valid.map((o, k) => (usePrice ? o.price : (sizes[k] as number)));
   for (let a = 1; a <= limit; a++) {
-    valid.forEach((option, k) => {
+    for (let k = 0; k < sizes.length; k++) {
       const s = sizes[k] as number;
-      if (s > a || cost[a - s] === Number.POSITIVE_INFINITY) return;
-      const c = (cost[a - s] as number) + (usePrice ? option.price : s);
+      if (s > a) continue;
+      const prev = cost[a - s] as number;
+      if (prev === Number.POSITIVE_INFINITY) continue;
+      const c = prev + (stepCost[k] as number);
       const n = (count[a - s] as number) + 1;
       if (better(c, n, a)) {
         cost[a] = c;
         count[a] = n;
         last[a] = k;
       }
-    });
+    }
   }
 
   let best = -1;
@@ -121,4 +125,32 @@ export function bestPackSet(need: number, options: readonly PackOption[]): PackS
     counts[option.i] = (counts[option.i] as number) + 1;
   }
   return result();
+}
+
+/**
+ * Purchase lines for the best set of different pack sizes (paint 0,9 / 2,7 / 9 л): one line per size used,
+ * largest first, all with the same `key`. The need is split largest first, so every line still goes
+ * through `ceilPacks`; the set is optimal, so no line could drop a pack. Nothing needed → no lines.
+ */
+export function purchaseSet(
+  key: string,
+  role: PurchaseItem["role"],
+  need: Quantity,
+  kind: Pack["kind"],
+  sizes: readonly number[],
+): PurchaseItem[] {
+  const set = bestPackSet(
+    need.value,
+    sizes.map((size) => ({ size })),
+  );
+  const lines = sizes
+    .map((size, i) => ({ size, count: set.counts[i] as number }))
+    .filter((line) => line.count > 0)
+    .sort((a, b) => b.size - a.size);
+  let rest = need.value;
+  return lines.map(({ size, count }, i) => {
+    const part = i === lines.length - 1 ? rest : Math.min(rest, count * size);
+    rest -= part;
+    return purchase(key, role, { value: part, unit: need.unit }, { kind, size: { value: size, unit: need.unit } });
+  });
 }

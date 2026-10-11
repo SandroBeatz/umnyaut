@@ -14,8 +14,18 @@ export const shell = {
   breadcrumbs: { label: "Навигация", home: "Главная", back: "Назад" },
   footer: {
     categories: "Калькуляторы",
+    about: "О сервисе",
     country: "Страна",
     note: "Расчёты в целых упаковках. Цены — ориентир, проверяйте в магазине.",
+    cookies: "Настройки cookie",
+  },
+  /** Strict consent (business spec §12): Metrika loads only after «Принять». */
+  consent: {
+    label: "Cookie",
+    text: "Метрика и cookie — только с согласия.",
+    more: "Подробнее",
+    accept: "Принять",
+    decline: "Отклонить",
   },
   country: {
     title: "Страна",
@@ -41,6 +51,8 @@ export const shell = {
     range: "От {min} до {max} {unit}",
     required: "Введите значение",
     fromRoom: "Из «Моей комнаты»",
+    /** Hint under a price field from the country's typical prices. */
+    typicalPrice: "Обычно около {price}, проверено {date}",
     decrement: "Меньше",
     increment: "Больше",
   },
@@ -69,11 +81,82 @@ export const shell = {
     example: "Это пример. Введите свои размеры",
     stale: "По прошлым значениям — исправьте поле с ошибкой",
     need: "{need} · останется {leftover}",
+    /** Packs sold by volume or weight: which sizes to take instead of the need («1 × 9 л + 1 × 2,7 л»). */
+    set: "{set} · останется {leftover}",
+    each: "по {size}",
+    /** Running-metre goods (linoleum): the roll width and the bought area. */
+    running: "ширина {width} · {area}",
+    width: "ширина {size}",
     total: "Итого {total}",
     perM2: "{price} за м²",
     missing: "без {count} {positions}",
     positions: { one: "позиции", few: "позиций", many: "позиций" },
     related: "Ещё понадобится",
+  },
+  /** Local list of works for one room (P6.11); the full planner is /remont/ in Phase 11. */
+  roomList: {
+    title: "Список для комнаты",
+    lead: "Одинаковые материалы сложены и округлены до упаковок один раз. Размеры — из «Моей комнаты».",
+    add: "В список",
+    added: "В списке",
+    update: "Обновить в списке",
+    addedToast: "Добавлено в список для комнаты",
+    works: "Расчёты",
+    remove: "Убрать «{tool}» из списка",
+    buy: "Купить",
+    next: "Добавьте в список",
+    copy: "Скопировать список",
+    copied: "Список скопирован",
+    clear: "Очистить список",
+    /** Conflicts between works of the list, by code. */
+    conflicts: {
+      walls_twice: "Стены и в обоях, и в краске. Если красите только потолок, выберите в краске «Потолок»",
+    },
+  },
+  /** Room plan editor (popup): doors and windows on walls, docs/ui/room-plan-and-layout-guides.md. */
+  plan: {
+    open: "Отметить на плане",
+    edit: "Изменить план",
+    title: "План комнаты",
+    description: "Укажите, на какой стене дверь и окна. Стены пронумерованы по часовой стрелке",
+    wall: "Стена {n}",
+    wallLabel: "Стена",
+    offset: "От левого угла",
+    offsetHint: "Если смотреть на стену из комнаты",
+    unplaced: "Не отмечено на плане",
+    none: "Сначала добавьте дверь или окно",
+    done: "Готово",
+    summary: "Отмечено: {placed} из {total}",
+    planLabel: "План комнаты {length} × {width} {unit}",
+  },
+  /** Layout scheme card under the result (design spec §11 `LayoutScheme`). */
+  scheme: {
+    title: "Схема укладки",
+    summary: "Рядов: {rows} · целых: {whole} · подрезанных: {cut}",
+    label: "Схема укладки: рядов {rows}, целых досок {whole}, подрезанных {cut}",
+    legendWhole: "Целая — {count}",
+    legendCut: "Подрезанная — {count}",
+    legendReused: "Обрезок из другого ряда — {count}",
+    start: "Старт",
+    door: "Дверь",
+    window: "Окно",
+    wall: "{n}",
+    enlarge: "Открыть схему крупно",
+    guide: "Как укладывать",
+    cutList: "Что резать по рядам",
+    row: "Ряд {n}",
+    width: "ширина {width} см",
+    startWhole: "начать с целой доски",
+    startCut: "начать с куска {len} см — отпилить от новой доски",
+    startPool: "начать с обрезка {len} см из ряда {row}",
+    onePiece: "один кусок {len} см",
+    wholeCount: "целых досок: {count}",
+    endNew: "закончить куском {len} см от новой доски",
+    endPool: "закончить куском {len} см — обрезок ряда {row}",
+    endSame: "закончить куском {len} см — остаток доски из начала ряда",
+    restTo: "остаток {rest} см → ряд {row}",
+    restWaste: "остаток {rest} см — в отходы",
+    restSame: "остаток {rest} см — в конец этого ряда",
   },
   warningsTitle: "Обратите внимание",
   disclaimer: "Расчёт ориентировочный. Монтаж выполняет специалист с допуском, по проекту и нормам.",
@@ -124,11 +207,44 @@ export const shell = {
   },
   category: {
     tools: "Калькуляторы раздела",
+    steps: "Порядок работ",
+    step: "Шаг {n}",
+    or: "или",
   },
   faq: "Вопросы и ответы",
+  notFound: {
+    title: "Такой страницы нет",
+    lead: "Возможно, ссылка устарела или в адресе опечатка. Вот что считают чаще всего:",
+    home: "На главную",
+    mascotAlt: "Кот Умняут растерянно разводит лапами",
+    metaTitle: "Страница не найдена",
+  },
+  info: {
+    updated: "Обновлено {date}",
+    mascotAlt: "Кот Умняут в рабочем комбинезоне машет лапой",
+  },
 } as const;
 
-/** Header and footer navigation. Planner, «Мои расчёты» and info pages join once their routes exist. */
+/** Header and footer navigation. Planner and «Мои расчёты» join once their routes exist. */
 export const navigation = {
-  infoPages: [] as readonly { href: string; label: string }[],
+  infoPages: [
+    { href: "/metodika/", label: "Методика" },
+    { href: "/o-proekte/", label: "О проекте" },
+    { href: "/kontakty/", label: "Контакты" },
+    { href: "/partneram/", label: "Партнёрам" },
+    { href: "/politika/", label: "Политика конфиденциальности" },
+  ] as readonly { href: string; label: string }[],
+} as const;
+
+/** «Методика»: the norm table built from catalog norms (sources and dates are data, not text). */
+export const methodology = {
+  norms: "Нормы и источники",
+  normsLead:
+    "Каждое число, которое не следует из геометрии, взято из паспорта материала, ГОСТа или инструкции производителя.",
+  norm: "Норма",
+  value: "Значение",
+  source: "Источник",
+  checked: "Проверено",
+  unconfirmed: "Типовое значение — проверьте по этикетке",
+  other: "Другие нормы",
 } as const;

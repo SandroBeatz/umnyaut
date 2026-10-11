@@ -7,13 +7,16 @@ export interface StickyResultBarProps {
   visible: boolean;
 }
 
-/** Phone only (< 1024 px): the result line while `ResultPanel` is off-screen; tap scrolls back to it. */
+/**
+ * Phone only (< 1024 px): the result line while `ResultPanel` is off-screen; tap scrolls back to it. Sits on top
+ * of the cookie banner while that is open (`--cookie-h`).
+ */
 export function StickyResultBar({ text, visible }: StickyResultBarProps) {
   return (
     <div
       aria-hidden={!visible}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-[var(--z-sticky-result)] border-border border-t bg-surface pb-[env(safe-area-inset-bottom)] shadow-lg transition-[opacity,translate] duration-200 ease-standard lg:hidden print:hidden",
+        "fixed inset-x-0 bottom-[var(--cookie-h,0px)] z-[var(--z-sticky-result)] border-border border-t bg-surface pb-[env(safe-area-inset-bottom)] shadow-lg transition-[opacity,translate] duration-200 ease-standard lg:hidden print:hidden",
         visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-2 opacity-0",
       )}
     >

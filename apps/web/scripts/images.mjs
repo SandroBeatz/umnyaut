@@ -32,6 +32,15 @@ const MATERIALS = {
   laminate: { source: "laminate.png", widths: [64, 96], budgetKb: 5 },
   wallpaper: { source: "wallpaper.png", widths: [64, 96], budgetKb: 5 },
   "tile-adhesive": { source: "tile-adhesive.png", widths: [64, 96], budgetKb: 5 },
+  "wallpaper-glue": { source: "wallpaper-glue.png", widths: [64, 96], budgetKb: 5 },
+  paint: { source: "paint.png", widths: [64, 96], budgetKb: 5 },
+  primer: { source: "primer.png", widths: [64, 96], budgetKb: 5 },
+  underlay: { source: "underlay.png", widths: [64, 96], budgetKb: 5 },
+  plinth: { source: "plinth.png", widths: [64, 96], budgetKb: 5 },
+  "plinth-fittings": { source: "plinth-fittings.png", widths: [64, 96], budgetKb: 5 },
+  linoleum: { source: "linoleum.png", widths: [64, 96], budgetKb: 5 },
+  tile: { source: "tile.png", widths: [64, 96], budgetKb: 5 },
+  grout: { source: "grout.png", widths: [64, 96], budgetKb: 5 },
 };
 
 const GROUPS = [

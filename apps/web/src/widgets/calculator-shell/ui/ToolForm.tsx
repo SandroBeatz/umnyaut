@@ -1,14 +1,15 @@
 "use client";
 
 import type { Opening } from "@umnyaut/calc";
-import { countries, type FieldDef, lengthUnitLabels, shell, type ToolDef } from "@umnyaut/catalog";
-import { NumberField, PresetChips, Segment, Select, UnitToggle } from "@umnyaut/ui";
-import { formatNumber } from "@umnyaut/ui/format";
-import { ChevronDown, Ruler } from "lucide-react";
+import { type FieldDef, getCountry, lengthUnitLabels, shell, type ToolDef } from "@umnyaut/catalog";
+import { Button, NumberField, PresetChips, Segment, Select, UnitToggle } from "@umnyaut/ui";
+import { formatMoney, formatNumber } from "@umnyaut/ui/format";
+import { ChevronDown, MapPin, Ruler } from "lucide-react";
 import { type ReactNode, useId, useState } from "react";
 import { useCountry } from "@/entities/country";
 import { useRoomStore } from "@/entities/room";
 import type { ToolValues } from "@/entities/tool";
+import { PlanEditor } from "@/features/edit-room-plan";
 import { fill } from "@/shared/lib";
 import {
   changedHidden,
@@ -19,6 +20,7 @@ import {
   roomBindings,
   toDisplay,
 } from "../model/fields";
+import { planRoomOf } from "../model/plan";
 import { OpeningsField } from "./OpeningsField";
 
 export interface ToolFormProps {
@@ -30,6 +32,12 @@ export interface ToolFormProps {
 }
 
 const f = shell.form;
+const checkedFormat = new Intl.DateTimeFormat("ru-RU", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+});
 
 /**
  * Form from `FieldDef[]` (design spec §11–12): main fields two per row, preset chips, then «Ещё параметры · N»
@@ -41,7 +49,17 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
   const moreId = useId();
   const room = useRoomStore((s) => s.room);
   const country = useCountry();
-  const sign = countries.find((c) => c.code === country)?.sign;
+  const config = getCountry(country);
+  const sign = config.sign;
+  /** «Обычно около 1 300 ₽, проверено 12 ноября 2026 г.» when the country has a typical price for the item. */
+  const typicalHint = (item: string) => {
+    const price = config.typicalPrices[item];
+    if (price === undefined || !config.pricesCheckedAt) return undefined;
+    return fill(f.typicalPrice, {
+      price: formatMoney(price, country),
+      date: checkedFormat.format(new Date(`${config.pricesCheckedAt}T00:00:00Z`)),
+    });
+  };
   const bound = new Map(roomBindings(tool.fields));
 
   const visible = tool.fields.filter((field) => isVisible(field, values));
@@ -65,7 +83,7 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
   const render = (field: FieldDef): ReactNode => {
     switch (field.kind) {
       case "length": {
-        const shown = field.unit === "mm" ? "mm" : unit;
+        const shown = field.unit === "m" ? unit : field.unit;
         const range = fill(f.range, {
           min: formatNumber(toDisplay(field.min, shown)),
           max: formatNumber(toDisplay(field.max, shown)),
@@ -103,7 +121,7 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
             key={field.name}
             name={field.name}
             label={label(field)}
-            hint={field.hint}
+            hint={isPrice ? (typicalHint(field.item) ?? field.hint) : field.hint}
             unit={isPrice ? sign : field.unit}
             value={typeof value === "number" ? value : null}
             min={min}
@@ -125,15 +143,17 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
           />
         );
       }
-      case "select":
-        return field.options.length <= 4 ? (
+      case "select": {
+        // Options are strings; a numeric input (linoleum roll width) gets its number back.
+        const pick = (v: string) => onChange({ [field.name]: typeof values[field.name] === "number" ? Number(v) : v });
+        return field.options.length <= 4 && !field.dropdown ? (
           <div key={field.name} className="col-span-2 flex flex-col gap-1.5">
             <span className="text-small font-medium text-text">{label(field)}</span>
             <Segment
               label={field.label}
               options={field.options}
               value={String(values[field.name])}
-              onValueChange={(v) => onChange({ [field.name]: v })}
+              onValueChange={pick}
             />
           </div>
         ) : (
@@ -142,9 +162,10 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
             label={label(field)}
             options={field.options}
             value={String(values[field.name])}
-            onValueChange={(v) => onChange({ [field.name]: v })}
+            onValueChange={pick}
           />
         );
+      }
       case "toggle":
         return (
           <label key={field.name} className="flex min-h-12 items-center gap-3 col-span-2 text-body text-text">
@@ -168,6 +189,31 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
             onInvalid={onInvalid}
           />
         );
+      case "plan": {
+        const openings = (values[field.name] as readonly Opening[] | undefined) ?? [];
+        const total = openings.reduce((sum, o) => sum + o.count, 0);
+        const placed = openings.reduce((sum, o) => sum + Math.min(o.places?.length ?? 0, o.count), 0);
+        return (
+          <div key={field.name} className="col-span-2 flex flex-col gap-1.5">
+            <span className="text-small font-medium text-text">{label(field)}</span>
+            <div className="flex flex-wrap items-center gap-3">
+              <PlanEditor
+                room={planRoomOf(values)}
+                openings={openings}
+                onChange={(next) => onChange({ [field.name]: next })}
+                trigger={
+                  <Button variant="secondary">
+                    <MapPin aria-hidden="true" />
+                    {placed > 0 ? shell.plan.edit : shell.plan.open}
+                  </Button>
+                }
+              />
+              <span className="text-small text-text-muted">{fill(shell.plan.summary, { placed, total })}</span>
+            </div>
+            {field.hint ? <span className="text-small text-text-muted">{field.hint}</span> : null}
+          </div>
+        );
+      }
       case "preset": {
         const presets = tool.presets ?? [];
         return (

@@ -1,6 +1,7 @@
+import { loadCategoryContent } from "@server/content";
 import { activeCategories, getCategory } from "@umnyaut/catalog";
 import { notFound } from "next/navigation";
-import { CategoryPage, categoryMetadata } from "@/views/category";
+import { CategoryPage, type CategoryText, categoryMetadata } from "@/views/category";
 
 export const dynamicParams = false;
 
@@ -11,13 +12,17 @@ export function generateStaticParams() {
 async function load({ params }: PageProps<"/[category]">) {
   const category = getCategory((await params).category);
   if (!category) notFound();
-  return category;
+  const content = loadCategoryContent(category.slug);
+  const text: CategoryText | undefined = content && { ...content.frontmatter, html: content.html, faq: content.faq };
+  return { category, text };
 }
 
 export async function generateMetadata(props: PageProps<"/[category]">) {
-  return categoryMetadata(await load(props));
+  const { category, text } = await load(props);
+  return categoryMetadata(category, text);
 }
 
 export default async function Page(props: PageProps<"/[category]">) {
-  return <CategoryPage category={await load(props)} />;
+  const { category, text } = await load(props);
+  return <CategoryPage category={category} text={text} />;
 }
