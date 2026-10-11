@@ -8,10 +8,11 @@ import { useId, useRef, useState } from "react";
 import { FloorPlan } from "@/entities/room";
 import { PlanEditor, type PlanRoom } from "@/features/edit-room-plan";
 import { fill } from "@/shared/lib";
-import { guideLines, rowLines, sheetLines } from "../model/scheme-text";
+import { guideLines, rowLines, runLines, sheetLines } from "../model/scheme-text";
 
 const s = shell.scheme;
 const t = s.strips;
+const r = s.runs;
 /** Design spec §11: above this many pieces the scheme draws rows as bands. */
 const MAX_PIECES = 2000;
 
@@ -40,18 +41,42 @@ function bands(pieces: readonly LayoutPiece[]): LayoutPiece[] {
   return [...rows.values()];
 }
 
-/** Card summary and the picture's text alternative: rows and boards, or sheets and seams of a roll. */
+/** Card summary, the picture's text alternative and legend: rows of boards, sheets of a roll or plinth runs. */
 function texts(layout: Layout) {
-  const { whole, cut } = layout.stats;
+  const { whole, cut, reused } = layout.stats;
+  const lines = layout.marks.filter((m) => m.kind === "seam").length;
   if (layout.kind === "strips") {
-    const counts = {
-      sheets: layout.sheets?.length ?? 0,
-      seams: layout.marks.filter((m) => m.kind === "seam").length,
+    const counts = { sheets: layout.sheets?.length ?? 0, seams: lines };
+    return {
+      summary: fill(t.summary, counts),
+      label: fill(t.label, counts),
+      whole: fill(t.legendWhole, { count: whole }),
+      cut: fill(t.legendCut, { count: cut }),
+      reused: "",
+      line: t.legendSeam,
     };
-    return { summary: fill(t.summary, counts), label: fill(t.label, counts) };
+  }
+  if (layout.kind === "outline") {
+    const runs = layout.runs ?? [];
+    const counts = { runs: runs.length, planks: Math.max(0, ...runs.flatMap((r) => r.pieces.map((p) => p.plank))) };
+    return {
+      summary: runs.length > 0 ? fill(r.summary, counts) : r.empty,
+      label: fill(r.label, counts),
+      whole: fill(r.legendWhole, { count: whole }),
+      cut: fill(r.legendCut, { count: cut }),
+      reused: fill(r.legendReused, { count: reused }),
+      line: r.legendJoint,
+    };
   }
   const counts = { rows: layout.rows?.length ?? 0, whole, cut };
-  return { summary: fill(s.summary, counts), label: fill(s.label, counts) };
+  return {
+    summary: fill(s.summary, counts),
+    label: fill(s.label, counts),
+    whole: fill(s.legendWhole, { count: whole }),
+    cut: fill(s.legendCut, { count: cut }),
+    reused: fill(s.legendReused, { count: reused }),
+    line: t.legendSeam,
+  };
 }
 
 /** The plan with every piece: whole outlined, cut hatched teal, reused with the orange dot (design spec §11). */
@@ -63,7 +88,7 @@ function SchemePicture({ layout, className }: { layout: Layout; className?: stri
   const pieces = simple ? bands(layout.pieces) : layout.pieces;
   const rowHeads = new Map<number, LayoutPiece>();
   // Row numbers in each row's start piece, when there are few enough rows to read them.
-  if (!simple && (layout.rows?.length ?? 0) <= 40) {
+  if (!simple && layout.kind !== "outline" && (layout.rows?.length ?? 0) <= 40) {
     for (const p of layout.pieces) if (p.row !== undefined && !rowHeads.has(p.row)) rowHeads.set(p.row, p);
   }
   return (
@@ -160,12 +185,12 @@ function CutList({ title, lines }: { title: string; lines: readonly { title: str
  * for doors and windows, and the scheme fullscreen on tap. The text summary is the image's alternative.
  */
 export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }: LayoutSchemeProps) {
-  const { whole, cut, reused } = layout.stats;
-  const strips = layout.kind === "strips";
+  const { reused } = layout.stats;
   const seams = layout.marks.filter((m) => m.kind === "seam").length;
+  const labels = texts(layout);
   const guide = guideLines(tool, layout);
   const placedAny = (openings ?? []).some((o) => (o.places?.length ?? 0) > 0);
-  const title = texts(layout).summary;
+  const title = labels.summary;
   const [fullscreen, setFullscreen] = useState(false);
   const opener = useRef<HTMLElement | null>(null);
   const enlarge = (event: { currentTarget: HTMLElement }) => {
@@ -238,31 +263,33 @@ export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }:
       </div>
 
       <div className="flex flex-col gap-3 lg:col-span-5">
-        <ul className="flex flex-wrap gap-x-4 gap-y-2 text-small text-text">
-          <li className="flex items-center gap-1.5">
-            <span aria-hidden="true" className="h-3 w-4 border border-text-subtle bg-surface" />
-            {fill(strips ? t.legendWhole : s.legendWhole, { count: whole })}
-          </li>
-          <li className="flex items-center gap-1.5">
-            <span
-              aria-hidden="true"
-              className="h-3 w-4 border border-text-subtle bg-[repeating-linear-gradient(45deg,var(--color-primary)_0_1px,var(--color-primary-soft)_1px_4px)]"
-            />
-            {fill(strips ? t.legendCut : s.legendCut, { count: cut })}
-          </li>
-          {seams > 0 ? (
+        {layout.pieces.length > 0 ? (
+          <ul className="flex flex-wrap gap-x-4 gap-y-2 text-small text-text">
             <li className="flex items-center gap-1.5">
-              <span aria-hidden="true" className="w-4 border-text border-t-2 border-dashed" />
-              {t.legendSeam}
+              <span aria-hidden="true" className="h-3 w-4 border border-text-subtle bg-surface" />
+              {labels.whole}
             </li>
-          ) : null}
-          {reused > 0 ? (
             <li className="flex items-center gap-1.5">
-              <span aria-hidden="true" className="size-2 rounded-full bg-accent" />
-              {fill(s.legendReused, { count: reused })}
+              <span
+                aria-hidden="true"
+                className="h-3 w-4 border border-text-subtle bg-[repeating-linear-gradient(45deg,var(--color-primary)_0_1px,var(--color-primary-soft)_1px_4px)]"
+              />
+              {labels.cut}
             </li>
-          ) : null}
-        </ul>
+            {seams > 0 ? (
+              <li className="flex items-center gap-1.5">
+                <span aria-hidden="true" className="w-4 border-text border-t-2 border-dashed" />
+                {labels.line}
+              </li>
+            ) : null}
+            {reused > 0 ? (
+              <li className="flex items-center gap-1.5">
+                <span aria-hidden="true" className="size-2 rounded-full bg-accent" />
+                {labels.reused}
+              </li>
+            ) : null}
+          </ul>
+        ) : null}
 
         {guide.length > 0 ? (
           <div>
@@ -279,6 +306,8 @@ export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }:
           <CutList title={s.cutList} lines={rowLines(layout.rows)} />
         ) : layout.sheets && layout.sheets.length > 0 ? (
           <CutList title={t.cutList} lines={sheetLines(layout.sheets)} />
+        ) : layout.runs && layout.runs.length > 0 ? (
+          <CutList title={r.cutList} lines={runLines(layout.runs)} />
         ) : null}
       </div>
     </section>

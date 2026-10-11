@@ -30,6 +30,7 @@ export type {
   LayoutMark,
   LayoutPiece,
   LayoutRow,
+  LayoutRun,
   LayoutSheet,
   Opening,
   OpeningPlace,
