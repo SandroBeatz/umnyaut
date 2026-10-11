@@ -275,14 +275,14 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 **Tasks**
 
-- [ ] P8.1 Home (`views/home`): hero (mascot `hello`, headline, badges), “Моя комната” card with room scheme SVG (isometric box with live dimensions) and work chips, orange button «Выбрать расчёт» (until planner), example strip «Для комнаты 12 м² нужно» computed at build, categories grid (only categories with tools), popular tools (static order now), «Как мы считаем», footer.
-- [ ] P8.2 Category pages for osnova, pol, steny, plitka: tool cards, «Порядок работ» stepper, text + FAQ.
+- [x] P8.1 Home (`views/home`): hero (mascot `hello`, headline, badges), “Моя комната” card with room scheme SVG (isometric box with live dimensions) and work chips, orange button «Выбрать расчёт» (until planner), example strip «Для комнаты 12 м² нужно» computed at build, categories grid (only categories with tools), popular tools (static order now), «Как мы считаем», footer.
+- [x] P8.2 Category pages for osnova, pol, steny, plitka: tool cards, «Порядок работ» stepper, text + FAQ.
 - [ ] P8.3 Info pages (`app/(info)/…`): `/metodika/`, `/o-proekte/`, `/politika/`, `/kontakty/`, `/partneram/` with C14–C17.
-- [ ] P8.4 `not-found.tsx` (mascot `oops`, six popular tools).
+- [x] P8.4 `not-found.tsx` (mascot `oops`, six popular tools).
 - [ ] P8.5 Tool texts for all 10 wave‑1 tools (C11) via skill `tool-content`; owner review; FAQ from Wordstat CSV.
 - [ ] P8.6 Material photos G05 and category photos G06 + brush mask; desktop hero G07 (optional).
-- [ ] P8.7 Desktop layouts (≥ 1024): tool page 5/7 columns with sticky result; home two-column hero.
-- [ ] P8.8 `calculator-release-check` for all 10 tools — now including content.
+- [x] P8.7 Desktop layouts (≥ 1024): tool page 5/7 columns with sticky result; home two-column hero.
+- [x] P8.8 `calculator-release-check` for all 10 tools — now including content.
 
 **Exit gate (mobile gate):** all pages pass a real-phone walkthrough; release check READY for 10 tools.
 
@@ -471,7 +471,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 | 6 | `[ИСТОЧНИК НОРМЫ]` placeholders in mockups | Fill from C01 | P0.7 |
 | 7 | Home headline | Decided 2026-10-09: H1 «Одна комната — весь список покупок», promise below it «Введите размеры один раз — получите проверенный список покупок для всего ремонта»; apply in C13/P0.9 | P0.9 |
 | 8 | Vercel Hobby non-commercial clause | OK until ads; fallback VPS container | P14.6 |
-| 9 | «сколько пачек ламината нужно» = 0 demand; mockup uses it | Use «сколько нужно ламината» | P8.5 |
+| 9 | «сколько пачек ламината нужно» = 0 demand; mockup uses it | Done 2026-10-11: laminate `question` is «Сколько нужно ламината на комнату» | P8.5 |
 | 10 | TypeScript 7.0 is latest; ecosystem support unverified | Spike | P1.2 |
 | 11 | Local Node is v26; spec pins Node 24 LTS | `.nvmrc` 24 | P1.1 |
 

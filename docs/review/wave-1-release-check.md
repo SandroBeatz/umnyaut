@@ -1,16 +1,29 @@
 ---
-version: 1.1
-date: 2026-10-10
+version: 1.2
+date: 2026-10-11
 category: plan
 ---
 
 # Wave 1 — Release Check
 
-> Version 1.1 · 2026-10-10 · [Reviewer Handouts](./README.md)
+> Version 1.2 · 2026-10-11 · [Reviewer Handouts](./README.md)
 
 ## Overview
 
-`calculator-release-check` against the 16-requirement standard (`.claude/skills/calculator-release-check/references/standard.md`) on `feature/phase-6-wave-1` after the formula reviews. Content (body 300–600 words, `{{norm.*}}` substitutions) is completed in Phase 8 by plan and is listed, not blocking. Lighthouse runs in Phase 9.
+`calculator-release-check` against the 16-requirement standard (`.claude/skills/calculator-release-check/references/standard.md`). v1.1 ran on `feature/phase-6-wave-1` after the formula reviews; v1.2 (P8.8) re-ran it on `feature/phase-8-site-pages` with the content: no formula changed since v1.1, so requirements 1–16 keep their status and the content part of the definition of done is now checked too. Lighthouse runs in Phase 9.
+
+## v1.2 — content (P8.8)
+
+| Check | Result |
+|---|---|
+| Tests | calc 100, catalog 54, ui 59, web 56 — all pass; build OK |
+| No-JS HTML of the 10 tool pages | exactly one `H1`, canonical, the result number in the server HTML (e.g. laminate «10», wall area «44,78»), 6 FAQ, no unreplaced `{{…}}` |
+| Body length | 301–389 words for all 10 (target 300–600) |
+| Frontmatter | title 49–58, description 119–159, question 27–38 characters — all within limits after norm substitution |
+| Norms in text | rates, reserves, overlaps, densities, pack sizes via `{{norm.*}}`; the remaining digits are worked-example inputs (tile size, notch size, a 25 kg bag in a worked example) or source ranges («в источнике 10–15 мм») — not literals of a catalog norm |
+| FAQ from real queries | each tool has two questions from `_СВОДКА_все_запросы.csv`; laminate `question` no longer uses the zero-demand form |
+
+Verdicts after v1.2: the same as v1.1 below — all 10 READY, except requirement 15 (scheme) for wallpaper, laminate, linoleum and tile, moved to Phase 10 by the owner.
 
 | Tool | Verdict (v1.1) | Open |
 |---|---|---|
@@ -50,13 +63,13 @@ v1.0 of this check (the same day) found blockers 2, 3, 4, 5; they were fixed: pa
 
 ## Non-blocking
 
-- Content bodies are 130–290 words (target 300–600) and use literal numbers instead of `{{norm.*}}` — Phase 8 (`tool-content`).
+- ~~Content bodies are 130–290 words and use literal numbers instead of `{{norm.*}}`~~ — fixed in v1.2 (P8.5).
 - Plinth description was 170 characters (limit 160) — fixed with this check.
 - No Lighthouse report yet — Phase 9.
 
 ## Manual
 
-Real-phone check, events in Metrika (Phase 9), master sign-off on the [handout](./wave-1-master.md).
+Real-phone check, events in Metrika (Phase 9), master sign-off on the [handout](./wave-1-master.md), owner review of the 10 tool texts (C11).
 
 ## Cross-references
 

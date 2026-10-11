@@ -1,9 +1,9 @@
 "use client";
 
 import type { Opening } from "@umnyaut/calc";
-import { countries, type FieldDef, lengthUnitLabels, shell, type ToolDef } from "@umnyaut/catalog";
+import { type FieldDef, getCountry, lengthUnitLabels, shell, type ToolDef } from "@umnyaut/catalog";
 import { Button, NumberField, PresetChips, Segment, Select, UnitToggle } from "@umnyaut/ui";
-import { formatNumber } from "@umnyaut/ui/format";
+import { formatMoney, formatNumber } from "@umnyaut/ui/format";
 import { ChevronDown, MapPin, Ruler } from "lucide-react";
 import { type ReactNode, useId, useState } from "react";
 import { useCountry } from "@/entities/country";
@@ -32,6 +32,12 @@ export interface ToolFormProps {
 }
 
 const f = shell.form;
+const checkedFormat = new Intl.DateTimeFormat("ru-RU", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+});
 
 /**
  * Form from `FieldDef[]` (design spec §11–12): main fields two per row, preset chips, then «Ещё параметры · N»
@@ -43,7 +49,17 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
   const moreId = useId();
   const room = useRoomStore((s) => s.room);
   const country = useCountry();
-  const sign = countries.find((c) => c.code === country)?.sign;
+  const config = getCountry(country);
+  const sign = config.sign;
+  /** «Обычно около 1 300 ₽, проверено 12 ноября 2026 г.» when the country has a typical price for the item. */
+  const typicalHint = (item: string) => {
+    const price = config.typicalPrices[item];
+    if (price === undefined || !config.pricesCheckedAt) return undefined;
+    return fill(f.typicalPrice, {
+      price: formatMoney(price, country),
+      date: checkedFormat.format(new Date(`${config.pricesCheckedAt}T00:00:00Z`)),
+    });
+  };
   const bound = new Map(roomBindings(tool.fields));
 
   const visible = tool.fields.filter((field) => isVisible(field, values));
@@ -105,7 +121,7 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
             key={field.name}
             name={field.name}
             label={label(field)}
-            hint={field.hint}
+            hint={isPrice ? (typicalHint(field.item) ?? field.hint) : field.hint}
             unit={isPrice ? sign : field.unit}
             value={typeof value === "number" ? value : null}
             min={min}
