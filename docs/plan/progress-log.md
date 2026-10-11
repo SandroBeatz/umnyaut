@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-11
 
+- **P8.8** Release check v1.2 with content ([Wave 1 — Release Check](../review/wave-1-release-check.md)): all tests and the build pass; the no-JS HTML of every tool page has one H1, canonical, the result number and 6 FAQ; bodies 301–389 words; frontmatter within limits; norms in text via substitutions. Verdicts unchanged — 10 READY, requirement 15 (scheme) in Phase 10.
+  - Where: `feature/phase-8-site-pages`
+  - Notes: manual items stay open — real-phone walkthrough (phase 8 exit gate), owner text review, master sign-off, Lighthouse and Metrika (Phase 9).
+
 - **P8.7** Desktop layouts checked against the mockups at 1024 and 1440 px: the tool page already had 5/7 columns with the sticky result (Phase 5); the form column is now a card from 1024 px like «Размеры и материал» in the mockup (phone unchanged, first-screen budget still green). Home: hero left, “My room” card right from 1024 px (done in P8.1). All 17 Playwright journeys pass.
   - Where: `feature/phase-8-site-pages`
   - Notes: P8.6 waits for the owner's category photos (G06) and the optional desktop hero (G07); material photos (G05) are already in the image pipeline.
