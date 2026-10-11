@@ -42,6 +42,8 @@ export const shell = {
     range: "От {min} до {max} {unit}",
     required: "Введите значение",
     fromRoom: "Из «Моей комнаты»",
+    /** Hint under a price field from the country's typical prices. */
+    typicalPrice: "Обычно около {price}, проверено {date}",
     decrement: "Меньше",
     increment: "Больше",
   },

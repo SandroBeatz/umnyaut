@@ -1,6 +1,6 @@
 "use client";
 
-import { countries, shell } from "@umnyaut/catalog";
+import { countries, getCountry, shell } from "@umnyaut/catalog";
 import { cn, Popover, PopoverClose, PopoverContent, PopoverTrigger } from "@umnyaut/ui";
 import { Check, ChevronDown } from "lucide-react";
 import { setCountry, useCountry } from "@/entities/country";
@@ -14,7 +14,7 @@ export interface CountryPickerProps {
 /** Chip «RU · ₽» with the four countries. The choice is stored in the browser only. */
 export function CountryPicker({ tone = "default", className }: CountryPickerProps) {
   const current = useCountry();
-  const country = countries.find((c) => c.code === current) ?? countries[0];
+  const country = getCountry(current);
   return (
     <Popover>
       <PopoverTrigger

@@ -7,7 +7,7 @@ export const site = {
 } as const;
 
 export { type CategoryDef, type CategorySlug, categories, reservedSegments, type WorkStep } from "./categories";
-export { type CountryConfig, countries, DEFAULT_COUNTRY } from "./countries";
+export { type CountryConfig, countries, DEFAULT_COUNTRY, getCountry } from "./countries";
 export { devUi } from "./dev-ui";
 export { type ExampleItem, type HomeWork, home, type MethodIcon } from "./home";
 export { normTitles } from "./norm-titles";

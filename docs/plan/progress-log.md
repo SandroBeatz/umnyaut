@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-11
 
+- **P7.6 (partly)** Country configs: currency, locale, sign, country chip in header and footer and time-zone detection were already in place (Phase 5). Added `CountryConfig.typicalPrices` (typical pack price per purchase item key) + `pricesCheckedAt`; a price field shows «Обычно около 1 300 ₽, проверено …» in the country's currency when a price is set (checked by temporarily setting one). New `getCountry()`; catalog test: every typical price names an item that has a price field, is positive and has a check date.
+  - Where: `feature/phase-8-site-pages`
+  - Notes: the prices themselves are C07 (owner): typical pack prices per country for laminate, underlay, plinth and fittings, linoleum, wallpaper, glue, primer, paint, tile, adhesive, grout — with the date of the shop check. Until then the hint stays hidden; nothing is invented.
+
 - **P8.8** Release check v1.2 with content ([Wave 1 — Release Check](../review/wave-1-release-check.md)): all tests and the build pass; the no-JS HTML of every tool page has one H1, canonical, the result number and 6 FAQ; bodies 301–389 words; frontmatter within limits; norms in text via substitutions. Verdicts unchanged — 10 READY, requirement 15 (scheme) in Phase 10.
   - Where: `feature/phase-8-site-pages`
   - Notes: manual items stay open — real-phone walkthrough (phase 8 exit gate), owner text review, master sign-off, Lighthouse and Metrika (Phase 9).
