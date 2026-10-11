@@ -13,6 +13,7 @@ import { guideLines, rowLines, runLines, sheetLines } from "../model/scheme-text
 const s = shell.scheme;
 const t = s.strips;
 const r = s.runs;
+const g = s.grid;
 /** Design spec §11: above this many pieces the scheme draws rows as bands. */
 const MAX_PIECES = 2000;
 
@@ -56,6 +57,17 @@ function texts(layout: Layout) {
       line: t.legendSeam,
     };
   }
+  if (layout.kind === "grid") {
+    const counts = { pieces: whole + cut, whole, cut };
+    return {
+      summary: fill(g.summary, counts),
+      label: fill(g.label, counts),
+      whole: fill(g.legendWhole, { count: whole }),
+      cut: fill(g.legendCut, { count: cut }),
+      reused: "",
+      line: g.legendAxis,
+    };
+  }
   if (layout.kind === "outline") {
     const runs = layout.runs ?? [];
     const counts = { runs: runs.length, planks: Math.max(0, ...runs.flatMap((r) => r.pieces.map((p) => p.plank))) };
@@ -88,7 +100,7 @@ function SchemePicture({ layout, className }: { layout: Layout; className?: stri
   const pieces = simple ? bands(layout.pieces) : layout.pieces;
   const rowHeads = new Map<number, LayoutPiece>();
   // Row numbers in each row's start piece, when there are few enough rows to read them.
-  if (!simple && layout.kind !== "outline" && (layout.rows?.length ?? 0) <= 40) {
+  if (!simple && (layout.kind === "rows" || layout.kind === "strips") && (layout.rows?.length ?? 0) <= 40) {
     for (const p of layout.pieces) if (p.row !== undefined && !rowHeads.has(p.row)) rowHeads.set(p.row, p);
   }
   return (

@@ -12,6 +12,7 @@ export {
   wallAreaM2,
 } from "./geometry";
 export { type GridArea, type GridLine, gridArea, gridLine } from "./grid";
+export { type GridCell, type GridLayoutInput, gridCells, gridLayout } from "./layout-grid";
 export { type RowsLayoutInput, rowsLayout, traceRows } from "./layout-rows";
 export { type RunsLayoutInput, runsLayout, wallRuns } from "./layout-runs";
 export { type SheetsLayoutInput, seamInDoor, sheetsLayout } from "./layout-sheets";

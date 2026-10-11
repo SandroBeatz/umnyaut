@@ -58,7 +58,8 @@ export const golden: GoldenFile<PlitkaInput> = {
     },
     {
       name: "Room fits whole tiles exactly",
-      input: { lengthMm: 3027, widthMm: 2118 },
+      // No openings: the example window (1.55 m from the corner) would not fit this 2.1 m wall and warn.
+      input: { lengthMm: 3027, widthMm: 2118, openings: [] },
       expected: { items: { tile: { packs: 7, need: 77 } }, summary: { whole: 70, cut: 0 }, warnings: [] },
       source: {
         kind: "manual",

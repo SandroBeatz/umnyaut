@@ -174,6 +174,14 @@ export const shell = {
       floor: "на полу {width} м по ширине",
       short: "короткое — в узкой части комнаты",
     },
+    /** Grid layouts (tile): the tiles on the floor. */
+    grid: {
+      summary: "Плиток на полу: {pieces} · целых: {whole} · подрезанных: {cut}",
+      label: "Схема раскладки плитки: целых {whole}, подрезанных {cut}",
+      legendWhole: "Целая — {count}",
+      legendCut: "Подрезанная — {count}",
+      legendAxis: "Оси разметки",
+    },
     /** Outline layouts (plinth): planks along the walls. */
     runs: {
       summary: "Участков: {runs} · планок: {planks}",
