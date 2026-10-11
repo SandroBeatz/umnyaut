@@ -5,6 +5,7 @@ import { lengthUnitLabels, shell } from "@umnyaut/catalog";
 import { Button, NumberField, Stepper } from "@umnyaut/ui";
 import { formatNumber } from "@umnyaut/ui/format";
 import { DoorOpen, Plus, RectangleHorizontal } from "lucide-react";
+import { Fragment } from "react";
 import { fill } from "@/shared/lib";
 import { CollapsibleCard, useOpenCards } from "@/shared/ui";
 import { fromDisplay, type LengthUnit, toDisplay } from "../model/fields";
@@ -63,41 +64,42 @@ export function OpeningsField({ label, value, unit, onChange, onInvalid }: Openi
         const name = opening.type === "door" ? t.door : t.window;
         return (
           // biome-ignore lint/suspicious/noArrayIndexKey: rows have no id; order is stable while editing
-          <CollapsibleCard
-            key={index}
-            icon={opening.type === "door" ? DoorOpen : RectangleHorizontal}
-            title={name}
-            summary={fill(t.size, {
-              width: formatNumber(toDisplay(opening.widthMm, unit)),
-              height: formatNumber(toDisplay(opening.heightMm, unit)),
-              unit: lengthUnitLabels[unit],
-              count: opening.count,
-            })}
-            open={cards.isOpen(index)}
-            onOpenChange={(next) => cards.setOpen(index, next)}
-            removeLabel={`${t.remove}: ${name}`}
-            onRemove={() => {
-              // Rows shift after a removal, so every row's error flag is reset.
-              onInvalid("openings.*", false);
-              cards.removed(index);
-              onChange(value.filter((_, i) => i !== index));
-            }}
-          >
-            <div className="grid grid-cols-2 gap-3">
-              {size("widthMm", t.width)}
-              {size("heightMm", t.height)}
-            </div>
-            <Stepper
-              className="mt-3"
-              label={t.count}
-              value={opening.count}
-              min={0}
-              max={50}
-              decrementLabel={shell.form.decrement}
-              incrementLabel={shell.form.increment}
-              onValueChange={(count) => update(index, { count })}
-            />
-          </CollapsibleCard>
+          <Fragment key={index}>
+            <CollapsibleCard
+              icon={opening.type === "door" ? DoorOpen : RectangleHorizontal}
+              title={name}
+              summary={fill(t.size, {
+                width: formatNumber(toDisplay(opening.widthMm, unit)),
+                height: formatNumber(toDisplay(opening.heightMm, unit)),
+                unit: lengthUnitLabels[unit],
+                count: opening.count,
+              })}
+              open={cards.isOpen(index)}
+              onOpenChange={(next) => cards.setOpen(index, next)}
+              removeLabel={`${t.remove}: ${name}`}
+              onRemove={() => {
+                // Rows shift after a removal, so every row's error flag is reset.
+                onInvalid("openings.*", false);
+                cards.removed(index);
+                onChange(value.filter((_, i) => i !== index));
+              }}
+            >
+              <div className="grid grid-cols-2 gap-3">
+                {size("widthMm", t.width)}
+                {size("heightMm", t.height)}
+              </div>
+              <Stepper
+                className="mt-3"
+                label={t.count}
+                value={opening.count}
+                min={0}
+                max={50}
+                decrementLabel={shell.form.decrement}
+                incrementLabel={shell.form.increment}
+                onValueChange={(count) => update(index, { count })}
+              />
+            </CollapsibleCard>
+          </Fragment>
         );
       })}
       <div className="flex gap-2">

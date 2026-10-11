@@ -46,6 +46,8 @@ Each entry:
   - Where: `feature/visual-fixes`
   - Notes: written without a local run — the session's network blocked the npm registry, so Biome, tsc, Vitest, build and Playwright were not run here; CI must pass before merge. The room shape now sits on the phone's first screen: the 660 px budget test decides whether it fits on every tool.
   - Deviation: the shape group is placed by the form, not by `main: true` — laminate already has the four main fields the registry allows.
+- **— (visual fixes, CI)** First CI run on PR #157: Biome rejected the index key on the opening card (suppression did not reach the attribute — keyed `Fragment`), the plan e2e matched «+ Дверь» too (`/^Дверь ·/`), and the room area result stood at 675 px (> 660) with the shape as a labelled segment. The shape is now a half-row dropdown beside the next half-row field (zero extra height on laminate, linoleum, tile, adhesive, grout) and a label-less segment elsewhere (≈ 26 px less).
+  - Where: `feature/visual-fixes` · PR #157
 
 - **P9.1** Cookie banner in strict mode: `features/cookie-consent` — a 90 px bar on a phone (≤ 96), one line + two equal `secondary` buttons «Принять» / «Отклонить», policy link, rendered after mount only (no banner in static HTML); choice in `umnyaut:consent:v1`, a refusal hides it for 183 days, «Настройки cookie» in the footer reopens it; a refusal after acceptance removes `_ym*` cookies and reloads if the counter was running. The sticky result bar stands on the banner (`--cookie-h`). e2e `consent.spec.ts`.
   - Where: `feature/phase-9-launch`

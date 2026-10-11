@@ -42,6 +42,23 @@ export function formSections(fields: readonly FieldDef[], values: ToolValues) {
   return { main, more: visible.filter((field) => !field.main && !isRoomShape(field)) };
 }
 
+/** Fields that take half a row of the form grid; the rest span both columns. */
+export function isHalfWidth(field: FieldDef): boolean {
+  if (field.kind === "select") return field.dropdown === true || field.options.length > 4;
+  return field.kind === "length" || field.kind === "number" || field.kind === "price";
+}
+
+/**
+ * The room shape as a half-row dropdown when the next always-open field is half a row too (they share the row, so
+ * the phone's first screen does not grow); otherwise a full-width segment without a separate label.
+ */
+export function shapeAsDropdown(main: readonly FieldDef[]): boolean {
+  const start = main.findIndex(isRoomShape);
+  if (start < 0) return false;
+  const next = main.slice(start).find((field) => !isRoomShape(field));
+  return next !== undefined && isHalfWidth(next);
+}
+
 /** Changed fields behind «Ещё параметры · N». */
 export function changedHidden(fields: readonly FieldDef[], values: ToolValues, defaults: ToolValues): number {
   const { more } = formSections(fields, values);

@@ -265,7 +265,7 @@ test("laminate scheme: rows from the count, a guide, the door moved on the plan 
   // Door from the bottom wall to the top one: laying now starts at the bottom wall, the count stays.
   await scheme.getByRole("button", { name: "Изменить план" }).click();
   const editor = page.getByRole("dialog");
-  await editor.getByRole("button", { name: /^Дверь/ }).click();
+  await editor.getByRole("button", { name: /^Дверь ·/ }).click();
   await editor.getByRole("button", { name: "Стена", exact: true }).first().click();
   await page.getByRole("radio", { name: "Стена 1" }).click();
   await editor.getByRole("button", { name: "Готово" }).click();

@@ -18,6 +18,7 @@ import {
   type LengthUnit,
   matchingPreset,
   roomBindings,
+  shapeAsDropdown,
   toDisplay,
 } from "../model/fields";
 import { planRoomOf } from "../model/plan";
@@ -63,6 +64,7 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
   const bound = new Map(roomBindings(tool.fields));
 
   const { main, more } = formSections(tool.fields, values);
+  const shapeDropdown = shapeAsDropdown(main);
   const changed = changedHidden(tool.fields, values, defaults);
   const hasLengths = tool.fields.some((field) => field.kind === "length" || field.kind === "openings");
 
@@ -144,7 +146,20 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
       case "select": {
         // Options are strings; a numeric input (linoleum roll width) gets its number back.
         const pick = (v: string) => onChange({ [field.name]: typeof values[field.name] === "number" ? Number(v) : v });
-        return field.options.length <= 4 && !field.dropdown ? (
+        if (field.room === "shape" && !shapeDropdown) {
+          // Under the room size the options speak for themselves; the group keeps its name for screen readers.
+          return (
+            <Segment
+              key={field.name}
+              className="col-span-2"
+              label={field.label}
+              options={field.options}
+              value={String(values[field.name])}
+              onValueChange={pick}
+            />
+          );
+        }
+        return field.options.length <= 4 && !field.dropdown && field.room !== "shape" ? (
           <div key={field.name} className="col-span-2 flex flex-col gap-1.5">
             <span className="text-small font-medium text-text">{label(field)}</span>
             <Segment

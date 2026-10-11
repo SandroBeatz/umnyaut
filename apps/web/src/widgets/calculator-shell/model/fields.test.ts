@@ -1,6 +1,6 @@
 import { type FieldDef, getTool } from "@umnyaut/catalog";
 import { describe, expect, it } from "vitest";
-import { changedHidden, formSections } from "./fields";
+import { changedHidden, formSections, shapeAsDropdown } from "./fields";
 
 const fieldsOf = (category: string, id: string) => {
   const tool = getTool(category, id);
@@ -25,5 +25,15 @@ describe("formSections", () => {
   it("a changed shape is not counted behind «Ещё параметры»", () => {
     const fields = fieldsOf("osnova", "ploshchad-komnaty");
     expect(changedHidden(fields, { shape: "l", cutLengthMm: 2000 }, { shape: "rect", cutLengthMm: 0 })).toBe(0);
+  });
+});
+
+describe("shapeAsDropdown", () => {
+  it("shares the row with a half-width select (laminate laying, linoleum roll), else a full-width segment", () => {
+    const sections = (category: string, id: string) => formSections(fieldsOf(category, id), { shape: "rect" }).main;
+    expect(shapeAsDropdown(sections("pol", "laminat"))).toBe(true);
+    expect(shapeAsDropdown(sections("pol", "linoleum"))).toBe(true);
+    expect(shapeAsDropdown(sections("osnova", "ploshchad-komnaty"))).toBe(false);
+    expect(shapeAsDropdown(sections("pol", "plintus"))).toBe(false);
   });
 });
