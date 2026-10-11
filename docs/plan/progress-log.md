@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-11
 
+- **P16.4 (content)** Laminate text: new section «Схема укладки» — the plan under the result shows the very layout the packs were counted on, what the marks mean, placing the door and window for the start corner and direction, the cut list per row, fullscreen. 402 words; worked examples re-checked on laminate v2 (5 × 3,6 м → 76 boards, 9 packs; 12 м² → 51 boards). The scheme is not printed (print shows the shopping list only), so the text does not promise it.
+  - Where: `feature/layout-guides` · PR #154
+  - Notes: owner review of the new section together with the other texts (C11).
+
 - **— (rows engine bug, laminate v2)** CI's random invariant (seed 772847259, also failing on `develop`) found laminate buying fewer boards for a larger room. Cause: the offcut pool cap (8) dropped every new offcut once full, so short useless ends (≥ the 30 cm minimum, shorter than any row) filled it and each later board's long rest was wasted — a 0,47 × 5 m corridor laid across bought 18 boards / 3 packs instead of 13 / 2. Fix: a full pool gives up its shortest piece for a longer one (`pooled`, `evictIndex` in `blocks/rows.ts`, mirrored by the scheme's `traceRows`). Laminate `version` 1 → 2; new golden example «Corridor 0,47 × 5 m laid across»; all other golden examples unchanged; 3 000 random rooms pass the monotonic invariant. Also: the scheme is now a full-width card after the form/result grid (it slid under the sticky result on desktop); the rowsLayout property test got the 60 s timeout the other rows properties have.
   - Where: `feature/layout-guides` · PR #154
   - Notes: formula change → needs a `formula-reviewer` pass before release (P6.7 follow-up).
