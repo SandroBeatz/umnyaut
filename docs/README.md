@@ -31,13 +31,13 @@ UmnyAut («Умняут») — a connected renovation calculator: enter room dim
 
 | Doc | Version |
 |---|---|
-| [Architecture Overview](./architecture/overview.md) | 1.1 |
+| [Architecture Overview](./architecture/overview.md) | 1.2 |
 | [Product and Domain](./business/product-and-domain.md) | 2.0 |
 | [Competitive Benchmark](./business/competitive-benchmark.md) | 1.0 |
 | [SEO and Analytics](./business/seo-and-analytics.md) | 1.1 |
 | [Calculation Engine](./code/calc-engine.md) | 1.7 |
 | [Reviewer Handouts](./review/README.md) | 1.0 |
-| [Wave 1 — Release Check](./review/wave-1-release-check.md) | 1.1 |
+| [Wave 1 — Release Check](./review/wave-1-release-check.md) | 1.3 |
 | [Norm Sources — Wave 1](./code/norm-sources-wave-1.md) | 1.6 |
 | [Server API and Data](./code/server-api-and-data.md) | 1.2 |
 | [Calculator Shell, Pages and Routing](./ui/calculator-shell-and-pages.md) | 1.5 |
@@ -63,7 +63,7 @@ Each file in `skills/` is a **spec**: a versioned, host-neutral description of o
 <!-- AUTO: regenerate this table from docs/skills/*.md on every /docs run -->
 | Spec | Version | Status | Built for |
 |---|---|---|---|
-| [New Calculator](./skills/new-calculator.md) | 1.0 | built | claude-code |
+| [New Calculator](./skills/new-calculator.md) | 1.1 | built | claude-code |
 | [Calculator Release Check](./skills/calculator-release-check.md) | 1.0 | built | claude-code |
 | [Tool Content](./skills/tool-content.md) | 1.0 | built | claude-code |
 | [UI Component](./skills/ui-component.md) | 1.0 | built | claude-code |

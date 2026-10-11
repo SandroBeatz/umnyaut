@@ -1,12 +1,12 @@
 ---
-version: 1.1
-date: 2026-10-09
+version: 1.2
+date: 2026-10-11
 category: architecture
 ---
 
 # Architecture Overview
 
-> Version 1.1 · 2026-10-09 · [Architecture](../architecture/)
+> Version 1.2 · 2026-10-11 · [Architecture](../architecture/)
 
 ## Overview
 
@@ -58,7 +58,7 @@ umnyaut/
 │  ├─ app/                   routes only: page.tsx, layout.tsx, route.ts
 │  ├─ src/                   FSD layers
 │  │  ├─ views/              page composition (FSD "pages"; named views because Next owns pages/)
-│  │  ├─ widgets/            calculator-shell, result-panel, room-bar, layout-scheme
+│  │  ├─ widgets/            calculator-shell (incl. LayoutScheme), site-header, site-footer, home-room
 │  │  ├─ features/           save-project, share-result, report-error, pick-country, scan-label
 │  │  ├─ entities/           room, project, tool, country
 │  │  └─ shared/             api client, analytics (track), lib, config
@@ -127,7 +127,7 @@ Adding a calculator never touches routing. It is **five files**:
 | `packages/calc/src/tools/<id>/golden.ts` | ≥ 10 golden examples |
 | `packages/catalog/src/tools/<id>.ts` | URL, category, titles, form fields, presets, “next steps” links |
 | `apps/web/content/tools/<id>.md` | Text under the tool + FAQ |
-| `apps/web/src/widgets/layout-scheme/<id>.tsx` | Layout scheme, only if needed |
+| `packages/calc/src/tools/<id>/index.ts` → `result.layout` | Layout scheme, only if needed: geometry + guide codes from `compute()`, drawn by the one `LayoutScheme` (`widgets/calculator-shell/ui/`); guide texts in the catalog entry (`guide`). See [Room Plan, Layout Schemes and Laying Guides](../ui/room-plan-and-layout-guides.md) |
 
 Routes are generated from the registry (`generateStaticParams`, `dynamicParams = false`). See [Calculation Engine](../code/calc-engine.md) and the `new-calculator` skill spec.
 
