@@ -65,6 +65,8 @@ export const shell = {
     height: "Высота",
     count: "Количество",
     remove: "Убрать",
+    /** Closed card summary: «80 × 200 см · 1 шт.». */
+    size: "{width} × {height} {unit} · {count} шт.",
     empty: "Окон и дверей нет",
     /** Size limits and row cap of the calc schema, mm. */
     limits: { minMm: 100, maxMm: 10_000, rows: 20 },
@@ -124,6 +126,8 @@ export const shell = {
     offset: "От левого угла",
     offsetHint: "Если смотреть на стену из комнаты",
     unplaced: "Не отмечено на плане",
+    /** Closed card summary: «Стена 2 · 120 см от угла». */
+    placedAt: "{wall} · {offset} от угла",
     none: "Сначала добавьте дверь или окно",
     done: "Готово",
     summary: "Отмечено: {placed} из {total}",

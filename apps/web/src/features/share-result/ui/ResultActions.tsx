@@ -58,10 +58,10 @@ export function ResultActions({ title, getText, getUrl, primary, onAction }: Res
           {t.save}
         </Button>
       )}
-      <Button variant="secondary" className="min-w-32 flex-1" onClick={send}>
+      <button type="button" className={iconButton} onClick={send}>
         <Send aria-hidden="true" />
         {t.share}
-      </Button>
+      </button>
       <button
         type="button"
         className={iconButton}

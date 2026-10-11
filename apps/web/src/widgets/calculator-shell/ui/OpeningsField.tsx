@@ -4,8 +4,9 @@ import type { Opening } from "@umnyaut/calc";
 import { lengthUnitLabels, shell } from "@umnyaut/catalog";
 import { Button, NumberField, Stepper } from "@umnyaut/ui";
 import { formatNumber } from "@umnyaut/ui/format";
-import { DoorOpen, Plus, RectangleHorizontal, X } from "lucide-react";
+import { DoorOpen, Plus, RectangleHorizontal } from "lucide-react";
 import { fill } from "@/shared/lib";
+import { CollapsibleCard, useOpenCards } from "@/shared/ui";
 import { fromDisplay, type LengthUnit, toDisplay } from "../model/fields";
 
 const t = shell.openings;
@@ -19,7 +20,10 @@ export interface OpeningsFieldProps {
   onInvalid(name: string, invalid: boolean): void;
 }
 
-/** Windows and doors: one card per size with a count; «+ Дверь», «+ Окно» insert typical sizes. */
+/**
+ * Windows and doors: one card per size with a count, closed to a one-line summary until tapped; «+ Дверь»,
+ * «+ Окно» insert typical sizes and open the new card.
+ */
 export function OpeningsField({ label, value, unit, onChange, onInvalid }: OpeningsFieldProps) {
   const range = fill(shell.form.range, {
     min: formatNumber(toDisplay(minMm, unit)),
@@ -28,14 +32,17 @@ export function OpeningsField({ label, value, unit, onChange, onInvalid }: Openi
   });
   const update = (index: number, patch: Partial<Opening>) =>
     onChange(value.map((o, i) => (i === index ? { ...o, ...patch } : o)));
-  const add = (type: Opening["type"]) => onChange([...value, { type, ...t.defaults[type], count: 1 }]);
+  const cards = useOpenCards();
+  const add = (type: Opening["type"]) => {
+    cards.setOpen(value.length, true);
+    onChange([...value, { type, ...t.defaults[type], count: 1 }]);
+  };
 
   return (
     <fieldset className="m-0 flex min-w-0 flex-col gap-3 col-span-2 border-0 p-0">
       <legend className="mb-1.5 text-small font-medium text-text">{label}</legend>
       {value.length === 0 ? <p className="text-small text-text-muted">{t.empty}</p> : null}
       {value.map((opening, index) => {
-        const Icon = opening.type === "door" ? DoorOpen : RectangleHorizontal;
         const size = (part: "widthMm" | "heightMm", partLabel: string) => (
           <NumberField
             label={partLabel}
@@ -53,25 +60,29 @@ export function OpeningsField({ label, value, unit, onChange, onInvalid }: Openi
             }}
           />
         );
+        const name = opening.type === "door" ? t.door : t.window;
         return (
           // biome-ignore lint/suspicious/noArrayIndexKey: rows have no id; order is stable while editing
-          <div key={index} className="rounded-md border border-border p-3">
-            <div className="mb-2 flex items-center gap-2">
-              <Icon aria-hidden="true" className="size-5 text-primary-hover" />
-              <span className="flex-1 text-body-strong">{opening.type === "door" ? t.door : t.window}</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label={`${t.remove}: ${opening.type === "door" ? t.door : t.window}`}
-                onClick={() => {
-                  // Rows shift after a removal, so every row's error flag is reset.
-                  onInvalid("openings.*", false);
-                  onChange(value.filter((_, i) => i !== index));
-                }}
-              >
-                <X />
-              </Button>
-            </div>
+          <CollapsibleCard
+            key={index}
+            icon={opening.type === "door" ? DoorOpen : RectangleHorizontal}
+            title={name}
+            summary={fill(t.size, {
+              width: formatNumber(toDisplay(opening.widthMm, unit)),
+              height: formatNumber(toDisplay(opening.heightMm, unit)),
+              unit: lengthUnitLabels[unit],
+              count: opening.count,
+            })}
+            open={cards.isOpen(index)}
+            onOpenChange={(next) => cards.setOpen(index, next)}
+            removeLabel={`${t.remove}: ${name}`}
+            onRemove={() => {
+              // Rows shift after a removal, so every row's error flag is reset.
+              onInvalid("openings.*", false);
+              cards.removed(index);
+              onChange(value.filter((_, i) => i !== index));
+            }}
+          >
             <div className="grid grid-cols-2 gap-3">
               {size("widthMm", t.width)}
               {size("heightMm", t.height)}
@@ -86,7 +97,7 @@ export function OpeningsField({ label, value, unit, onChange, onInvalid }: Openi
               incrementLabel={shell.form.increment}
               onValueChange={(count) => update(index, { count })}
             />
-          </div>
+          </CollapsibleCard>
         );
       })}
       <div className="flex gap-2">

@@ -32,12 +32,13 @@ export function HowCalculated({ tool, steps, checkedAt }: HowCalculatedProps) {
       <AccordionItem value="how">
         <AccordionTrigger>{h.title}</AccordionTrigger>
         <AccordionContent>
-          <ol className="flex list-decimal flex-col gap-2 pl-5 text-body text-text tabular-nums">
+          <ol className="flex list-decimal flex-col gap-2 pl-5 text-body text-text tabular-nums wrap-break-word">
             {steps.map((step) => (
               <li key={step}>{step}</li>
             ))}
           </ol>
-          <div className="mt-4 flex flex-col gap-1 text-caption text-text-muted">
+          {/* Sources end in long URLs: without breaking anywhere they widen the phone page. */}
+          <div className="mt-4 flex flex-col gap-1 text-caption text-text-muted wrap-anywhere">
             {sources.length > 0 ? (
               <p>
                 {h.sources}: {[...new Set(sources)].join("; ")}

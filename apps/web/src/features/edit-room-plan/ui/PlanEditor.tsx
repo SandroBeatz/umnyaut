@@ -4,10 +4,11 @@ import { type Opening, placeOpenings } from "@umnyaut/calc";
 import { lengthUnitLabels, shell } from "@umnyaut/catalog";
 import { Button, NumberField, ResponsiveSheet, Select } from "@umnyaut/ui";
 import { formatNumber, NBSP } from "@umnyaut/ui/format";
-import { DoorOpen, Plus, RectangleHorizontal, X } from "lucide-react";
+import { DoorOpen, Plus, RectangleHorizontal } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { FloorPlan } from "@/entities/room";
 import { fill } from "@/shared/lib";
+import { CollapsibleCard, useOpenCards } from "@/shared/ui";
 import { centred, collapse, expand, type PlanOpening, type PlanRoom, planOutline } from "../model/plan";
 
 const t = shell.plan;
@@ -33,6 +34,7 @@ export function PlanEditor({ room, openings, onChange, trigger }: PlanEditorProp
   const list = expand(openings);
   const { placed } = placeOpenings(walls, openings);
   const set = (next: PlanOpening[]) => onChange(collapse(next));
+  const cards = useOpenCards();
   const update = (index: number, patch: Partial<PlanOpening>) =>
     set(list.map((item, i) => (i === index ? { ...item, ...patch } : item)));
   const wallOptions = walls.map((_, i) => ({ value: String(i), label: fill(t.wall, { n: i + 1 }) }));
@@ -63,63 +65,65 @@ export function PlanEditor({ room, openings, onChange, trigger }: PlanEditorProp
         {list.length === 0 ? <p className="text-small text-text-muted">{t.none}</p> : null}
         <ul className="flex flex-col gap-3">
           {list.map((item, index) => {
-            const Icon = item.type === "door" ? DoorOpen : RectangleHorizontal;
             const name = item.type === "door" ? o.door : o.window;
             const wall = item.place ? walls[item.place.wall] : undefined;
             const maxMm = Math.max((wall?.lengthMm ?? 0) - item.widthMm, 0);
             return (
               // biome-ignore lint/suspicious/noArrayIndexKey: openings have no id; order is stable while editing
-              <li key={index} className="rounded-md border border-border p-3">
-                <div className="mb-2 flex items-center gap-2">
-                  <Icon aria-hidden="true" className="size-5 text-primary-hover" />
-                  <span className="flex-1 text-body-strong">
-                    {name}
-                    <span className="text-small font-normal text-text-muted">
-                      {` · ${formatNumber(item.widthMm / 10)}${NBSP}${cm}`}
-                    </span>
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={`${o.remove}: ${name}`}
-                    onClick={() => set(list.filter((_, i) => i !== index))}
-                  >
-                    <X />
-                  </Button>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <Select
-                    label={t.wallLabel}
-                    options={item.place ? wallOptions : [{ value: NONE, label: t.unplaced }, ...wallOptions]}
-                    value={item.place ? String(item.place.wall) : NONE}
-                    onValueChange={(v) => {
-                      if (v === NONE) return;
-                      const length = walls[Number(v)]?.lengthMm ?? 0;
-                      const offsetMm = Math.min(item.place?.offsetMm ?? 0, Math.max(length - item.widthMm, 0));
-                      update(index, { place: { wall: Number(v), offsetMm } });
-                    }}
-                  />
-                  {item.place ? (
-                    <NumberField
-                      label={t.offset}
-                      hint={t.offsetHint}
-                      unit={cm}
-                      value={item.place.offsetMm / 10}
-                      min={0}
-                      max={maxMm / 10}
-                      required
-                      messages={{
-                        range: fill(shell.form.range, { min: 0, max: formatNumber(maxMm / 10), unit: cm }),
-                        required: shell.form.required,
-                      }}
+              <li key={index}>
+                <CollapsibleCard
+                  icon={item.type === "door" ? DoorOpen : RectangleHorizontal}
+                  title={`${name} · ${formatNumber(item.widthMm / 10)}${NBSP}${cm}`}
+                  summary={
+                    item.place
+                      ? fill(t.placedAt, {
+                          wall: fill(t.wall, { n: item.place.wall + 1 }),
+                          offset: `${formatNumber(item.place.offsetMm / 10)}${NBSP}${cm}`,
+                        })
+                      : t.unplaced
+                  }
+                  open={cards.isOpen(index)}
+                  onOpenChange={(next) => cards.setOpen(index, next)}
+                  removeLabel={`${o.remove}: ${name}`}
+                  onRemove={() => {
+                    cards.removed(index);
+                    set(list.filter((_, i) => i !== index));
+                  }}
+                >
+                  <div className="grid grid-cols-2 gap-3">
+                    <Select
+                      label={t.wallLabel}
+                      options={item.place ? wallOptions : [{ value: NONE, label: t.unplaced }, ...wallOptions]}
+                      value={item.place ? String(item.place.wall) : NONE}
                       onValueChange={(v) => {
-                        const mm = v === null ? Number.NaN : Math.round(v * 10);
-                        if (item.place && mm >= 0 && mm <= maxMm)
-                          update(index, { place: { ...item.place, offsetMm: mm } });
+                        if (v === NONE) return;
+                        const length = walls[Number(v)]?.lengthMm ?? 0;
+                        const offsetMm = Math.min(item.place?.offsetMm ?? 0, Math.max(length - item.widthMm, 0));
+                        update(index, { place: { wall: Number(v), offsetMm } });
                       }}
                     />
-                  ) : null}
-                </div>
+                    {item.place ? (
+                      <NumberField
+                        label={t.offset}
+                        hint={t.offsetHint}
+                        unit={cm}
+                        value={item.place.offsetMm / 10}
+                        min={0}
+                        max={maxMm / 10}
+                        required
+                        messages={{
+                          range: fill(shell.form.range, { min: 0, max: formatNumber(maxMm / 10), unit: cm }),
+                          required: shell.form.required,
+                        }}
+                        onValueChange={(v) => {
+                          const mm = v === null ? Number.NaN : Math.round(v * 10);
+                          if (item.place && mm >= 0 && mm <= maxMm)
+                            update(index, { place: { ...item.place, offsetMm: mm } });
+                        }}
+                      />
+                    ) : null}
+                  </div>
+                </CollapsibleCard>
               </li>
             );
           })}
@@ -130,7 +134,10 @@ export function PlanEditor({ room, openings, onChange, trigger }: PlanEditorProp
               key={type}
               variant="secondary"
               disabled={list.length >= o.limits.rows}
-              onClick={() => set([...list, centred(room, { type, ...o.defaults[type] })])}
+              onClick={() => {
+                cards.setOpen(list.length, true);
+                set([...list, centred(room, { type, ...o.defaults[type] })]);
+              }}
             >
               <Plus aria-hidden="true" />
               {type === "door" ? o.addDoor : o.addWindow}

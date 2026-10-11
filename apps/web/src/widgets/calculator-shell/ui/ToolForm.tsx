@@ -4,7 +4,7 @@ import type { Opening } from "@umnyaut/calc";
 import { type FieldDef, getCountry, lengthUnitLabels, shell, type ToolDef } from "@umnyaut/catalog";
 import { Button, NumberField, PresetChips, Segment, Select, UnitToggle } from "@umnyaut/ui";
 import { formatMoney, formatNumber } from "@umnyaut/ui/format";
-import { ChevronDown, MapPin, Ruler } from "lucide-react";
+import { ChevronDown, PencilRuler, Ruler } from "lucide-react";
 import { type ReactNode, useId, useState } from "react";
 import { useCountry } from "@/entities/country";
 import { useRoomStore } from "@/entities/room";
@@ -13,8 +13,8 @@ import { PlanEditor } from "@/features/edit-room-plan";
 import { fill } from "@/shared/lib";
 import {
   changedHidden,
+  formSections,
   fromDisplay,
-  isVisible,
   type LengthUnit,
   matchingPreset,
   roomBindings,
@@ -40,8 +40,8 @@ const checkedFormat = new Intl.DateTimeFormat("ru-RU", {
 });
 
 /**
- * Form from `FieldDef[]` (design spec §11–12): main fields two per row, preset chips, then «Ещё параметры · N»
- * with the m/cm switch. From 1024 px everything is open.
+ * Form from `FieldDef[]` (design spec §11–12): main fields two per row with the room shape right under the room
+ * size, preset chips, then «Ещё параметры · N» with the m/cm switch. From 1024 px everything is open.
  */
 export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFormProps) {
   const [unit, setUnit] = useState<LengthUnit>("m");
@@ -62,9 +62,7 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
   };
   const bound = new Map(roomBindings(tool.fields));
 
-  const visible = tool.fields.filter((field) => isVisible(field, values));
-  const main = visible.filter((field) => field.main);
-  const more = visible.filter((field) => !field.main);
+  const { main, more } = formSections(tool.fields, values);
   const changed = changedHidden(tool.fields, values, defaults);
   const hasLengths = tool.fields.some((field) => field.kind === "length" || field.kind === "openings");
 
@@ -203,7 +201,7 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
                 onChange={(next) => onChange({ [field.name]: next })}
                 trigger={
                   <Button variant="secondary">
-                    <MapPin aria-hidden="true" />
+                    <PencilRuler aria-hidden="true" />
                     {placed > 0 ? shell.plan.edit : shell.plan.open}
                   </Button>
                 }
