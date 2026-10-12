@@ -19,7 +19,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
   openGraph: openGraph(title, site.description, "/"),
   twitter: { card: "summary_large_image" },
-  icons: { apple: "/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = { themeColor: "#ffffff" };
