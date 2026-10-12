@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-12
 
+- **P16.11** Master handout: wallpaper questions rewritten for version 4 (12 questions on the practice constants of the start, corners, openings and off-cuts; the outdated «perimeter vs per wall» question dropped), `wave-1-master.md` regenerated (175 examples).
+  - Where: `feature/p16-8-wallpaper-scheme` · PR #165
+
 - **P16.8b** `formula-reviewer` pass on wallpaper v4: **CHANGES REQUIRED** → fixed. All four new goldens re-derived by hand and matched; 12 000 random rooms showed no coverage gap, overlap or double use of material. Fixed: (1) the 2 cm block gap was a cliff — the owner's room went 5 → 6 rolls with a pier of 21 mm; now a pier up to 10 cm (under the casings) joins the openings, one constant for the guide too, new golden with 6 cm piers; (2) the start search ignored the joints it warns about — joints at doors and windows now rank right after rolls and narrow inserts (owner's room, edge: 5 → 2 joints; typical: 4 → 2); (3) reusing what is trimmed off over an opening had no source — now rough-cut 5 cm in from the edges and only for rolls ≥ 1 m (non-woven, pasted on the wall; master to confirm), the guide says to cut the rectangle out first; (4) the drawn joints now match the warning (corner and closing splits included); (5) a sliver of a piece beside a wider one on the same side joins it, as tall as both; (6) the edges of bare zones are cut in either mode and never count as joints at openings; wording of `edge_no_gain` and `one_opening`. Goldens: owner edge 11 → 7 pieces, typical edge 13 → 14 strips, 8 → 6 pieces (rolls unchanged), new «6 cm piers». Master review list: the 10 cm pier, the 5 cm rough-cut margin, reuse of off-cuts for paper wallpaper, the 10 cm minimum edge part, one or two pieces above a door and a window with different tops.
   - Where: `feature/p16-8-wallpaper-scheme` · PR #165
 
