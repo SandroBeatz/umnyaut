@@ -38,7 +38,8 @@ const TRIM = "Припуск 4–5 см сверху и снизу: инстру
  * closing strips are narrow: without a pattern they are cut from any rest wide and long enough (side by side),
  * with a pattern from one strip when they fit (left and right side) at the same phase. Pieces go into rests:
  * roll tails and side rests, each used once. Derivations below follow the chosen start; a lower bound shows the
- * roll count is the least possible for that hang.
+ * roll count is the least possible for that hang. The start is ranked strictly: no part under 5 cm, then the
+ * fewest rolls, then the fewest inserts under 10 cm, then the joint out of sight, then the fewest strips.
  */
 export const golden: GoldenFile<OboiInput> = {
   tool: "oboi",
@@ -89,12 +90,12 @@ export const golden: GoldenFile<OboiInput> = {
           wallpaper: { packs: 8, need: 75.55, leftover: 4.85 },
           "wallpaper-glue": { packs: 1, need: 30, leftover: 0 },
         },
-        summary: { strips: 23, stripLength: 2.6, perRoll: 3, pieces: 0 },
-        warnings: ["narrow_insert"],
+        summary: { strips: 24, stripLength: 2.6, perRoll: 3, pieces: 0 },
+        warnings: [],
       },
       source: {
         kind: "manual",
-        ref: "Периметр 12 + заходы в 4 угла по 1,5 см = 12,06 м / 0,53 = 22,8 → не меньше 23 полос по 2,6 м; 3 из рулона → 8 рулонов (7 × 3 = 21 и 2 узкие замыкающие в 8-м). Выбранный старт: стена 1, линия 25 см, стык в углу 2–3: 23 полосы, одна вставка уже 10 см (остаток 8,5 см у угла стены 4) — дешевле без неё не выходит, отсюда подсказка. 8 × 10,05 − 4,85 = 75,55 м. Стены 30 м², клей 30 / 30 = 1 пачка",
+        ref: "Периметр 12 + заходы в 4 угла по 1,5 см = 12,06 м / 0,53 = 22,8 → не меньше 23 полос по 2,6 м, 3 из рулона → 8 рулонов. Выбранный старт: стена 1, линия 50 см, стык в углу 2–3 — без вставок уже 10 см: 22 полосы во всю ширину и две замыкающие по 20 см (вырезаются рядом из одного отреза), 24 полосы на стенах. 22 → 7 рулонов по 3 и 1 в 8-м, замыкающие — там же. 8 × 10,05 − 4,85 = 75,55 м. Стены 30 м², клей 30 / 30 = 1 пачка",
       },
     },
     {
@@ -110,16 +111,16 @@ export const golden: GoldenFile<OboiInput> = {
       },
     },
     {
-      name: "Straight match, repeat 64 cm: pieces need an extra roll",
+      name: "Straight match, repeat 64 cm: the start puts two strips on the window",
       input: { repeatMm: 640 },
       expected: {
-        items: { wallpaper: { packs: 12, need: 111.689, leftover: 8.911 } },
-        summary: { strips: 33, stripLength: 3.2, perRoll: 3, pieces: 3, blanks: 32 },
-        warnings: ["repeat_lucky_start"],
+        items: { wallpaper: { packs: 11, need: 109.319, leftover: 1.231 } },
+        summary: { strips: 32, stripLength: 3.2, perRoll: 3, pieces: 5, blanks: 31 },
+        warnings: ["narrow_insert"],
       },
       source: {
         kind: "manual",
-        ref: "Раскладка как в примере по умолчанию: 31 полоса во всю ширину, 2 замыкающие (22 и 13,5 см) — с рисунком они вырезаются из одной полосы (левый край и правый, фаза одна), итого 32 отреза; куски: под окном 1,0 (фаза 1,8 mod 0,64 = 0,52), над окном 0,5 и над дверью 0,8 (фаза 0). Рабочая длина 9,411; полосы 0–2,8, 3,2–6,0, 6,4–9,2, хвост 0,211. 32 отреза → 10 рулонов по 3 и 2 в 11-м (до 6,0). Куски: 1,0 — в рулон 11 с 6,28 (до 7,28), 0,8 — с 7,68 (до 8,48); 0,5 с фазой 0 — с 8,96 не входит → рулон 12 (0–0,5). Хвост 12-го 9,411 − 0,5 = 8,911: 120,6 − 8,911 = 111,689 м. При удачном начале рисунка хватило бы 11 — подсказка",
+        ref: `${CORNER}. Старт: стена 4, линия 8 см, стык в углу 3–4. На окне (1,57–2,73 с запасом) целиком две полосы — 1,67–2,2 и 2,2–2,73 → К1, К2 (под окном 1,0, над ним 0,5); над дверью полоса 0,61–1,14 → К3 (0,8). 30 полос во всю ширину + замыкающие 26,5 и 9,5 см — с рисунком из одной полосы (левый и правый край, фаза 0): 31 отрез. Вставка 8 см у угла стены 4 — подсказка. Рабочая длина 9,411; 3 полосы в рулоне (0, 3,2, 6,4) → 30 в 10 рулонах; в 11-м — пара замыкающих (0–2,8) и куски с 3,08, 4,36, 5,76, 7,04, 7,68 (до 8,18). Хвост 9,411 − 8,18 = 1,231: 110,55 − 1,231 = 109,319 м. 30 полос во всю ширину — уже 10 рулонов, пара и куски — 11-й: меньше нельзя`,
       },
     },
     {
@@ -278,13 +279,13 @@ export const golden: GoldenFile<OboiInput> = {
       name: "Straight match 64 cm, height 2.9 m: strips use the roll almost to the end",
       input: { heightMm: 2900, repeatMm: 640 },
       expected: {
-        items: { wallpaper: { packs: 12, need: 111.889, leftover: 8.711 } },
+        items: { wallpaper: { packs: 11, need: 110.159, leftover: 0.391 } },
         summary: { perRoll: 3 },
-        warnings: ["repeat_lucky_start", "roll_tight"],
+        warnings: ["roll_tight", "narrow_insert"],
       },
       source: {
         kind: "manual",
-        ref: "Рабочая длина 9,411; полосы 3,0: 0–3,0, 3,2–6,2, 6,4–9,4 — остаётся 0,011 м, меньше 1,5% рулона. 32 отреза (31 + 2 замыкающие из одной) → 10 рулонов по 3 и 2 в 11-м. Куски: под окном 1,0 (фаза 2,0 mod 0,64 = 0,08) — в рулон 11 с 6,48, над дверью 1,0 (фаза 0) — с 7,68 (до 8,68); над окном 0,7 с 8,96 не входит → рулон 12. Хвост 9,411 − 0,7 = 8,711: 120,6 − 8,711 = 111,889 м",
+        ref: "Рабочая длина 9,411; полосы 3,0: 0–3,0, 3,2–6,2, 6,4–9,4 — остаётся 0,011 м, меньше 1,5% рулона. Раскладка как в «Straight match, repeat 64 cm»: 30 полос в 10 рулонах, в 11-м — пара замыкающих (0–3,0) и куски: под окном 1,0 (две), над дверью 1,0, над окном 0,7 (две) — с 3,28, 4,56, 5,76, 7,04, 8,32 (до 9,02). Хвост 9,411 − 9,02 = 0,391: 110,55 − 0,391 = 110,159 м",
       },
     },
     {
@@ -296,12 +297,13 @@ export const golden: GoldenFile<OboiInput> = {
         ],
       },
       expected: {
-        items: { wallpaper: { packs: 11, need: 103.3, leftover: 7.25 } },
-        summary: { strips: 32, pieces: 4 },
+        items: { wallpaper: { packs: 10, need: 98.85, leftover: 1.65 } },
+        summary: { strips: 31, pieces: 6 },
+        warnings: ["narrow_insert"],
       },
       source: {
         kind: "manual",
-        ref: `${CORNER}. Как в примере по умолчанию, но дверь 0,6–1,8 на стене 3: там целиком над дверью две полосы (0,65–1,18 и 1,18–1,71) → К2, К3, куски по 0,7 + 0,1 = 0,8. 30 полос во всю ширину → 10 рулонов по 3; замыкающие 22 и 13,5 см вырезаются рядом из одного отреза 2,8 м в 11-м рулоне (32 полосы на стенах); куски 1,0 и 0,5 (окно), 0,8 и 0,8 (дверь) — в хвосты 1,65 рулонов 1–3. Хвост 11-го 10,05 − 2,8 = 7,25: 110,55 − 7,25 = 103,3 м`,
+        ref: `${CORNER}. Старт: стена 4, линия 8 см, стык в углу 3–4. Дверь 0,6–1,8 на стене 3: целиком над ней две полосы (0,61–1,14 и 1,14–1,67) → К3, К4 по 0,7 + 0,1 = 0,8; на окне — К1, К2 (1,0 и 0,5). 28 полос во всю ширину + узкая угловая 52,5 см (остаток 0,5 см — отход) + замыкающие 26,5 и 9,5 см. 28 → 9 рулонов по 3 и 1 в 10-м; узкая — в 10-м после неё, замыкающие — рядом из одного отреза за ней; куски — в хвосты 1,65 рулонов 1–4. Хвост 10-го 1,65: 100,5 − 1,65 = 98,85 м`,
       },
     },
     {
@@ -362,7 +364,7 @@ export const golden: GoldenFile<OboiInput> = {
       },
       source: {
         kind: "manual",
-        ref: `${CORNER}. Как «Wide roll 1.06», полоса 2,8 + 0,1 = 2,9 м. Стены 17,8 + 4 × 0,015 = 17,86 м, на окне одна полоса не нужна (над и под ней куски): 16,8 м / 1,06 = 15,85 → 16 полос во всю высоту; две замыкающие (98 и 96,5 см) вместе шире рулона — 16 отрезов по 2,9 м. Из рулона 10 м — 3 (8,7, хвост 1,3 на всю ширину), так что 16 / 3 → 6 рулонов; 5 рулонов дают только 15 таких отрезов. Куски 1,0 и 0,6 у окна — в хвосты рулонов 1 и 2. Хвост 6-го 10 − 2,9 = 7,1: 60 − 7,1 = 52,9 м. По площади (46,56 / 10,6 = 4,4 → 5) выходит меньше потому, что хвосты 1,3 м не годятся на полосы во всю высоту`,
+        ref: `${CORNER}. Как «Wide roll 1.06», полоса 2,8 + 0,1 = 2,9 м. Стены 17,8 + 4 × 0,015 = 17,86 м, на окне одна полоса не нужна (над и под ней куски): 16,8 м / 1,06 = 15,85 → 16 полос во всю высоту; две замыкающие (98 и 96,5 см) вместе шире рулона — 16 отрезов по 2,9 м. Из рулона 10 м — 3 (8,7, хвост 1,3 на всю ширину), так что 16 / 3 → 6 рулонов; 5 рулонов дают только 15 таких отрезов. Куски 1,0 и 0,6 у окна — в хвосты рулонов 1 и 2. Хвост 6-го 10 − 2,9 = 7,1: 60 − 7,1 = 52,9 м. Это минимум для цельных полос: 5 рулонов вышло бы только со стыками по краям двери и окна и кусками шириной 0,8 и 1,2 м — запас во всей комнате 4 см, так не клеят. По площади (46,56 / 10,6 = 4,4 → 5) выходит меньше потому, что хвосты 1,3 м не годятся на полосы во всю высоту (formula-reviewer подтвердил, 2026-10-12)`,
       },
     },
     {
@@ -392,15 +394,36 @@ export const golden: GoldenFile<OboiInput> = {
       },
     },
     {
-      name: "A wardrobe zone floor to ceiling, 2.2 m: four strips fewer, 10 rolls",
+      name: "A wardrobe zone floor to ceiling, 2.2 m: four strips fewer, 9 rolls",
       input: { zones: [{ wall: 0, offsetMm: 1000, fromFloorMm: 0, widthMm: 2200, heightMm: 2700 }] },
       expected: {
-        items: { wallpaper: { packs: 10, need: 96.05 } },
-        summary: { strips: 29, wallArea: 38.84, bareArea: 5.94 },
+        items: { wallpaper: { packs: 9, need: 88.8 } },
+        summary: { strips: 28, wallArea: 38.84, bareArea: 5.94 },
       },
       source: {
         kind: "manual",
-        ref: "Зона 1,0–3,2 м на стене 1 во всю высоту (2,2 × 2,7 = 5,94 м²): 44,78 − 5,94 = 38,84 м². Старт: стена 4, линия 10 см, стык в углу 2–3; на стене 1 полосы 0–0,53 и 0,53–1,06 (заходит на зону — клеим целиком и подрезаем), четыре полосы 1,06–3,18 целиком в зоне — не клеим, дальше 3,18 и 3,71. 26 полос во всю ширину + 3 узкие: 50,5 см в углу стены 4 (остаток 2,5 см — в отход) и замыкающие 42 и 49 см (вместе шире рулона) = 29. 26 → 9 рулонов (8 × 3 + 2), узкая 50,5 — в хвост 9-го; 42 и 49 — подряд в 10-м. Хвост 10-го 10,05 − 5,6 = 4,45: 100,5 − 4,45 = 96,05 м",
+        ref: "formula-reviewer, 2026-10-12: старт выбирается по рулонам раньше узких вставок. Зона 1,0–3,2 м на стене 1 во всю высоту (2,2 × 2,7 = 5,94 м²): 44,78 − 5,94 = 38,84 м². Старт: стена 4, линия 8 см, стык в углу 3–4; на стене 1 полосы 0–0,53 и 0,53–1,06 (заходит на зону — клеим целиком и подрезаем), четыре полосы 1,06–3,18 целиком в зоне — не клеим, дальше 3,18, 3,71 и угловая 36 см. На окне — К1, К2, над дверью — К3. 25 полос во всю ширину + узкая угловая 52,5 см + замыкающие 26,5 и 9,5 см (рядом из одного отреза) = 28. 25 → 8 рулонов по 3 и 1 в 9-м, узкие — в 9-м за ней; куски — в хвосты рулонов 1–3. Хвост 9-го 1,65: 90,45 − 1,65 = 88,8 м",
+      },
+    },
+    {
+      name: "Room 3.1 × 2.7 × 2.6 m, roll 0.70: a strip on the window and one over the door — 5 rolls (review)",
+      input: {
+        lengthMm: 3100,
+        widthMm: 2700,
+        heightMm: 2600,
+        rollWidthMm: 700,
+        openings: [
+          { type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 0, offsetMm: 200 }] },
+          { type: "window", widthMm: 1000, heightMm: 1400, count: 1, places: [{ wall: 1, offsetMm: 100 }] },
+        ],
+      },
+      expected: {
+        items: { wallpaper: { packs: 5, need: 48.3, leftover: 1.95 } },
+        summary: { strips: 16, pieces: 3, rollsUsed: 5 },
+      },
+      source: {
+        kind: "manual",
+        ref: `${CORNER}. formula-reviewer, 2026-10-12 (было 6). Старт: стена 2, линия 35 см, стык в углу 1–2. Окно 0,1–1,1 на стене 2: полоса 0,35–1,05 целиком внутри (запас 2 см) → К1 (под 0,9 + 0,1 = 1,0, над 0,3 + 0,1 = 0,4); дверь 0,2–1,0 на стене 1: полоса 0,205–0,905 → К2 (0,6 + 0,1 = 0,7). 14 полос во всю ширину (3 угловые — с остатком на следующую стену) + замыкающие 8 и 36,5 см рядом из одного отреза. Полоса 2,7 м, 3 из рулона (8,1, хвост 1,95): 14 → 4 рулона по 3 и 2 в 5-м, пара замыкающих — в 5-м за ними; куски — в хвосты рулонов 1 и 2. 15 отрезов во всю длину — меньше 5 рулонов нельзя. Хвост 5-го 1,95: 50,25 − 1,95 = 48,3 м`,
       },
     },
     {
@@ -479,13 +502,13 @@ export const golden: GoldenFile<OboiInput> = {
         "Same 11 rolls. Qalculator subtracts the full door width and none of the window (33 strips); we hang strips wall by wall from the window corner (corner wraps and rests carried to the next wall): two strips fall wholly across the window and become pieces above and below it, none falls wholly across the 0,8 m door (32 strips). Their formula with zapas 0; the UI applies the user's extra %.",
     },
     {
-      example: "Straight match, repeat 64 cm: pieces need an extra roll",
+      example: "Straight match, repeat 64 cm: the start puts two strips on the window",
       site: "Qalculator",
       url: "https://qalculator.ru/scripts/calc/otdelka.js",
       checkedAt: "2026-10-09",
       observed: { items: { wallpaper: { packs: 11 } }, summary: { stripLength: 3.2, perRoll: 3 } },
       explanation:
-        "Qalculator 11, we 12. Both give 3 strips per roll, but we also allow for the unknown pattern start on each roll (up to 0,639 m lost), which leaves 0,211 m tails: the pieces above and below the window and door no longer fit and take a 12th roll. Qalculator glues full strips over the window instead of pieces.",
+        "Same 11 rolls by another route. Both give 3 strips per roll; we also allow for the unknown pattern start on each roll (up to 0,639 m lost), so the 0,211 m tails hold no pieces — but the chosen start puts two strips wholly on the window and one over the door (pieces instead of full strips) and cuts the two closing strips from one, so the pieces fit the 11th roll. Qalculator glues full strips over the window.",
     },
     {
       example: "Offset match, repeat 64 cm: the short pieces fit the tails",

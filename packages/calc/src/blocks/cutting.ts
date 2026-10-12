@@ -20,6 +20,8 @@ export interface CutPlanInput {
   parts: readonly { widthMm: number; lengthMm: number; phaseMm: number }[];
   /** Rests narrower or shorter than this are waste. */
   minRestMm: number;
+  /** One order and fit rule only (a quick estimate while comparing starts). */
+  quick?: boolean;
 }
 
 export interface PlannedCut {
@@ -214,8 +216,8 @@ export function planCuts(i: CutPlanInput): CutPlan {
     [...idx].sort((a, b) => f(i.parts[b] as never) - f(i.parts[a] as never) || a - b);
   const orders = [by((p) => p.lengthMm), by((p) => p.widthMm * p.lengthMm), by((p) => p.widthMm * 1e6 + p.lengthMm)];
   let bestPlan: CutPlan | undefined;
-  for (const order of orders)
-    for (const rule of [true, false]) {
+  for (const order of i.quick ? orders.slice(0, 1) : orders)
+    for (const rule of i.quick ? [true] : [true, false]) {
       const candidate = plan(i, order, rule);
       if (
         !bestPlan ||

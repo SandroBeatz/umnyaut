@@ -90,6 +90,8 @@ export interface HangResult {
   narrow: number;
   /** Narrowest full-height part on a wall, mm (∞ when every one is a whole roll width). */
   narrowestMm: number;
+  /** How far the two sides overlap round the closing corner, mm (should be at least its wrap). */
+  closingOverlapMm: number;
 }
 
 const EPS = 1e-6;
@@ -117,8 +119,10 @@ function hangRun(
   out: HangResult,
   columns: HangColumn[][],
   lines: number[][],
-) {
+): number {
   const W = i.rollWidthMm;
+  /** How much of the wrap the last strip of the run could not give at its end (the closing corner). */
+  let shortAtEnd = 0;
   let carry = 0;
   let carryFrom = 0;
   // A strip that ended at a corner without its full wrap: the next wall's first strip wraps back by the rest.
@@ -126,6 +130,8 @@ function hangRun(
   let order = sign === 1 ? 0 : 1;
   segments.forEach((seg, j) => {
     const last = j === segments.length - 1;
+    // Nothing hung on the last segment (it is empty): no wrap from this side at all.
+    if (last && seg.wrapMm > 0 && carry === 0 && seg.to - seg.from <= EPS) shortAtEnd = seg.wrapMm;
     const push = (c: HangColumn) => columns[seg.wall]?.push({ ...c, x: seg.mirrored ? seg.length - c.x - c.w : c.x });
     let x = seg.from;
     if (short > 0 && carry === 0) x -= short;
@@ -137,7 +143,12 @@ function hangRun(
       const over = x + carry - seg.to;
       x += carry;
       carry = !last && over - seg.wrapMm >= i.minCarryMm ? over - seg.wrapMm : 0;
-      if (x >= seg.to - EPS) return;
+      if (x >= seg.to - EPS) {
+        // The rest reached the corner but wraps less than it should: the next wall's strip wraps back.
+        if (!last && carry === 0 && over < seg.wrapMm - EPS) short = seg.wrapMm - Math.max(over, 0);
+        if (last && over < seg.wrapMm - EPS) shortAtEnd = seg.wrapMm - Math.max(over, 0);
+        return;
+      }
       carry = 0;
     }
     let first = true;
@@ -155,6 +166,7 @@ function hangRun(
         const onWall = seg.to - Math.max(x, 0);
         const wrap = Math.min(seg.wrapMm, W - (seg.to - x));
         if (!last && wrap < seg.wrapMm - EPS) short = seg.wrapMm - wrap;
+        if (last && wrap < seg.wrapMm - EPS) shortAtEnd = seg.wrapMm - wrap;
         const rest = W - (seg.to - x) - wrap;
         const next = segments[j + 1];
         const parts = [{ wall: seg.wall, widthMm: onWall + wrap }];
@@ -216,11 +228,19 @@ function hangRun(
       x = x1;
     }
   });
+  return shortAtEnd;
 }
 
 export function hangStrips(i: HangInput, narrowMm = 100): HangResult {
   const count = i.walls.length;
-  const out: HangResult = { walls: [], blanks: [], pieces: [], narrow: 0, narrowestMm: Number.POSITIVE_INFINITY };
+  const out: HangResult = {
+    walls: [],
+    blanks: [],
+    pieces: [],
+    narrow: 0,
+    narrowestMm: Number.POSITIVE_INFINITY,
+    closingOverlapMm: 0,
+  };
   const columns: HangColumn[][] = i.walls.map(() => []);
   const lines: number[][] = i.walls.map(() => []);
   const s = ((i.start.wall % count) + count) % count;
@@ -275,17 +295,28 @@ export function hangStrips(i: HangInput, narrowMm = 100): HangResult {
   const ccwEnd = ccw[ccw.length - 1];
   if (ccwEnd) ccwEnd.wrapMm = i.wrapsMm[c] ?? 0;
 
-  const counters = { n: 0, k: 0 };
-  hangRun(i, cw, 1, counters, out, columns, lines);
-  hangRun(
+  const ccwRun = ccw.filter((g, j) => j > 0 || g.to - g.from > EPS);
+  // Where the anticlockwise side's last strip cannot wrap onto wall c (it ends right at the corner), the clockwise
+  // side goes to the corner and wraps onto the next wall instead, so the closing corner is never bare.
+  const dry: HangResult = { walls: [], blanks: [], pieces: [], narrow: 0, narrowestMm: 0, closingOverlapMm: 0 };
+  const shortfall = hangRun(
     i,
-    ccw.filter((g, j) => j > 0 || g.to - g.from > EPS),
+    ccwRun,
     -1,
-    counters,
-    out,
-    columns,
-    lines,
+    { n: 0, k: 0 },
+    dry,
+    i.walls.map(() => []),
+    i.walls.map(() => []),
   );
+  if (shortfall > EPS && end) {
+    end.to = L(end.wall);
+    end.wrapMm = i.wrapsMm[c] ?? 0;
+  }
+  const counters = { n: 0, k: 0 };
+  const cwShort = hangRun(i, cw, 1, counters, out, columns, lines);
+  hangRun(i, ccwRun, -1, counters, out, columns, lines);
+  const wrapC = i.wrapsMm[c] ?? 0;
+  out.closingOverlapMm = wrapC - shortfall + (shortfall > EPS ? wrapC - cwShort : 0);
 
   out.walls = columns.map((cols, k) => ({
     columns: cols.sort((a, b) => a.x - b.x),

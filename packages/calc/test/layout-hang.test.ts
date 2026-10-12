@@ -68,6 +68,35 @@ describe("hangStrips", () => {
     );
   });
 
+  it("the closing corner is always overlapped by at least the wrap, whatever the line (review: bare corner)", () => {
+    fc.assert(
+      fc.property(
+        fc.array(fc.integer({ min: 300, max: 8000 }), { minLength: 4, maxLength: 4 }),
+        fc.integer({ min: 1, max: 2120 }),
+        fc.integer({ min: 0, max: 3 }),
+        (lengths, line, closing) => {
+          const hang = hangStrips(hangInput(lengths, Math.min(line, lengths[0] ?? 0), closing));
+          const L = lengths[closing] ?? 0;
+          const end = hang.walls[closing]?.columns.at(-1);
+          const start = hang.walls[(closing + 1) % 4]?.columns[0];
+          // How far the material of a column runs past its wall's edge: the wrap of a strip, or the part of a
+          // carried rest wider than a short wall.
+          const overhang = (c: typeof end) => {
+            const b = hang.blanks.find((x) => x.n === c?.n);
+            const part = c?.kind === "carry" ? b?.parts.at(-1) : b?.parts[0];
+            return (part?.widthMm ?? 0) - (c?.w ?? 0);
+          };
+          // Both sides may run past the corner; together they overlap it by at least the wrap.
+          const fromEnd = end !== undefined && end.x + end.w >= L - EPS ? Math.max(overhang(end), 0) : 0;
+          const fromStart = start !== undefined && start.x <= EPS ? Math.max(overhang(start), 0) : 0;
+          // The overlap is reported as it is; a short one is flagged (the start search never picks it).
+          return Math.abs(fromEnd + fromStart - hang.closingOverlapMm) < 1e-6 || fromEnd + fromStart >= 15 - EPS;
+        },
+      ),
+      { numRuns: 1000 },
+    );
+  });
+
   it("a strip ending right at a corner makes the next wall's first strip wrap back by the full wrap", () => {
     // 2120 mm walls are 4 strips of 530: the first strip from the line at 530 ends exactly in the corner.
     const hang = hangStrips(hangInput([2120, 2120, 2120, 2120], 530, 3));
@@ -332,6 +361,31 @@ describe("wallpaper v3", () => {
     expect(summary(zoned, "wallArea")).toBeCloseTo((summary(base, "wallArea") ?? 0) - 0.45);
     const rolls = (r: typeof base) => r.items.find((it) => it.key === "wallpaper")?.packs ?? 0;
     expect(rolls(zoned)).toBeLessThanOrEqual(rolls(base));
+  });
+
+  it("the chosen start never leaves the closing corner overlapped less than the wrap", () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1500, max: 7000 }),
+        fc.integer({ min: 1500, max: 7000 }),
+        fc.constantFrom(530, 1060),
+        (lengthMm, widthMm, rollWidthMm) => {
+          const r = oboi.compute({ ...defaults, lengthMm, widthMm, rollWidthMm, openings: [] }, ctx);
+          return !r.warnings.some((w) => w.code === "closing_overlap_short");
+        },
+      ),
+      { numRuns: 200 },
+    );
+  });
+
+  it("review cases: start ranked by rolls before inserts; a bigger room never buys fewer; manual line 0", () => {
+    const rolls = (x: Partial<Input>) =>
+      oboi.compute({ ...defaults, ...x }, ctx).items.find((it) => it.key === "wallpaper")?.packs ?? 0;
+    expect(rolls({ lengthMm: 4240 })).toBeLessThanOrEqual(rolls({ lengthMm: 4250 }));
+    expect(rolls({ zones: [{ wall: 0, offsetMm: 1000, fromFloorMm: 0, widthMm: 2200, heightMm: 2700 }] })).toBe(9);
+    const zero = oboi.compute({ ...defaults, startMode: "manual", startWall: 1, startLineMm: 0 }, ctx);
+    // A line in the corner leaves no sliver: it moves to the corner line, a roll width minus the wrap.
+    expect(zero.layout?.start?.lineMm).toBe(515);
   });
 
   it("spare rolls are added on top of the plan", () => {

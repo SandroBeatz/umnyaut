@@ -149,8 +149,9 @@ test("wallpaper: rolls by strips, roll preset and pattern repeat change the coun
   await page.getByText("0,53 × 10 м").click();
   await page.getByRole("button", { name: /Ещё параметры/ }).click();
   await type(page, "Раппорт", "64");
-  // Each strip takes 3,2 m of the roll after the worst pattern start; the pieces need a 12th roll.
-  await expect(result(page)).toHaveText("12");
+  // Each strip takes 3,2 m of the roll after the worst pattern start; the start puts two strips on the window
+  // and pairs the closing strips, so the pieces fit the 11th roll (golden «Straight match, repeat 64 cm»).
+  await expect(result(page)).toHaveText("11");
 });
 
 test("paint: a can set with sizes, ceiling switch, primer canister", async ({ page }) => {

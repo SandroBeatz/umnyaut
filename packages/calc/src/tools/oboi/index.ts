@@ -238,7 +238,6 @@ interface Choice {
   closingCorner: number;
   hang: HangResult;
   cut?: Cutting;
-  score: number;
 }
 
 /** The cutting plan of a hang and, for each strip and part of it, the blank or piece it comes from. */
@@ -249,7 +248,7 @@ interface Cutting {
   parts: ({ kind: "narrow"; blank: HangBlank } | { kind: "piece"; piece: HangResult["pieces"][number] })[];
 }
 
-function cutting(i: OboiInput, hang: HangResult, stripMm: number, lucky = false): Cutting {
+function cutting(i: OboiInput, hang: HangResult, stripMm: number, lucky = false, quick = false): Cutting {
   const half = i.match === "offset" ? i.repeatMm / 2 : 0;
   const phase = (order: number) => (Math.abs(order) % 2 === 1 ? half : 0);
   const strips: Cutting["strips"] = [];
@@ -287,6 +286,7 @@ function cutting(i: OboiInput, hang: HangResult, stripMm: number, lucky = false)
         : { widthMm: p.piece.widthMm, lengthMm: p.piece.lengthMm, phaseMm: phase(p.piece.order) + p.piece.y },
     ),
     minRestMm: MIN_REST_MM,
+    quick,
   });
   return { plan, strips, parts };
 }
@@ -297,7 +297,8 @@ function cutting(i: OboiInput, hang: HangResult, stripMm: number, lucky = false)
  * corner; the two directions meet either in the corner before the start wall (one direction round the room) or
  * in the least visible corner — by the door, never at the main wall. The cutting plan decides between the best
  * few: first no part under 5 cm, then the fewest rolls, then the fewest awkward narrow parts, then the joint out
- * of sight (a pattern makes it count more), then the fewest strips. A manual start or a symmetric main wall fixes the line; the joint is still chosen.
+ * of sight, then the fewest strips — compared strictly in that order. Every candidate gets a quick cutting
+ * estimate (one order); the best twelve get the full plan. A manual start or a symmetric main wall fixes the line; the joint is still chosen.
  */
 function chooseStart(i: OboiInput, rw: RoomWalls, stripMm: number) {
   const { outline } = rw;
@@ -338,19 +339,35 @@ function chooseStart(i: OboiInput, rw: RoomWalls, stripMm: number) {
       },
       NARROW_MM,
     );
-  const tiny = (h: HangResult) => (h.narrowestMm < MIN_CARRY_MM ? 1 : 0);
-  const weight = i.repeatMm > 0 ? 400 : 150;
-  const quick = (c: Choice) =>
-    tiny(c.hang) * 1e5 + c.hang.blanks.length * 1000 + c.hang.narrow * 500 + visibility(c.closingCorner) * weight;
+  // Hard faults: a full-height part under 5 cm, or a closing corner the two sides cannot overlap by the wrap.
+  const tiny = (c: Choice) =>
+    (c.hang.narrowestMm < MIN_CARRY_MM ? 1 : 0) +
+    (c.hang.closingOverlapMm < (rw.wraps[c.closingCorner] ?? 0) - 1e-6 ? 1 : 0);
+  // Strictly in this order: no part under 5 cm, rolls, awkward inserts, the joint out of sight, strips, tail.
+  const key = (c: Choice, rolls: number, tail: number) => [
+    tiny(c),
+    rolls,
+    c.hang.narrow,
+    visibility(c.closingCorner),
+    c.hang.blanks.length,
+    -tail,
+  ];
+  const compare = (a: number[], b: number[]) => {
+    for (let k = 0; k < a.length; k++) {
+      const d = (a[k] ?? 0) - (b[k] ?? 0);
+      if (Math.abs(d) > 1e-9) return d;
+    }
+    return 0;
+  };
+  const keys = new Map<Choice, number[]>();
+  const quick = (c: Choice) => {
+    const plan = cutting(i, c.hang, stripMm, false, true).plan;
+    keys.set(c, key(c, plan.fits ? plan.rolls.length : Number.POSITIVE_INFINITY, plan.tailMm));
+    return c;
+  };
   const full = (c: Choice) => {
     c.cut = cutting(i, c.hang, stripMm);
-    c.score =
-      tiny(c.hang) * 1e5 +
-      c.cut.plan.rolls.length * 1000 +
-      c.hang.narrow * 500 +
-      c.hang.blanks.length * 100 +
-      visibility(c.closingCorner) * weight -
-      c.cut.plan.tailMm / 1e4;
+    keys.set(c, key(c, c.cut.plan.fits ? c.cut.plan.rolls.length : Number.POSITIVE_INFINITY, c.cut.plan.tailMm));
     return c;
   };
   const make = (wall: number, lineMm: number, closingCorner: number): Choice => ({
@@ -358,15 +375,19 @@ function chooseStart(i: OboiInput, rw: RoomWalls, stripMm: number) {
     lineMm,
     closingCorner,
     hang: hangAt(wall, lineMm, closingCorner),
-    score: 0,
   });
   const before = (wall: number) => (wall - 1 + count) % count;
+  // Every candidate gets a quick cutting estimate; the best few get the full one, which decides.
   const pick = (list: Choice[], top = 12) => {
-    const best = [...list]
-      .sort((a, b) => quick(a) - quick(b))
+    // A hang with many more strips than the best one cannot need fewer rolls: no need to cut it.
+    const fewest = Math.min(...list.map((c) => c.hang.blanks.length));
+    const best = list
+      .filter((c) => c.hang.blanks.length <= fewest + 3)
+      .map(quick)
+      .sort((a, b) => compare(keys.get(a) ?? [], keys.get(b) ?? []))
       .slice(0, top)
       .map(full);
-    return best.sort((a, b) => a.score - b.score)[0] as Choice;
+    return best.sort((a, b) => compare(keys.get(a) ?? [], keys.get(b) ?? []))[0] as Choice;
   };
   const closings = (wall: number) => [...new Set([before(wall), hidden])];
   const cornerLine = (wall: number) => Math.min(W - (rw.wraps[before(wall)] ?? 0), walls[wall]?.lengthMm ?? 0);
@@ -383,7 +404,8 @@ function chooseStart(i: OboiInput, rw: RoomWalls, stripMm: number) {
     mode = "manual";
     const wall = Math.min(Math.max(i.startWall - 1, 0), count - 1);
     const L = walls[wall]?.lengthMm ?? 0;
-    const line = Math.min(Math.max(i.startLineMm, 1), L);
+    // A line closer to the corner than a usable rest would leave a sliver: it goes to the corner line instead.
+    const line = i.startLineMm < MIN_CARRY_MM ? cornerLine(wall) : Math.min(i.startLineMm, L);
     chosen = pick(closings(wall).map((c) => make(wall, line, c)));
   } else if (i.symmetric) {
     mode = "symmetric";
@@ -731,6 +753,13 @@ export const oboi: ToolModule<OboiInput> = {
           values: { strip: mmToM(stripMm), roll: mmToM(R) },
         });
       }
+      const closingWrap = rw.wraps[start.chosen.closingCorner] ?? 0;
+      if (hang.closingOverlapMm < closingWrap - 1e-6)
+        warnings.push({
+          code: "closing_overlap_short",
+          level: "warning",
+          values: { overlap: Math.round(Math.max(hang.closingOverlapMm, 0)) / 10, wrap: closingWrap / 10 },
+        });
       if (hang.narrow > 0)
         warnings.push({
           code: "narrow_insert",
