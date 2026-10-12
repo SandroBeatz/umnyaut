@@ -1,17 +1,17 @@
 import type { Layout, LayoutElevation, LayoutRoll, LayoutRow, LayoutRun, LayoutSheet } from "@umnyaut/calc";
-import { shell, type ToolDef } from "@umnyaut/catalog";
+import { schemeStrings, type ToolDef, toolGuides } from "@umnyaut/catalog";
 import { formatNumber } from "@umnyaut/ui/format";
 import { fill } from "@/shared/lib";
 
-const s = shell.scheme;
+const s = schemeStrings;
 const cm = (mm: number) => formatNumber(mm / 10, { maxFraction: 1 });
 const m = (mm: number) => formatNumber(mm / 1000, { maxFraction: 2 });
 
-/** Laying steps in Russian from the guide codes (catalog `ToolDef.guide`). */
+/** Laying steps in Russian from the guide codes (catalog `toolGuides`). */
 export function guideLines(tool: ToolDef, layout: Layout): string[] {
   return layout.guide.map((step) =>
     fill(
-      tool.guide?.[step.code] ?? step.code,
+      toolGuides[tool.id]?.[step.code] ?? step.code,
       Object.fromEntries(Object.entries(step.values).map(([k, v]) => [k, formatNumber(v, { maxFraction: 1 })])),
     ),
   );
@@ -112,8 +112,8 @@ export function elevationLines(elevations: readonly LayoutElevation[]): { title:
 }
 
 /**
- * Wallpaper, one line per wall for «Что клеить по стенам»: «Стена 4 · 4,3 м: полосы 1–9 · отвес в 51,5 см от
- * угла · под окном к полосе 4: 1 м · в углу полоса 9: 7,5 см + 1,5 на соседнюю стену · остаток 44 см →
+ * Wallpaper, one line per wall for «Что клеить по стенам»: «Стена 4 · 4,3 м: полосы 1–7 · отвес в 51,5 см от
+ * угла · кусок К1 под окном: 1 м · в углу полоса 7: 7,5 см + 1,5 на соседнюю стену · остаток 44 см →
  * следующая стена».
  */
 export function hangLines(elevations: readonly LayoutElevation[]): { title: string; parts: string[] }[] {
@@ -136,20 +136,16 @@ export function hangLines(elevations: readonly LayoutElevation[]): { title: stri
   });
 }
 
-/** Wallpaper roll map, one line per roll: «Рулон 1: полоса 1 — 2,8 м · … · кусок под 4 — 1 м · остаток 0,15 м». */
+/** Wallpaper roll map, one line per roll: «Рулон 1: полоса 1 — 2,8 м · … · кусок К1 под окном — 1 м · остаток 0,15 м». */
 export function rollLines(rolls: readonly LayoutRoll[]): { title: string; parts: string[] }[] {
   const t = s.strips.walls;
   return rolls.map((roll, k) => ({
     title: fill(t.roll, { n: k + 1 }),
     parts: [
       ...roll.cuts.map((c) =>
-        c.where
-          ? fill(t.rollPiece, {
-              where: c.where === "above" ? t.rollAbove : t.rollBelow,
-              n: c.strip,
-              length: m(c.lengthMm),
-            })
-          : fill(t.rollStrip, { n: c.strip, length: m(c.lengthMm) }),
+        c.piece !== undefined
+          ? fill(t.rollPiece, { where: c.where === "below" ? t.below : t.above, n: c.piece, length: m(c.lengthMm) })
+          : fill(t.rollStrip, { n: c.strip ?? 0, length: m(c.lengthMm) }),
       ),
       fill(t.tail, { length: m(roll.tailMm) }),
     ],

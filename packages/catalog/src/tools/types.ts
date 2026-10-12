@@ -85,8 +85,6 @@ export interface ToolDef {
   summary?: Readonly<Record<string, string>>;
   /** Text per step code of “How calculated”, same placeholders. */
   steps?: Readonly<Record<string, string>>;
-  /** Text per laying-guide code of the layout scheme («Как укладывать»), same placeholders. */
-  guide?: Readonly<Record<string, string>>;
   /** Norm ids this tool uses (see norms.ts); “How calculated” lists their sources. */
   norms?: readonly string[];
 }

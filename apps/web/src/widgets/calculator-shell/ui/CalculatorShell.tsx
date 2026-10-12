@@ -2,6 +2,7 @@
 
 import type { Opening } from "@umnyaut/calc";
 import { getTool, unitLabels } from "@umnyaut/catalog";
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCountry } from "@/entities/country";
 import { roomDimensions, useRoomStore } from "@/entities/room";
@@ -16,25 +17,32 @@ import { useCalcEvents } from "../model/useCalcEvents";
 import { useCalculator } from "../model/useCalculator";
 import { describeResult, resultText } from "../model/view";
 import { HowCalculated } from "./HowCalculated";
-import { LayoutScheme } from "./LayoutScheme";
 import { NextSteps } from "./NextSteps";
 import { PrintSheet } from "./PrintSheet";
 import { ResultPanel } from "./ResultPanel";
 import { StickyResultBar } from "./StickyResultBar";
 import { ToolForm } from "./ToolForm";
 
+/**
+ * The scheme card sits below the form and the result, never on the first screen: it is rendered in the browser
+ * only, and its code (pictures, guides, cut lists) stays out of the first-screen JS budget.
+ */
+const LayoutScheme = dynamic(() => import("./LayoutScheme").then((m) => m.LayoutScheme), { ssr: false });
+
 export interface CalculatorShellProps {
   category: string;
   toolId: string;
   /** YYYY-MM-DD from the content file, for «Проверено …». */
   checkedAt?: string;
+  /** Norm sources for «Как посчитано», looked up on the server (`normSources`). */
+  sources?: readonly string[];
 }
 
 /**
  * The one component that renders every tool (docs/ui/calculator-shell-and-pages.md). Phone: room, form, result
  * in one column with a sticky result bar; from 1024 px form 5/12 left, result 7/12 right and sticky.
  */
-export function CalculatorShell({ category, toolId, checkedAt }: CalculatorShellProps) {
+export function CalculatorShell({ category, toolId, checkedAt, sources }: CalculatorShellProps) {
   const tool = getTool(category, toolId);
   if (!tool) throw new Error(`Unknown tool ${category}/${toolId}`);
   const calc = useCalculator(tool);
@@ -114,7 +122,7 @@ export function CalculatorShell({ category, toolId, checkedAt }: CalculatorShell
         ) : null}
         <RoomList />
         <NextSteps tool={tool} />
-        <HowCalculated tool={tool} steps={view.steps} checkedAt={checkedAt} />
+        <HowCalculated tool={tool} steps={view.steps} checkedAt={checkedAt} sources={sources} />
       </div>
       <PrintSheet
         tool={tool}

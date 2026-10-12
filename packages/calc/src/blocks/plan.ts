@@ -207,18 +207,22 @@ export function lightDirection(
 /**
  * Placed doors and windows on one wall, unfolded (x from the wall's first corner, y down from the ceiling): a
  * door stands on the floor, a window on its sill (`WINDOW_SILL_MM` when not set); one that would pass the
- * ceiling is held under it. `defaultSill` — a window here has no sill of its own.
+ * ceiling is held under it (`aboveCeiling` counts those windows). `defaultSill` — a window here has no sill of its
+ * own.
  */
 export function wallOpenings(placed: readonly PlacedOpening[], wall: number, heightMm: number) {
   let defaultSill = false;
+  /** Windows whose sill + height passes the ceiling: held under it (a warning in the tool). */
+  let aboveCeiling = 0;
   const openings = placed
     .filter((p) => p.wall === wall)
     .map((p): ElevationOpening => {
       const h = Math.min(p.heightMm, heightMm);
       if (p.type === "door") return { type: "door", x: p.offsetMm, y: heightMm - h, w: p.widthMm, h };
       if (p.sillMm === undefined) defaultSill = true;
+      if ((p.sillMm ?? WINDOW_SILL_MM) + h > heightMm) aboveCeiling++;
       const sill = Math.min(p.sillMm ?? WINDOW_SILL_MM, heightMm - h);
       return { type: "window", x: p.offsetMm, y: heightMm - sill - h, w: p.widthMm, h };
     });
-  return { openings, defaultSill };
+  return { openings, defaultSill, aboveCeiling };
 }

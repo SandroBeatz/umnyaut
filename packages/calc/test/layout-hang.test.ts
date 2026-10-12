@@ -22,6 +22,7 @@ describe("hangStrips", () => {
             minCarryMm: 50,
             minPieceMm: 50,
             trimMm: 100,
+            windowMarginMm: 20,
           });
           return hang.walls.every((wall, j) => {
             const L = lengths[j] ?? 0;
@@ -48,14 +49,20 @@ describe("wallpaper scheme", () => {
     expect(layout.kind).toBe("strips");
     expect(layout.stats.whole + layout.stats.cut).toBe(summary(result, "strips"));
     expect(layout.rolls).toHaveLength(11);
-    const strips = layout.rolls.flatMap((r) => r.cuts.filter((c) => !c.where).map((c) => c.strip));
-    expect(strips).toHaveLength(32);
-    expect(new Set(strips).size).toBe(32);
+    const strips = layout.rolls.flatMap((r) => r.cuts.flatMap((c) => (c.strip === undefined ? [] : [c.strip])));
+    // Only full-height strips are numbered: 1…32, each cut once.
+    expect([...strips].sort((a, b) => a - b)).toEqual(Array.from({ length: 32 }, (_, k) => k + 1));
     expect(layout.rolls.flatMap((r) => r.cuts.filter((c) => c.where))).toHaveLength(summary(result, "pieces") ?? -1);
     // Start at the window wall (wall 4), first level line 51,5 cm from its corner.
     expect(layout.guide[0]).toEqual({ code: "start_window", values: { wall: 4, plumb: 51.5 } });
-    expect(layout.elevations[3]?.strips).toMatchObject({ first: 1, last: 9, cornerMm: 75, carryOutMm: 440 });
-    expect(layout.elevations[0]?.strips).toMatchObject({ carryFrom: 9, carryInMm: 440, first: 10, last: 17 });
+    expect(layout.elevations[3]?.strips).toMatchObject({ first: 1, last: 7, cornerMm: 75, carryOutMm: 440 });
+    expect(layout.elevations[3]?.strips?.pieces.map((p) => `К${p.n} ${p.where}`)).toEqual([
+      "К1 above",
+      "К1 below",
+      "К2 above",
+      "К2 below",
+    ]);
+    expect(layout.elevations[0]?.strips).toMatchObject({ carryFrom: 7, carryInMm: 440, first: 8, last: 15 });
   });
 
   it("openings not placed: the perimeter estimate, empty walls, the guide asks to place them", () => {
@@ -101,11 +108,12 @@ describe("wallpaper scheme", () => {
           const layout = result.layout;
           const rolls = result.items.find((it) => it.key === "wallpaper")?.packs ?? 0;
           if (!layout?.rolls) return result.items.length === 0 || !result.items.some((it) => it.key === "wallpaper");
-          const strips = layout.rolls.flatMap((r) => r.cuts.filter((c) => !c.where).map((c) => c.strip));
+          const strips = layout.rolls.flatMap((r) => r.cuts.flatMap((c) => (c.strip === undefined ? [] : [c.strip])));
           return (
             layout.stats.whole + layout.stats.cut === summary(result, "strips") &&
             new Set(strips).size === strips.length &&
             strips.length === summary(result, "strips") &&
+            Math.max(0, ...strips) === summary(result, "strips") &&
             layout.rolls.flatMap((r) => r.cuts.filter((c) => c.where)).length === summary(result, "pieces") &&
             layout.rolls.length === rolls
           );

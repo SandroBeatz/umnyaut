@@ -303,7 +303,7 @@ test("wallpaper scheme: strips wall by wall from the window corner, a roll map, 
   await expect(result(page)).toHaveText("11");
   await expect(scheme.getByText(/по отвесу в 51,5 см от угла стены 4/)).toBeVisible();
   await scheme.getByText("Карта рулонов", { exact: true }).click();
-  await expect(scheme.getByText(/кусок под 4 — 1 м/)).toBeVisible();
+  await expect(scheme.getByText(/кусок К1 под окном — 1 м/)).toBeVisible();
 
   await page.goto(`${WALLPAPER}?s=${s({ openings: [{ type: "door", widthMm: 800, heightMm: 2000, count: 1 }] })}`);
   await expect(scheme.getByText("Отметьте двери и окна на плане — тогда разложим полосы по стенам")).toBeVisible();

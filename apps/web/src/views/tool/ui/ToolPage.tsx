@@ -1,4 +1,4 @@
-import { getCategory, shell, strings, type ToolDef, toolPath } from "@umnyaut/catalog";
+import { getCategory, getNorm, shell, strings, type ToolDef, toolPath } from "@umnyaut/catalog";
 import { ld } from "@/shared/lib";
 import { Breadcrumbs, JsonLd, PageText } from "@/shared/ui";
 import { CalculatorShell } from "@/widgets/calculator-shell";
@@ -37,7 +37,13 @@ export function ToolPage({ tool, text }: { tool: ToolDef; text?: ToolText }) {
         {text ? <p className="text-body text-text-muted">{text.question}</p> : null}
         {tool.status === "draft" ? <p className="mt-2 text-small text-accent-text">{strings.draftNotice}</p> : null}
       </div>
-      <CalculatorShell category={tool.category} toolId={tool.id} checkedAt={text?.checkedAt} />
+      <CalculatorShell
+        category={tool.category}
+        toolId={tool.id}
+        checkedAt={text?.checkedAt}
+        // Looked up here, on the server: the norms register stays out of the browser bundle.
+        sources={[...new Set((tool.norms ?? []).flatMap((id) => getNorm(id)?.source ?? []))]}
+      />
       {text ? <PageText html={text.html} faq={text.faq} faqTitle={shell.faq} className="mt-10 print:hidden" /> : null}
     </main>
   );

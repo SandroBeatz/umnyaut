@@ -11,6 +11,7 @@ import { type CategoryDef, categories, reservedSegments } from "./categories";
 import { norms } from "./norms";
 import { toolPath } from "./paths";
 import { activeCategories, getTool, tools } from "./registry";
+import { toolGuides } from "./scheme";
 import type { ToolDef } from "./tools/types";
 import { type RegistryInput, validateRegistry } from "./validate";
 
@@ -44,7 +45,7 @@ describe("registry", () => {
       }
       for (const { code } of result.steps) expect(tool.steps?.[code], `${tool.id} steps.${code}`).toBeDefined();
       for (const { code } of result.layout?.guide ?? [])
-        expect(tool.guide?.[code], `${tool.id} guide.${code}`).toBeDefined();
+        expect(toolGuides[tool.id]?.[code], `${tool.id} guide.${code}`).toBeDefined();
       for (const preset of tool.presets ?? []) {
         const input = { ...module.defaults(ctx), ...preset.values };
         expect(module.input.safeParse(input).success, `${tool.id} preset ${preset.id}`).toBe(true);

@@ -1,7 +1,7 @@
 "use client";
 
 import type { Layout, LayoutPiece, Opening } from "@umnyaut/calc";
-import { lengthUnitLabels, shell, type ToolDef } from "@umnyaut/catalog";
+import { lengthUnitLabels, schemeStrings, shell, type ToolDef } from "@umnyaut/catalog";
 import { Button, LazyDialog, preloadDialog } from "@umnyaut/ui";
 import { ChevronDown, Maximize2, PencilRuler } from "lucide-react";
 import { useId, useRef, useState } from "react";
@@ -11,7 +11,7 @@ import { fill } from "@/shared/lib";
 import { elevationLines, guideLines, hangLines, rollLines, rowLines, runLines, sheetLines } from "../model/scheme-text";
 import { WallElevations } from "./WallElevations";
 
-const s = shell.scheme;
+const s = schemeStrings;
 const t = s.strips;
 const r = s.runs;
 const g = s.grid;

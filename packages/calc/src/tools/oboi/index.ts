@@ -58,6 +58,8 @@ export type OboiInput = z.infer<typeof input>;
  * 1,5–5 cm (oboi-store) — 15 mm fits both.
  */
 export const WALLPAPER_CORNER_WRAP_MM = 15;
+/** A strip turns into pieces only 2 cm or more inside a window on both sides (practice, placing error). */
+const WINDOW_MARGIN_MM = 20;
 /** The rest of a corner strip narrower than this is waste, not hung on the next wall (practice, master review). */
 const MIN_CARRY_MM = 50;
 
@@ -109,6 +111,9 @@ function hangPlan(i: OboiInput, openings: OboiInput["openings"], warnings: Warni
   const start = windows[0]?.wall ?? 0;
   const order = outline.walls.map((_, k) => (start + k) % outline.walls.length);
   const perWall = outline.walls.map((_, k) => wallOpenings(placed, k, i.heightMm));
+  const aboveCeiling = perWall.reduce((n, w) => n + w.aboveCeiling, 0);
+  if (aboveCeiling > 0)
+    warnings.push({ code: "window_above_ceiling", level: "warning", values: { count: aboveCeiling } });
   const plan: HangPlan = {
     outline,
     marks: placed.map((p) => p.mark),
@@ -126,8 +131,31 @@ function hangPlan(i: OboiInput, openings: OboiInput["openings"], warnings: Warni
     minCarryMm: MIN_CARRY_MM,
     minPieceMm: MIN_PIECE_MM,
     trimMm: i.trimMm,
+    windowMarginMm: WINDOW_MARGIN_MM,
   });
   return plan;
+}
+
+/**
+ * Where the pattern is at the start of each strip and piece once they are placed: columns alternate 0 and
+ * repeat / 2 with an offset match (every column, pieces columns too; the rest of a corner strip goes with its
+ * strip); a piece above an opening starts where its column does, a piece below a window that much lower.
+ */
+function hangPhases(i: OboiInput, hang: HangResult) {
+  const half = i.match === "offset" ? i.repeatMm / 2 : 0;
+  const strips: number[] = [];
+  const pieces: number[] = [];
+  let c = 0;
+  for (const wall of hang.walls) {
+    for (const col of wall.columns) {
+      if (col.kind === "carry") continue;
+      const phase = c % 2 === 1 ? half : 0;
+      c++;
+      if (col.kind === "pieces") for (const p of col.pieces ?? []) pieces.push(phase + p.y);
+      else strips.push(phase);
+    }
+  }
+  return { stripPhasesMm: strips, piecePhasesMm: pieces };
 }
 
 /** The scheme: every wall unfolded with its strips, the roll cut map and the guide. */
@@ -149,11 +177,11 @@ function hangLayout(i: OboiInput, plan: HangPlan, cut: StripCut | undefined, str
   const elevations: LayoutElevation[] = outline.walls.map((wall, k) => {
     const hanged = hang?.walls[order.indexOf(k)];
     const pieces: LayoutPiece[] = [];
-    const own = (hanged?.columns ?? []).filter((c) => c.kind !== "carry");
+    const own = (hanged?.columns ?? []).filter((c) => c.kind === "full" || c.kind === "corner");
     const carry = hanged?.columns.find((c) => c.kind === "carry");
     for (const c of hanged?.columns ?? []) {
       if (c.kind === "pieces") {
-        for (const p of c.pieces ?? []) pieces.push({ x: c.x, y: p.y, w: c.w, h: p.h, cut: false, row: c.n - 1 });
+        for (const p of c.pieces ?? []) pieces.push({ x: c.x, y: p.y, w: c.w, h: p.h, cut: false, piece: c.n });
         continue;
       }
       if (c.kind === "full") whole++;
@@ -182,7 +210,7 @@ function hangLayout(i: OboiInput, plan: HangPlan, cut: StripCut | undefined, str
               ...(carry ? { carryFrom: carry.n, carryInMm: carry.w } : {}),
               plumbMm: hanged.plumbMm,
               ...(hanged.cornerMm === undefined ? {} : { cornerMm: hanged.cornerMm, carryOutMm: hanged.carryMm ?? 0 }),
-              pieces: own.flatMap((c) =>
+              pieces: (hanged.columns ?? []).flatMap((c) =>
                 (c.pieces ?? []).map((p) => ({ n: c.n, where: p.where, lengthMm: p.lengthMm })),
               ),
             },
@@ -200,7 +228,7 @@ function hangLayout(i: OboiInput, plan: HangPlan, cut: StripCut | undefined, str
       cuts: cuts.map((c) => {
         if (c.kind === "strip") return { strip: numbers[c.index] ?? c.index + 1, lengthMm: stripMm };
         const piece = hang.pieces[c.index];
-        return { strip: piece?.n ?? 0, lengthMm: piece?.lengthMm ?? 0, ...(piece ? { where: piece.where } : {}) };
+        return { piece: piece?.n ?? 0, lengthMm: piece?.lengthMm ?? 0, ...(piece ? { where: piece.where } : {}) };
       }),
       tailMm: cut.remnantsMm[r] ?? 0,
     }));
@@ -340,7 +368,9 @@ export const oboi: ToolModule<OboiInput> = {
       offset: i.match === "offset",
       stripLengthMm: stripMm,
     };
-    const cut = cutStrips({ ...stripsOnly, strips, pieces });
+    // Placed strips and pieces: each starts where its place on the wall needs the pattern to be.
+    const phases = hang && i.repeatMm > 0 ? hangPhases(i, hang) : {};
+    const cut = cutStrips({ ...stripsOnly, strips, pieces, ...phases });
     const layout = hangLayout(i, plan, cut, stripMm);
     if (cut.fits) {
       const tailMm = Math.max(0, ...cut.remnantsMm);
@@ -363,7 +393,7 @@ export const oboi: ToolModule<OboiInput> = {
       steps.push({ code: "rolls", values: { rolls: cut.rolls, tail: mmToM(tailMm) } });
       // The count above assumes the worst pattern start on every roll; say how many a lucky start needs.
       if (i.repeatMm > 0) {
-        const lucky = cutStrips({ ...stripsOnly, strips, pieces, luckyStart: true }).rolls;
+        const lucky = cutStrips({ ...stripsOnly, strips, pieces, ...phases, luckyStart: true }).rolls;
         if (lucky < cut.rolls) {
           warnings.push({
             code: "repeat_lucky_start",

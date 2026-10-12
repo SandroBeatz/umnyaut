@@ -212,9 +212,11 @@ function wallsScheme(
   let around = 0;
   let narrowest = Number.POSITIVE_INFINITY;
   let defaultSill = false;
+  let aboveCeiling = 0;
   outline.walls.forEach((wall, k) => {
-    const { openings: on, defaultSill: noSill } = wallOpenings(placed, k, H);
+    const { openings: on, defaultSill: noSill, aboveCeiling: high } = wallOpenings(placed, k, H);
     if (noSill) defaultSill = true;
+    aboveCeiling += high;
     const grid = wallGrid({
       lengthMm: wall.lengthMm,
       heightMm: H,
@@ -242,6 +244,8 @@ function wallsScheme(
     });
   });
 
+  if (aboveCeiling > 0)
+    warnings.push({ code: "window_above_ceiling", level: "warning", values: { count: aboveCeiling } });
   const cm = (mm: number) => Math.round(mm) / 10;
   const guide: Step[] = [];
   const rows = elevations[0]?.cutRows ?? [];

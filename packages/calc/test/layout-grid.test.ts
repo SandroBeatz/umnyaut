@@ -251,7 +251,9 @@ describe("tile walls scheme", () => {
       },
       { type: "door" as const, widthMm: 800, heightMm: 3000, count: 1, places: [{ wall: 1, offsetMm: 0 }] },
     ];
-    const layout = plitka.compute({ ...walls, openings }, ctx).layout;
+    const result = plitka.compute({ ...walls, openings }, ctx);
+    const layout = result.layout;
+    expect(result.warnings.map((w) => w.code)).toContain("window_above_ceiling");
     expect(layout?.elevations?.[0]?.openings[0]).toMatchObject({ y: 0, h: 1400 });
     expect(layout?.elevations?.[1]?.openings[0]).toMatchObject({ y: 0, h: 2700 });
     expect(layout?.guide.map((s) => s.code)).not.toContain("walls_sill");

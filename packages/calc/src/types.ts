@@ -107,8 +107,10 @@ export interface LayoutPiece {
   cut: boolean;
   /** Made from an offcut of another row or sheet (the orange dot). */
   reused?: boolean;
-  /** Row or sheet index in laying order. */
+  /** Row or sheet index in laying order (wallpaper: full-height strip number − 1). */
   row?: number;
+  /** Wallpaper: number of the pieces column above or below an opening («К1»). */
+  piece?: number;
 }
 
 /** Something drawn on the outline: a placed door or window, the start corner, a seam. */
@@ -207,9 +209,9 @@ export interface LayoutElevation {
   strips?: LayoutWallStrips;
 }
 
-/** Wallpaper on one wall: what is hung where (pieces carry their strip number in `row`, 0-based). */
+/** Wallpaper on one wall: what is hung where. */
 export interface LayoutWallStrips {
-  /** Strip numbers, 1-based: the first and the last one hung on this wall (none when only a rest is). */
+  /** Full-height strip numbers, 1-based: the first and the last one hung on this wall (none when there is none). */
   first?: number;
   last?: number;
   /** The rest of strip `carryFrom` from the wall before, at the corner, mm wide. */
@@ -220,13 +222,14 @@ export interface LayoutWallStrips {
   /** The corner strip: its width on this wall, and the rest going on to the next wall (0 — waste). */
   cornerMm?: number;
   carryOutMm?: number;
-  /** Pieces above and below the openings: strip number, where, cut length with the trim. */
+  /** Pieces above and below the openings: pieces column number («К1»), where, cut length with the trim. */
   pieces: readonly { n: number; where: "above" | "below"; lengthMm: number }[];
 }
 
 /** One roll of a wallpaper layout: what to cut from it in order, and the tail left. */
 export interface LayoutRoll {
-  cuts: readonly { strip: number; lengthMm: number; where?: "above" | "below" }[];
+  /** A full-height `strip` by its number, or a piece of pieces column `piece` («К1») above or below an opening. */
+  cuts: readonly { strip?: number; piece?: number; lengthMm: number; where?: "above" | "below" }[];
   tailMm: number;
 }
 

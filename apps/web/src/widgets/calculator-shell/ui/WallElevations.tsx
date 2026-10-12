@@ -1,12 +1,12 @@
 import type { Layout, LayoutElevation, LayoutPiece } from "@umnyaut/calc";
-import { lengthUnitLabels, shell } from "@umnyaut/catalog";
+import { lengthUnitLabels, schemeStrings, shell } from "@umnyaut/catalog";
 import { formatNumber } from "@umnyaut/ui/format";
 import { useId } from "react";
 import { FloorPlan } from "@/entities/room";
 import { fill } from "@/shared/lib";
 
-const w = shell.scheme.grid.walls;
-const strips = shell.scheme.strips.walls;
+const w = schemeStrings.grid.walls;
+const strips = schemeStrings.strips.walls;
 const m = (mm: number) => formatNumber(mm / 1000, { maxFraction: 2 });
 /** Hatching step on a wall, mm: the same on every wall, so the cuts look alike. */
 const HATCH_MM = 45;
@@ -31,9 +31,17 @@ function Elevation({ elevation, scale }: { elevation: LayoutElevation; scale: nu
   const hatch = useId();
   const { lengthMm: L, heightMm: H, pieces } = elevation;
   const label = labelOf(elevation);
-  const numbers = new Map<number, LayoutPiece>();
+  // Wallpaper: a number on each full-height strip, «К1» on the top piece of each pieces column.
+  const numbers = new Map<string, { p: LayoutPiece; text: string }>();
   if (elevation.strips)
-    for (const p of pieces) if (p.row !== undefined && !p.reused && !numbers.has(p.row)) numbers.set(p.row, p);
+    for (const p of pieces) {
+      const key = p.piece !== undefined ? `k${p.piece}` : p.row !== undefined && !p.reused ? `s${p.row}` : undefined;
+      if (key && !numbers.has(key))
+        numbers.set(key, {
+          p,
+          text: p.piece !== undefined ? fill(strips.pieceMark, { n: p.piece }) : String((p.row ?? 0) + 1),
+        });
+    }
   const font = Math.min(H * 0.07, 160);
   return (
     // Spans only: the scheme sits inside the «open fullscreen» button.
@@ -89,16 +97,16 @@ function Elevation({ elevation, scale }: { elevation: LayoutElevation; scale: nu
               className="fill-accent stroke-white"
             />
           ))}
-        {[...numbers.entries()].map(([row, p]) => (
+        {[...numbers.entries()].map(([key, { p, text }]) => (
           <text
-            key={row}
+            key={key}
             x={p.x + p.w / 2}
-            y={p.y + font * 0.9}
-            fontSize={Math.min(font, p.w * 0.6)}
+            y={p.y + Math.min(font * 0.9, p.h * 0.8)}
+            fontSize={Math.min(font, p.w * 0.45, p.h * 0.8)}
             textAnchor="middle"
             className="fill-text-muted"
           >
-            {row + 1}
+            {text}
           </text>
         ))}
         {elevation.openings.map((o, i) => (
@@ -160,7 +168,7 @@ export function WallElevations({ layout, columns }: WallElevationsProps) {
         walls={layout.walls}
         marks={layout.marks}
         unit={lengthUnitLabels.m}
-        startLabel={shell.scheme.start}
+        startLabel={schemeStrings.start}
         label={fill(shell.plan.planLabel, {
           length: formatNumber(layout.widthMm / 1000),
           width: formatNumber(layout.heightMm / 1000),

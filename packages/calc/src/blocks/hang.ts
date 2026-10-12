@@ -29,11 +29,19 @@ export interface HangInput {
   minPieceMm: number;
   /** Trim allowance added to every piece (strips get it in the tool). */
   trimMm: number;
+  /**
+   * A strip becomes pieces only this far inside a window on both sides, so a 1–2 cm error in placing the window
+   * on the plan never leaves a bare edge (a door's casing covers its edge: none there).
+   */
+  windowMarginMm: number;
 }
 
 /** A column of wallpaper on a wall, in hanging order. */
 export interface HangColumn {
-  /** Strip number, 1-based, in hanging order; a `carry` shows the number of the strip it is the rest of. */
+  /**
+   * Full-height strips are numbered 1, 2, … in hanging order (a `carry` shows the number of the strip it is the
+   * rest of); `pieces` columns have their own numbers 1, 2, … («К1»).
+   */
   n: number;
   /** On the wall, mm. */
   x: number;
@@ -60,7 +68,7 @@ export interface HangResult {
   walls: HangedWall[];
   /** Full-height strips (full and corner columns). */
   strips: number;
-  /** Pieces in hanging order, with the strip number they stand for. */
+  /** Pieces in hanging order, with the number of their pieces column. */
   pieces: { n: number; lengthMm: number; where: "above" | "below"; wall: number }[];
 }
 
@@ -71,6 +79,7 @@ export function hangStrips(i: HangInput): HangResult {
   const last = i.walls.length - 1;
   const result: HangResult = { walls: [], strips: 0, pieces: [] };
   let n = 0;
+  let k = 0;
   let carry = 0;
   i.walls.forEach((wall, j) => {
     const L = wall.lengthMm;
@@ -89,7 +98,6 @@ export function hangStrips(i: HangInput): HangResult {
     carry = nextCarry >= i.minCarryMm ? nextCarry : 0;
     let first = true;
     while (x < target - EPS) {
-      n++;
       const x0 = Math.max(x, 0);
       const x1 = x + w;
       if (first) {
@@ -98,6 +106,7 @@ export function hangStrips(i: HangInput): HangResult {
       }
       if (x1 > L + EPS) {
         // Across the corner: cut lengthwise, the rest goes on the next wall (not past the start corner).
+        n++;
         const rest = x1 - L - i.wrapMm;
         if (j < last) carry = rest >= i.minCarryMm ? rest : 0;
         hanged.cornerMm = L - x0;
@@ -105,16 +114,21 @@ export function hangStrips(i: HangInput): HangResult {
         columns.push({ n, x: x0, w: L - x0, kind: "corner" });
         result.strips++;
       } else {
-        const over = wall.openings.find((o) => o.x <= x0 + EPS && x1 <= o.x + o.w + EPS);
+        const over = wall.openings.find((o) => {
+          const margin = o.type === "window" ? i.windowMarginMm : 0;
+          return o.x + margin <= x0 + EPS && x1 <= o.x + o.w - margin + EPS;
+        });
         if (over) {
+          k++;
           const pieces: NonNullable<HangColumn["pieces"]>[number][] = [];
           if (over.y >= i.minPieceMm) pieces.push({ y: 0, h: over.y, lengthMm: over.y + i.trimMm, where: "above" });
           const below = i.heightMm - over.y - over.h;
           if (below >= i.minPieceMm)
             pieces.push({ y: over.y + over.h, h: below, lengthMm: below + i.trimMm, where: "below" });
-          for (const p of pieces) result.pieces.push({ n, lengthMm: p.lengthMm, where: p.where, wall: j });
-          columns.push({ n, x: x0, w: x1 - x0, kind: "pieces", pieces });
+          for (const p of pieces) result.pieces.push({ n: k, lengthMm: p.lengthMm, where: p.where, wall: j });
+          columns.push({ n: k, x: x0, w: x1 - x0, kind: "pieces", pieces });
         } else {
+          n++;
           columns.push({ n, x: x0, w: x1 - x0, kind: "full" });
           result.strips++;
         }

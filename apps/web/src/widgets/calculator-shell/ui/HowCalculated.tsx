@@ -1,4 +1,4 @@
-import { getNorm, shell, type ToolDef } from "@umnyaut/catalog";
+import { shell, type ToolDef } from "@umnyaut/catalog";
 import { Disclosure } from "@umnyaut/ui";
 import { ReportError } from "@/features/report-error";
 import { track } from "@/shared/analytics";
@@ -17,11 +17,12 @@ export interface HowCalculatedProps {
   steps: readonly string[];
   /** YYYY-MM-DD from the content frontmatter. */
   checkedAt?: string;
+  /** Norm sources of the tool, from the server: the norms register stays out of the browser bundle. */
+  sources?: readonly string[];
 }
 
 /** Closed `<details>`: numbered steps with the user's numbers, norm sources, checked date, report link. */
-export function HowCalculated({ tool, steps, checkedAt }: HowCalculatedProps) {
-  const sources = (tool.norms ?? []).flatMap((id) => getNorm(id)?.source ?? []);
+export function HowCalculated({ tool, steps, checkedAt, sources = [] }: HowCalculatedProps) {
   return (
     <Disclosure
       title={h.title}
@@ -37,7 +38,7 @@ export function HowCalculated({ tool, steps, checkedAt }: HowCalculatedProps) {
       <div className="mt-4 flex flex-col gap-1 text-caption text-text-muted wrap-anywhere">
         {sources.length > 0 ? (
           <p>
-            {h.sources}: {[...new Set(sources)].join("; ")}
+            {h.sources}: {sources.join("; ")}
           </p>
         ) : (
           <p>{h.geometry}</p>
