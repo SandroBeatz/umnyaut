@@ -11,7 +11,11 @@ export function planRoomOf(values: ToolValues): PlanRoom {
   return {
     lengthMm: num(values.lengthMm) ?? 4000,
     widthMm: num(values.widthMm) ?? 3000,
-    cut: values.shape === "l" && cutLength && cutWidth ? { lengthMm: cutLength, widthMm: cutWidth } : undefined,
+    // Walls are tiled in a rectangular room only (tile «Стены»): the L-cut is the floor's.
+    cut:
+      values.shape === "l" && values.surface !== "walls" && cutLength && cutWidth
+        ? { lengthMm: cutLength, widthMm: cutWidth }
+        : undefined,
     cutCorner: (values.cutCorner as CutCorner | undefined) ?? "se",
   };
 }

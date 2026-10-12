@@ -1,12 +1,12 @@
 ---
-version: 1.3
-date: 2026-10-11
+version: 1.4
+date: 2026-10-12
 category: plan
 ---
 
 # Progress Log
 
-> Version 1.3 · 2026-10-11 · [Plan](../plan/)
+> Version 1.4 · 2026-10-12 · [Plan](../plan/)
 
 ## Overview
 
@@ -39,6 +39,13 @@ Each entry:
 - **Where** — short commit SHA (7 chars), PR number, and the environment it reached (`staging`, `prod`, `Vercel`).
 
 ## Log
+
+### 2026-10-12
+
+- **P16.6 (walls)** Tile wall scheme: every wall unfolded as seen from the room (`Layout.elevations`, `wallGrid` in `calc/blocks/layout-grid.ts`) — columns from the wall's left corner, rows from the floor (from the centre: equal cuts at both ends), doors from the floor, windows from their sill. A tile wholly inside a door or a window is not laid, one over its edge is cut and still takes a tile. Card: the floor plan for which wall is which, the walls to one scale (two per row), legend with «Дверь или окно», «Что резать по стенам» (whole, cut, corner and ceiling cut widths, tiles at openings). Guide: start corner and floor (or the two axes), ceiling row width, a batten under the second row, tiles at openings, the assumed sill, «try from the centre», joint, «place the doors and windows». Plan editor: windows get «Высота от пола» when the scheme is a wall one (`OpeningPlace.sillMm`, default `WINDOW_SILL_MM` 900 — practice, not a norm). New e2e «tile walls scheme», property tests (scheme = purchase; placed never more than the estimate, corner and centre; no tile left inside an opening), `pnpm check` and `pnpm e2e` (22) green.
+  - Where: `feature/p16-6-tile-walls`
+  - Notes: the batten advice and the 90 cm sill are practice — master review (P16.11). Openings overlapping each other are subtracted once by the scheme and twice by the estimate; not warned yet. Walls stay rectangular (no L-shaped walls). Tile diagonal scheme moved to P16.10.
+  - Deviation: formula change — **tile version 3**. With every counted door and window placed, the walls are counted tile by tile from the scheme instead of the «surely inside wherever it sits» estimate; the estimate stays for unplaced openings (the scheme then draws empty walls and asks to place them). Never more tiles than v2 (property test); example room walls 601 → 588 tiles (51 → 49 boxes). Four new golden examples, by hand.
 
 ### 2026-10-11
 

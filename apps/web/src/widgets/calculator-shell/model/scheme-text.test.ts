@@ -1,7 +1,7 @@
 import { toolModules } from "@umnyaut/calc";
 import { getTool } from "@umnyaut/catalog";
 import { describe, expect, it } from "vitest";
-import { guideLines, rowLines, runLines, sheetLines } from "./scheme-text";
+import { elevationLines, guideLines, rowLines, runLines, sheetLines } from "./scheme-text";
 
 describe("layout scheme texts", () => {
   const tool = getTool("pol", "laminat");
@@ -121,5 +121,28 @@ describe("layout scheme texts", () => {
     );
     expect(lines).toContain("У стены 2 крайний ряд подрезается до 5,5 см");
     expect(lines.every((l) => !/\{|\}|_/.test(l))).toBe(true);
+  });
+
+  it("tile on walls: the guide and one cut line per wall", () => {
+    const plitka = getTool("plitka", "plitka");
+    const module = toolModules.plitka;
+    const layout = module.compute({ ...(module.defaults(ctx) as object), surface: "walls" } as never, ctx).layout;
+    if (!plitka || !layout?.elevations) throw new Error("no wall tile layout");
+    const lines = guideLines(plitka, layout);
+    expect(lines).toContain("Ряд под потолком подрезается до 27,6 см");
+    expect(lines).toContain("Плитки у краёв дверей и окон — 34 шт. — подрежьте по месту, на схеме они заштрихованы");
+    expect(lines.every((l) => !/\{|\}|_/.test(l))).toBe(true);
+    const walls = elevationLines(layout.elevations);
+    expect(walls).toHaveLength(4);
+    expect(walls[2]).toEqual({
+      title: "Стена 3 · 4,6 м",
+      parts: [
+        "целых: 92",
+        "подрезанных: 40",
+        "у правого угла 5,5 см",
+        "ряд под потолком 27,6 см",
+        "у дверей и окон: 16",
+      ],
+    });
   });
 });

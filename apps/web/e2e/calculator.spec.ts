@@ -274,6 +274,25 @@ test("laminate scheme: rows from the count, a guide, the door moved on the plan 
   await expect(result(page)).toHaveText("10");
 });
 
+test("tile walls scheme: four walls unfolded, the window's sill on the plan changes the count", async ({ page }) => {
+  await page.goto(`${TILE}?s=${s({ surface: "walls" })}`);
+  const scheme = page.locator("section[aria-labelledby=layout-scheme]");
+  // Door and window placed: 534 tiles × 1,1 = 588 → 49 коробок (golden «Walls of the example room»).
+  await expect(scheme.getByText("Плиток на стенах: 534 · целых: 406 · подрезанных: 128")).toBeVisible();
+  await expect(result(page)).toHaveText("49");
+  await expect(scheme.getByRole("img", { name: /^Стена 3, длина 4,6 м/ })).toBeVisible();
+  await scheme.getByText("Что резать по стенам").click();
+  await expect(scheme.getByText(/у дверей и окон: 18/)).toBeVisible();
+
+  // The window from 90 to 100 cm above the floor: 537 tiles → 591 → 50 коробок.
+  await scheme.getByRole("button", { name: "Изменить план" }).click();
+  const editor = page.getByRole("dialog");
+  await editor.getByRole("button", { name: /^Окно ·/ }).click();
+  await type(page, "Высота от пола", "100");
+  await editor.getByRole("button", { name: "Готово" }).click();
+  await expect(result(page)).toHaveText("50");
+});
+
 test("pack price gives a total and «без N позиций» for items without one", async ({ page }) => {
   await page.goto(LAMINATE);
   await page.getByRole("button", { name: /Ещё параметры/ }).click();

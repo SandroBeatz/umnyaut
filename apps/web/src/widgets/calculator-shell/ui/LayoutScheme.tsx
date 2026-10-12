@@ -8,7 +8,8 @@ import { useId, useRef, useState } from "react";
 import { FloorPlan } from "@/entities/room";
 import { PlanEditor, type PlanRoom } from "@/features/edit-room-plan";
 import { fill } from "@/shared/lib";
-import { guideLines, rowLines, runLines, sheetLines } from "../model/scheme-text";
+import { elevationLines, guideLines, rowLines, runLines, sheetLines } from "../model/scheme-text";
+import { WallElevations } from "./WallElevations";
 
 const s = shell.scheme;
 const t = s.strips;
@@ -57,6 +58,18 @@ function texts(layout: Layout) {
       line: t.legendSeam,
     };
   }
+  if (layout.kind === "grid" && layout.elevations) {
+    const counts = { pieces: whole + cut, whole, cut };
+    const w = g.walls;
+    return {
+      summary: whole + cut > 0 ? fill(w.summary, counts) : w.empty,
+      label: fill(w.label, counts),
+      whole: fill(g.legendWhole, { count: whole }),
+      cut: fill(g.legendCut, { count: cut }),
+      reused: "",
+      line: g.legendAxis,
+    };
+  }
   if (layout.kind === "grid") {
     const counts = { pieces: whole + cut, whole, cut };
     return {
@@ -92,7 +105,12 @@ function texts(layout: Layout) {
 }
 
 /** The plan with every piece: whole outlined, cut hatched teal, reused with the orange dot (design spec §11). */
-function SchemePicture({ layout, className }: { layout: Layout; className?: string }) {
+function SchemePicture({ layout, className, wide }: { layout: Layout; className?: string; wide?: boolean }) {
+  if (layout.elevations) return <WallElevations layout={layout} columns={wide ? "responsive" : "two"} />;
+  return <FloorScheme layout={layout} className={className} />;
+}
+
+function FloorScheme({ layout, className }: { layout: Layout; className?: string }) {
   const hatch = useId();
   const size = Math.max(layout.widthMm, layout.heightMm);
   const step = size * 0.012;
@@ -227,6 +245,7 @@ export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }:
             room={room}
             openings={openings}
             onChange={onOpeningsChange}
+            sills={Boolean(layout.elevations)}
             trigger={
               <Button variant="secondary">
                 <PencilRuler aria-hidden="true" />
@@ -270,12 +289,12 @@ export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }:
           closeLabel={shell.close}
           className="max-w-[min(96vw,1100px)]"
         >
-          <SchemePicture layout={layout} className="max-h-[80dvh] w-full" />
+          <SchemePicture layout={layout} className="max-h-[80dvh] w-full" wide />
         </LazyDialog>
       </div>
 
       <div className="flex flex-col gap-3 lg:col-span-5">
-        {layout.pieces.length > 0 ? (
+        {layout.stats.whole + layout.stats.cut > 0 ? (
           <ul className="flex flex-wrap gap-x-4 gap-y-2 text-small text-text">
             <li className="flex items-center gap-1.5">
               <span aria-hidden="true" className="h-3 w-4 border border-text-subtle bg-surface" />
@@ -292,6 +311,12 @@ export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }:
               <li className="flex items-center gap-1.5">
                 <span aria-hidden="true" className="w-4 border-text border-t-2 border-dashed" />
                 {labels.line}
+              </li>
+            ) : null}
+            {layout.elevations?.some((e) => e.openings.length > 0) ? (
+              <li className="flex items-center gap-1.5">
+                <span aria-hidden="true" className="h-3 w-4 border-2 border-text bg-surface-sunken" />
+                {g.walls.legendOpening}
               </li>
             ) : null}
             {reused > 0 ? (
@@ -320,6 +345,8 @@ export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }:
           <CutList title={t.cutList} lines={sheetLines(layout.sheets)} />
         ) : layout.runs && layout.runs.length > 0 ? (
           <CutList title={r.cutList} lines={runLines(layout.runs)} />
+        ) : layout.elevations && layout.stats.whole + layout.stats.cut > 0 ? (
+          <CutList title={g.walls.cutList} lines={elevationLines(layout.elevations)} />
         ) : null}
       </div>
     </section>

@@ -1,4 +1,4 @@
-import type { Layout, LayoutRow, LayoutRun, LayoutSheet } from "@umnyaut/calc";
+import type { Layout, LayoutElevation, LayoutRow, LayoutRun, LayoutSheet } from "@umnyaut/calc";
 import { shell, type ToolDef } from "@umnyaut/catalog";
 import { formatNumber } from "@umnyaut/ui/format";
 import { fill } from "@/shared/lib";
@@ -89,5 +89,23 @@ export function runLines(runs: readonly LayoutRun[]): { title: string; parts: st
           : fill(r.spare, { length: m(run.carryMm) }),
       );
     return { title: fill(r.run, { n: k + 1, wall: run.wall + 1, length: m(run.lengthMm) }), parts };
+  });
+}
+
+/**
+ * One line per wall for «Что резать по стенам» (wall tiling): «Стена 1 · 4,6 м: целых 120 · подрезанных 24 · у
+ * угла по 5,5 см · ряд под потолком 27,6 см · у дверей и окон: 16».
+ */
+export function elevationLines(elevations: readonly LayoutElevation[]): { title: string; parts: string[] }[] {
+  const w = s.grid.walls;
+  const list = (cuts: readonly number[]) => [...new Set(cuts.map(cm))].join(" и ");
+  return elevations.map((e) => {
+    const cut = e.pieces.filter((p) => p.cut).length;
+    const parts = [fill(w.whole, { count: e.pieces.length - cut }), fill(w.cut, { count: cut })];
+    if (e.cutColumns.length > 0)
+      parts.push(fill(e.cutColumns.length > 1 ? w.cutCorners : w.cutCorner, { cuts: list(e.cutColumns) }));
+    if (e.cutRows.length > 0) parts.push(fill(e.cutRows.length > 1 ? w.cutRows : w.cutRow, { cuts: list(e.cutRows) }));
+    if (e.aroundOpenings > 0) parts.push(fill(w.around, { count: e.aroundOpenings }));
+    return { title: fill(w.wall, { n: e.wall + 1, length: m(e.lengthMm) }), parts };
   });
 }

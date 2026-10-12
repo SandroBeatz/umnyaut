@@ -1,12 +1,12 @@
 ---
-version: 1.0
-date: 2026-10-11
+version: 1.1
+date: 2026-10-12
 category: ui
 ---
 
 # Room Plan, Layout Schemes and Laying Guides
 
-> Version 1.0 · 2026-10-11 · [UI](../ui/)
+> Version 1.1 · 2026-10-12 · [UI](../ui/)
 
 ## Overview
 
@@ -80,6 +80,7 @@ Verdict: **feasible** with the current stack (SVG, no canvas, no new libraries; 
 interface OpeningPlace {
   wall: number;          // 0-based wall index along the outline (UI shows wall + 1)
   offsetMm: number;      // from the wall's first corner, clockwise, to the opening's near edge
+  sillMm?: number;       // windows: floor to the opening's bottom (wall schemes); default WINDOW_SILL_MM
 }
 
 interface Opening {
@@ -123,6 +124,7 @@ interface Layout {
   pieces: readonly LayoutPiece[];
   marks: readonly LayoutMark[];       // doors, windows, the start corner, seams
   rows?: readonly LayoutRow[];        // cut list: start/end pieces, their source rows, where rests go
+  elevations?: readonly LayoutElevation[];  // wall tiling: each wall unfolded with its tiles and openings
   guide: readonly Step[];             // laying steps: code + numbers, text in catalog `ToolDef.guide`
   stats: { whole: number; cut: number; reused: number; wasteM2: number };
 }
@@ -143,7 +145,9 @@ Sheets of the chosen width and direction with seam lines; allowance strip at the
 
 ### Tile (floor, then walls)
 
-Floor grid from `gridLine` per axis: whole tiles, edge cuts with their widths, start point (centre lines or the corner), joint; guide: start from the marked point, whole tiles at the doorway when the door is placed (moves the corner start to the door side), narrowest cut warning. Walls per wall with placed openings: tiles around the window and the door, first row on a batten above the floor line.
+Floor grid from `gridLine` per axis: whole tiles, edge cuts with their widths, start point (centre lines or the corner), joint; guide: start from the marked point, whole tiles at the doorway when the door is placed (moves the corner start to the door side), narrowest cut warning.
+
+Walls (done 2026-10-12, tile version 3): `Layout.elevations` — every wall unfolded as seen from the room, x from the wall's first corner (on the left from inside), y down from the ceiling. `wallGrid` lays columns from that corner and rows from the floor (from the centre: equal cuts at both ends) with the very `gridCells` the count uses; a door stands on the floor, a window on its sill (`OpeningPlace.sillMm`, default `WINDOW_SILL_MM` = 900 mm; a window or a door that would pass the ceiling is held under it). A tile wholly inside an opening is not laid, one over its edge is cut. **Once every counted opening is placed, the purchase is the scheme's count** (never more than the estimate); with an unplaced opening the count stays the estimate and the walls are drawn empty with «place the doors and windows». The card shows the floor plan for orientation, then the walls to one scale; the cut list is per wall. Guide: start corner and floor (or the axes), ceiling row width, a batten under the second row, tiles at openings, the assumed sill.
 
 ### Wallpaper
 
@@ -208,4 +212,6 @@ The plan editor is a form field of kind `plan` (`catalog` → `FieldDef`), bound
 | `apps/web/src/widgets/calculator-shell/ui/LayoutScheme.tsx` | `LayoutScheme`: scheme card, legend, guide, cut list, fullscreen (inside the shell widget: FSD forbids widget → widget imports) |
 | `apps/web/src/widgets/calculator-shell/model/scheme-text.ts` | Guide and cut-list lines from codes and numbers |
 | `apps/web/src/widgets/calculator-shell/model/plan.ts` | `planRoomOf(values)`: the room the plan draws, from a tool's input |
+| `packages/calc/src/blocks/layout-grid.ts` | `gridCells`, `gridLayout` (tile floor), `wallGrid` (one unfolded wall around its openings) |
+| `apps/web/src/widgets/calculator-shell/ui/WallElevations.tsx` | Wall tiling picture: floor plan for orientation, walls to one scale |
 | `packages/calc/test/layout-rows.test.ts` | Outline, placement, replay = engine board count, pieces fill rows, laminate scheme cases |

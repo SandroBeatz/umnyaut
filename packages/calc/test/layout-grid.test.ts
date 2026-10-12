@@ -1,7 +1,7 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { gridLine } from "../src/blocks/grid";
-import { gridCells } from "../src/blocks/layout-grid";
+import { gridCells, wallGrid } from "../src/blocks/layout-grid";
 import { plitka } from "../src/tools/plitka";
 
 const ctx = { country: "RU" } as const;
@@ -166,9 +166,163 @@ describe("tile floor scheme", () => {
     expect(layout?.guide.map((s) => s.code)).toEqual(["start_center", "cut_walls", "cut_walls", "joint"]);
   });
 
-  it("no door on the plan: the guide asks for it; diagonal and walls have no scheme yet", () => {
+  it("no door on the plan: the guide asks for it; the diagonal has no scheme yet", () => {
     expect(plitka.compute({ ...defaults, openings: [] }, ctx).layout?.guide.at(-1)?.code).toBe("place_door");
     expect(plitka.compute({ ...defaults, layout: "diagonal" }, ctx).layout).toBeUndefined();
-    expect(plitka.compute({ ...defaults, surface: "walls" }, ctx).layout).toBeUndefined();
+    expect(plitka.compute({ ...defaults, surface: "walls", layout: "diagonal" }, ctx).layout).toBeUndefined();
+  });
+});
+
+describe("wallGrid", () => {
+  it("no tile wholly inside an opening; every tile over its edge is cut; tiles stay on the wall", () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 300, max: 6000 }),
+        fc.integer({ min: 1000, max: 4000 }),
+        fc.integer({ min: 50, max: 1200 }),
+        fc.integer({ min: 50, max: 1200 }),
+        fc.integer({ min: 0, max: 5 }),
+        fc.constantFrom("corner", "center" as const),
+        fc.record({
+          x: fc.nat(6000),
+          y: fc.nat(4000),
+          w: fc.integer({ min: 100, max: 3000 }),
+          h: fc.integer({ min: 100, max: 3000 }),
+        }),
+        (lengthMm, heightMm, tileLengthMm, tileWidthMm, jointMm, start, o) => {
+          const opening = { type: "window" as const, ...o };
+          const g = wallGrid({ lengthMm, heightMm, tileLengthMm, tileWidthMm, jointMm, start, openings: [opening] });
+          const free = wallGrid({ lengthMm, heightMm, tileLengthMm, tileWidthMm, jointMm, start, openings: [] });
+          return (
+            g.pieces.length + g.dropped === free.pieces.length &&
+            g.pieces.every(
+              (p) =>
+                p.x >= -1e-6 &&
+                p.y >= -1e-6 &&
+                p.x + p.w <= lengthMm + 1e-6 &&
+                p.y + p.h <= heightMm + 1e-6 &&
+                !(p.x >= o.x && p.x + p.w <= o.x + o.w && p.y >= o.y && p.y + p.h <= o.y + o.h) &&
+                (p.cut || !(p.x < o.x + o.w && p.x + p.w > o.x && p.y < o.y + o.h && p.y + p.h > o.y)),
+            )
+          );
+        },
+      ),
+      { numRuns: 500 },
+    );
+  });
+});
+
+describe("tile walls scheme", () => {
+  const walls = { ...defaults, surface: "walls" as const };
+
+  it("example room: four walls unfolded, the scheme's tiles are the purchase, door and window on their walls", () => {
+    const result = plitka.compute(walls, ctx);
+    const layout = result.layout;
+    if (!layout?.elevations) throw new Error("no elevations");
+    expect(layout.elevations.map((e) => e.lengthMm)).toEqual([4600, 4300, 4600, 4300]);
+    const pieces = layout.elevations.flatMap((e) => e.pieces);
+    expect(pieces.filter((p) => !p.cut).length).toBe(summary(result, "whole"));
+    expect(pieces.filter((p) => p.cut).length).toBe(summary(result, "cut"));
+    expect(layout.stats).toMatchObject({ whole: 406, cut: 128 });
+    // Door on wall 3 from the floor, window on wall 4 with the default sill (900…2300 from the floor).
+    expect(layout.elevations[2]?.openings).toEqual([{ type: "door", x: 600, y: 700, w: 800, h: 2000 }]);
+    expect(layout.elevations[3]?.openings).toEqual([{ type: "window", x: 1550, y: 400, w: 1200, h: 1400 }]);
+    expect(layout.elevations[0]).toMatchObject({ cutColumns: [55], cutRows: [276], aroundOpenings: 0 });
+    expect(layout.elevations[2]?.aroundOpenings).toBe(16);
+    expect(layout.guide.map((s) => s.code)).toEqual([
+      "walls_corner",
+      "walls_cut_top",
+      "walls_batten",
+      "walls_openings",
+      "walls_sill",
+      "try_center",
+      "joint",
+    ]);
+  });
+
+  it("a window that would go through the ceiling sits under it; a door taller than the wall ends at the ceiling", () => {
+    const openings = [
+      {
+        type: "window" as const,
+        widthMm: 1200,
+        heightMm: 1400,
+        count: 1,
+        places: [{ wall: 0, offsetMm: 0, sillMm: 2000 }],
+      },
+      { type: "door" as const, widthMm: 800, heightMm: 3000, count: 1, places: [{ wall: 1, offsetMm: 0 }] },
+    ];
+    const layout = plitka.compute({ ...walls, openings }, ctx).layout;
+    expect(layout?.elevations?.[0]?.openings[0]).toMatchObject({ y: 0, h: 1400 });
+    expect(layout?.elevations?.[1]?.openings[0]).toMatchObject({ y: 0, h: 2700 });
+    expect(layout?.guide.map((s) => s.code)).not.toContain("walls_sill");
+  });
+
+  it("an opening wider than its wall is off the plan: the estimate and a warning", () => {
+    const openings = [
+      { type: "window" as const, widthMm: 5000, heightMm: 1000, count: 1, places: [{ wall: 1, offsetMm: 0 }] },
+    ];
+    const result = plitka.compute({ ...walls, openings }, ctx);
+    expect(result.warnings.map((w) => w.code)).toContain("opening_off_wall");
+    expect(result.layout?.guide.at(-1)?.code).toBe("place_openings");
+  });
+
+  it("an opening not placed: walls without tiles, the estimate, the guide asks to place it", () => {
+    const openings = [{ type: "door" as const, widthMm: 800, heightMm: 2000, count: 1 }];
+    const result = plitka.compute({ ...walls, openings }, ctx);
+    expect(result.layout?.elevations?.every((e) => e.pieces.length === 0)).toBe(true);
+    expect(result.layout?.guide.at(-1)?.code).toBe("place_openings");
+    expect(result.steps.map((s) => s.code)).toContain("openings");
+  });
+
+  it("placed openings never cost more tiles than the estimate, and the scheme is the purchase", () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1200, max: 8000 }),
+        fc.integer({ min: 1200, max: 8000 }),
+        fc.integer({ min: 2200, max: 3500 }),
+        fc.integer({ min: 100, max: 900 }),
+        fc.integer({ min: 100, max: 900 }),
+        fc.integer({ min: 0, max: 5 }),
+        fc.constantFrom("corner", "center" as const),
+        fc.uniqueArray(
+          fc.record({
+            type: fc.constantFrom("door" as const, "window" as const),
+            widthMm: fc.integer({ min: 400, max: 1100 }),
+            heightMm: fc.integer({ min: 400, max: 2100 }),
+            wall: fc.constantFrom(0, 1, 2, 3),
+            offset: fc.double({ min: 0, max: 1, noNaN: true }),
+            sillMm: fc.option(fc.integer({ min: 0, max: 1500 }), { nil: undefined }),
+          }),
+          // One per wall: openings on top of each other would be subtracted twice by the estimate.
+          { maxLength: 4, selector: (o) => o.wall },
+        ),
+        (lengthMm, widthMm, heightMm, tileLengthMm, tileWidthMm, jointMm, start, list) => {
+          const wallLength = (w: number) => (w % 2 === 0 ? lengthMm : widthMm);
+          const placed = list.map((o) => ({
+            type: o.type,
+            widthMm: o.widthMm,
+            heightMm: o.heightMm,
+            count: 1,
+            places: [
+              {
+                wall: o.wall,
+                offsetMm: Math.floor(o.offset * Math.max(wallLength(o.wall) - o.widthMm, 0)),
+                ...(o.sillMm === undefined ? {} : { sillMm: o.sillMm }),
+              },
+            ],
+          }));
+          const base = { ...walls, lengthMm, widthMm, heightMm, tileLengthMm, tileWidthMm, jointMm, start };
+          const exact = plitka.compute({ ...base, openings: placed }, ctx);
+          const estimate = plitka.compute({ ...base, openings: placed.map(({ places, ...o }) => o) }, ctx);
+          const pieces = exact.layout?.elevations?.flatMap((e) => e.pieces) ?? [];
+          const tiles = (r: typeof exact) => r.items.find((it) => it.key === "tile")?.need.value ?? 0;
+          return (
+            tiles(exact) <= tiles(estimate) &&
+            pieces.length === (summary(exact, "whole") ?? 0) + (summary(exact, "cut") ?? 0)
+          );
+        },
+      ),
+      { numRuns: 300 },
+    );
   });
 });

@@ -7,6 +7,12 @@ import type { CutCorner, LayoutMark, Opening, PlanWall } from "../types";
  * opening's offset runs clockwise along its wall from the wall's first corner to the opening's near edge.
  */
 
+/**
+ * Window sill height when a placed window has none: a usual 80–90 cm in flats — practice, not a norm; the user
+ * sets the real one in the plan editor.
+ */
+export const WINDOW_SILL_MM = 900;
+
 /** Places of one opening on the plan (see `OpeningPlace`). */
 export const openingPlacesSchema = z.readonly(
   z
@@ -14,6 +20,7 @@ export const openingPlacesSchema = z.readonly(
       z.object({
         wall: z.int().check(z.minimum(0), z.maximum(11)),
         offsetMm: z.int().check(z.minimum(0), z.maximum(100_000)),
+        sillMm: z.optional(z.int().check(z.minimum(0), z.maximum(10_000))),
       }),
     )
     .check(z.maxLength(50)),
@@ -96,7 +103,11 @@ export function roomOutline(
 export interface PlacedOpening {
   type: Opening["type"];
   wall: number;
+  /** From the wall's first corner, pulled back to fit the wall. */
+  offsetMm: number;
   widthMm: number;
+  heightMm: number;
+  sillMm?: number;
   mark: LayoutMark;
 }
 
@@ -121,7 +132,10 @@ export function placeOpenings(walls: readonly PlanWall[], openings: readonly Ope
       placed.push({
         type: o.type,
         wall: place.wall,
+        offsetMm: from,
         widthMm: o.widthMm,
+        heightMm: o.heightMm,
+        ...(place.sillMm === undefined ? {} : { sillMm: place.sillMm }),
         mark: {
           kind: o.type,
           wall: place.wall,

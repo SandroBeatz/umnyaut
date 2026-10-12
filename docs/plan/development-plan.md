@@ -1,12 +1,12 @@
 ---
-version: 2.4
-date: 2026-10-11
+version: 2.5
+date: 2026-10-12
 category: plan
 ---
 
 # Development Plan
 
-> Version 2.4 · 2026-10-11 · [Plan](../plan/)
+> Version 2.5 · 2026-10-12 · [Plan](../plan/)
 
 ## Overview
 
@@ -447,12 +447,12 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 - [x] P16.3 `LayoutScheme` (`widgets/calculator-shell`), rows kind: whole / hatched cut / orange reused dot, legend with counts, text summary, start corner, row numbers, «Как укладывать», cut list per row, fullscreen, bands above 2,000 pieces.
 - [x] P16.4 **Pilot — laminate (straight):** `layout` from `RowsResult.plan` (`traceRows` replays the pools and must give the engine's board count; `rowsLayout` mirrors to the cut corner or away from the door); guide: start wall and corner, laying towards the door, rows along the light, rows and last row, offcuts; `opening_off_wall` warning. No formula change (version 1).
 - [x] P16.5 Linoleum: sheets, seams, allowance, L-shape short sheets; guide (seams along the light, not in the doorway, cutting after relaxation).
-- [ ] P16.6 Tile floor: grid from `gridLine` per axis, edge cuts with widths, start point (centre or corner, whole tiles at a placed door); then walls per wall around placed openings. → Floor (straight) done 2026-10-11; walls and diagonal open.
+- [x] P16.6 Tile floor: grid from `gridLine` per axis, edge cuts with widths, start point (centre or corner, whole tiles at a placed door); then walls per wall around placed openings. → Floor (straight) done 2026-10-11; walls done 2026-10-12 (tile version 3: placed openings counted tile by tile, window sill on the plan). The diagonal scheme goes with P16.10.
 - [x] P16.7 Plinth: runs split by placed doors, corners, cut list per run.
 - [ ] P16.7a Plinth **formula version 2** (owner, 2026-10-11; found by `formula-reviewer` on the P16.7 scheme): (1) a minimum piece length — the ribbon now allows a 1 cm piece (2.51 × 2.49 m, 2.5 m plank → 4 planks), the purchase should add a plank instead; the length needs a source or the master's word (C10); (2) joiners = mid-run joints of the scheme instead of planks − 1 (a plank ending in a corner needs none: 5 × 5 m buys 7, uses 4); (3) inner corners minus corners taken by a door; (4) `door_wider_than_wall` against the door's own wall once it is placed. New golden examples for each, `formula-reviewer` pass.
 - [ ] P16.8 Wallpaper: per-wall strip engine (plumb line from the start corner, wraps at corners, pieces above/below openings, roll cut map) — **formula version 2**, new golden examples, `formula-reviewer` pass; guide (start corner by paper type, direction, step-off).
 - [ ] P16.9 Room area and wall area: `FloorPlan` with placed openings as the result picture; plan in the room card (RoomBar) once positions exist.
-- [ ] P16.10 Laminate diagonal / herringbone scheme; drag-and-drop placing on the plan; free polygon rooms (planner v2).
+- [ ] P16.10 Laminate diagonal / herringbone and tile diagonal schemes; drag-and-drop placing on the plan; free polygon rooms (planner v2).
 - [ ] P16.11 Master review (C10) of every guide text; release check requirement 15 for wallpaper, laminate, linoleum, tile.
 
 **Exit gate:** laminate, linoleum, tile, plinth and wallpaper show a scheme built from their own plan, with a guide reviewed by the master; release check requirement 15 passes for all four layout tools.

@@ -12,7 +12,14 @@ export {
   wallAreaM2,
 } from "./geometry";
 export { type GridArea, type GridLine, gridArea, gridLine } from "./grid";
-export { type GridCell, type GridLayoutInput, gridCells, gridLayout } from "./layout-grid";
+export {
+  type GridCell,
+  type GridLayoutInput,
+  gridCells,
+  gridLayout,
+  type WallGridInput,
+  wallGrid,
+} from "./layout-grid";
 export { type RowsLayoutInput, rowsLayout, traceRows } from "./layout-rows";
 export { type RunsLayoutInput, runsLayout, wallRuns } from "./layout-runs";
 export { type SheetsLayoutInput, seamInDoor, sheetsLayout } from "./layout-sheets";
@@ -30,6 +37,7 @@ export {
   roomOutline,
   type StartInput,
   startOf,
+  WINDOW_SILL_MM,
 } from "./plan";
 export { layRows, type RowPlan, type RowsInput, type RowsResult } from "./rows";
 export { cutStrips, type StripCut, type StripCutInput } from "./strips";

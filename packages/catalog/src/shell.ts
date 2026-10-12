@@ -131,6 +131,10 @@ export const shell = {
     none: "Сначала добавьте дверь или окно",
     done: "Готово",
     summary: "Отмечено: {placed} из {total}",
+    sill: "Высота от пола",
+    sillHint: "До низа окна, обычно 80–90 см",
+    /** Closed window card summary with the sill: «Стена 4 · 155 см от угла · 90 см от пола». */
+    sillAt: "{sill} от пола",
     planLabel: "План комнаты {length} × {width} {unit}",
   },
   /** Layout scheme card under the result (design spec §11 `LayoutScheme`). */
@@ -181,6 +185,24 @@ export const shell = {
       legendWhole: "Целая — {count}",
       legendCut: "Подрезанная — {count}",
       legendAxis: "Оси разметки",
+      /** Wall tiling: every wall unfolded, seen from the room. */
+      walls: {
+        summary: "Плиток на стенах: {pieces} · целых: {whole} · подрезанных: {cut}",
+        label: "Схема раскладки плитки на стенах: целых {whole}, подрезанных {cut}",
+        empty: "Отметьте двери и окна на плане — тогда разложим плитку вокруг них",
+        wall: "Стена {n} · {length} м",
+        wallLabel: "Стена {n}, длина {length} м: целых плиток {whole}, подрезанных {cut}",
+        view: "Каждая стена — как если смотреть на неё из комнаты",
+        legendOpening: "Дверь или окно",
+        cutList: "Что резать по стенам",
+        whole: "целых: {count}",
+        cut: "подрезанных: {count}",
+        cutCorner: "у правого угла {cuts} см",
+        cutCorners: "у обоих углов по {cuts} см",
+        cutRow: "ряд под потолком {cuts} см",
+        cutRows: "у пола и под потолком по {cuts} см",
+        around: "у дверей и окон: {count}",
+      },
     },
     /** Outline layouts (plinth): planks along the walls. */
     runs: {

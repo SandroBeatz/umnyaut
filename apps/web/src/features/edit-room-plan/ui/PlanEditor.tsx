@@ -1,6 +1,6 @@
 "use client";
 
-import { type Opening, placeOpenings } from "@umnyaut/calc";
+import { type Opening, placeOpenings, WINDOW_SILL_MM } from "@umnyaut/calc";
 import { lengthUnitLabels, shell } from "@umnyaut/catalog";
 import { Button, NumberField, ResponsiveSheet, Select } from "@umnyaut/ui";
 import { formatNumber, NBSP } from "@umnyaut/ui/format";
@@ -21,14 +21,19 @@ export interface PlanEditorProps {
   onChange(next: readonly Opening[]): void;
   /** One element; opens the editor. */
   trigger: ReactNode;
+  /** Windows also get their height from the floor (wall tiling, wallpaper). */
+  sills?: boolean;
 }
+
+/** Highest sill the field accepts, cm. */
+const SILL_MAX_CM = 300;
 
 /**
  * Plan editor (docs/ui/room-plan-and-layout-guides.md): the room from above with numbered walls, and per door or
  * window the wall it is on and how far from the wall's left corner (looking at the wall from the room).
  * Bottom sheet on the phone, dialog from 1024 px. Counts and sizes stay as they are; only places change.
  */
-export function PlanEditor({ room, openings, onChange, trigger }: PlanEditorProps) {
+export function PlanEditor({ room, openings, onChange, trigger, sills = false }: PlanEditorProps) {
   const [open, setOpen] = useState(false);
   const { points, walls } = planOutline(room);
   const list = expand(openings);
@@ -68,6 +73,8 @@ export function PlanEditor({ room, openings, onChange, trigger }: PlanEditorProp
             const name = item.type === "door" ? o.door : o.window;
             const wall = item.place ? walls[item.place.wall] : undefined;
             const maxMm = Math.max((wall?.lengthMm ?? 0) - item.widthMm, 0);
+            const sill =
+              sills && item.type === "window" && item.place ? (item.place.sillMm ?? WINDOW_SILL_MM) : undefined;
             return (
               // biome-ignore lint/suspicious/noArrayIndexKey: openings have no id; order is stable while editing
               <li key={index}>
@@ -76,10 +83,15 @@ export function PlanEditor({ room, openings, onChange, trigger }: PlanEditorProp
                   title={`${name} · ${formatNumber(item.widthMm / 10)}${NBSP}${cm}`}
                   summary={
                     item.place
-                      ? fill(t.placedAt, {
-                          wall: fill(t.wall, { n: item.place.wall + 1 }),
-                          offset: `${formatNumber(item.place.offsetMm / 10)}${NBSP}${cm}`,
-                        })
+                      ? [
+                          fill(t.placedAt, {
+                            wall: fill(t.wall, { n: item.place.wall + 1 }),
+                            offset: `${formatNumber(item.place.offsetMm / 10)}${NBSP}${cm}`,
+                          }),
+                          ...(sill === undefined
+                            ? []
+                            : [fill(t.sillAt, { sill: `${formatNumber(sill / 10)}${NBSP}${cm}` })]),
+                        ].join(" · ")
                       : t.unplaced
                   }
                   open={cards.isOpen(index)}
@@ -99,7 +111,7 @@ export function PlanEditor({ room, openings, onChange, trigger }: PlanEditorProp
                         if (v === NONE) return;
                         const length = walls[Number(v)]?.lengthMm ?? 0;
                         const offsetMm = Math.min(item.place?.offsetMm ?? 0, Math.max(length - item.widthMm, 0));
-                        update(index, { place: { wall: Number(v), offsetMm } });
+                        update(index, { place: { ...item.place, wall: Number(v), offsetMm } });
                       }}
                     />
                     {item.place ? (
@@ -119,6 +131,26 @@ export function PlanEditor({ room, openings, onChange, trigger }: PlanEditorProp
                           const mm = v === null ? Number.NaN : Math.round(v * 10);
                           if (item.place && mm >= 0 && mm <= maxMm)
                             update(index, { place: { ...item.place, offsetMm: mm } });
+                        }}
+                      />
+                    ) : null}
+                    {sill !== undefined && item.place ? (
+                      <NumberField
+                        label={t.sill}
+                        hint={t.sillHint}
+                        unit={cm}
+                        value={sill / 10}
+                        min={0}
+                        max={SILL_MAX_CM}
+                        required
+                        messages={{
+                          range: fill(shell.form.range, { min: 0, max: SILL_MAX_CM, unit: cm }),
+                          required: shell.form.required,
+                        }}
+                        onValueChange={(v) => {
+                          const mm = v === null ? Number.NaN : Math.round(v * 10);
+                          if (item.place && mm >= 0 && mm <= SILL_MAX_CM * 10)
+                            update(index, { place: { ...item.place, sillMm: mm } });
                         }}
                       />
                     ) : null}

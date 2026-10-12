@@ -27,6 +27,8 @@ export interface OpeningPlace {
   wall: number;
   /** From the wall's first corner (clockwise) to the opening's near edge, mm. */
   offsetMm: number;
+  /** Windows: from the floor to the bottom of the opening, mm (default `WINDOW_SILL_MM`). Doors stand on the floor. */
+  sillMm?: number;
 }
 
 export interface Opening {
@@ -34,7 +36,10 @@ export interface Opening {
   widthMm: number;
   heightMm: number;
   count: number;
-  /** One per counted opening, optional: only the plan and the laying guide use them, never a count. */
+  /**
+   * One per counted opening, optional. The plan and the laying guide use them; wall tiling counts the tiles
+   * around the openings exactly once all of them are placed.
+   */
   places?: readonly OpeningPlace[];
 }
 
@@ -173,6 +178,33 @@ export interface LayoutRun {
   carryMm: number;
 }
 
+/** A door or a window on an unfolded wall, mm: x from the wall's first corner, y down from the ceiling. */
+export interface ElevationOpening {
+  type: "door" | "window";
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/**
+ * One wall unfolded (wall tiling), seen from the room: x from the wall's first corner (on the left), y down from
+ * the ceiling, mm. Pieces are the tiles the purchase counted on this wall.
+ */
+export interface LayoutElevation {
+  /** Wall index (the UI shows it 1-based). */
+  wall: number;
+  lengthMm: number;
+  heightMm: number;
+  pieces: readonly LayoutPiece[];
+  openings: readonly ElevationOpening[];
+  /** Widths of the cut tiles at the wall's corners and at the floor or the ceiling, mm (none, one or two each). */
+  cutColumns: readonly number[];
+  cutRows: readonly number[];
+  /** Tiles cut around doors and windows. */
+  aroundOpenings: number;
+}
+
 /** Geometry for the single `LayoutScheme` SVG component; text for `guide` codes lives in catalog. */
 export interface Layout {
   kind: "rows" | "grid" | "strips" | "points" | "outline";
@@ -186,6 +218,8 @@ export interface Layout {
   rows?: readonly LayoutRow[];
   sheets?: readonly LayoutSheet[];
   runs?: readonly LayoutRun[];
+  /** Wall tiling: every wall unfolded; `pieces` is then empty and the plan only shows where the walls are. */
+  elevations?: readonly LayoutElevation[];
   /** Laying steps in order: code + numbers. */
   guide: readonly Step[];
   stats: { whole: number; cut: number; reused: number; wasteM2: number };

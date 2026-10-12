@@ -1,12 +1,12 @@
 ---
-version: 1.7
-date: 2026-10-11
+version: 1.8
+date: 2026-10-12
 category: code
 ---
 
 # Calculation Engine (`@umnyaut/calc`)
 
-> Version 1.7 · 2026-10-11 · [Code](../code/)
+> Version 1.8 · 2026-10-12 · [Code](../code/)
 
 ## Overview
 
@@ -140,7 +140,7 @@ Only three engines need new geometry: `rows`, `grid`, `strips`.
 | Laminate | `/pol/laminat/` | `rows`, `waste`, `packs` | `layRows`: rows = ⌈(across − 2 × gap) ÷ board width⌉; each row starts with a start-side offcut (the right part left by a row-end cut — click locks forbid turning a piece) if the end joints stay ≥ 30 cm from the previous row and no end is shorter than 30 cm, else a whole board, else a board cut to shift the joints (its left part may only END a later row). Mockup 4,6 × 4,3, 1285 × 192 × 9 → 92 boards, 11 packs (rows across: 9). Last row < 5 cm warns; diagonal/herringbone = area + 15 % (unconfirmed); underlay rolls by floor area |
 | Linoleum | `/pol/linoleum/` | `packs` | Every roll width (1,5 … 4 м, or one pinned) × both directions: sheets n with n·w − (n − 1)·overlap ≥ the room across, cut = n × room along (+ allowance), rounded to the shop cut step. Fewest seams first (Tarkett: «избегайте швов, выбирая максимальную ширину»), then the smallest bought area (price is per m²), then along the length. Bought by area: `Pack.kind: "running"` with `width`, one cut step = width × step, so needs of different widths stay comparable; the shell shows «8,6 м · ширина 2,5 м · 21,5 м²». Implemented in v1 without the `strips` block (no pattern repeat input yet) |
 | Plinth | `/pol/plintus/` | `geometry`, `packs` | ⌈(perimeter − doors) ÷ plank⌉ with offcuts joined; joiners = planks − 1; inner corners 4 (5 + 1 outer for an L-shape); 2 caps per door; fasteners per straight run ⌈run ÷ 40 cm⌉ + 1 (doors split the longest run; Arbiton INDO manual) |
-| Tile | `/plitka/plitka/` | `grid`, `packs` | `gridArea` from a corner or the centre (parity with the wider cut; a remainder ≤ joint is no cut); every cut piece takes a tile (Kerama Marazzi); walls one by one minus whole tiles surely inside openings, ⌊(size − tile) ÷ pitch⌋ (a door lines up with the rows from a corner); + 10 % reserve; diagonal = area ÷ tile × 1,15; boxes |
+| Tile | `/plitka/plitka/` | `grid`, `packs` | `gridArea` from a corner or the centre (parity with the wider cut; a remainder ≤ joint is no cut); every cut piece takes a tile (Kerama Marazzi); walls one by one: with every opening placed on the plan, tile by tile around them (`wallGrid`: tiles wholly inside an opening dropped, tiles over its edge cut; windows on their sill, default 90 cm — version 3), else minus whole tiles surely inside openings, ⌊(size − tile) ÷ pitch⌋ (a door lines up with the rows from a corner); + 10 % reserve; diagonal = area ÷ tile × 1,15; boxes |
 | Tile adhesive | `/plitka/klej/` | `coverage` | Floor (L-shape from the room) or walls without openings × kg/m² from the CM 11 PRO notch table by the longer side, or 1,2 kg/m² × layer mm; from 30 × 30 + 1 mm on the tile back (+1,2 kg/m², unconfirmed); bags |
 | Grout | `/plitka/zatirka/` | `coverage` | kg/m² = (A + B) ÷ (A × B) × joint × depth (= tile thickness) × 1,6, + 10 %; the CE 40 table equals this formula at its own 12,5–14 mm depth (golden cross-checks); packs of 2 kg |
 
