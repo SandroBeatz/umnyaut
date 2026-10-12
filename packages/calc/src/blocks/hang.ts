@@ -40,6 +40,8 @@ export interface HangInput {
   edgeCut?: boolean;
   /** Pieces are cut the whole strip wide from its left edge (a pattern keeps its place across the roll). */
   keepWidth?: boolean;
+  /** What is trimmed off a strip hung whole over an opening is a rest (dry, clean paper: non-woven on a pasted wall). */
+  cutouts?: boolean;
   /** Corner where the two directions meet (the last, least visible joint). */
   closingCorner: number;
 }
@@ -94,6 +96,8 @@ export interface HangedWall {
   columns: HangColumn[];
   /** Level lines on this wall: the edge of the first new strip after the start line or a corner, mm from the first corner. */
   linesMm: number[];
+  /** Joints at the edges of doors and windows (strips cut there), mm from the first corner. */
+  edgesMm: number[];
 }
 
 export interface HangResult {
@@ -117,7 +121,7 @@ export interface HangResult {
   closingOverlapMm: number;
   /** Pieces narrower than `narrowMm` (between two openings or at the edge of one). */
   slivers: number;
-  /** Joints at the edges of openings (`edgeCut`). */
+  /** Joints at the edges of doors and windows (`edgeCut`; edges of bare zones are not counted). */
   edges: number;
 }
 
@@ -137,8 +141,13 @@ interface Segment {
 
 const mirror = (o: ElevationOpening, L: number): ElevationOpening => ({ ...o, x: L - o.x - o.w });
 
-/** Openings closer than this across the wall are one (the wall between them is too narrow to paper). */
-const BLOCK_GAP_MM = 20;
+/**
+ * Openings closer than this across the wall are one: the pier between a balcony door and its window is covered by
+ * the casings (about 7 cm), there is no wall to paper (practice, master review).
+ */
+export const BLOCK_GAP_MM = 100;
+/** A cut-off part over an opening is rough-cut 5 cm in from its edges before it is trimmed (practice, master review). */
+const CUTOUT_MARGIN_MM = 50;
 
 /** Openings that touch or overlap across the wall, with each one's part of it. */
 interface Block {
@@ -164,7 +173,7 @@ function blocksOf(openings: readonly ElevationOpening[]): Block[] {
 type Piece = NonNullable<HangColumn["pieces"]>[number];
 
 /** Pieces covering [u, v] of a block: above, between and below the openings over each part of it. */
-function piecesIn(b: Block, u: number, v: number, i: HangInput): Piece[] {
+function piecesIn(b: Block, u: number, v: number, i: HangInput & { narrowMm: number }): Piece[] {
   const xs = [u, v, ...b.items.flatMap((it) => [it.x0, it.x1]).filter((e) => e > u + EPS && e < v - EPS)].sort(
     (a, c) => a - c,
   );
@@ -203,7 +212,35 @@ function piecesIn(b: Block, u: number, v: number, i: HangInput): Piece[] {
       merged[merged.length - 1] = { ...prev, w: prev.w + p.w };
     else merged.push(p);
   }
-  return merged;
+  // A sliver beside a wider piece on the same side (tops of a door and a window differ by a little): one piece as
+  // tall as both, trimmed on the wall.
+  for (;;) {
+    const k = merged.findIndex(
+      (p) =>
+        p.w < i.narrowMm - EPS &&
+        merged.some(
+          (q) => q !== p && q.where === p.where && (Math.abs(q.x + q.w - p.x) < EPS || Math.abs(p.x + p.w - q.x) < EPS),
+        ),
+    );
+    if (k < 0) break;
+    const p = merged[k] as Piece;
+    const j = merged.findIndex(
+      (q) => q !== p && q.where === p.where && (Math.abs(q.x + q.w - p.x) < EPS || Math.abs(p.x + p.w - q.x) < EPS),
+    );
+    const q = merged[j] as Piece;
+    const top = Math.min(p.y, q.y);
+    const bottom = Math.max(p.y + p.h, q.y + q.h);
+    merged[j] = {
+      ...q,
+      x: Math.min(p.x, q.x),
+      w: p.w + q.w,
+      y: top,
+      h: bottom - top,
+      lengthMm: bottom - top + i.trimMm,
+    };
+    merged.splice(k, 1);
+  }
+  return merged.sort((a, c) => a.y - c.y || a.x - c.x);
 }
 
 /** The column [x0, x1] across the openings it touches: parts on the wall and parts over an opening, in order. */
@@ -230,10 +267,14 @@ function hangRun(
   out: HangResult,
   columns: HangColumn[][],
   lines: number[][],
+  edges: number[][],
   narrowMm: number,
 ): number {
   const W = i.rollWidthMm;
-  const edgeCut = !!i.edgeCut && !i.keepWidth;
+  const bareOnly = (b: Block) => b.items.every((it) => it.o.type === "bare");
+  // Cut at the edges of doors and windows when asked; at the edges of bare zones always (no crack risk, and the
+  // strip is cut there anyway). With a pattern never: pieces keep their place across the roll.
+  const canSplit = (hit: readonly Block[]) => hit.length > 0 && !i.keepWidth && (!!i.edgeCut || hit.every(bareOnly));
   /** How much of the wrap the last strip of the run could not give at its end (the closing corner). */
   let shortAtEnd = 0;
   let carry = 0;
@@ -256,7 +297,7 @@ function hangRun(
     const hitting = (x0: number, x1: number) => blocks.filter((b) => b.x1 > x0 + EPS && b.x0 < x1 - EPS);
     /** Pieces instead of a strip over the part [u, v] of an opening: one column, its own number («К»). */
     const piecesColumn = (open: readonly { b: Block; u: number; v: number }[]) => {
-      const pieces = open.flatMap((p) => piecesIn(p.b, p.u, p.v, i));
+      const pieces = open.flatMap((p) => piecesIn(p.b, p.u, p.v, { ...i, narrowMm }));
       // Nothing left to cover (a bare zone floor to ceiling): no column at all.
       if (pieces.length === 0) return;
       counters.k++;
@@ -274,8 +315,11 @@ function hangRun(
       const v = Math.max(...open.map((p) => p.v));
       push({ n: counters.k, x: u, w: v - u, kind: "pieces", pieces });
     };
-    /** Parts of a split column on the wall: full height, each from its own (narrow) strip. */
-    const edgeParts = (parts: ReturnType<typeof partsOf>, joints: number) => {
+    /**
+     * Parts of a split column on the wall: full height, each from its own (narrow) strip; `all` — the whole column
+     * (with the corner part, which stays with its corner strip), for the joints.
+     */
+    const edgeParts = (parts: ReturnType<typeof partsOf>, all: ReturnType<typeof partsOf>) => {
       for (const p of parts) {
         if (p.kind !== "wall") continue;
         counters.n++;
@@ -290,18 +334,28 @@ function hangRun(
       }
       // Each part over an opening is its own pieces column (a strip may cross two openings with wall between).
       for (const p of parts) if (p.b) piecesColumn([{ b: p.b, u: p.u, v: p.v }]);
-      out.edges += joints;
+      // Joints next to a door or a window (not a bare zone): the ones that may crack.
+      all.forEach((p, k) => {
+        const q = all[k + 1];
+        if (!q) return;
+        const open = p.b ?? q.b;
+        if (open && !bareOnly(open)) {
+          out.edges++;
+          edges[seg.wall]?.push(seg.mirrored ? seg.length - p.v : p.v);
+        }
+      });
     };
     /** What a strip [x0, x0 + W] hung whole over openings leaves when trimmed round them (in from the edges). */
     const cutoutsOf = (x0: number, from: number, to: number) => {
       const x1 = x0 + W;
       const list: HangCutout[] = [];
+      if (!i.cutouts) return list;
       for (const b of hitting(from, to))
         for (const it of b.items) {
-          const u = Math.max(it.x0, from) + i.marginMm;
-          const v = Math.min(it.x1, to) - i.marginMm;
-          const top = it.o.y + i.marginMm;
-          const bottom = Math.min(it.o.y + it.o.h, i.heightMm) - i.marginMm;
+          const u = Math.max(it.x0, from) + CUTOUT_MARGIN_MM;
+          const v = Math.min(it.x1, to) - CUTOUT_MARGIN_MM;
+          const top = it.o.y + CUTOUT_MARGIN_MM;
+          const bottom = Math.min(it.o.y + it.o.h, i.heightMm) - CUTOUT_MARGIN_MM;
           if (v - u < narrowMm || bottom - top < narrowMm) continue;
           const c = { xMm: seg.mirrored ? x1 - v : u - x0, fromMm: top, lengthMm: bottom - top, widthMm: v - u };
           const overlaps = list.some(
@@ -346,12 +400,12 @@ function hangRun(
         // Cut at the edges of openings: only up to the corner part, which keeps its wrap and carry.
         let from = Math.max(x, 0);
         let split = false;
-        if (edgeCut) {
-          const hit = hitting(from, seg.to);
-          const parts = hit.length > 0 ? partsOf(hit, from, seg.to) : [];
+        const cornerHit = hitting(from, seg.to);
+        if (canSplit(cornerHit)) {
+          const parts = partsOf(cornerHit, from, seg.to);
           const corner = parts[parts.length - 1];
           if (corner?.kind === "wall" && parts.slice(0, -1).every((p) => p.v - p.u >= narrowMm)) {
-            edgeParts(parts.slice(0, -1), parts.length - 1);
+            edgeParts(parts.slice(0, -1), parts);
             from = corner.u;
             split = true;
           }
@@ -386,11 +440,11 @@ function hangRun(
         // A window or a bare zone at the edge of the opening needs the margin; a door none (casing).
         const m0 = (b: Block) => (b.items.some((it) => it.x0 <= b.x0 + EPS && it.o.type !== "door") ? i.marginMm : 0);
         const m1 = (b: Block) => (b.items.some((it) => it.x1 >= b.x1 - EPS && it.o.type !== "door") ? i.marginMm : 0);
-        const parts = edgeCut && hit.length > 0 ? partsOf(hit, x0, x1) : [];
+        const parts = canSplit(hit) ? partsOf(hit, x0, x1) : [];
         if (single && single.x0 + m0(single) <= x0 + EPS && x1 <= single.x1 - m1(single) + EPS) {
           piecesColumn([{ b: single, u: x0, v: x1 }]);
         } else if (parts.length > 0 && parts.every((p) => p.v - p.u >= narrowMm)) {
-          edgeParts(parts, parts.length - 1);
+          edgeParts(parts, parts);
         } else {
           counters.n++;
           // A first strip wrapping back round the corner shows only its part on this wall.
@@ -426,6 +480,7 @@ export function hangStrips(i: HangInput, narrowMm = 100): HangResult {
   };
   const columns: HangColumn[][] = i.walls.map(() => []);
   const lines: number[][] = i.walls.map(() => []);
+  const edges: number[][] = i.walls.map(() => []);
   const s = ((i.start.wall % count) + count) % count;
   const c = ((i.closingCorner % count) + count) % count;
   const L = (k: number) => i.walls[k]?.lengthMm ?? 0;
@@ -499,6 +554,7 @@ export function hangStrips(i: HangInput, narrowMm = 100): HangResult {
     dry,
     i.walls.map(() => []),
     i.walls.map(() => []),
+    i.walls.map(() => []),
     narrowMm,
   );
   if (shortfall > EPS && end) {
@@ -506,14 +562,15 @@ export function hangStrips(i: HangInput, narrowMm = 100): HangResult {
     end.wrapMm = i.wrapsMm[c] ?? 0;
   }
   const counters = { n: 0, k: 0 };
-  const cwShort = hangRun(i, cw, 1, counters, out, columns, lines, narrowMm);
-  hangRun(i, ccwRun, -1, counters, out, columns, lines, narrowMm);
+  const cwShort = hangRun(i, cw, 1, counters, out, columns, lines, edges, narrowMm);
+  hangRun(i, ccwRun, -1, counters, out, columns, lines, edges, narrowMm);
   const wrapC = i.wrapsMm[c] ?? 0;
   out.closingOverlapMm = wrapC - shortfall + (shortfall > EPS ? wrapC - cwShort : 0);
 
   out.walls = columns.map((cols, k) => ({
     columns: cols.sort((a, b) => a.x - b.x),
     linesMm: [...new Set(lines[k] ?? [])].sort((a, b) => a - b),
+    edgesMm: [...new Set(edges[k] ?? [])].sort((a, b) => a - b),
   }));
   for (const cols of columns)
     for (const col of cols)

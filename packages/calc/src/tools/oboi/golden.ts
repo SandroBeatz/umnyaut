@@ -434,16 +434,16 @@ export const golden: GoldenFile<OboiInput> = {
       },
     },
     {
-      name: "Same room, strips cut at the opening edges: 5 rolls too, pieces 11 — joints at the openings, no gain",
+      name: "Same room, strips cut at the opening edges: 5 rolls too — the start keeps the joints at the openings to two",
       input: { ...OWNER, aroundOpenings: "edge" },
       expected: {
         items: { wallpaper: { packs: 5 } },
-        summary: { strips: 16, pieces: 11, rollsUsed: 5 },
+        summary: { strips: 16, pieces: 7, rollsUsed: 5 },
         warnings: ["edge_seams", "edge_no_gain"],
       },
       source: {
         kind: "manual",
-        ref: `${AROUND}. Полоса, задевающая проём, режется вдоль по его краю: часть на стене — во всю высоту, над и под проёмом — куски. Стыков у краёв проёмов 5. Узкие части (0,81, 0,495, 0,33, 0,17, 0,115 м) складываются в отрезы с другими, всего 15 мест по 2,9 м — те же 5 рулонов, что целой полосой: экономии нет, а стыки у углов проёмов есть — калькулятор так и пишет`,
+        ref: `${AROUND}. Полоса, задевающая проём, может резаться вдоль по его краю: часть на стене — во всю высоту, над и под проёмом — куски. Из стартов с 5 рулонами выбран тот, где таких стыков меньше всего — 2: у балконной двери стены 1 (4,47 м от угла) и у окна стены 4 (2,11 м); остальные полосы у проёмов клеят целиком с подрезкой. Отрезы по 2,9 м: 10 целых, угловая 0,37 (0,13 + 1,5 см на стене 1, остаток 0,225 на стену 2) с замыкающей 0,27 рядом, узкие 0,845 и 0,615 — по месту каждая: 15 мест → 5 рулонов, как целой полосой — экономии нет, а стыки у углов проёмов есть (edge_no_gain, edge_seams)`,
       },
     },
     {
@@ -460,16 +460,46 @@ export const golden: GoldenFile<OboiInput> = {
       },
     },
     {
-      name: "Typical room cut at the opening edges: 12 places for full-height cuts — 4 rolls, joints at the window and the door",
+      name: "Typical room cut at the opening edges: 12 places for full-height cuts — 4 rolls, joints at the window",
       input: { ...TYPICAL, aroundOpenings: "edge" },
       expected: {
         items: { wallpaper: { packs: 4, need: 38.55, leftover: 1.65 } },
-        summary: { strips: 13, pieces: 8, rollsUsed: 4 },
+        summary: { strips: 14, pieces: 6, rollsUsed: 4 },
         warnings: ["edge_seams"],
       },
       source: {
         kind: "manual",
-        ref: `${AROUND}. У окна полосы режутся по его краям: на стене 0,95 и 0,73 м во всю высоту, над и под окном куски 0,11 + 1,06 + 0,33 м шириной (0,5 и 1,0 м длиной); у двери на стене 0,93 м, над ней куски 0,67 и 0,13 (0,8 м). Во всю высоту 8 целых полос и узкие 0,95, 0,93, 0,73, 0,34, 0,315 (0,73 и 0,315 — из одного отреза): 12 мест по 2,8 м = 4 рулона по 3. Куски — в хвосты рулонов 1–2 (1,65 м) и рядом с узкими в 3-м и 4-м. Хвост 4-го 1,65: 40,2 − 1,65 = 38,55 м. Стыков у краёв проёмов 4 — предупреждение edge_seams`,
+        ref: `${AROUND}. У окна (1,25–2,75) полосы режутся по его краям: на стене 0,75 и 0,93 м во всю высоту, над и под окном куски шириной 0,31 + 1,06 + 0,13 м (0,5 и 1,0 м длиной). Дверь (0,3–1,1) целиком под одной полосой (0,11–1,17): по её краям на стене оставалось бы 19 и 7 см — уже 10 см, так что полосу клеят целиком и подрезают; из выреза над дверью (5 см от краёв: 0,7 × 1,9 м) режут куски 0,31 и 0,13. Места по 2,8 м: 9 целых + 0,75 с 0,14 + 0,93 с 0,125 = 12 = 4 рулона по 3; кусок 1,06 — в хвост 1-го. Хвост 4-го 1,65: 40,2 − 1,65 = 38,55 м. Стыков у краёв окна 2 — предупреждение edge_seams`,
+      },
+    },
+    {
+      name: "Owner's room with 6 cm piers between each balcony door and its window: still one opening — 5 rolls",
+      input: {
+        ...OWNER,
+        openings: [
+          {
+            type: "window",
+            widthMm: 900,
+            heightMm: 1500,
+            count: 1,
+            places: [{ wall: 0, offsetMm: 2660, sillMm: 850 }],
+          },
+          { type: "door", widthMm: 850, heightMm: 2350, count: 1, places: [{ wall: 0, offsetMm: 3620 }] },
+          { type: "door", widthMm: 920, heightMm: 2100, count: 1, places: [{ wall: 2, offsetMm: 210 }] },
+          { type: "door", widthMm: 850, heightMm: 2350, count: 1, places: [{ wall: 3, offsetMm: 360 }] },
+          {
+            type: "window",
+            widthMm: 900,
+            heightMm: 1500,
+            count: 1,
+            places: [{ wall: 3, offsetMm: 1270, sillMm: 850 }],
+          },
+        ],
+      },
+      expected: { items: { wallpaper: { packs: 5 } }, summary: { rollsUsed: 5 } },
+      source: {
+        kind: "manual",
+        ref: "Простенок 6 см между окном и балконной дверью закрывают наличники (около 7 см) — оклеивать нечего, это один проём (до 10 см, практика, на проверку мастеру). Иначе ошибка в 2 см при обмере на плане (21 мм вместо 20) превращала 5 рулонов в 6. Раскладка как в «Owner's real room»: 5 рулонов",
       },
     },
     {

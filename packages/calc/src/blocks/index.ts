@@ -21,6 +21,7 @@ export {
 } from "./geometry";
 export { type GridArea, type GridLine, gridArea, gridLine } from "./grid";
 export {
+  BLOCK_GAP_MM,
   type HangBlank,
   type HangColumn,
   type HangedWall,

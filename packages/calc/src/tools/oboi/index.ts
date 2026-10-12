@@ -1,5 +1,6 @@
 import * as z from "zod/mini";
 import {
+  BLOCK_GAP_MM,
   type CutPlan,
   cutCornerSchema,
   cutStrips,
@@ -132,6 +133,8 @@ function openingPieces(i: OboiInput, openings: OboiInput["openings"]): number[] 
 export const WALLPAPER_OUTER_WRAP_MM = 30;
 /** Full-height parts narrower than this are awkward to hang straight; the start is chosen to avoid them. */
 const NARROW_MM = 100;
+/** From this width a roll is non-woven (pasted on the wall). */
+const WIDE_ROLL_MM = 1000;
 /** Rests narrower or shorter than this are waste. */
 const MIN_REST_MM = 100;
 /** Start lines tried on every wall: this step across the roll width, plus lines at corners and openings. */
@@ -289,7 +292,7 @@ function cutting(i: OboiInput, hang: HangResult, stripMm: number, lucky = false,
       phaseMm: phase(b.order),
       restMm: b.restMm,
       // What is trimmed off over openings (below the top half of the trim); a strip with a side rest keeps only that.
-      ...(b.cutouts && !b.also && b.restMm < MIN_REST_MM
+      ...(b.cutouts && !b.also && b.restMm <= 0
         ? { cutouts: b.cutouts.map((c) => ({ ...c, fromMm: c.fromMm + i.trimMm / 2 })) }
         : {}),
     })),
@@ -352,6 +355,9 @@ function chooseStart(i: OboiInput, rw: RoomWalls, stripMm: number, edge = i.arou
         // Cut at the edges of openings only without a pattern: with one, pieces keep their place across the roll.
         edgeCut: edge && i.repeatMm === 0,
         keepWidth: i.repeatMm > 0,
+        // Metre-wide rolls are non-woven, pasted on the wall: what is trimmed off over an opening is dry and clean.
+        // Narrow ones are often paper pasted on the strip — a soaked off-cut is not counted (master review).
+        cutouts: i.rollWidthMm >= WIDE_ROLL_MM,
       },
       NARROW_MM,
     );
@@ -365,6 +371,8 @@ function chooseStart(i: OboiInput, rw: RoomWalls, stripMm: number, edge = i.arou
     tiny(c),
     rolls,
     c.hang.narrow + c.hang.slivers,
+    // Joints at the corners of doors and windows may crack: as few as the rolls allow.
+    c.hang.edges,
     visibility(c.closingCorner),
     c.hang.blanks.length,
     -tail,
@@ -492,11 +500,7 @@ function wallpaperLayout(i: OboiInput, rw: RoomWalls, start: ReturnType<typeof c
         row: c.n - 1,
       });
     }
-    // Joints at the edges of openings: sides of strips cut there that meet an opening.
-    const edgesMm = (hanged?.columns ?? [])
-      .filter((c) => c.kind === "edge")
-      .flatMap((c) => [c.x, c.x + c.w])
-      .filter((x) => (rw.openings[k] ?? []).some((o) => Math.abs(o.x - x) <= 21 || Math.abs(o.x + o.w - x) <= 21));
+    const edgesMm = hanged?.edgesMm ?? [];
     return {
       wall: k,
       lengthMm: wall.lengthMm,
@@ -505,7 +509,7 @@ function wallpaperLayout(i: OboiInput, rw: RoomWalls, start: ReturnType<typeof c
       openings: rw.openings[k] ?? [],
       strips: {
         columns: (hanged?.columns ?? []).map((c) => ({ n: c.n, kind: c.kind, xMm: c.x, widthMm: c.w })),
-        ...(edgesMm.length > 0 ? { edgesMm: [...new Set(edgesMm)] } : {}),
+        ...(edgesMm.length > 0 ? { edgesMm } : {}),
         linesMm: hanged?.linesMm ?? [],
         pieces: (hanged?.columns ?? []).flatMap((c) =>
           (c.pieces ?? []).map((p) => ({ n: c.n, where: p.where, lengthMm: p.lengthMm })),
@@ -600,7 +604,8 @@ function wallpaperLayout(i: OboiInput, rw: RoomWalls, start: ReturnType<typeof c
     const real = list.filter((o) => o.type !== "bare").sort((a, b) => a.x - b.x);
     if (
       real.some(
-        (o, j) => j > 0 && o.x - ((real[j - 1] as ElevationOpening).x + (real[j - 1] as ElevationOpening).w) <= 20,
+        (o, j) =>
+          j > 0 && o.x - ((real[j - 1] as ElevationOpening).x + (real[j - 1] as ElevationOpening).w) <= BLOCK_GAP_MM,
       )
     )
       guide.push({ code: "one_opening", values: { wall: k + 1 } });

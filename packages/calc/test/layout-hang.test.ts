@@ -133,8 +133,18 @@ describe("hangStrips", () => {
   });
 
   /** Every point of a wall is a strip, a piece or an opening: pieces fill their column between the openings. */
-  const coversArea = (cols: readonly HangColumn[], ops: readonly ElevationOpening[], H: number) =>
-    cols
+  const coversArea = (cols: readonly HangColumn[], raw: readonly ElevationOpening[], H: number) => {
+    // A pier up to 10 cm between two openings is under the casings: nothing to paper there.
+    const sorted = [...raw].sort((p, q) => p.x - q.x);
+    const ops = [
+      ...sorted,
+      ...sorted.flatMap((o, k) => {
+        const next = sorted[k + 1];
+        const gap = next ? next.x - (o.x + o.w) : 0;
+        return gap > 0 && gap <= 100 ? [{ type: "bare" as const, x: o.x + o.w, y: 0, w: gap, h: H }] : [];
+      }),
+    ];
+    return cols
       .filter((c) => c.kind === "pieces")
       .every((c) => {
         const xs = [
@@ -162,6 +172,7 @@ describe("hangStrips", () => {
           return y >= H - 50;
         });
       });
+  };
 
   const openingsArb = fc.array(
     fc.record({
@@ -233,14 +244,54 @@ describe("hangStrips", () => {
     const input = { ...hangInput([4600, 4300, 4600, 4300], 500, 3, [[door]]), rollWidthMm: 1060 };
     const whole = hangStrips(input);
     expect(whole.walls[0]?.columns.find((c) => Math.abs(c.x - 500) < 1)?.kind).toBe("full");
-    const strip = whole.blanks.find((b) => b.cutouts?.length);
-    // In from the opening's edges by the 2 cm margin: 1020–1540 across, 520–2680 down.
-    expect(strip?.cutouts).toEqual([{ xMm: 520, fromMm: 520, lengthMm: 2160, widthMm: 520 }]);
+    expect(whole.blanks.some((b) => b.cutouts?.length)).toBe(false);
+    const counted = hangStrips({ ...input, cutouts: true });
+    const strip = counted.blanks.find((b) => b.cutouts?.length);
+    // Rough-cut 5 cm in from the opening's edges: 1050–1510 across, 550–2650 down.
+    expect(strip?.cutouts).toEqual([{ xMm: 550, fromMm: 550, lengthMm: 2100, widthMm: 460 }]);
     const edge = hangStrips({ ...input, edgeCut: true });
     const cols = edge.walls[0]?.columns ?? [];
     expect(cols.find((c) => Math.abs(c.x - 500) < 1)).toMatchObject({ kind: "edge", w: 500 });
     expect(cols.find((c) => Math.abs(c.x - 1000) < 1)).toMatchObject({ kind: "pieces", w: 560 });
     expect(edge.edges).toBeGreaterThan(0);
+  });
+
+  it("a pier up to 10 cm joins two openings; a wider one does not", () => {
+    const door: ElevationOpening = { type: "door", x: 1000, y: 500, w: 850, h: 2200 };
+    const window = (gap: number): ElevationOpening => ({ type: "window", x: 1850 + gap, y: 500, w: 900, h: 1500 });
+    const at = (gap: number) =>
+      hangStrips({
+        ...hangInput([4600, 4300, 4600, 4300], 1300, 3, [[door, window(gap)]]),
+        rollWidthMm: 1060,
+      }).walls[0]?.columns.find((c) => Math.abs(c.x - 1300) < 1)?.kind;
+    expect(at(100)).toBe("pieces");
+    expect(at(101)).toBe("full");
+  });
+
+  it("tops a little apart (a door beside a window, roll 0,53): a sliver above goes into its neighbour", () => {
+    const window: ElevationOpening = { type: "window", x: 1000, y: 450, w: 1200, h: 1400 };
+    const door: ElevationOpening = { type: "door", x: 2200, y: 600, w: 700, h: 2100 };
+    for (let line = 1; line <= 530; line += 7) {
+      const hang = hangStrips(hangInput([4600, 4300, 4600, 4300], line, 3, [[window, door]]));
+      const pieces = hang.walls.flatMap((w) => w.columns.flatMap((c) => c.pieces ?? []));
+      // Above both there is always a neighbour: one piece as tall as both. Under the window a sliver may stay
+      // (nothing beside it) — it is counted, and the start search avoids it.
+      expect(pieces.filter((p) => p.where === "above").every((p) => p.w >= 100 - EPS)).toBe(true);
+      expect(hang.slivers).toBe(pieces.filter((p) => p.w < 100 - EPS).length);
+    }
+  });
+
+  it("edges of a bare zone are cut in either mode and never count as joints at openings", () => {
+    const zone: ElevationOpening = { type: "bare", x: 900, y: 0, w: 1300, h: 2700 };
+    const door: ElevationOpening = { type: "door", x: 3000, y: 700, w: 800, h: 2000 };
+    const input = { ...hangInput([4600, 4300, 4600, 4300], 500, 3, [[zone, door]]), rollWidthMm: 1060 };
+    const whole = hangStrips(input);
+    expect(whole.walls[0]?.columns.some((c) => c.kind === "edge")).toBe(true);
+    expect(whole.edges).toBe(0);
+    const edge = hangStrips({ ...input, edgeCut: true });
+    // Only the door's joints count (and are drawn).
+    expect(edge.edges).toBe(edge.walls[0]?.edgesMm.length);
+    expect(edge.walls[0]?.edgesMm.every((x) => x >= 3000 - 1 && x <= 3800 + 1)).toBe(true);
   });
 });
 
