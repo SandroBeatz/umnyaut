@@ -1,16 +1,18 @@
 "use client";
 
+import type { ToolId, ToolModule } from "@umnyaut/calc";
 import { shell, toolPath } from "@umnyaut/catalog";
 import { categoryIcons, MaterialThumb, toast } from "@umnyaut/ui";
 import { Calculator, Copy, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRoomStore } from "@/entities/room";
-import { groupPurchases, purchaseTexts, ToolCard } from "@/entities/tool";
+import { groupPurchases, loadToolModule, purchaseTexts, ToolCard, type ToolValues } from "@/entities/tool";
 import { materialImages } from "@/shared/config";
 import { fill } from "@/shared/lib";
 import { Hint } from "@/shared/ui";
-import { buildList, itemDef } from "../model/build";
+import { buildList } from "../model/build";
+import { itemDef } from "../model/input";
 import { hydrateList, useListStore } from "../model/store";
 
 const t = shell.roomList;
@@ -32,9 +34,22 @@ export function RoomList() {
   const remove = useListStore((s) => s.remove);
   const clear = useListStore((s) => s.clear);
   const room = useRoomStore((s) => s.room);
-  if (!ready || entries.length === 0) return null;
+  // Each work's calculator is loaded when the list needs it, not with the page.
+  const [modules, setModules] = useState<ReadonlyMap<ToolId, ToolModule<ToolValues>>>(() => new Map());
+  useEffect(() => {
+    const missing = [...new Set(entries.map((e) => e.tool))].filter((id) => !modules.has(id));
+    if (missing.length === 0) return;
+    let live = true;
+    void Promise.all(missing.map(async (id) => [id, await loadToolModule(id)] as const)).then((loaded) => {
+      if (live) setModules((known) => new Map([...known, ...loaded]));
+    });
+    return () => {
+      live = false;
+    };
+  }, [entries, modules]);
+  if (!ready || entries.length === 0 || entries.some((e) => !modules.has(e.tool))) return null;
 
-  const view = buildList(entries, room);
+  const view = buildList(entries, room, (id) => modules.get(id));
   const lines = groupPurchases(view.items).map((group) => {
     const def = itemDef(group.first.key);
     return { key: group.first.key, title: def?.title ?? group.first.key, photo: def?.photo, ...purchaseTexts(group) };

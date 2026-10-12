@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-12
 
+- **P9.11** Per-tool code splitting: CI failed the first-screen JS budget on tool pages (250,2 / 250 KB — every page carried all ten calc modules, wallpaper v4 tipped it). Now `@umnyaut/calc/modules/<id>` exports one module, `ToolCalculator` loads only the page's own via `next/dynamic` (still server-rendered), the room list loads its modules on demand (`loadToolModule`), the list store checks tool ids against the catalog. Tool pages 230–240 KB (wallpaper the largest). Also: the closing-corner property test no longer measures a strip that covers a whole wall narrower than the roll (its wrap side cannot be told from the columns; same result before v4).
+  - Where: `feature/p16-8-wallpaper-scheme` · PR #165
+
 - **P16.11** Master handout: wallpaper questions rewritten for version 4 (12 questions on the practice constants of the start, corners, openings and off-cuts; the outdated «perimeter vs per wall» question dropped), `wave-1-master.md` regenerated (175 examples).
   - Where: `feature/p16-8-wallpaper-scheme` · PR #165
 

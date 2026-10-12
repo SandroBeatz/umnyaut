@@ -89,8 +89,13 @@ describe("hangStrips", () => {
           // Both sides may run past the corner; together they overlap it by at least the wrap.
           const fromEnd = end !== undefined && end.x + end.w >= L - EPS ? Math.max(overhang(end), 0) : 0;
           const fromStart = start !== undefined && start.x <= EPS ? Math.max(overhang(start), 0) : 0;
+          // One strip over a whole wall narrower than the roll: which side it wraps at cannot be told from the
+          // columns (an anticlockwise strip wraps at the wall's start, not at the closing corner) — not measurable.
+          const whole = end !== undefined && end.x <= EPS && end.x + end.w >= L - EPS;
           // The overlap is reported as it is; a short one is flagged (the start search never picks it).
-          return Math.abs(fromEnd + fromStart - hang.closingOverlapMm) < 1e-6 || fromEnd + fromStart >= 15 - EPS;
+          return (
+            whole || Math.abs(fromEnd + fromStart - hang.closingOverlapMm) < 1e-6 || fromEnd + fromStart >= 15 - EPS
+          );
         },
       ),
       { numRuns: 1000 },

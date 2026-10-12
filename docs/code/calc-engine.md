@@ -1,12 +1,12 @@
 ---
-version: 2.0
+version: 2.1
 date: 2026-10-12
 category: code
 ---
 
 # Calculation Engine (`@umnyaut/calc`)
 
-> Version 2.0 · 2026-10-12 · [Code](../code/)
+> Version 2.1 · 2026-10-12 · [Code](../code/)
 
 ## Overview
 
@@ -187,6 +187,8 @@ const result = laminat.compute({ ...input, packAreaM2: 2.22 }, ctx);
 // result.items[0] → { key: 'laminate', role: 'main', packs: 10, ... }
 ```
 
+A tool page loads only its own calculator: `@umnyaut/calc/modules/<id>` exports that tool's `module` (with its price mapping) alone, and the web shell's `ToolCalculator` maps each tool id to a `next/dynamic` import of it — server-rendered and preloaded as before, but one chunk per tool instead of all ten in the first-screen JS. `toolModules` (all of them) stays for the server, tests and the home page's lazy cards; the room list loads the modules it needs with `loadToolModule` (`apps/web/src/entities/tool/model/load.ts`).
+
 ### Tests (mandatory for every tool)
 
 1. **Golden examples** — `golden.ts` exports a `GoldenFile`: ≥ 10 examples, each with `input` (merged over `defaults()`), a partial `expected` (items by key, summary, warning codes, cost) and a `source` (datasheet, norm, manual derivation, reviewer). Competitor numbers go to `benchmarks`, never to `expected`; a benchmark that differs must carry an `explanation`. One shared test (`test/golden.test.ts`) runs every tool with `version ≥ 1`; **CI fails if a tool has fewer than 10**. Placeholders (`version: 0`) are skipped.
@@ -213,6 +215,7 @@ Performance target: `compute()` < 5 ms; tile/laminate layout goes through `useDe
 | `packages/calc/src/types.ts` | `ToolModule`, `ToolResult`, `PurchaseItem`, `Room`, `Layout`, `Quantity`, `Pack` |
 | `packages/calc/src/blocks/{geometry,packs,waste,coverage,rows,grid,strips,frame,power}.ts` | Shared building blocks |
 | `packages/calc/src/tools/<id>/index.ts` | One tool module |
+| `packages/calc/src/modules/<id>.ts` | One tool's module with its price mapping, alone (`@umnyaut/calc/modules/<id>`: a page loads only its own) |
 | `packages/calc/src/tools/<id>/golden.ts` | Golden examples for the tool |
 | `packages/calc/src/project/` | `ProjectData` v1 Zod schema (+ `roomSchema`), `migrateProject()`, `mergeItems()` (stub: sums same key + pack, first-seen order) |
 | `packages/calc/src/golden.ts` | `GoldenFile` types, `matchExpectation()`, `validateGolden()` |

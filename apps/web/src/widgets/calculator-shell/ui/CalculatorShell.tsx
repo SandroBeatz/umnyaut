@@ -1,11 +1,12 @@
 "use client";
 
-import type { BareZone, Opening } from "@umnyaut/calc";
+import type { BareZone, Opening, ToolModule } from "@umnyaut/calc";
 import { getTool, unitLabels } from "@umnyaut/catalog";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCountry } from "@/entities/country";
 import { roomDimensions, useRoomStore } from "@/entities/room";
+import type { ToolValues } from "@/entities/tool";
 import { RoomBar } from "@/features/edit-room";
 import { AddToList, RoomList } from "@/features/room-list";
 import { ResultActions, shareUrl } from "@/features/share-result";
@@ -36,16 +37,18 @@ export interface CalculatorShellProps {
   checkedAt?: string;
   /** Norm sources for «Как посчитано», looked up on the server (`normSources`). */
   sources?: readonly string[];
+  /** This tool's calc module (`ToolCalculator` loads only it). */
+  module: ToolModule<ToolValues>;
 }
 
 /**
  * The one component that renders every tool (docs/ui/calculator-shell-and-pages.md). Phone: room, form, result
  * in one column with a sticky result bar; from 1024 px form 5/12 left, result 7/12 right and sticky.
  */
-export function CalculatorShell({ category, toolId, checkedAt, sources }: CalculatorShellProps) {
+export function CalculatorShell({ category, toolId, checkedAt, sources, module }: CalculatorShellProps) {
   const tool = getTool(category, toolId);
   if (!tool) throw new Error(`Unknown tool ${category}/${toolId}`);
-  const calc = useCalculator(tool);
+  const calc = useCalculator(tool, module);
   const country = useCountry();
   const room = useRoomStore((s) => s.room);
   const view = describeResult(tool, calc.result, country);

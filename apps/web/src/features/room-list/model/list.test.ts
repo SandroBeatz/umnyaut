@@ -1,6 +1,8 @@
 import { getTool } from "@umnyaut/catalog";
 import { describe, expect, it } from "vitest";
-import { buildList, ownInput } from "./build";
+import { getToolModule } from "@/entities/tool";
+import { buildList } from "./build";
+import { ownInput } from "./input";
 import { migrateList } from "./store";
 
 describe("room list", () => {
@@ -35,6 +37,7 @@ describe("room list", () => {
         { tool: "kraska", input: { surface: "ceiling" } },
       ],
       { lengthMm: 4600, widthMm: 4300, heightMm: 2700 },
+      getToolModule,
     );
     expect(view.works.map((w) => w.tool.id)).toEqual(["oboi", "kraska"]);
     const primer = view.items.filter((i) => i.key === "primer");
@@ -56,6 +59,7 @@ describe("room list", () => {
           { tool: "kraska", input: {} },
         ],
         null,
+        getToolModule,
       ).conflicts,
     ).toEqual(["walls_twice"]);
     expect(
@@ -65,6 +69,7 @@ describe("room list", () => {
           { tool: "kraska", input: { surface: "ceiling" } },
         ],
         null,
+        getToolModule,
       ).conflicts,
     ).toEqual([]);
   });
@@ -76,6 +81,7 @@ describe("room list", () => {
         { tool: "klej", input: {} },
       ],
       { lengthMm: 4600, widthMm: 4300 },
+      getToolModule,
     );
     // Floor 19,78 m² × 5,4 kg/m² = 106,8 kg → 5 bags (not 9 from summing both works); grout stays from tile.
     expect(view.items.filter((i) => i.key === "tile-adhesive").reduce((n, i) => n + i.packs, 0)).toBe(5);
@@ -83,11 +89,11 @@ describe("room list", () => {
   });
 
   it("after tile, adhesive and grout are not suggested — they are already in the list", () => {
-    expect(buildList([{ tool: "plitka", input: {} }], null).next.map((t) => t.id)).toEqual([]);
+    expect(buildList([{ tool: "plitka", input: {} }], null, getToolModule).next.map((t) => t.id)).toEqual([]);
   });
 
   it("suggests the other purchase tool of the same category", () => {
-    const view = buildList([{ tool: "oboi", input: {} }], null);
+    const view = buildList([{ tool: "oboi", input: {} }], null, getToolModule);
     expect(view.next.map((t) => t.id)).toEqual(["kraska"]);
   });
 });
