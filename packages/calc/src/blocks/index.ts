@@ -12,6 +12,7 @@ export {
   wallAreaM2,
 } from "./geometry";
 export { type GridArea, type GridLine, gridArea, gridLine } from "./grid";
+export { type HangColumn, type HangedWall, type HangInput, type HangResult, type HangWall, hangStrips } from "./hang";
 export {
   type GridCell,
   type GridLayoutInput,
@@ -38,6 +39,7 @@ export {
   type StartInput,
   startOf,
   WINDOW_SILL_MM,
+  wallOpenings,
 } from "./plan";
 export { layRows, type RowPlan, type RowsInput, type RowsResult } from "./rows";
 export { cutStrips, type StripCut, type StripCutInput } from "./strips";

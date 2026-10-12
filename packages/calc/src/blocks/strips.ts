@@ -33,6 +33,8 @@ export interface StripCut {
   perRollSlackMm: number;
   /** Unused tail of each roll, mm. */
   remnantsMm: number[];
+  /** What each roll is cut into, in cutting order: strip `index` (0-based) or piece `index` of `pieces`. */
+  cuts: { kind: "strip" | "piece"; index: number; startMm: number }[][];
 }
 
 /** Coordinates are doubled inside so that half a repeat stays an integer. */
@@ -51,15 +53,16 @@ export function cutStrips(input: StripCutInput): StripCut {
   const half = input.offset && repeat > 0 ? repeat / 2 : 0;
   const strip = input.stripLengthMm * SCALE;
   const strips = Math.max(Math.trunc(input.strips), 0);
-  const pieces = (input.pieces ?? []).filter((p) => p > 0).map((p) => p * SCALE);
+  // Indices stay those of `input.pieces`; empty pieces are skipped when cutting.
+  const pieces = (input.pieces ?? []).map((p) => Math.max(p, 0) * SCALE);
   const phaseOf = (k: number) => (k % 2 === 1 ? half : 0);
   const anyPhase = half > 0 ? [0, half] : [0];
 
   if (strip > roll || !(roll > 0)) {
-    return { fits: false, tooLong: "strip", rolls: 0, perRoll: 0, perRollSlackMm: 0, remnantsMm: [] };
+    return { fits: false, tooLong: "strip", rolls: 0, perRoll: 0, perRollSlackMm: 0, remnantsMm: [], cuts: [] };
   }
   if (pieces.some((p) => p > roll)) {
-    return { fits: false, tooLong: "piece", rolls: 0, perRoll: 0, perRollSlackMm: 0, remnantsMm: [] };
+    return { fits: false, tooLong: "piece", rolls: 0, perRoll: 0, perRollSlackMm: 0, remnantsMm: [], cuts: [] };
   }
 
   /**
@@ -70,12 +73,13 @@ export function cutStrips(input: StripCutInput): StripCut {
   interface Roll {
     end: number;
     base: number;
+    cuts: StripCut["cuts"][number];
   }
   const local = (r: Roll, phase: number) => (repeat > 0 ? (((phase - r.base) % repeat) + repeat) % repeat : 0);
   const next = (r: Roll, phase: number) => startAt(r.end, local(r, phase), repeat);
 
   let perRoll = 0;
-  const fresh: Roll = { end: 0, base: 0 };
+  const fresh: Roll = { end: 0, base: 0, cuts: [] };
   for (; strip > 0; perRoll++) {
     const start = perRoll === 0 ? 0 : next(fresh, phaseOf(perRoll));
     if (start + strip > roll) break;
@@ -86,15 +90,25 @@ export function cutStrips(input: StripCutInput): StripCut {
   for (let k = 0; k < strips; k++) {
     const last = rolls[rolls.length - 1];
     const start = last ? next(last, phaseOf(k)) : roll;
-    if (last && start + strip <= roll) last.end = start + strip;
-    else rolls.push({ end: strip, base: phaseOf(k) });
+    if (last && start + strip <= roll) {
+      last.cuts.push({ kind: "strip", index: k, startMm: start / SCALE });
+      last.end = start + strip;
+    } else rolls.push({ end: strip, base: phaseOf(k), cuts: [{ kind: "strip", index: k, startMm: 0 }] });
   }
 
-  for (const piece of [...pieces].sort((a, b) => b - a)) {
+  // Longest pieces first; equal ones in their order.
+  const order = pieces
+    .map((p, index) => ({ p, index }))
+    .filter(({ p }) => p > 0)
+    .sort((a, b) => b.p - a.p || a.index - b.index);
+  for (const { p: piece, index } of order) {
     const earliest = (r: Roll) => Math.min(...anyPhase.map((phase) => next(r, phase)));
     const target = rolls.find((r) => earliest(r) + piece <= roll);
-    if (target) target.end = earliest(target) + piece;
-    else rolls.push({ end: piece, base: 0 });
+    if (target) {
+      const start = earliest(target);
+      target.cuts.push({ kind: "piece", index, startMm: start / SCALE });
+      target.end = start + piece;
+    } else rolls.push({ end: piece, base: 0, cuts: [{ kind: "piece", index, startMm: 0 }] });
   }
 
   return {
@@ -103,5 +117,6 @@ export function cutStrips(input: StripCutInput): StripCut {
     perRoll,
     perRollSlackMm: (roll - fresh.end) / SCALE,
     remnantsMm: rolls.map((r) => (roll - r.end) / SCALE),
+    cuts: rolls.map((r) => r.cuts),
   };
 }

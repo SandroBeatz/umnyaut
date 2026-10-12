@@ -1,5 +1,5 @@
 import * as z from "zod/mini";
-import type { CutCorner, LayoutMark, Opening, PlanWall } from "../types";
+import type { CutCorner, ElevationOpening, LayoutMark, Opening, PlanWall } from "../types";
 
 /**
  * Room plan (docs/ui/room-plan-and-layout-guides.md). Plan frame: x along the room length to the right, y along
@@ -202,4 +202,23 @@ export function lightDirection(
     along += side === "left" || side === "right" ? w.widthMm : -w.widthMm;
   }
   return along > 0 ? "length" : along < 0 ? "width" : undefined;
+}
+
+/**
+ * Placed doors and windows on one wall, unfolded (x from the wall's first corner, y down from the ceiling): a
+ * door stands on the floor, a window on its sill (`WINDOW_SILL_MM` when not set); one that would pass the
+ * ceiling is held under it. `defaultSill` — a window here has no sill of its own.
+ */
+export function wallOpenings(placed: readonly PlacedOpening[], wall: number, heightMm: number) {
+  let defaultSill = false;
+  const openings = placed
+    .filter((p) => p.wall === wall)
+    .map((p): ElevationOpening => {
+      const h = Math.min(p.heightMm, heightMm);
+      if (p.type === "door") return { type: "door", x: p.offsetMm, y: heightMm - h, w: p.widthMm, h };
+      if (p.sillMm === undefined) defaultSill = true;
+      const sill = Math.min(p.sillMm ?? WINDOW_SILL_MM, heightMm - h);
+      return { type: "window", x: p.offsetMm, y: heightMm - sill - h, w: p.widthMm, h };
+    });
+  return { openings, defaultSill };
 }

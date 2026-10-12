@@ -198,11 +198,36 @@ export interface LayoutElevation {
   heightMm: number;
   pieces: readonly LayoutPiece[];
   openings: readonly ElevationOpening[];
-  /** Widths of the cut tiles at the wall's corners and at the floor or the ceiling, mm (none, one or two each). */
-  cutColumns: readonly number[];
-  cutRows: readonly number[];
+  /** Tiles: widths of the cut tiles at the wall's corners and at the floor or the ceiling, mm (none, one or two each). */
+  cutColumns?: readonly number[];
+  cutRows?: readonly number[];
   /** Tiles cut around doors and windows. */
-  aroundOpenings: number;
+  aroundOpenings?: number;
+  /** Wallpaper: the strips on this wall, in hanging order. */
+  strips?: LayoutWallStrips;
+}
+
+/** Wallpaper on one wall: what is hung where (pieces carry their strip number in `row`, 0-based). */
+export interface LayoutWallStrips {
+  /** Strip numbers, 1-based: the first and the last one hung on this wall (none when only a rest is). */
+  first?: number;
+  last?: number;
+  /** The rest of strip `carryFrom` from the wall before, at the corner, mm wide. */
+  carryFrom?: number;
+  carryInMm?: number;
+  /** The level line: the edge of the first new strip away from the corner, mm from the wall's first corner. */
+  plumbMm: number;
+  /** The corner strip: its width on this wall, and the rest going on to the next wall (0 — waste). */
+  cornerMm?: number;
+  carryOutMm?: number;
+  /** Pieces above and below the openings: strip number, where, cut length with the trim. */
+  pieces: readonly { n: number; where: "above" | "below"; lengthMm: number }[];
+}
+
+/** One roll of a wallpaper layout: what to cut from it in order, and the tail left. */
+export interface LayoutRoll {
+  cuts: readonly { strip: number; lengthMm: number; where?: "above" | "below" }[];
+  tailMm: number;
 }
 
 /** Geometry for the single `LayoutScheme` SVG component; text for `guide` codes lives in catalog. */
@@ -220,6 +245,8 @@ export interface Layout {
   runs?: readonly LayoutRun[];
   /** Wall tiling: every wall unfolded; `pieces` is then empty and the plan only shows where the walls are. */
   elevations?: readonly LayoutElevation[];
+  /** Wallpaper: the roll cut map. */
+  rolls?: readonly LayoutRoll[];
   /** Laying steps in order: code + numbers. */
   guide: readonly Step[];
   stats: { whole: number; cut: number; reused: number; wasteM2: number };

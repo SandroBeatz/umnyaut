@@ -13,9 +13,9 @@ import {
   WINDOW_SILL_MM,
   wallAreaM2,
   wallGrid,
+  wallOpenings,
 } from "../../blocks";
 import type {
-  ElevationOpening,
   Layout,
   LayoutElevation,
   LayoutMark,
@@ -213,15 +213,8 @@ function wallsScheme(
   let narrowest = Number.POSITIVE_INFINITY;
   let defaultSill = false;
   outline.walls.forEach((wall, k) => {
-    const on: ElevationOpening[] = placed
-      .filter((p) => p.wall === k)
-      .map((p) => {
-        const h = Math.min(p.heightMm, H);
-        if (p.type === "door") return { type: "door", x: p.offsetMm, y: H - h, w: p.widthMm, h };
-        if (p.sillMm === undefined) defaultSill = true;
-        const sill = Math.min(p.sillMm ?? WINDOW_SILL_MM, H - h);
-        return { type: "window", x: p.offsetMm, y: H - sill - h, w: p.widthMm, h };
-      });
+    const { openings: on, defaultSill: noSill } = wallOpenings(placed, k, H);
+    if (noSill) defaultSill = true;
     const grid = wallGrid({
       lengthMm: wall.lengthMm,
       heightMm: H,
@@ -264,7 +257,9 @@ function wallsScheme(
   if (all && defaultSill) guide.push({ code: "walls_sill", values: { sill: WINDOW_SILL_MM / 10 } });
   if (i.start === "corner") {
     const quarter = elevations.some(
-      (e) => e.cutColumns.some((c) => c < i.tileLengthMm / 4) || e.cutRows.some((c) => c < i.tileWidthMm / 4),
+      (e) =>
+        (e.cutColumns ?? []).some((c) => c < i.tileLengthMm / 4) ||
+        (e.cutRows ?? []).some((c) => c < i.tileWidthMm / 4),
     );
     if (quarter) guide.push({ code: "try_center", values: {} });
   }

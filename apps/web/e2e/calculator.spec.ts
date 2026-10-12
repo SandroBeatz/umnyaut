@@ -293,6 +293,22 @@ test("tile walls scheme: four walls unfolded, the window's sill on the plan chan
   await expect(result(page)).toHaveText("50");
 });
 
+test("wallpaper scheme: strips wall by wall from the window corner, a roll map, unplaced openings ask for the plan", async ({
+  page,
+}) => {
+  await page.goto(WALLPAPER);
+  const scheme = page.locator("section[aria-labelledby=layout-scheme]");
+  // Golden «Mockup room … (defaults)»: 32 strips, 4 pieces at the window, 11 rolls.
+  await expect(scheme.getByText("Полос: 32 · кусков: 4 · рулонов: 11")).toBeVisible();
+  await expect(result(page)).toHaveText("11");
+  await expect(scheme.getByText(/по отвесу в 51,5 см от угла стены 4/)).toBeVisible();
+  await scheme.getByText("Карта рулонов", { exact: true }).click();
+  await expect(scheme.getByText(/кусок под 4 — 1 м/)).toBeVisible();
+
+  await page.goto(`${WALLPAPER}?s=${s({ openings: [{ type: "door", widthMm: 800, heightMm: 2000, count: 1 }] })}`);
+  await expect(scheme.getByText("Отметьте двери и окна на плане — тогда разложим полосы по стенам")).toBeVisible();
+});
+
 test("pack price gives a total and «без N позиций» for items without one", async ({ page }) => {
   await page.goto(LAMINATE);
   await page.getByRole("button", { name: /Ещё параметры/ }).click();

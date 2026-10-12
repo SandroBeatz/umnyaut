@@ -1,12 +1,12 @@
 ---
-version: 1.1
+version: 1.2
 date: 2026-10-12
 category: ui
 ---
 
 # Room Plan, Layout Schemes and Laying Guides
 
-> Version 1.1 · 2026-10-12 · [UI](../ui/)
+> Version 1.2 · 2026-10-12 · [UI](../ui/)
 
 ## Overview
 
@@ -151,7 +151,9 @@ Walls (done 2026-10-12, tile version 3): `Layout.elevations` — every wall unfo
 
 ### Wallpaper
 
-Per-wall unfolded view (walls 1…n side by side): strips with numbers, the first plumb line (roll width − 1–2 cm from the starting corner), pieces above the door and above/below the window, corner wraps; a roll cut map (which strips come from which roll, tails). Guide: start from the window corner (overlap paper) or any corner with a plumb line (butt-joint non-woven), direction of work, step-off from the corner, order of strips, pattern match per strip. Needs the per-wall engine and formula version 2 with new golden examples and a reviewer pass — the count may differ from today's perimeter count; that difference is the point of review.
+Done 2026-10-12 (wallpaper version 2, reviewer pass open): `hangStrips` in `blocks/hang.ts`, `Layout.elevations[].strips` (per wall: strip numbers, level line, corner width and rest, pieces) and `Layout.rolls` (roll cut map from `cutStrips().cuts`). Start at the first corner of the widest placed window's wall, clockwise; corner wrap 15 mm (`wallpaper.cornerWrap`), the rest of a corner strip ≥ 5 cm goes on the next wall; strips wholly across an opening become pieces. Counted this way once every opening is placed (or none); else the perimeter count and empty walls.
+
+Plan as written: per-wall unfolded view (walls 1…n side by side): strips with numbers, the first plumb line (roll width − 1–2 cm from the starting corner), pieces above the door and above/below the window, corner wraps; a roll cut map (which strips come from which roll, tails). Guide: start from the window corner (overlap paper) or any corner with a plumb line (butt-joint non-woven), direction of work, step-off from the corner, order of strips, pattern match per strip. Needs the per-wall engine and formula version 2 with new golden examples and a reviewer pass — the count may differ from today's perimeter count; that difference is the point of review.
 
 ### Plinth
 
@@ -213,5 +215,6 @@ The plan editor is a form field of kind `plan` (`catalog` → `FieldDef`), bound
 | `apps/web/src/widgets/calculator-shell/model/scheme-text.ts` | Guide and cut-list lines from codes and numbers |
 | `apps/web/src/widgets/calculator-shell/model/plan.ts` | `planRoomOf(values)`: the room the plan draws, from a tool's input |
 | `packages/calc/src/blocks/layout-grid.ts` | `gridCells`, `gridLayout` (tile floor), `wallGrid` (one unfolded wall around its openings) |
+| `packages/calc/src/blocks/hang.ts` | `hangStrips`: wallpaper strips wall by wall, corners, rests, pieces |
 | `apps/web/src/widgets/calculator-shell/ui/WallElevations.tsx` | Wall tiling picture: floor plan for orientation, walls to one scale |
 | `packages/calc/test/layout-rows.test.ts` | Outline, placement, replay = engine board count, pieces fill rows, laminate scheme cases |

@@ -1,6 +1,30 @@
 import * as z from "zod/mini";
-import { cutStrips, mmToM, openingInputSchema, purchase, wallAreaM2 } from "../../blocks";
-import type { PurchaseItem, Room, Step, ToolModule, ToolResult, Warning } from "../../types";
+import {
+  cutStrips,
+  type HangResult,
+  hangStrips,
+  mmToM,
+  openingInputSchema,
+  placeOpenings,
+  purchase,
+  roomOutline,
+  type StripCut,
+  wallAreaM2,
+  wallOpenings,
+} from "../../blocks";
+import type {
+  Layout,
+  LayoutElevation,
+  LayoutMark,
+  LayoutPiece,
+  LayoutRoll,
+  PurchaseItem,
+  Room,
+  Step,
+  ToolModule,
+  ToolResult,
+  Warning,
+} from "../../types";
 
 const length = z.int().check(z.minimum(300), z.maximum(100_000));
 
@@ -29,6 +53,14 @@ const input = z.object({
 
 export type OboiInput = z.infer<typeof input>;
 
+/**
+ * How far a strip wraps round an inner corner (norm `wallpaper.cornerWrap`): 10–15 mm (РБК Недвижимость),
+ * 1,5–5 cm (oboi-store) — 15 mm fits both.
+ */
+export const WALLPAPER_CORNER_WRAP_MM = 15;
+/** The rest of a corner strip narrower than this is waste, not hung on the next wall (practice, master review). */
+const MIN_CARRY_MM = 50;
+
 /** Shorter gaps above an opening are closed by the trim and the casing: no piece, no phantom roll. */
 const MIN_PIECE_MM = 50;
 /** Roll length tolerance of ГОСТ 6810 (norm `wallpaper.rollLengthTolerance`): warn when strips leave less. */
@@ -51,6 +83,164 @@ function openingPieces(i: OboiInput, openings: OboiInput["openings"]): number[] 
   });
 }
 
+/** The room as hung: walls from the start corner, placed doors and windows on each; `hang` once all are placed. */
+interface HangPlan {
+  outline: ReturnType<typeof roomOutline>;
+  marks: LayoutMark[];
+  /** Wall indices in hanging order, starting with the start wall. */
+  order: number[];
+  openings: ReturnType<typeof wallOpenings>["openings"][];
+  defaultSill: boolean;
+  window: boolean;
+  hang?: HangResult;
+}
+
+/**
+ * Start at the first corner of the wall with the widest placed window («обои начинают клеить от окна», РБК
+ * Недвижимость), wall 1 without one, and go clockwise. Every counted opening placed: strips per wall
+ * (`hangStrips`); else no hang and the perimeter count stays.
+ */
+function hangPlan(i: OboiInput, openings: OboiInput["openings"], warnings: Warning[]): HangPlan {
+  const outline = roomOutline(i.lengthMm, i.widthMm);
+  const { placed, off } = placeOpenings(outline.walls, openings);
+  if (off > 0) warnings.push({ code: "opening_off_wall", level: "warning", values: { count: off } });
+  const total = openings.reduce((n, o) => n + o.count, 0);
+  const windows = placed.filter((p) => p.type === "window").sort((a, b) => b.widthMm - a.widthMm);
+  const start = windows[0]?.wall ?? 0;
+  const order = outline.walls.map((_, k) => (start + k) % outline.walls.length);
+  const perWall = outline.walls.map((_, k) => wallOpenings(placed, k, i.heightMm));
+  const plan: HangPlan = {
+    outline,
+    marks: placed.map((p) => p.mark),
+    order,
+    openings: perWall.map((w) => w.openings),
+    defaultSill: perWall.some((w) => w.defaultSill),
+    window: windows.length > 0,
+  };
+  if (placed.length !== total) return plan;
+  plan.hang = hangStrips({
+    walls: order.map((k) => ({ lengthMm: outline.walls[k]?.lengthMm ?? 0, openings: perWall[k]?.openings ?? [] })),
+    heightMm: i.heightMm,
+    rollWidthMm: i.rollWidthMm,
+    wrapMm: WALLPAPER_CORNER_WRAP_MM,
+    minCarryMm: MIN_CARRY_MM,
+    minPieceMm: MIN_PIECE_MM,
+    trimMm: i.trimMm,
+  });
+  return plan;
+}
+
+/** The scheme: every wall unfolded with its strips, the roll cut map and the guide. */
+function hangLayout(i: OboiInput, plan: HangPlan, cut: StripCut | undefined, stripMm: number): Layout {
+  const { outline, hang, order } = plan;
+  const H = i.heightMm;
+  const startWall = order[0] ?? 0;
+  const wall0 = outline.walls[startWall];
+  const marks = [...plan.marks];
+  if (wall0) {
+    const reach = Math.min(wall0.lengthMm / 3, 1000);
+    const dx = Math.sign(wall0.x2 - wall0.x1);
+    const dy = Math.sign(wall0.y2 - wall0.y1);
+    marks.unshift({ kind: "start", x1: wall0.x1, y1: wall0.y1, x2: wall0.x1 + dx * reach, y2: wall0.y1 + dy * reach });
+  }
+  let whole = 0;
+  let cutCount = 0;
+  let reused = 0;
+  const elevations: LayoutElevation[] = outline.walls.map((wall, k) => {
+    const hanged = hang?.walls[order.indexOf(k)];
+    const pieces: LayoutPiece[] = [];
+    const own = (hanged?.columns ?? []).filter((c) => c.kind !== "carry");
+    const carry = hanged?.columns.find((c) => c.kind === "carry");
+    for (const c of hanged?.columns ?? []) {
+      if (c.kind === "pieces") {
+        for (const p of c.pieces ?? []) pieces.push({ x: c.x, y: p.y, w: c.w, h: p.h, cut: false, row: c.n - 1 });
+        continue;
+      }
+      if (c.kind === "full") whole++;
+      else if (c.kind === "corner") cutCount++;
+      else reused++;
+      pieces.push({
+        x: c.x,
+        y: 0,
+        w: c.w,
+        h: H,
+        cut: c.kind !== "full",
+        ...(c.kind === "carry" ? { reused: true } : {}),
+        row: c.n - 1,
+      });
+    }
+    return {
+      wall: k,
+      lengthMm: wall.lengthMm,
+      heightMm: H,
+      pieces,
+      openings: plan.openings[k] ?? [],
+      ...(hanged
+        ? {
+            strips: {
+              ...(own.length > 0 ? { first: own[0]?.n, last: own.at(-1)?.n } : {}),
+              ...(carry ? { carryFrom: carry.n, carryInMm: carry.w } : {}),
+              plumbMm: hanged.plumbMm,
+              ...(hanged.cornerMm === undefined ? {} : { cornerMm: hanged.cornerMm, carryOutMm: hanged.carryMm ?? 0 }),
+              pieces: own.flatMap((c) =>
+                (c.pieces ?? []).map((p) => ({ n: c.n, where: p.where, lengthMm: p.lengthMm })),
+              ),
+            },
+          }
+        : {}),
+    };
+  });
+
+  let rolls: LayoutRoll[] | undefined;
+  if (hang && cut?.fits) {
+    const numbers = hang.walls.flatMap((w) =>
+      w.columns.filter((c) => c.kind === "full" || c.kind === "corner").map((c) => c.n),
+    );
+    rolls = cut.cuts.map((cuts, r) => ({
+      cuts: cuts.map((c) => {
+        if (c.kind === "strip") return { strip: numbers[c.index] ?? c.index + 1, lengthMm: stripMm };
+        const piece = hang.pieces[c.index];
+        return { strip: piece?.n ?? 0, lengthMm: piece?.lengthMm ?? 0, ...(piece ? { where: piece.where } : {}) };
+      }),
+      tailMm: cut.remnantsMm[r] ?? 0,
+    }));
+  }
+
+  const cm = (mm: number) => Math.round(mm) / 10;
+  const guide: Step[] = [];
+  if (hang) {
+    const plumb = hang.walls[0]?.plumbMm ?? 0;
+    guide.push({
+      code: plan.window ? "start_window" : "start_corner",
+      values: { wall: startWall + 1, plumb: cm(plumb) },
+    });
+    guide.push({ code: "clockwise", values: {} });
+    guide.push({ code: "corner_wrap", values: { wrap: cm(WALLPAPER_CORNER_WRAP_MM) } });
+    if (reused > 0) guide.push({ code: "carry_level", values: { min: cm(MIN_CARRY_MM) } });
+    if (hang.pieces.length > 0) guide.push({ code: "pieces", values: { count: hang.pieces.length } });
+    if (i.repeatMm > 0) guide.push({ code: "repeat", values: { repeat: cm(i.repeatMm) } });
+    guide.push({ code: "trim", values: { trim: cm(i.trimMm / 2) } });
+    if (plan.defaultSill && plan.openings.some((o) => o.some((x) => x.type === "window")))
+      guide.push({ code: "walls_sill", values: { sill: 90 } });
+  } else {
+    guide.push({ code: "place_openings", values: {} });
+  }
+
+  return {
+    kind: "strips",
+    widthMm: i.lengthMm,
+    heightMm: i.widthMm,
+    outline: outline.points,
+    walls: outline.walls,
+    pieces: [],
+    marks,
+    elevations,
+    ...(rolls ? { rolls } : {}),
+    guide,
+    stats: { whole, cut: cutCount, reused, wasteM2: 0 },
+  };
+}
+
 /**
  * Wallpaper by strips, not by area. Full-height strips cover the perimeter minus, per opening, the width a
  * whole strip can be left out of (width − roll width); each strip is height + trim, aligned to the pattern
@@ -60,15 +250,17 @@ function openingPieces(i: OboiInput, openings: OboiInput["openings"]): number[] 
  */
 export const oboi: ToolModule<OboiInput> = {
   id: "oboi",
-  version: 1,
+  // 2: with every door and window placed, strips are counted wall by wall (corners, rests, pieces by position).
+  version: 2,
   input,
   defaults: () => ({
     lengthMm: 4600,
     widthMm: 4300,
     heightMm: 2700,
+    // The example plan of every tool: door in the bottom wall, window in the left one.
     openings: [
-      { type: "door", widthMm: 800, heightMm: 2000, count: 1 },
-      { type: "window", widthMm: 1200, heightMm: 1400, count: 1 },
+      { type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 2, offsetMm: 600 }] },
+      { type: "window", widthMm: 1200, heightMm: 1400, count: 1, places: [{ wall: 3, offsetMm: 1550 }] },
     ],
     rollWidthMm: 530,
     rollLengthMm: 10_050,
@@ -88,10 +280,13 @@ export const oboi: ToolModule<OboiInput> = {
     const perimeterMm = 2 * (i.lengthMm + i.widthMm);
     const openingsWidthMm = openings.reduce((sum, o) => sum + savedWidthMm(o, i.rollWidthMm) * o.count, 0);
     const coveredMm = Math.max(perimeterMm - openingsWidthMm, 0);
-    const strips = Math.ceil(coveredMm / i.rollWidthMm);
+    // Every opening placed: strips wall by wall from the start corner; else the perimeter estimate.
+    const plan = hangPlan(i, openings, warnings);
+    const hang = plan.hang;
+    const strips = hang ? hang.strips : Math.ceil(coveredMm / i.rollWidthMm);
     const stripMm = i.heightMm + i.trimMm;
     const alignedMm = i.repeatMm > 0 ? Math.ceil(stripMm / i.repeatMm) * i.repeatMm : stripMm;
-    const pieces = openingPieces(i, openings);
+    const pieces = hang ? hang.pieces.map((p) => p.lengthMm) : openingPieces(i, openings);
 
     const tallest = Math.max(0, ...openings.map((o) => o.heightMm));
     if (tallest > i.heightMm) {
@@ -115,15 +310,22 @@ export const oboi: ToolModule<OboiInput> = {
         values: { repeat: mmToM(i.repeatMm), length: mmToM(alignedMm), half: mmToM(i.repeatMm / 2) },
       });
     }
-    steps.push({
-      code: "strips",
-      values: {
-        perimeter: mmToM(perimeterMm),
-        openings: mmToM(openingsWidthMm),
-        width: mmToM(i.rollWidthMm),
-        strips,
-      },
-    });
+    if (hang) {
+      steps.push({
+        code: "walls_strips",
+        values: { width: mmToM(i.rollWidthMm), wrap: WALLPAPER_CORNER_WRAP_MM / 10, strips, pieces: pieces.length },
+      });
+    } else {
+      steps.push({
+        code: "strips",
+        values: {
+          perimeter: mmToM(perimeterMm),
+          openings: mmToM(openingsWidthMm),
+          width: mmToM(i.rollWidthMm),
+          strips,
+        },
+      });
+    }
     if (pieces.length > 0) steps.push({ code: "pieces", values: { count: pieces.length } });
 
     if (walls.openingsExceedWalls || walls.areaM2 <= 0) {
@@ -139,6 +341,7 @@ export const oboi: ToolModule<OboiInput> = {
       stripLengthMm: stripMm,
     };
     const cut = cutStrips({ ...stripsOnly, strips, pieces });
+    const layout = hangLayout(i, plan, cut, stripMm);
     if (cut.fits) {
       const tailMm = Math.max(0, ...cut.remnantsMm);
       const stripRolls = cutStrips({ ...stripsOnly, strips }).rolls;
@@ -233,6 +436,7 @@ export const oboi: ToolModule<OboiInput> = {
       ],
       warnings,
       steps,
+      layout,
     };
   },
 };

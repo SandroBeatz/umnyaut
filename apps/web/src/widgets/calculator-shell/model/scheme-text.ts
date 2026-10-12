@@ -1,4 +1,4 @@
-import type { Layout, LayoutElevation, LayoutRow, LayoutRun, LayoutSheet } from "@umnyaut/calc";
+import type { Layout, LayoutElevation, LayoutRoll, LayoutRow, LayoutRun, LayoutSheet } from "@umnyaut/calc";
 import { shell, type ToolDef } from "@umnyaut/catalog";
 import { formatNumber } from "@umnyaut/ui/format";
 import { fill } from "@/shared/lib";
@@ -102,10 +102,56 @@ export function elevationLines(elevations: readonly LayoutElevation[]): { title:
   return elevations.map((e) => {
     const cut = e.pieces.filter((p) => p.cut).length;
     const parts = [fill(w.whole, { count: e.pieces.length - cut }), fill(w.cut, { count: cut })];
-    if (e.cutColumns.length > 0)
-      parts.push(fill(e.cutColumns.length > 1 ? w.cutCorners : w.cutCorner, { cuts: list(e.cutColumns) }));
-    if (e.cutRows.length > 0) parts.push(fill(e.cutRows.length > 1 ? w.cutRows : w.cutRow, { cuts: list(e.cutRows) }));
-    if (e.aroundOpenings > 0) parts.push(fill(w.around, { count: e.aroundOpenings }));
+    const columns = e.cutColumns ?? [];
+    const rows = e.cutRows ?? [];
+    if (columns.length > 0) parts.push(fill(columns.length > 1 ? w.cutCorners : w.cutCorner, { cuts: list(columns) }));
+    if (rows.length > 0) parts.push(fill(rows.length > 1 ? w.cutRows : w.cutRow, { cuts: list(rows) }));
+    if ((e.aroundOpenings ?? 0) > 0) parts.push(fill(w.around, { count: e.aroundOpenings ?? 0 }));
     return { title: fill(w.wall, { n: e.wall + 1, length: m(e.lengthMm) }), parts };
   });
+}
+
+/**
+ * Wallpaper, one line per wall for «Что клеить по стенам»: «Стена 4 · 4,3 м: полосы 1–9 · отвес в 51,5 см от
+ * угла · под окном к полосе 4: 1 м · в углу полоса 9: 7,5 см + 1,5 на соседнюю стену · остаток 44 см →
+ * следующая стена».
+ */
+export function hangLines(elevations: readonly LayoutElevation[]): { title: string; parts: string[] }[] {
+  const t = s.strips.walls;
+  return elevations.flatMap((e) => {
+    const st = e.strips;
+    if (!st) return [];
+    const parts: string[] = [];
+    if (st.carryFrom !== undefined) parts.push(fill(t.carry, { n: st.carryFrom, width: cm(st.carryInMm ?? 0) }));
+    if (st.first !== undefined)
+      parts.push(fill(st.first === st.last ? t.strip : t.strips, { first: st.first, last: st.last ?? st.first }));
+    if (st.first !== undefined) parts.push(fill(t.plumb, { plumb: cm(st.plumbMm) }));
+    for (const p of st.pieces)
+      parts.push(fill(t.piece, { where: p.where === "above" ? t.above : t.below, n: p.n, length: m(p.lengthMm) }));
+    if (st.cornerMm !== undefined && st.last !== undefined) {
+      parts.push(fill(t.corner, { n: st.last, width: cm(st.cornerMm) }));
+      if ((st.carryOutMm ?? 0) > 0) parts.push(fill(t.cornerRest, { width: cm(st.carryOutMm ?? 0) }));
+    }
+    return [{ title: fill(s.grid.walls.wall, { n: e.wall + 1, length: m(e.lengthMm) }), parts }];
+  });
+}
+
+/** Wallpaper roll map, one line per roll: «Рулон 1: полоса 1 — 2,8 м · … · кусок под 4 — 1 м · остаток 0,15 м». */
+export function rollLines(rolls: readonly LayoutRoll[]): { title: string; parts: string[] }[] {
+  const t = s.strips.walls;
+  return rolls.map((roll, k) => ({
+    title: fill(t.roll, { n: k + 1 }),
+    parts: [
+      ...roll.cuts.map((c) =>
+        c.where
+          ? fill(t.rollPiece, {
+              where: c.where === "above" ? t.rollAbove : t.rollBelow,
+              n: c.strip,
+              length: m(c.lengthMm),
+            })
+          : fill(t.rollStrip, { n: c.strip, length: m(c.lengthMm) }),
+      ),
+      fill(t.tail, { length: m(roll.tailMm) }),
+    ],
+  }));
 }

@@ -8,7 +8,7 @@ import { useId, useRef, useState } from "react";
 import { FloorPlan } from "@/entities/room";
 import { PlanEditor, type PlanRoom } from "@/features/edit-room-plan";
 import { fill } from "@/shared/lib";
-import { elevationLines, guideLines, rowLines, runLines, sheetLines } from "../model/scheme-text";
+import { elevationLines, guideLines, hangLines, rollLines, rowLines, runLines, sheetLines } from "../model/scheme-text";
 import { WallElevations } from "./WallElevations";
 
 const s = shell.scheme;
@@ -47,6 +47,19 @@ function bands(pieces: readonly LayoutPiece[]): LayoutPiece[] {
 function texts(layout: Layout) {
   const { whole, cut, reused } = layout.stats;
   const lines = layout.marks.filter((m) => m.kind === "seam").length;
+  if (layout.kind === "strips" && layout.elevations) {
+    const hw = t.walls;
+    const pieces = layout.elevations.reduce((n, e) => n + (e.strips?.pieces.length ?? 0), 0);
+    const counts = { strips: whole + cut, pieces, rolls: layout.rolls?.length ?? 0 };
+    return {
+      summary: whole + cut > 0 ? fill(hw.summary, counts) : hw.empty,
+      label: fill(hw.label, counts),
+      whole: fill(hw.legendWhole, { count: whole }),
+      cut: fill(hw.legendCut, { count: cut }),
+      reused: fill(hw.legendReused, { count: reused }),
+      line: t.legendSeam,
+    };
+  }
   if (layout.kind === "strips") {
     const counts = { sheets: layout.sheets?.length ?? 0, seams: lines };
     return {
@@ -313,6 +326,12 @@ export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }:
                 {labels.line}
               </li>
             ) : null}
+            {layout.elevations?.some((e) => (e.strips?.pieces.length ?? 0) > 0) ? (
+              <li className="flex items-center gap-1.5">
+                <span aria-hidden="true" className="h-2 w-4 border border-text-subtle bg-surface" />
+                {t.walls.legendPiece}
+              </li>
+            ) : null}
             {layout.elevations?.some((e) => e.openings.length > 0) ? (
               <li className="flex items-center gap-1.5">
                 <span aria-hidden="true" className="h-3 w-4 border-2 border-text bg-surface-sunken" />
@@ -345,6 +364,13 @@ export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }:
           <CutList title={t.cutList} lines={sheetLines(layout.sheets)} />
         ) : layout.runs && layout.runs.length > 0 ? (
           <CutList title={r.cutList} lines={runLines(layout.runs)} />
+        ) : layout.elevations && layout.kind === "strips" && layout.stats.whole + layout.stats.cut > 0 ? (
+          <>
+            <CutList title={t.walls.cutList} lines={hangLines(layout.elevations)} />
+            {layout.rolls && layout.rolls.length > 0 ? (
+              <CutList title={t.walls.rollList} lines={rollLines(layout.rolls)} />
+            ) : null}
+          </>
         ) : layout.elevations && layout.stats.whole + layout.stats.cut > 0 ? (
           <CutList title={g.walls.cutList} lines={elevationLines(layout.elevations)} />
         ) : null}

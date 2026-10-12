@@ -1,4 +1,4 @@
-import type { Layout, LayoutElevation } from "@umnyaut/calc";
+import type { Layout, LayoutElevation, LayoutPiece } from "@umnyaut/calc";
 import { lengthUnitLabels, shell } from "@umnyaut/catalog";
 import { formatNumber } from "@umnyaut/ui/format";
 import { useId } from "react";
@@ -6,17 +6,35 @@ import { FloorPlan } from "@/entities/room";
 import { fill } from "@/shared/lib";
 
 const w = shell.scheme.grid.walls;
+const strips = shell.scheme.strips.walls;
 const m = (mm: number) => formatNumber(mm / 1000, { maxFraction: 2 });
 /** Hatching step on a wall, mm: the same on every wall, so the cuts look alike. */
 const HATCH_MM = 45;
 
 /** One wall seen from the room: tiles (whole outlined, cut hatched), doors and windows on top. */
-/** `scale`: this wall's length over the longest one, so every wall is drawn to the same scale. */
+/** The wall's text alternative: tiles counted on it, or the wallpaper strips hung on it. */
+function labelOf(e: LayoutElevation) {
+  const length = m(e.lengthMm);
+  if (e.strips) {
+    const { first, last } = e.strips;
+    return fill(strips.wallLabel, { n: e.wall + 1, length, first: first ?? "—", last: last ?? first ?? "—" });
+  }
+  const cut = e.pieces.filter((p) => p.cut).length;
+  return fill(w.wallLabel, { n: e.wall + 1, length, whole: e.pieces.length - cut, cut });
+}
+
+/**
+ * `scale`: this wall's length over the longest one, so every wall is drawn to the same scale. Wallpaper strips
+ * carry their number at the top and the rest of a corner strip the orange dot.
+ */
 function Elevation({ elevation, scale }: { elevation: LayoutElevation; scale: number }) {
   const hatch = useId();
   const { lengthMm: L, heightMm: H, pieces } = elevation;
-  const cut = pieces.filter((p) => p.cut).length;
-  const label = fill(w.wallLabel, { n: elevation.wall + 1, length: m(L), whole: pieces.length - cut, cut });
+  const label = labelOf(elevation);
+  const numbers = new Map<number, LayoutPiece>();
+  if (elevation.strips)
+    for (const p of pieces) if (p.row !== undefined && !p.reused && !numbers.has(p.row)) numbers.set(p.row, p);
+  const font = Math.min(H * 0.07, 160);
   return (
     // Spans only: the scheme sits inside the «open fullscreen» button.
     <span className="flex min-w-0 flex-col gap-1">
@@ -56,6 +74,32 @@ function Elevation({ elevation, scale }: { elevation: LayoutElevation; scale: nu
             strokeWidth={1}
             className={p.cut ? "stroke-text-subtle" : "fill-surface stroke-text-subtle"}
           />
+        ))}
+        {pieces
+          .filter((p) => p.reused)
+          .map((p, i) => (
+            <circle
+              // biome-ignore lint/suspicious/noArrayIndexKey: pieces are positional and rebuilt on every change
+              key={i}
+              cx={p.x + p.w / 2}
+              cy={p.y + p.h / 2}
+              r={Math.min(p.w * 0.3, font * 0.5)}
+              vectorEffect="non-scaling-stroke"
+              strokeWidth={1.5}
+              className="fill-accent stroke-white"
+            />
+          ))}
+        {[...numbers.entries()].map(([row, p]) => (
+          <text
+            key={row}
+            x={p.x + p.w / 2}
+            y={p.y + font * 0.9}
+            fontSize={Math.min(font, p.w * 0.6)}
+            textAnchor="middle"
+            className="fill-text-muted"
+          >
+            {row + 1}
+          </text>
         ))}
         {elevation.openings.map((o, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: openings are positional and rebuilt on every change
@@ -103,8 +147,8 @@ export interface WallElevationsProps {
 }
 
 /**
- * Wall tiling scheme (docs/ui/room-plan-and-layout-guides.md): the floor plan for which wall is which, then every
- * wall unfolded as seen from the room, with the tiles the purchase counted.
+ * Wall schemes (docs/ui/room-plan-and-layout-guides.md) — tiles or wallpaper: the floor plan for which wall is
+ * which, then every wall unfolded as seen from the room, with the pieces the purchase counted.
  */
 export function WallElevations({ layout, columns }: WallElevationsProps) {
   const elevations = layout.elevations ?? [];
@@ -116,6 +160,7 @@ export function WallElevations({ layout, columns }: WallElevationsProps) {
         walls={layout.walls}
         marks={layout.marks}
         unit={lengthUnitLabels.m}
+        startLabel={shell.scheme.start}
         label={fill(shell.plan.planLabel, {
           length: formatNumber(layout.widthMm / 1000),
           width: formatNumber(layout.heightMm / 1000),
