@@ -1,12 +1,12 @@
 ---
-version: 1.0
-date: 2026-10-11
+version: 1.4
+date: 2026-10-12
 category: ui
 ---
 
 # Room Plan, Layout Schemes and Laying Guides
 
-> Version 1.0 · 2026-10-11 · [UI](../ui/)
+> Version 1.4 · 2026-10-12 · [UI](../ui/)
 
 ## Overview
 
@@ -80,6 +80,7 @@ Verdict: **feasible** with the current stack (SVG, no canvas, no new libraries; 
 interface OpeningPlace {
   wall: number;          // 0-based wall index along the outline (UI shows wall + 1)
   offsetMm: number;      // from the wall's first corner, clockwise, to the opening's near edge
+  sillMm?: number;       // windows: floor to the opening's bottom (wall schemes); default WINDOW_SILL_MM
 }
 
 interface Opening {
@@ -123,6 +124,7 @@ interface Layout {
   pieces: readonly LayoutPiece[];
   marks: readonly LayoutMark[];       // doors, windows, the start corner, seams
   rows?: readonly LayoutRow[];        // cut list: start/end pieces, their source rows, where rests go
+  elevations?: readonly LayoutElevation[];  // wall tiling: each wall unfolded with its tiles and openings
   guide: readonly Step[];             // laying steps: code + numbers, text in catalog `ToolDef.guide`
   stats: { whole: number; cut: number; reused: number; wasteM2: number };
 }
@@ -143,11 +145,19 @@ Sheets of the chosen width and direction with seam lines; allowance strip at the
 
 ### Tile (floor, then walls)
 
-Floor grid from `gridLine` per axis: whole tiles, edge cuts with their widths, start point (centre lines or the corner), joint; guide: start from the marked point, whole tiles at the doorway when the door is placed (moves the corner start to the door side), narrowest cut warning. Walls per wall with placed openings: tiles around the window and the door, first row on a batten above the floor line.
+Floor grid from `gridLine` per axis: whole tiles, edge cuts with their widths, start point (centre lines or the corner), joint; guide: start from the marked point, whole tiles at the doorway when the door is placed (moves the corner start to the door side), narrowest cut warning.
+
+Walls (done 2026-10-12, tile version 3): `Layout.elevations` — every wall unfolded as seen from the room, x from the wall's first corner (on the left from inside), y down from the ceiling. `wallGrid` lays columns from that corner and rows from the floor (from the centre: equal cuts at both ends) with the very `gridCells` the count uses; a door stands on the floor, a window on its sill (`OpeningPlace.sillMm`, default `WINDOW_SILL_MM` = 900 mm; a window or a door that would pass the ceiling is held under it). A tile wholly inside an opening is not laid, one over its edge is cut. **Once every counted opening is placed, the purchase is the scheme's count** (never more than the estimate); with an unplaced opening the count stays the estimate and the walls are drawn empty with «place the doors and windows». The card shows the floor plan for orientation, then the walls to one scale; the cut list is per wall. Guide: start corner and floor (or the axes), ceiling row width, a batten under the second row, tiles at openings, the assumed sill.
 
 ### Wallpaper
 
-Per-wall unfolded view (walls 1…n side by side): strips with numbers, the first plumb line (roll width − 1–2 cm from the starting corner), pieces above the door and above/below the window, corner wraps; a roll cut map (which strips come from which roll, tails). Guide: start from the window corner (overlap paper) or any corner with a plumb line (butt-joint non-woven), direction of work, step-off from the corner, order of strips, pattern match per strip. Needs the per-wall engine and formula version 2 with new golden examples and a reviewer pass — the count may differ from today's perimeter count; that difference is the point of review.
+Done 2026-10-12 (wallpaper version 2, reviewer pass open): `hangStrips` in `blocks/hang.ts`, `Layout.elevations[].strips` (per wall: strip numbers, level line, corner width and rest, pieces) and `Layout.rolls` (roll cut map from `cutStrips().cuts`). Start at the first corner of the widest placed window's wall, clockwise; corner wrap 15 mm (`wallpaper.cornerWrap`), the rest of a corner strip ≥ 5 cm goes on the next wall; strips wholly across an opening become pieces. Counted this way once every opening is placed (or none); else the perimeter count and empty walls.
+
+Version 3 (2026-10-12): the start is chosen, not fixed. `hangStrips` takes a level line on any wall and a closing corner; strips go clockwise from the line to that corner and anticlockwise back to it, so the last joint lands in the least visible corner (the one by the door; never at the main wall). Every inner corner wraps `wrapMm` (field, default the norm), an outer corner 3 cm; a strip that ends right at a corner makes the next wall's first strip wrap back. Bare zones (user-set rectangles, and «nothing under the window») are left out: a strip wholly across a window or a zone becomes pieces for what is left; a zone floor to ceiling leaves its strips out. `chooseStart` tries every wall with lines across one roll width, at opening edges (a strip wholly on a window) and at the corner, two closing corners each; the cutting plan decides: no part under 5 cm, then the fewest rolls, then no inserts under 10 cm, then the joint out of sight, then the fewest strips. Manual start (wall + line) and a symmetric main wall (a strip or a joint in the middle) fix the line. `planCuts` (`blocks/cutting.ts`) turns strips and parts into a roll map: strips in order on the pattern, parts into rests (tails, side rests), guillotine splits, each rest once; `Layout.rolls` carries cuts, rests and waste per roll, `Layout.roll` the roll size, `Layout.start` the line and the corner.
+
+Version 4 (2026-10-12, owner's real room): doors, windows and bare zones that touch across the wall (a pier up to 10 cm — a balcony door beside its window; the casings cover it) are one opening for the strips: a strip wholly across the block becomes pieces per part (above both, under the window only). A strip partly over an opening is hung whole and trimmed on the wall (manufacturers: overlap the opening, relief cut at the corner, trim to the frame — no joint at the corner of the opening, where cracks start); what is trimmed off, rough-cut 5 cm in from each edge, is a rest in the cutting plan — only for rolls 1 m wide and more (non-woven, pasted on the wall: the off-cut is dry) (`HangBlank.cutouts` → `planCuts` strips' `cutouts`, `fromCutout` cuts). Input `aroundOpenings`: `whole` (default) or `edge` — the strip is cut lengthwise at the opening edge, the part on the wall full height (each ≥ 10 cm, its own narrow strip, packed into rests without a pattern), the part over the opening pieces; with a pattern strips stay whole (`edge_pattern`). The edges of bare zones are cut in either mode and are not joints at openings. The start search ranks joints at openings right after rolls and narrow inserts; a piece narrower than 10 cm beside a wider one on the same side becomes one piece as tall as both. The other way is computed too, for the hint: `edge_saves` (cut at the edges would need fewer rolls), `edge_no_gain` (it would not); `edge_seams` warns about the joints. On the walls: joints at opening edges in red (`strips.edgesMm`), relief cuts as short slanting lines. Owner's room (openings read off the plan): 6 → 5 rolls either way.
+
+Plan as written: per-wall unfolded view (walls 1…n side by side): strips with numbers, the first plumb line (roll width − 1–2 cm from the starting corner), pieces above the door and above/below the window, corner wraps; a roll cut map (which strips come from which roll, tails). Guide: start from the window corner (overlap paper) or any corner with a plumb line (butt-joint non-woven), direction of work, step-off from the corner, order of strips, pattern match per strip. Needs the per-wall engine and formula version 2 with new golden examples and a reviewer pass — the count may differ from today's perimeter count; that difference is the point of review.
 
 ### Plinth
 
@@ -208,4 +218,9 @@ The plan editor is a form field of kind `plan` (`catalog` → `FieldDef`), bound
 | `apps/web/src/widgets/calculator-shell/ui/LayoutScheme.tsx` | `LayoutScheme`: scheme card, legend, guide, cut list, fullscreen (inside the shell widget: FSD forbids widget → widget imports) |
 | `apps/web/src/widgets/calculator-shell/model/scheme-text.ts` | Guide and cut-list lines from codes and numbers |
 | `apps/web/src/widgets/calculator-shell/model/plan.ts` | `planRoomOf(values)`: the room the plan draws, from a tool's input |
+| `packages/calc/src/blocks/layout-grid.ts` | `gridCells`, `gridLayout` (tile floor), `wallGrid` (one unfolded wall around its openings) |
+| `packages/calc/src/blocks/hang.ts` | `hangStrips`: wallpaper strips from a level line both ways to a closing corner, corners, rests, pieces, bare zones |
+| `packages/calc/src/blocks/cutting.ts` | `planCuts`: the roll cutting plan — strips, parts into rests, guillotine splits, waste |
+| `apps/web/src/widgets/calculator-shell/ui/RollMap.tsx` | One roll of the cutting map as a picture |
+| `apps/web/src/widgets/calculator-shell/ui/WallElevations.tsx` | Wall tiling picture: floor plan for orientation, walls to one scale |
 | `packages/calc/test/layout-rows.test.ts` | Outline, placement, replay = engine board count, pieces fill rows, laminate scheme cases |

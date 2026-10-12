@@ -23,6 +23,8 @@ export const normTitles: Readonly<Record<string, string>> = {
   "wallpaper.rollLength": "Длина рулона обоев",
   "wallpaper.rollLengthTolerance": "Допуск длины рулона",
   "wallpaper.trimAllowance": "Припуск на подрезку полосы",
+  "wallpaper.cornerWrap": "Заход полосы на соседнюю стену во внутреннем углу",
+  "wallpaper.outerCornerWrap": "Заход полосы за наружный угол",
   "wallpaperPaste.coverage": "Площадь на пачку обойного клея",
   "paint.coverage": "Расход краски",
   "paint.coats": "Слоёв краски",

@@ -1,12 +1,12 @@
 ---
-version: 1.7
-date: 2026-10-11
+version: 2.1
+date: 2026-10-12
 category: code
 ---
 
 # Calculation Engine (`@umnyaut/calc`)
 
-> Version 1.7 · 2026-10-11 · [Code](../code/)
+> Version 2.1 · 2026-10-12 · [Code](../code/)
 
 ## Overview
 
@@ -135,12 +135,12 @@ Only three engines need new geometry: `rows`, `grid`, `strips`.
 |---|---|---|---|
 | Room area | `/osnova/ploshchad-komnaty/` | `geometry` | Rect; L = rect − cut; niches/protrusions signed. Writes “My room” |
 | Wall area | `/osnova/ploshchad-sten/` | `geometry` | Perimeter × height − Σ openings; ceiling = floor |
-| Wallpaper | `/steny/oboi/` | `strips`, `packs` | Strips = ⌈(perimeter − Σ max(opening width − roll width, 0)) ÷ roll width⌉ — a strip that only partly covers an opening is still full height; each strip is height + 10 cm trim. `cutStrips` cuts them on the repeat (offset match: phases 0 and repeat/2 alternate) after a worst-case lead of repeat − 1 mm per roll (the fitters' «высота + раппорт»), and puts the pieces above doors and above/below windows (none under 5 cm) into roll tails first; need = rolls × roll length − largest tail; paste by net wall area ÷ m² per pack; warning when strips use the roll within the ±1,5% length tolerance |
+| Wallpaper | `/steny/oboi/` | `strips`, `hang`, `cutting`, `packs` | Version 3: with every opening placed (or none) the start is chosen (level line, both directions to the least visible corner, inner/outer corner wraps, rests carried on, strips wholly across an opening or a bare zone become pieces) and rolls come from a cutting plan (`planCuts`: strips on the pattern, pieces and narrow strips from rests, each rest once); otherwise strips = ⌈(perimeter − Σ max(opening width − roll width, 0)) ÷ roll width⌉ — a strip that only partly covers an opening is still full height; each strip is height + 10 cm trim. `cutStrips` cuts them on the repeat (offset match: phases 0 and repeat/2 alternate) after a worst-case lead of repeat − 1 mm per roll (the fitters' «высота + раппорт»), and puts the pieces above doors and above/below windows (none under 5 cm) into roll tails first; need = rolls × roll length − largest tail; paste by net wall area ÷ m² per pack; warning when strips use the roll within the ±1,5% length tolerance |
 | Paint | `/steny/kraska/` | `coverage`, `packs` | Area (walls without openings and/or ceiling) × coats ÷ coverage from the can; `purchaseSet` picks the 0,9 / 2,7 / 9 л set with the least overbuy, then the fewest cans, one purchase line per size with the same key; primer = area × rate in one canister size (a litre-based optimiser would buy 7 × 1 л instead of 10 л — needs prices) |
 | Laminate | `/pol/laminat/` | `rows`, `waste`, `packs` | `layRows`: rows = ⌈(across − 2 × gap) ÷ board width⌉; each row starts with a start-side offcut (the right part left by a row-end cut — click locks forbid turning a piece) if the end joints stay ≥ 30 cm from the previous row and no end is shorter than 30 cm, else a whole board, else a board cut to shift the joints (its left part may only END a later row). Mockup 4,6 × 4,3, 1285 × 192 × 9 → 92 boards, 11 packs (rows across: 9). Last row < 5 cm warns; diagonal/herringbone = area + 15 % (unconfirmed); underlay rolls by floor area |
 | Linoleum | `/pol/linoleum/` | `packs` | Every roll width (1,5 … 4 м, or one pinned) × both directions: sheets n with n·w − (n − 1)·overlap ≥ the room across, cut = n × room along (+ allowance), rounded to the shop cut step. Fewest seams first (Tarkett: «избегайте швов, выбирая максимальную ширину»), then the smallest bought area (price is per m²), then along the length. Bought by area: `Pack.kind: "running"` with `width`, one cut step = width × step, so needs of different widths stay comparable; the shell shows «8,6 м · ширина 2,5 м · 21,5 м²». Implemented in v1 without the `strips` block (no pattern repeat input yet) |
 | Plinth | `/pol/plintus/` | `geometry`, `packs` | ⌈(perimeter − doors) ÷ plank⌉ with offcuts joined; joiners = planks − 1; inner corners 4 (5 + 1 outer for an L-shape); 2 caps per door; fasteners per straight run ⌈run ÷ 40 cm⌉ + 1 (doors split the longest run; Arbiton INDO manual) |
-| Tile | `/plitka/plitka/` | `grid`, `packs` | `gridArea` from a corner or the centre (parity with the wider cut; a remainder ≤ joint is no cut); every cut piece takes a tile (Kerama Marazzi); walls one by one minus whole tiles surely inside openings, ⌊(size − tile) ÷ pitch⌋ (a door lines up with the rows from a corner); + 10 % reserve; diagonal = area ÷ tile × 1,15; boxes |
+| Tile | `/plitka/plitka/` | `grid`, `packs` | `gridArea` from a corner or the centre (parity with the wider cut; a remainder ≤ joint is no cut); every cut piece takes a tile (Kerama Marazzi); walls one by one: with every opening placed on the plan, tile by tile around them (`wallGrid`: tiles wholly inside an opening dropped, tiles over its edge cut; windows on their sill, default 90 cm — version 3), else minus whole tiles surely inside openings, ⌊(size − tile) ÷ pitch⌋ (a door lines up with the rows from a corner); + 10 % reserve; diagonal = area ÷ tile × 1,15; boxes |
 | Tile adhesive | `/plitka/klej/` | `coverage` | Floor (L-shape from the room) or walls without openings × kg/m² from the CM 11 PRO notch table by the longer side, or 1,2 kg/m² × layer mm; from 30 × 30 + 1 mm on the tile back (+1,2 kg/m², unconfirmed); bags |
 | Grout | `/plitka/zatirka/` | `coverage` | kg/m² = (A + B) ÷ (A × B) × joint × depth (= tile thickness) × 1,6, + 10 %; the CE 40 table equals this formula at its own 12,5–14 mm depth (golden cross-checks); packs of 2 kg |
 
@@ -187,6 +187,8 @@ const result = laminat.compute({ ...input, packAreaM2: 2.22 }, ctx);
 // result.items[0] → { key: 'laminate', role: 'main', packs: 10, ... }
 ```
 
+A tool page loads only its own calculator: `@umnyaut/calc/modules/<id>` exports that tool's `module` (with its price mapping) alone, and the web shell's `ToolCalculator` maps each tool id to a `next/dynamic` import of it — server-rendered and preloaded as before, but one chunk per tool instead of all ten in the first-screen JS. `toolModules` (all of them) stays for the server, tests and the home page's lazy cards; the room list loads the modules it needs with `loadToolModule` (`apps/web/src/entities/tool/model/load.ts`).
+
 ### Tests (mandatory for every tool)
 
 1. **Golden examples** — `golden.ts` exports a `GoldenFile`: ≥ 10 examples, each with `input` (merged over `defaults()`), a partial `expected` (items by key, summary, warning codes, cost) and a `source` (datasheet, norm, manual derivation, reviewer). Competitor numbers go to `benchmarks`, never to `expected`; a benchmark that differs must carry an `explanation`. One shared test (`test/golden.test.ts`) runs every tool with `version ≥ 1`; **CI fails if a tool has fewer than 10**. Placeholders (`version: 0`) are skipped.
@@ -213,6 +215,7 @@ Performance target: `compute()` < 5 ms; tile/laminate layout goes through `useDe
 | `packages/calc/src/types.ts` | `ToolModule`, `ToolResult`, `PurchaseItem`, `Room`, `Layout`, `Quantity`, `Pack` |
 | `packages/calc/src/blocks/{geometry,packs,waste,coverage,rows,grid,strips,frame,power}.ts` | Shared building blocks |
 | `packages/calc/src/tools/<id>/index.ts` | One tool module |
+| `packages/calc/src/modules/<id>.ts` | One tool's module with its price mapping, alone (`@umnyaut/calc/modules/<id>`: a page loads only its own) |
 | `packages/calc/src/tools/<id>/golden.ts` | Golden examples for the tool |
 | `packages/calc/src/project/` | `ProjectData` v1 Zod schema (+ `roomSchema`), `migrateProject()`, `mergeItems()` (stub: sums same key + pack, first-seen order) |
 | `packages/calc/src/golden.ts` | `GoldenFile` types, `matchExpectation()`, `validateGolden()` |

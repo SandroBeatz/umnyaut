@@ -10,10 +10,14 @@ import {
   placeOpenings,
   purchase,
   roomOutline,
+  WINDOW_SILL_MM,
   wallAreaM2,
+  wallGrid,
+  wallOpenings,
 } from "../../blocks";
 import type {
   Layout,
+  LayoutElevation,
   LayoutMark,
   PlanWall,
   PurchaseItem,
@@ -177,6 +181,115 @@ function floorScheme(i: PlitkaInput, real: boolean, warnings: Warning[]): Layout
   };
 }
 
+/** Wall tiling scheme and, once every counted door and window is placed, the exact count it lays. */
+interface WallsScheme {
+  layout: Layout;
+  /** All openings placed: whole and cut tiles of the scheme are the purchase. */
+  exact?: { whole: number; cut: number; dropped: number; around: number };
+  narrowestMm: number;
+}
+
+/**
+ * Walls unfolded one by one, seen from the room: columns from each wall's left corner, rows from the floor. With
+ * every opening placed, a tile wholly inside a door or a window is not laid and one over its edge is cut — the
+ * count follows the scheme. With an opening not placed the walls are drawn empty and the guide asks to place it.
+ */
+function wallsScheme(
+  i: PlitkaInput,
+  openings: readonly PlitkaInput["openings"][number][],
+  warnings: Warning[],
+): WallsScheme {
+  const H = i.heightMm;
+  const outline = roomOutline(i.lengthMm, i.widthMm);
+  const { placed, off } = placeOpenings(outline.walls, openings);
+  if (off > 0) warnings.push({ code: "opening_off_wall", level: "warning", values: { count: off } });
+  const total = openings.reduce((n, o) => n + o.count, 0);
+  const all = placed.length === total;
+  const elevations: LayoutElevation[] = [];
+  let whole = 0;
+  let cut = 0;
+  let dropped = 0;
+  let around = 0;
+  let narrowest = Number.POSITIVE_INFINITY;
+  let defaultSill = false;
+  let aboveCeiling = 0;
+  outline.walls.forEach((wall, k) => {
+    const { openings: withBare, defaultSill: noSill, aboveCeiling: high } = wallOpenings(placed, k, H);
+    // «Под окном не клеим» is a wallpaper choice: tiles keep the wall under a window.
+    const on = withBare.filter((o) => o.type !== "bare");
+    if (noSill) defaultSill = true;
+    aboveCeiling += high;
+    const grid = wallGrid({
+      lengthMm: wall.lengthMm,
+      heightMm: H,
+      tileLengthMm: i.tileLengthMm,
+      tileWidthMm: i.tileWidthMm,
+      jointMm: i.jointMm,
+      start: i.start,
+      openings: on,
+    });
+    const cutHere = grid.pieces.filter((p) => p.cut).length;
+    whole += grid.pieces.length - cutHere;
+    cut += cutHere;
+    dropped += grid.dropped;
+    around += grid.aroundOpenings;
+    narrowest = Math.min(narrowest, ...grid.cutColumns, ...grid.cutRows);
+    elevations.push({
+      wall: k,
+      lengthMm: wall.lengthMm,
+      heightMm: H,
+      pieces: all ? grid.pieces : [],
+      openings: on,
+      cutColumns: grid.cutColumns,
+      cutRows: grid.cutRows,
+      aroundOpenings: all ? grid.aroundOpenings : 0,
+    });
+  });
+
+  if (aboveCeiling > 0)
+    warnings.push({ code: "window_above_ceiling", level: "warning", values: { count: aboveCeiling } });
+  const cm = (mm: number) => Math.round(mm) / 10;
+  const guide: Step[] = [];
+  const rows = elevations[0]?.cutRows ?? [];
+  if (i.start === "corner") {
+    guide.push({ code: "walls_corner", values: {} });
+    if (rows.length > 0) guide.push({ code: "walls_cut_top", values: { cut: cm(rows[0] ?? 0) } });
+  } else {
+    guide.push({ code: "walls_center", values: {} });
+    if (rows.length > 0) guide.push({ code: "walls_cut_rows", values: { cut: cm(rows[0] ?? 0) } });
+  }
+  guide.push({ code: "walls_batten", values: {} });
+  if (all && around > 0) guide.push({ code: "walls_openings", values: { tiles: around } });
+  if (all && defaultSill) guide.push({ code: "walls_sill", values: { sill: WINDOW_SILL_MM / 10 } });
+  if (i.start === "corner") {
+    const quarter = elevations.some(
+      (e) =>
+        (e.cutColumns ?? []).some((c) => c < i.tileLengthMm / 4) ||
+        (e.cutRows ?? []).some((c) => c < i.tileWidthMm / 4),
+    );
+    if (quarter) guide.push({ code: "try_center", values: {} });
+  }
+  if (i.jointMm > 0) guide.push({ code: "joint", values: { joint: i.jointMm } });
+  if (!all) guide.push({ code: "place_openings", values: {} });
+
+  return {
+    layout: {
+      kind: "grid",
+      widthMm: i.lengthMm,
+      heightMm: i.widthMm,
+      outline: outline.points,
+      walls: outline.walls,
+      pieces: [],
+      marks: placed.map((p) => p.mark),
+      elevations,
+      guide,
+      stats: all ? { whole, cut, reused: 0, wasteM2: 0 } : { whole: 0, cut: 0, reused: 0, wasteM2: 0 },
+    },
+    ...(all ? { exact: { whole, cut, dropped, around } } : {}),
+    narrowestMm: narrowest,
+  };
+}
+
 /**
  * Tile by piece count (Kerama Marazzi): a grid from a corner or from the centre over the floor or each wall;
  * every cut piece takes a tile; whole tiles inside doors and windows are left out (cut tiles around them are
@@ -186,7 +299,8 @@ function floorScheme(i: PlitkaInput, real: boolean, warnings: Warning[]): Layout
 export const plitka: ToolModule<PlitkaInput> = {
   id: "plitka",
   // 2: from a corner, a rest no wider than a joint is a gap at the wall, not a cut tile.
-  version: 2,
+  // 3: walls with every door and window placed are counted tile by tile around them.
+  version: 3,
   input,
   defaults: () => ({
     surface: "floor",
@@ -255,27 +369,37 @@ export const plitka: ToolModule<PlitkaInput> = {
         return { items: [], summary: [], warnings, steps };
       }
       if (i.layout === "straight") {
-        for (const wall of [i.lengthMm, i.widthMm, i.lengthMm, i.widthMm]) {
-          const g = gridArea(wall, i.heightMm, i.tileLengthMm, i.tileWidthMm, i.jointMm, i.start);
-          whole += g.whole;
-          cut += g.cut;
-          if (g.cut > 0) narrowest = Math.min(narrowest, g.narrowestMm);
+        const scheme = wallsScheme(i, openings, warnings);
+        layout = scheme.layout;
+        if (scheme.exact) {
+          // Every door and window is placed: the tiles are the scheme's, wall by wall.
+          whole = scheme.exact.whole;
+          cut = scheme.exact.cut;
+          if (Number.isFinite(scheme.narrowestMm)) narrowest = scheme.narrowestMm;
+          steps.push({ code: "openings_placed", values: { tiles: scheme.exact.dropped, around: scheme.exact.around } });
+        } else {
+          for (const wall of [i.lengthMm, i.widthMm, i.lengthMm, i.widthMm]) {
+            const g = gridArea(wall, i.heightMm, i.tileLengthMm, i.tileWidthMm, i.jointMm, i.start);
+            whole += g.whole;
+            cut += g.cut;
+            if (g.cut > 0) narrowest = Math.min(narrowest, g.narrowestMm);
+          }
+          // Whole tiles surely inside an opening wherever it sits: ⌊(size − tile) / pitch⌋ per side. A door
+          // stands on the floor, so from a corner its height lines up with the rows: ⌊(h + joint) / pitch⌋.
+          const inside = (size: number, tileMm: number, pitch: number) =>
+            Math.max(Math.floor((size - tileMm) / pitch), 0);
+          const covered = openings.reduce((n, o) => {
+            const h = Math.min(o.heightMm, i.heightMm);
+            const across = inside(o.widthMm, i.tileLengthMm, pitchX);
+            const up =
+              o.type === "door" && i.start === "corner"
+                ? Math.floor((h + i.jointMm) / pitchY)
+                : inside(h, i.tileWidthMm, pitchY);
+            return n + across * up * o.count;
+          }, 0);
+          whole = Math.max(whole - covered, 0);
+          steps.push({ code: "openings", values: { tiles: covered } });
         }
-        // Whole tiles surely inside an opening wherever it sits: ⌊(size − tile) / pitch⌋ per side. A door
-        // stands on the floor, so from a corner its height lines up with the rows: ⌊(h + joint) / pitch⌋.
-        const inside = (size: number, tileMm: number, pitch: number) =>
-          Math.max(Math.floor((size - tileMm) / pitch), 0);
-        const covered = openings.reduce((n, o) => {
-          const h = Math.min(o.heightMm, i.heightMm);
-          const across = inside(o.widthMm, i.tileLengthMm, pitchX);
-          const up =
-            o.type === "door" && i.start === "corner"
-              ? Math.floor((h + i.jointMm) / pitchY)
-              : inside(h, i.tileWidthMm, pitchY);
-          return n + across * up * o.count;
-        }, 0);
-        whole = Math.max(whole - covered, 0);
-        steps.push({ code: "openings", values: { tiles: covered } });
       }
     }
 

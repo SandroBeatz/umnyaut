@@ -25,6 +25,7 @@ export {
   tools,
   toolsIn,
 } from "./registry";
+export { schemeStrings, toolGuides } from "./scheme";
 export { methodology, navigation, shell } from "./shell";
 export type { FieldDef, ItemDef, PresetDef, RoomBinding, ToolDef } from "./tools/types";
 export { lengthUnitLabels, packNouns, unitLabels } from "./units";

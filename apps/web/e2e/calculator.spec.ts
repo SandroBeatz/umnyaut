@@ -149,8 +149,9 @@ test("wallpaper: rolls by strips, roll preset and pattern repeat change the coun
   await page.getByText("0,53 × 10 м").click();
   await page.getByRole("button", { name: /Ещё параметры/ }).click();
   await type(page, "Раппорт", "64");
-  // Each strip takes 3,2 m of the roll after the worst pattern start; the pieces need a 12th roll.
-  await expect(result(page)).toHaveText("12");
+  // Each strip takes 3,2 m of the roll after the worst pattern start; the start puts two strips on the window
+  // and pairs the closing strips, so the pieces fit the 11th roll (golden «Straight match, repeat 64 cm»).
+  await expect(result(page)).toHaveText("11");
 });
 
 test("paint: a can set with sizes, ceiling switch, primer canister", async ({ page }) => {
@@ -272,6 +273,56 @@ test("laminate scheme: rows from the count, a guide, the door moved on the plan 
   await editor.getByRole("button", { name: "Готово" }).click();
   await expect(scheme.getByText(/Начните от стены 3 в углу «Старт»/)).toBeVisible();
   await expect(result(page)).toHaveText("10");
+});
+
+test("tile walls scheme: four walls unfolded, the window's sill on the plan changes the count", async ({ page }) => {
+  await page.goto(`${TILE}?s=${s({ surface: "walls" })}`);
+  const scheme = page.locator("section[aria-labelledby=layout-scheme]");
+  // Door and window placed: 534 tiles × 1,1 = 588 → 49 коробок (golden «Walls of the example room»).
+  await expect(scheme.getByText("Плиток на стенах: 534 · целых: 406 · подрезанных: 128")).toBeVisible();
+  await expect(result(page)).toHaveText("49");
+  await expect(scheme.getByRole("img", { name: /^Стена 3, длина 4,6 м/ })).toBeVisible();
+  await scheme.getByText("Что резать по стенам").click();
+  await expect(scheme.getByText(/у дверей и окон: 18/)).toBeVisible();
+
+  // The window from 90 to 100 cm above the floor: 537 tiles → 591 → 50 коробок.
+  await scheme.getByRole("button", { name: "Изменить план" }).click();
+  const editor = page.getByRole("dialog");
+  await editor.getByRole("button", { name: /^Окно ·/ }).click();
+  await type(page, "Высота от пола", "100");
+  await editor.getByRole("button", { name: "Готово" }).click();
+  await expect(result(page)).toHaveText("50");
+});
+
+test("wallpaper scheme: a chosen start line, a cutting map, whole strips or cut at the opening edges, a bare zone", async ({
+  page,
+}) => {
+  await page.goto(WALLPAPER);
+  const scheme = page.locator("section[aria-labelledby=layout-scheme]");
+  // Golden «Mockup room … (defaults)»: 33 strips (2 narrow closing ones), 3 pieces, 11 rolls.
+  await expect(scheme.getByText("Полос: 33 · кусков: 3 · рулонов: 11")).toBeVisible();
+  await expect(result(page)).toHaveText("11");
+  await expect(scheme.getByText(/Начните со стены 1: отбейте уровнем вертикальную линию в 20 см/)).toBeVisible();
+  await expect(scheme.getByText(/Последний стык — в углу между стенами 2 и 3, у двери/)).toBeVisible();
+  await scheme.getByText("Карта раскроя", { exact: true }).click();
+  await expect(scheme.getByText(/кусок К1 под окном — 1 м \(из остатка\)/)).toBeVisible();
+
+  // Golden «Owner's sizes with the example door and window … scenario A»: 4,6 × 4,3 × 2,8, roll 1,06 × 10 m.
+  await page.goto(`${WALLPAPER}?s=${s({ heightMm: 2800, rollWidthMm: 1060, rollLengthMm: 10_000 })}`);
+  await expect(result(page)).toHaveText("6");
+  await expect(page.getByText("Рулонов по карте раскроя")).toBeVisible();
+  await expect(page.getByText(/Если резать полосы по краю окон и дверей, хватит 5 рул\. вместо 6/)).toBeVisible();
+  // Golden «… cut at the edges»: the same room the other way round the openings — 5 rolls and the joints warning.
+  await page.goto(
+    `${WALLPAPER}?s=${s({ heightMm: 2800, rollWidthMm: 1060, rollLengthMm: 10_000, aroundOpenings: "edge" })}`,
+  );
+  await expect(result(page)).toHaveText("5");
+  await expect(
+    page.getByText(/Стыков по краю окон и дверей: 4\. Над углами проёмов чаще всего идут трещины/),
+  ).toBeVisible();
+
+  await page.goto(`${WALLPAPER}?s=${s({ openings: [{ type: "door", widthMm: 800, heightMm: 2000, count: 1 }] })}`);
+  await expect(scheme.getByText("Отметьте двери и окна на плане — тогда разложим полосы по стенам")).toBeVisible();
 });
 
 test("pack price gives a total and «без N позиций» for items without one", async ({ page }) => {

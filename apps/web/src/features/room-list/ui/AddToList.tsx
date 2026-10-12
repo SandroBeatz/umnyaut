@@ -5,7 +5,7 @@ import { Button, toast } from "@umnyaut/ui";
 import { Check, ListPlus, RefreshCw } from "lucide-react";
 import { useEffect } from "react";
 import type { ToolValues } from "@/entities/tool";
-import { ownInput } from "../model/build";
+import { ownInput } from "../model/input";
 import { hydrateList, useListStore } from "../model/store";
 
 const t = shell.roomList;

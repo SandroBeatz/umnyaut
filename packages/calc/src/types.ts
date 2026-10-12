@@ -27,6 +27,10 @@ export interface OpeningPlace {
   wall: number;
   /** From the wall's first corner (clockwise) to the opening's near edge, mm. */
   offsetMm: number;
+  /** Windows: from the floor to the bottom of the opening, mm (default `WINDOW_SILL_MM`). Doors stand on the floor. */
+  sillMm?: number;
+  /** Windows: the wall under the window is left bare (a radiator screen, furniture) — wallpaper only. */
+  bareBelow?: boolean;
 }
 
 export interface Opening {
@@ -34,8 +38,20 @@ export interface Opening {
   widthMm: number;
   heightMm: number;
   count: number;
-  /** One per counted opening, optional: only the plan and the laying guide use them, never a count. */
+  /**
+   * One per counted opening, optional. The plan and the laying guide use them; wall tiling counts the tiles
+   * around the openings exactly once all of them are placed.
+   */
   places?: readonly OpeningPlace[];
+}
+
+/** A part of a wall left without wallpaper, set by the user: wall, from its left corner and the floor, size, mm. */
+export interface BareZone {
+  wall: number;
+  offsetMm: number;
+  fromFloorMm: number;
+  widthMm: number;
+  heightMm: number;
 }
 
 /** Corner of the plan the L-shape's cut-out sits in (x along the length to the right, y along the width down). */
@@ -102,8 +118,10 @@ export interface LayoutPiece {
   cut: boolean;
   /** Made from an offcut of another row or sheet (the orange dot). */
   reused?: boolean;
-  /** Row or sheet index in laying order. */
+  /** Row or sheet index in laying order (wallpaper: full-height strip number − 1). */
   row?: number;
+  /** Wallpaper: number of the pieces column above or below an opening («К1»). */
+  piece?: number;
 }
 
 /** Something drawn on the outline: a placed door or window, the start corner, a seam. */
@@ -173,6 +191,89 @@ export interface LayoutRun {
   carryMm: number;
 }
 
+/**
+ * A door, a window or a zone left bare on an unfolded wall, mm: x from the wall's first corner, y down from the
+ * ceiling.
+ */
+export interface ElevationOpening {
+  type: "door" | "window" | "bare";
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/**
+ * One wall unfolded (wall tiling), seen from the room: x from the wall's first corner (on the left), y down from
+ * the ceiling, mm. Pieces are the tiles the purchase counted on this wall.
+ */
+export interface LayoutElevation {
+  /** Wall index (the UI shows it 1-based). */
+  wall: number;
+  lengthMm: number;
+  heightMm: number;
+  pieces: readonly LayoutPiece[];
+  openings: readonly ElevationOpening[];
+  /** Tiles: widths of the cut tiles at the wall's corners and at the floor or the ceiling, mm (none, one or two each). */
+  cutColumns?: readonly number[];
+  cutRows?: readonly number[];
+  /** Tiles cut around doors and windows. */
+  aroundOpenings?: number;
+  /** Wallpaper: the strips on this wall, in hanging order. */
+  strips?: LayoutWallStrips;
+}
+
+/** Wallpaper on one wall: what is hung where. */
+export interface LayoutWallStrips {
+  /**
+   * Columns left to right: full-height strip number (a pieces column: its «К» number; a carried rest: the strip it
+   * is the rest of), what it is, where on the wall and how wide.
+   */
+  columns: readonly {
+    n: number;
+    kind: "full" | "corner" | "carry" | "closing" | "edge" | "pieces";
+    xMm: number;
+    widthMm: number;
+  }[];
+  /** Joints at the edges of doors and windows (strips cut lengthwise there), mm from the wall's first corner. */
+  edgesMm?: readonly number[];
+  /** Level lines, mm from the wall's first corner: the start line and the first new strip after each corner. */
+  linesMm: readonly number[];
+  /** Pieces above and below the openings: pieces column number («К1»), where, cut length with the trim. */
+  pieces: readonly { n: number; where: "above" | "below"; lengthMm: number }[];
+}
+
+/** One cut of a wallpaper roll map, in the roll: along it from its usable start, across it from the left edge. */
+export interface LayoutRollCut {
+  /** A full-height strip by its number, or a piece of pieces column `piece` («К1») above or below an opening. */
+  strip?: number;
+  /** A second narrow strip cut from the other side of the same one (the two closing strips with a pattern). */
+  also?: number;
+  piece?: number;
+  where?: "above" | "below";
+  fromMm: number;
+  lengthMm: number;
+  xMm: number;
+  widthMm: number;
+  /** Taken from material left over from an earlier cut (a roll tail or a side rest). */
+  fromRest: boolean;
+  /** Taken from what was trimmed off a strip over a door or a window. */
+  fromCutout?: boolean;
+  /** What the cut gives on the walls: wall and width (a corner strip: two parts). */
+  parts?: readonly { wall: number; widthMm: number }[];
+}
+
+/** One roll of a wallpaper layout: what is cut from it, the rests left for later use, the waste. */
+export interface LayoutRoll {
+  cuts: readonly LayoutRollCut[];
+  rests: readonly { fromMm: number; lengthMm: number; xMm: number; widthMm: number }[];
+  /** Full-width rest at the end of the roll, mm (0 — none). */
+  tailMm: number;
+  usedM2: number;
+  restM2: number;
+  wasteM2: number;
+}
+
 /** Geometry for the single `LayoutScheme` SVG component; text for `guide` codes lives in catalog. */
 export interface Layout {
   kind: "rows" | "grid" | "strips" | "points" | "outline";
@@ -186,6 +287,14 @@ export interface Layout {
   rows?: readonly LayoutRow[];
   sheets?: readonly LayoutSheet[];
   runs?: readonly LayoutRun[];
+  /** Wall tiling: every wall unfolded; `pieces` is then empty and the plan only shows where the walls are. */
+  elevations?: readonly LayoutElevation[];
+  /** Wallpaper: the roll cut map. */
+  rolls?: readonly LayoutRoll[];
+  /** Wallpaper: roll width and its usable length (after the worst-case lead to the pattern), mm. */
+  roll?: { widthMm: number; lengthMm: number };
+  /** Wallpaper: the level line of the first strip and the corner where the two directions meet (UI 1-based). */
+  start?: { wall: number; lineMm: number; closingCorner: number };
   /** Laying steps in order: code + numbers. */
   guide: readonly Step[];
   stats: { whole: number; cut: number; reused: number; wasteM2: number };

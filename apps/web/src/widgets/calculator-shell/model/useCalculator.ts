@@ -1,11 +1,11 @@
 "use client";
 
-import type { ToolId, ToolResult } from "@umnyaut/calc";
+import type { ToolId, ToolModule, ToolResult } from "@umnyaut/calc";
 import { DEFAULT_COUNTRY, type ToolDef } from "@umnyaut/catalog";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCountry } from "@/entities/country";
 import { hydrateRoom, useRoomStore } from "@/entities/room";
-import { getToolModule, type ToolValues } from "@/entities/tool";
+import type { ToolValues } from "@/entities/tool";
 import { decodeShare } from "@/features/share-result";
 import { readJson, writeStorage } from "@/shared/lib";
 import { applyRoom, isVisible, roomBindings, roomPatch, same } from "./fields";
@@ -33,8 +33,7 @@ export interface Calculator {
  * from `?s=` if present, otherwise from “My room” over the tool's saved values. Field edits write bound parts
  * back to the room; room edits made elsewhere (RoomBar) flow into the fields.
  */
-export function useCalculator(tool: ToolDef): Calculator {
-  const module = getToolModule(tool.id);
+export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Calculator {
   const defaults = useMemo(() => module.defaults({ country: DEFAULT_COUNTRY }), [module]);
   const [values, setAll] = useState<ToolValues>(defaults);
   const [invalid, setInvalidSet] = useState<ReadonlySet<string>>(() => new Set());
