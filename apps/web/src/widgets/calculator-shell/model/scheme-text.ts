@@ -112,42 +112,83 @@ export function elevationLines(elevations: readonly LayoutElevation[]): { title:
 }
 
 /**
- * Wallpaper, one line per wall for «Что клеить по стенам»: «Стена 4 · 4,3 м: полосы 1–7 · отвес в 51,5 см от
- * угла · кусок К1 под окном: 1 м · в углу полоса 7: 7,5 см + 1,5 на соседнюю стену · остаток 44 см →
- * следующая стена».
+ * Wallpaper, one line per wall for «Что клеить по стенам», left to right: «Стена 1 · 4,6 м: старт — линия уровня
+ * в 20 см от левого угла · от угла — остаток полосы 18, 20 см · полосы 1–8 · в углу — полоса 9, 16 см на этой
+ * стене · линии уровня: 20 см от угла».
  */
-export function hangLines(elevations: readonly LayoutElevation[]): { title: string; parts: string[] }[] {
+export function hangLines(layout: Layout): { title: string; parts: string[] }[] {
   const t = s.strips.walls;
-  return elevations.flatMap((e) => {
+  return (layout.elevations ?? []).flatMap((e) => {
     const st = e.strips;
     if (!st) return [];
     const parts: string[] = [];
-    if (st.carryFrom !== undefined) parts.push(fill(t.carry, { n: st.carryFrom, width: cm(st.carryInMm ?? 0) }));
-    if (st.first !== undefined)
-      parts.push(fill(st.first === st.last ? t.strip : t.strips, { first: st.first, last: st.last ?? st.first }));
-    if (st.first !== undefined) parts.push(fill(t.plumb, { plumb: cm(st.plumbMm) }));
-    for (const p of st.pieces)
-      parts.push(fill(t.piece, { where: p.where === "above" ? t.above : t.below, n: p.n, length: m(p.lengthMm) }));
-    if (st.cornerMm !== undefined && st.last !== undefined) {
-      parts.push(fill(t.corner, { n: st.last, width: cm(st.cornerMm) }));
-      if ((st.carryOutMm ?? 0) > 0) parts.push(fill(t.cornerRest, { width: cm(st.carryOutMm ?? 0) }));
+    if (layout.start?.wall === e.wall) parts.push(fill(t.startHere, { line: cm(layout.start.lineMm) }));
+    let run: number[] = [];
+    const flush = () => {
+      const first = run[0];
+      if (first !== undefined)
+        parts.push(run.length === 1 ? fill(t.strip, { first }) : fill(t.strips, { first, last: run.at(-1) ?? first }));
+      run = [];
+    };
+    for (const c of st.columns) {
+      const prev = run.at(-1);
+      if (c.kind === "full" && (prev === undefined || Math.abs(c.n - prev) === 1)) {
+        run.push(c.n);
+        continue;
+      }
+      flush();
+      if (c.kind === "full") run.push(c.n);
+      else if (c.kind === "carry") parts.push(fill(t.carry, { n: c.n, width: cm(c.widthMm) }));
+      else if (c.kind === "corner") parts.push(fill(t.corner, { n: c.n, width: cm(c.widthMm) }));
+      else if (c.kind === "closing") parts.push(fill(t.closingStrip, { n: c.n, width: cm(c.widthMm) }));
+      else {
+        const list = st.pieces
+          .filter((p) => p.n === c.n)
+          .map((p) => fill(p.where === "above" ? t.above : t.below, { length: m(p.lengthMm) }))
+          .join(", ");
+        parts.push(fill(t.pieces, { n: c.n, list }));
+      }
     }
+    flush();
+    if (st.linesMm.length > 0) parts.push(fill(t.lines, { list: st.linesMm.map(cm).join(", ") }));
     return [{ title: fill(s.grid.walls.wall, { n: e.wall + 1, length: m(e.lengthMm) }), parts }];
   });
 }
 
-/** Wallpaper roll map, one line per roll: «Рулон 1: полоса 1 — 2,8 м · … · кусок К1 под окном — 1 м · остаток 0,15 м». */
-export function rollLines(rolls: readonly LayoutRoll[]): { title: string; parts: string[] }[] {
+/**
+ * The wallpaper cutting map, one line per roll: what to cut in order, what is cut from a rest, the rests left and
+ * the waste: «Рулон 1: полоса 1 — 2,8 м · … · кусок К1 под окном — 1 м (из остатка) · остаётся: 0,15 × 0,53 м».
+ */
+export function rollLines(rolls: readonly LayoutRoll[], rollWidthMm: number): { title: string; parts: string[] }[] {
   const t = s.strips.walls;
-  return rolls.map((roll, k) => ({
-    title: fill(t.roll, { n: k + 1 }),
-    parts: [
-      ...roll.cuts.map((c) =>
-        c.piece !== undefined
-          ? fill(t.rollPiece, { where: c.where === "below" ? t.below : t.above, n: c.piece, length: m(c.lengthMm) })
-          : fill(t.rollStrip, { n: c.strip ?? 0, length: m(c.lengthMm) }),
-      ),
-      fill(t.tail, { length: m(roll.tailMm) }),
-    ],
-  }));
+  const area = (v: number) => formatNumber(v, { maxFraction: 2 });
+  return rolls.map((roll, k) => {
+    const parts = roll.cuts.map((c) => {
+      const length = m(c.lengthMm);
+      let text: string;
+      if (c.piece !== undefined)
+        text = fill(t.rollPiece, { n: c.piece, where: c.where === "below" ? t.whereBelow : t.whereAbove, length });
+      else if (c.also !== undefined)
+        text = fill(t.rollPair, {
+          n: c.strip ?? 0,
+          also: c.also,
+          length,
+          a: cm(c.parts?.[0]?.widthMm ?? 0),
+          b: cm(c.parts?.at(-1)?.widthMm ?? 0),
+        });
+      else if (c.widthMm < rollWidthMm - 1 && (c.parts?.length ?? 0) <= 1)
+        text = fill(t.rollNarrow, { n: c.strip ?? 0, length, width: cm(c.widthMm) });
+      else text = fill(t.rollStrip, { n: c.strip ?? 0, length });
+      return c.fromRest ? `${text} (${t.fromRest})` : text;
+    });
+    parts.push(
+      roll.rests.length > 0
+        ? fill(t.rests, {
+            list: roll.rests.map((r) => fill(t.rest, { length: m(r.lengthMm), width: m(r.widthMm) })).join(", "),
+          })
+        : t.noRests,
+    );
+    if (roll.wasteM2 > 0.005) parts.push(fill(t.waste, { area: area(roll.wasteM2) }));
+    return { title: fill(t.roll, { n: k + 1 }), parts };
+  });
 }

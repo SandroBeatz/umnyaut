@@ -22,6 +22,7 @@ export { TILE_DIAGONAL_RESERVE_PCT } from "./tools/plitka";
 export { costOf, type PriceBasis, priced, priceField } from "./tools/priced";
 export { GROUT_DENSITY } from "./tools/zatirka";
 export type {
+  BareZone,
   CalcContext,
   Cost,
   Country,
@@ -32,6 +33,7 @@ export type {
   LayoutMark,
   LayoutPiece,
   LayoutRoll,
+  LayoutRollCut,
   LayoutRow,
   LayoutRun,
   LayoutSheet,

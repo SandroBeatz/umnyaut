@@ -21,6 +21,7 @@ export const openingPlacesSchema = z.readonly(
         wall: z.int().check(z.minimum(0), z.maximum(11)),
         offsetMm: z.int().check(z.minimum(0), z.maximum(100_000)),
         sillMm: z.optional(z.int().check(z.minimum(0), z.maximum(10_000))),
+        bareBelow: z.optional(z.boolean()),
       }),
     )
     .check(z.maxLength(50)),
@@ -108,6 +109,7 @@ export interface PlacedOpening {
   widthMm: number;
   heightMm: number;
   sillMm?: number;
+  bareBelow?: boolean;
   mark: LayoutMark;
 }
 
@@ -136,6 +138,7 @@ export function placeOpenings(walls: readonly PlanWall[], openings: readonly Ope
         widthMm: o.widthMm,
         heightMm: o.heightMm,
         ...(place.sillMm === undefined ? {} : { sillMm: place.sillMm }),
+        ...(place.bareBelow ? { bareBelow: true } : {}),
         mark: {
           kind: o.type,
           wall: place.wall,
@@ -207,7 +210,8 @@ export function lightDirection(
 /**
  * Placed doors and windows on one wall, unfolded (x from the wall's first corner, y down from the ceiling): a
  * door stands on the floor, a window on its sill (`WINDOW_SILL_MM` when not set); one that would pass the
- * ceiling is held under it (`aboveCeiling` counts those windows). `defaultSill` — a window here has no sill of its
+ * ceiling is held under it (`aboveCeiling` counts those windows); a window with `bareBelow` adds a bare zone from
+ * its sill to the floor. `defaultSill` — a window here has no sill of its
  * own.
  */
 export function wallOpenings(placed: readonly PlacedOpening[], wall: number, heightMm: number) {
@@ -216,13 +220,17 @@ export function wallOpenings(placed: readonly PlacedOpening[], wall: number, hei
   let aboveCeiling = 0;
   const openings = placed
     .filter((p) => p.wall === wall)
-    .map((p): ElevationOpening => {
+    .flatMap((p): ElevationOpening[] => {
       const h = Math.min(p.heightMm, heightMm);
-      if (p.type === "door") return { type: "door", x: p.offsetMm, y: heightMm - h, w: p.widthMm, h };
+      if (p.type === "door") return [{ type: "door", x: p.offsetMm, y: heightMm - h, w: p.widthMm, h }];
       if (p.sillMm === undefined) defaultSill = true;
       if ((p.sillMm ?? WINDOW_SILL_MM) + h > heightMm) aboveCeiling++;
       const sill = Math.min(p.sillMm ?? WINDOW_SILL_MM, heightMm - h);
-      return { type: "window", x: p.offsetMm, y: heightMm - sill - h, w: p.widthMm, h };
+      const window: ElevationOpening = { type: "window", x: p.offsetMm, y: heightMm - sill - h, w: p.widthMm, h };
+      // Left bare under the window: a zone from the sill down to the floor, as wide as the window.
+      return p.bareBelow && sill > 0
+        ? [window, { type: "bare", x: p.offsetMm, y: heightMm - sill, w: p.widthMm, h: sill }]
+        : [window];
     });
   return { openings, defaultSill, aboveCeiling };
 }

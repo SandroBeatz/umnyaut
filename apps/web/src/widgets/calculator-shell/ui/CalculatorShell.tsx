@@ -1,6 +1,6 @@
 "use client";
 
-import type { Opening } from "@umnyaut/calc";
+import type { BareZone, Opening } from "@umnyaut/calc";
 import { getTool, unitLabels } from "@umnyaut/catalog";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -118,6 +118,9 @@ export function CalculatorShell({ category, toolId, checkedAt, sources }: Calcul
             room={planRoomOf(values)}
             openings={planField ? (values[planField.name] as readonly Opening[]) : undefined}
             onOpeningsChange={planField ? (next) => calc.setValues({ [planField.name]: next }) : undefined}
+            {...(Array.isArray(values.zones)
+              ? { zones: values.zones as readonly BareZone[], onZonesChange: (next) => calc.setValues({ zones: next }) }
+              : {})}
           />
         ) : null}
         <RoomList />

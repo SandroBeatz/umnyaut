@@ -1,12 +1,12 @@
 ---
-version: 1.9
+version: 2.0
 date: 2026-10-12
 category: code
 ---
 
 # Calculation Engine (`@umnyaut/calc`)
 
-> Version 1.9 · 2026-10-12 · [Code](../code/)
+> Version 2.0 · 2026-10-12 · [Code](../code/)
 
 ## Overview
 
@@ -135,7 +135,7 @@ Only three engines need new geometry: `rows`, `grid`, `strips`.
 |---|---|---|---|
 | Room area | `/osnova/ploshchad-komnaty/` | `geometry` | Rect; L = rect − cut; niches/protrusions signed. Writes “My room” |
 | Wall area | `/osnova/ploshchad-sten/` | `geometry` | Perimeter × height − Σ openings; ceiling = floor |
-| Wallpaper | `/steny/oboi/` | `strips`, `hang`, `packs` | Version 2: with every opening placed (or none) strips are hung wall by wall (`hangStrips`: from the window wall's first corner, 15 mm corner wraps, the corner strip's rest ≥ 5 cm on the next wall, strips wholly across an opening become pieces above/below it); otherwise strips = ⌈(perimeter − Σ max(opening width − roll width, 0)) ÷ roll width⌉ — a strip that only partly covers an opening is still full height; each strip is height + 10 cm trim. `cutStrips` cuts them on the repeat (offset match: phases 0 and repeat/2 alternate) after a worst-case lead of repeat − 1 mm per roll (the fitters' «высота + раппорт»), and puts the pieces above doors and above/below windows (none under 5 cm) into roll tails first; need = rolls × roll length − largest tail; paste by net wall area ÷ m² per pack; warning when strips use the roll within the ±1,5% length tolerance |
+| Wallpaper | `/steny/oboi/` | `strips`, `hang`, `cutting`, `packs` | Version 3: with every opening placed (or none) the start is chosen (level line, both directions to the least visible corner, inner/outer corner wraps, rests carried on, strips wholly across an opening or a bare zone become pieces) and rolls come from a cutting plan (`planCuts`: strips on the pattern, pieces and narrow strips from rests, each rest once); otherwise strips = ⌈(perimeter − Σ max(opening width − roll width, 0)) ÷ roll width⌉ — a strip that only partly covers an opening is still full height; each strip is height + 10 cm trim. `cutStrips` cuts them on the repeat (offset match: phases 0 and repeat/2 alternate) after a worst-case lead of repeat − 1 mm per roll (the fitters' «высота + раппорт»), and puts the pieces above doors and above/below windows (none under 5 cm) into roll tails first; need = rolls × roll length − largest tail; paste by net wall area ÷ m² per pack; warning when strips use the roll within the ±1,5% length tolerance |
 | Paint | `/steny/kraska/` | `coverage`, `packs` | Area (walls without openings and/or ceiling) × coats ÷ coverage from the can; `purchaseSet` picks the 0,9 / 2,7 / 9 л set with the least overbuy, then the fewest cans, one purchase line per size with the same key; primer = area × rate in one canister size (a litre-based optimiser would buy 7 × 1 л instead of 10 л — needs prices) |
 | Laminate | `/pol/laminat/` | `rows`, `waste`, `packs` | `layRows`: rows = ⌈(across − 2 × gap) ÷ board width⌉; each row starts with a start-side offcut (the right part left by a row-end cut — click locks forbid turning a piece) if the end joints stay ≥ 30 cm from the previous row and no end is shorter than 30 cm, else a whole board, else a board cut to shift the joints (its left part may only END a later row). Mockup 4,6 × 4,3, 1285 × 192 × 9 → 92 boards, 11 packs (rows across: 9). Last row < 5 cm warns; diagonal/herringbone = area + 15 % (unconfirmed); underlay rolls by floor area |
 | Linoleum | `/pol/linoleum/` | `packs` | Every roll width (1,5 … 4 м, or one pinned) × both directions: sheets n with n·w − (n − 1)·overlap ≥ the room across, cut = n × room along (+ allowance), rounded to the shop cut step. Fewest seams first (Tarkett: «избегайте швов, выбирая максимальную ширину»), then the smallest bought area (price is per m²), then along the length. Bought by area: `Pack.kind: "running"` with `width`, one cut step = width × step, so needs of different widths stay comparable; the shell shows «8,6 м · ширина 2,5 м · 21,5 м²». Implemented in v1 without the `strips` block (no pattern repeat input yet) |

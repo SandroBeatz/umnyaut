@@ -1,12 +1,12 @@
 ---
-version: 2.6
+version: 2.7
 date: 2026-10-12
 category: plan
 ---
 
 # Development Plan
 
-> Version 2.6 · 2026-10-12 · [Plan](../plan/)
+> Version 2.7 · 2026-10-12 · [Plan](../plan/)
 
 ## Overview
 
@@ -451,6 +451,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 - [x] P16.7 Plinth: runs split by placed doors, corners, cut list per run.
 - [ ] P16.7a Plinth **formula version 2** (owner, 2026-10-11; found by `formula-reviewer` on the P16.7 scheme): (1) a minimum piece length — the ribbon now allows a 1 cm piece (2.51 × 2.49 m, 2.5 m plank → 4 planks), the purchase should add a plank instead; the length needs a source or the master's word (C10); (2) joiners = mid-run joints of the scheme instead of planks − 1 (a plank ending in a corner needs none: 5 × 5 m buys 7, uses 4); (3) inner corners minus corners taken by a door; (4) `door_wider_than_wall` against the door's own wall once it is placed. New golden examples for each, `formula-reviewer` pass.
 - [x] P16.8 Wallpaper: per-wall strip engine (plumb line from the start corner, wraps at corners, pieces above/below openings, roll cut map) — **formula version 2**, new golden examples, `formula-reviewer` pass; guide (start corner by paper type, direction, step-off). → Done 2026-10-12: engine, scheme, roll map, guide, content section (version 2, golden re-derived by hand); `formula-reviewer`: CHANGES REQUIRED → fixed (piece pattern phase, window margin, sill above the ceiling).
+- [x] P16.8a Wallpaper **version 3** (owner's request, 2026-10-12): the start chosen from the room (level line, two directions, closing corner by the door, manual and symmetric starts), a real cutting plan (blanks, parts, rests, waste; narrow strips and pieces from rests), bare zones and «nothing under the window», L-shaped rooms with outer corners, spare rolls, the result block split into parts / blanks / parts from rests / rolls by the map.
 - [ ] P16.9 Room area and wall area: `FloorPlan` with placed openings as the result picture; plan in the room card (RoomBar) once positions exist.
 - [ ] P16.10 Laminate diagonal / herringbone and tile diagonal schemes; drag-and-drop placing on the plan; free polygon rooms (planner v2).
 - [ ] P16.11 Master review (C10) of every guide text; release check requirement 15 for wallpaper, laminate, linoleum, tile.

@@ -293,17 +293,23 @@ test("tile walls scheme: four walls unfolded, the window's sill on the plan chan
   await expect(result(page)).toHaveText("50");
 });
 
-test("wallpaper scheme: strips wall by wall from the window corner, a roll map, unplaced openings ask for the plan", async ({
+test("wallpaper scheme: a chosen start line, a cutting map, the owner's room needs 6 rolls, a bare zone", async ({
   page,
 }) => {
   await page.goto(WALLPAPER);
   const scheme = page.locator("section[aria-labelledby=layout-scheme]");
-  // Golden «Mockup room … (defaults)»: 32 strips, 4 pieces at the window, 11 rolls.
-  await expect(scheme.getByText("Полос: 32 · кусков: 4 · рулонов: 11")).toBeVisible();
+  // Golden «Mockup room … (defaults)»: 33 strips (2 narrow closing ones), 3 pieces, 11 rolls.
+  await expect(scheme.getByText("Полос: 33 · кусков: 3 · рулонов: 11")).toBeVisible();
   await expect(result(page)).toHaveText("11");
-  await expect(scheme.getByText(/по отвесу в 51,5 см от угла стены 4/)).toBeVisible();
-  await scheme.getByText("Карта рулонов", { exact: true }).click();
-  await expect(scheme.getByText(/кусок К1 под окном — 1 м/)).toBeVisible();
+  await expect(scheme.getByText(/Начните со стены 1: отбейте уровнем вертикальную линию в 20 см/)).toBeVisible();
+  await expect(scheme.getByText(/Последний стык — в углу между стенами 2 и 3, у двери/)).toBeVisible();
+  await scheme.getByText("Карта раскроя", { exact: true }).click();
+  await expect(scheme.getByText(/кусок К1 под окном — 1 м \(из остатка\)/)).toBeVisible();
+
+  // Golden «Owner's room … scenario A»: 4,6 × 4,3 × 2,8, roll 1,06 × 10 m.
+  await page.goto(`${WALLPAPER}?s=${s({ heightMm: 2800, rollWidthMm: 1060, rollLengthMm: 10_000 })}`);
+  await expect(result(page)).toHaveText("6");
+  await expect(page.getByText("Рулонов по карте раскроя")).toBeVisible();
 
   await page.goto(`${WALLPAPER}?s=${s({ openings: [{ type: "door", widthMm: 800, heightMm: 2000, count: 1 }] })}`);
   await expect(scheme.getByText("Отметьте двери и окна на плане — тогда разложим полосы по стенам")).toBeVisible();

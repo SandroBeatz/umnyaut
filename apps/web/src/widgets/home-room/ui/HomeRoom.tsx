@@ -10,7 +10,7 @@ import { useCountry } from "@/entities/country";
 import { hydrateRoom, type RoomDraft, RoomScheme, useRoomStore } from "@/entities/room";
 import { materialImages } from "@/shared/config";
 import { fill } from "@/shared/lib";
-import { defaultWorks, type ExampleCard, exampleCards, exampleRoom, isInitialExample } from "../model/example";
+import { defaultWorks, type ExampleCard, exampleRoom, isInitialExample } from "../model/example";
 
 const t = home.room;
 const m = unitLabels.m;
@@ -59,10 +59,21 @@ export function HomeRoom({ hero, categoriesId, initialCards }: HomeRoomProps) {
   }, []);
 
   const room = useMemo(() => exampleRoom(stored), [stored]);
-  const cards = useMemo(
-    () => (isInitialExample(room, works, country) ? initialCards : exampleCards(room, works, country)),
-    [room, works, country, initialCards],
-  );
+  // The server's cards stand for the first state; any other room loads the calculators and recomputes.
+  const [cards, setCards] = useState<readonly ExampleCard[]>(initialCards);
+  useEffect(() => {
+    if (isInitialExample(room, works, country)) {
+      setCards(initialCards);
+      return;
+    }
+    let live = true;
+    void import("../model/cards").then((m) => {
+      if (live) setCards(m.exampleCards(room, works, country));
+    });
+    return () => {
+      live = false;
+    };
+  }, [room, works, country, initialCards]);
 
   const change = (part: Part, value: number | null) => {
     if (value === null) return;

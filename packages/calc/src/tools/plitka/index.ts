@@ -214,7 +214,9 @@ function wallsScheme(
   let defaultSill = false;
   let aboveCeiling = 0;
   outline.walls.forEach((wall, k) => {
-    const { openings: on, defaultSill: noSill, aboveCeiling: high } = wallOpenings(placed, k, H);
+    const { openings: withBare, defaultSill: noSill, aboveCeiling: high } = wallOpenings(placed, k, H);
+    // «Под окном не клеим» is a wallpaper choice: tiles keep the wall under a window.
+    const on = withBare.filter((o) => o.type !== "bare");
     if (noSill) defaultSill = true;
     aboveCeiling += high;
     const grid = wallGrid({

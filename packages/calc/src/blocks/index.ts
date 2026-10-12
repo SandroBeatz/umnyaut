@@ -1,5 +1,13 @@
 export { type CoverageInput, coverage } from "./coverage";
 export {
+  type CutPlan,
+  type CutPlanInput,
+  type PlannedCut,
+  type PlannedRest,
+  type PlannedRoll,
+  planCuts,
+} from "./cutting";
+export {
   doorWidthMm,
   floorAreaM2,
   grossWallAreaM2,
@@ -12,7 +20,15 @@ export {
   wallAreaM2,
 } from "./geometry";
 export { type GridArea, type GridLine, gridArea, gridLine } from "./grid";
-export { type HangColumn, type HangedWall, type HangInput, type HangResult, type HangWall, hangStrips } from "./hang";
+export {
+  type HangBlank,
+  type HangColumn,
+  type HangedWall,
+  type HangInput,
+  type HangResult,
+  type HangWall,
+  hangStrips,
+} from "./hang";
 export {
   type GridCell,
   type GridLayoutInput,

@@ -29,6 +29,8 @@ export interface OpeningPlace {
   offsetMm: number;
   /** Windows: from the floor to the bottom of the opening, mm (default `WINDOW_SILL_MM`). Doors stand on the floor. */
   sillMm?: number;
+  /** Windows: the wall under the window is left bare (a radiator screen, furniture) — wallpaper only. */
+  bareBelow?: boolean;
 }
 
 export interface Opening {
@@ -41,6 +43,15 @@ export interface Opening {
    * around the openings exactly once all of them are placed.
    */
   places?: readonly OpeningPlace[];
+}
+
+/** A part of a wall left without wallpaper, set by the user: wall, from its left corner and the floor, size, mm. */
+export interface BareZone {
+  wall: number;
+  offsetMm: number;
+  fromFloorMm: number;
+  widthMm: number;
+  heightMm: number;
 }
 
 /** Corner of the plan the L-shape's cut-out sits in (x along the length to the right, y along the width down). */
@@ -180,9 +191,12 @@ export interface LayoutRun {
   carryMm: number;
 }
 
-/** A door or a window on an unfolded wall, mm: x from the wall's first corner, y down from the ceiling. */
+/**
+ * A door, a window or a zone left bare on an unfolded wall, mm: x from the wall's first corner, y down from the
+ * ceiling.
+ */
 export interface ElevationOpening {
-  type: "door" | "window";
+  type: "door" | "window" | "bare";
   x: number;
   y: number;
   w: number;
@@ -211,26 +225,49 @@ export interface LayoutElevation {
 
 /** Wallpaper on one wall: what is hung where. */
 export interface LayoutWallStrips {
-  /** Full-height strip numbers, 1-based: the first and the last one hung on this wall (none when there is none). */
-  first?: number;
-  last?: number;
-  /** The rest of strip `carryFrom` from the wall before, at the corner, mm wide. */
-  carryFrom?: number;
-  carryInMm?: number;
-  /** The level line: the edge of the first new strip away from the corner, mm from the wall's first corner. */
-  plumbMm: number;
-  /** The corner strip: its width on this wall, and the rest going on to the next wall (0 — waste). */
-  cornerMm?: number;
-  carryOutMm?: number;
+  /**
+   * Columns left to right: full-height strip number (a pieces column: its «К» number; a carried rest: the strip it
+   * is the rest of), what it is, where on the wall and how wide.
+   */
+  columns: readonly {
+    n: number;
+    kind: "full" | "corner" | "carry" | "closing" | "pieces";
+    xMm: number;
+    widthMm: number;
+  }[];
+  /** Level lines, mm from the wall's first corner: the start line and the first new strip after each corner. */
+  linesMm: readonly number[];
   /** Pieces above and below the openings: pieces column number («К1»), where, cut length with the trim. */
   pieces: readonly { n: number; where: "above" | "below"; lengthMm: number }[];
 }
 
-/** One roll of a wallpaper layout: what to cut from it in order, and the tail left. */
+/** One cut of a wallpaper roll map, in the roll: along it from its usable start, across it from the left edge. */
+export interface LayoutRollCut {
+  /** A full-height strip by its number, or a piece of pieces column `piece` («К1») above or below an opening. */
+  strip?: number;
+  /** A second narrow strip cut from the other side of the same one (the two closing strips with a pattern). */
+  also?: number;
+  piece?: number;
+  where?: "above" | "below";
+  fromMm: number;
+  lengthMm: number;
+  xMm: number;
+  widthMm: number;
+  /** Taken from material left over from an earlier cut (a roll tail or a side rest). */
+  fromRest: boolean;
+  /** What the cut gives on the walls: wall and width (a corner strip: two parts). */
+  parts?: readonly { wall: number; widthMm: number }[];
+}
+
+/** One roll of a wallpaper layout: what is cut from it, the rests left for later use, the waste. */
 export interface LayoutRoll {
-  /** A full-height `strip` by its number, or a piece of pieces column `piece` («К1») above or below an opening. */
-  cuts: readonly { strip?: number; piece?: number; lengthMm: number; where?: "above" | "below" }[];
+  cuts: readonly LayoutRollCut[];
+  rests: readonly { fromMm: number; lengthMm: number; xMm: number; widthMm: number }[];
+  /** Full-width rest at the end of the roll, mm (0 — none). */
   tailMm: number;
+  usedM2: number;
+  restM2: number;
+  wasteM2: number;
 }
 
 /** Geometry for the single `LayoutScheme` SVG component; text for `guide` codes lives in catalog. */
@@ -250,6 +287,10 @@ export interface Layout {
   elevations?: readonly LayoutElevation[];
   /** Wallpaper: the roll cut map. */
   rolls?: readonly LayoutRoll[];
+  /** Wallpaper: roll width and its usable length (after the worst-case lead to the pattern), mm. */
+  roll?: { widthMm: number; lengthMm: number };
+  /** Wallpaper: the level line of the first strip and the corner where the two directions meet (UI 1-based). */
+  start?: { wall: number; lineMm: number; closingCorner: number };
   /** Laying steps in order: code + numbers. */
   guide: readonly Step[];
   stats: { whole: number; cut: number; reused: number; wasteM2: number };

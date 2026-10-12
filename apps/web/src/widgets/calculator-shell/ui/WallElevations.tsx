@@ -11,13 +11,14 @@ const m = (mm: number) => formatNumber(mm / 1000, { maxFraction: 2 });
 /** Hatching step on a wall, mm: the same on every wall, so the cuts look alike. */
 const HATCH_MM = 45;
 
-/** One wall seen from the room: tiles (whole outlined, cut hatched), doors and windows on top. */
 /** The wall's text alternative: tiles counted on it, or the wallpaper strips hung on it. */
 function labelOf(e: LayoutElevation) {
   const length = m(e.lengthMm);
   if (e.strips) {
-    const { first, last } = e.strips;
-    return fill(strips.wallLabel, { n: e.wall + 1, length, first: first ?? "—", last: last ?? first ?? "—" });
+    const numbers = e.strips.columns.filter((c) => c.kind !== "pieces").map((c) => c.n);
+    const first = numbers.length > 0 ? Math.min(...numbers) : "—";
+    const last = numbers.length > 0 ? Math.max(...numbers) : "—";
+    return fill(strips.wallLabel, { n: e.wall + 1, length, first, last });
   }
   const cut = e.pieces.filter((p) => p.cut).length;
   return fill(w.wallLabel, { n: e.wall + 1, length, whole: e.pieces.length - cut, cut });
@@ -27,8 +28,18 @@ function labelOf(e: LayoutElevation) {
  * `scale`: this wall's length over the longest one, so every wall is drawn to the same scale. Wallpaper strips
  * carry their number at the top and the rest of a corner strip the orange dot.
  */
-function Elevation({ elevation, scale }: { elevation: LayoutElevation; scale: number }) {
+function Elevation({
+  elevation,
+  scale,
+  startLineMm,
+}: {
+  elevation: LayoutElevation;
+  scale: number;
+  /** Wallpaper: the start line, on the start wall only. */
+  startLineMm?: number;
+}) {
   const hatch = useId();
+  const bare = useId();
   const { lengthMm: L, heightMm: H, pieces } = elevation;
   const label = labelOf(elevation);
   // Wallpaper: a number on each full-height strip, «К1» on the top piece of each pieces column.
@@ -66,6 +77,16 @@ function Elevation({ elevation, scale }: { elevation: LayoutElevation; scale: nu
           >
             <rect width={HATCH_MM} height={HATCH_MM} className="fill-primary-soft" />
             <line x1={0} y1={0} x2={0} y2={HATCH_MM} strokeWidth={HATCH_MM * 0.3} className="stroke-primary" />
+          </pattern>
+          <pattern
+            id={bare}
+            patternUnits="userSpaceOnUse"
+            width={HATCH_MM * 2}
+            height={HATCH_MM * 2}
+            patternTransform="rotate(-45)"
+          >
+            <rect width={HATCH_MM * 2} height={HATCH_MM * 2} className="fill-surface-sunken" />
+            <line x1={0} y1={0} x2={0} y2={HATCH_MM * 2} strokeWidth={HATCH_MM * 0.25} className="stroke-border" />
           </pattern>
         </defs>
         <rect width={L} height={H} className="fill-surface" />
@@ -109,32 +130,69 @@ function Elevation({ elevation, scale }: { elevation: LayoutElevation; scale: nu
             {text}
           </text>
         ))}
-        {elevation.openings.map((o, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: openings are positional and rebuilt on every change
-          <g key={i}>
+        {elevation.openings
+          .filter((o) => o.type === "bare")
+          .map((o, i) => (
             <rect
+              // biome-ignore lint/suspicious/noArrayIndexKey: zones are positional and rebuilt on every change
+              key={`bare${i}`}
               x={o.x}
               y={o.y}
               width={o.w}
               height={o.h}
+              fill={`url(#${bare})`}
               vectorEffect="non-scaling-stroke"
-              strokeWidth={2}
-              className="fill-surface-sunken stroke-text"
+              strokeWidth={1.5}
+              strokeDasharray="6 4"
+              className="stroke-text-muted"
             />
-            {o.type === "window" ? (
-              // A window: the frame's cross.
-              <path
-                d={`M${o.x + o.w / 2} ${o.y}V${o.y + o.h}M${o.x} ${o.y + o.h / 2}H${o.x + o.w}`}
-                vectorEffect="non-scaling-stroke"
-                strokeWidth={1}
-                className="stroke-text-muted"
-              />
-            ) : (
-              // A door: the handle side.
-              <circle cx={o.x + o.w * 0.85} cy={o.y + o.h * 0.55} r={Math.min(o.w, o.h) * 0.04} className="fill-text" />
-            )}
-          </g>
+          ))}
+        {(elevation.strips?.linesMm ?? []).map((x) => (
+          <line
+            key={`line${x}`}
+            x1={x}
+            y1={0}
+            x2={x}
+            y2={H}
+            vectorEffect="non-scaling-stroke"
+            strokeWidth={x === startLineMm ? 2.5 : 1.5}
+            strokeDasharray={x === startLineMm ? undefined : "6 4"}
+            className="stroke-primary"
+          />
         ))}
+        {elevation.openings
+          .filter((o) => o.type !== "bare")
+          .map((o, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: openings are positional and rebuilt on every change
+            <g key={i}>
+              <rect
+                x={o.x}
+                y={o.y}
+                width={o.w}
+                height={o.h}
+                vectorEffect="non-scaling-stroke"
+                strokeWidth={2}
+                className="fill-surface-sunken stroke-text"
+              />
+              {o.type === "window" ? (
+                // A window: the frame's cross.
+                <path
+                  d={`M${o.x + o.w / 2} ${o.y}V${o.y + o.h}M${o.x} ${o.y + o.h / 2}H${o.x + o.w}`}
+                  vectorEffect="non-scaling-stroke"
+                  strokeWidth={1}
+                  className="stroke-text-muted"
+                />
+              ) : (
+                // A door: the handle side.
+                <circle
+                  cx={o.x + o.w * 0.85}
+                  cy={o.y + o.h * 0.55}
+                  r={Math.min(o.w, o.h) * 0.04}
+                  className="fill-text"
+                />
+              )}
+            </g>
+          ))}
         <rect
           width={L}
           height={H}
@@ -179,7 +237,12 @@ export function WallElevations({ layout, columns }: WallElevationsProps) {
       <span className="text-left text-small text-text-muted">{w.view}</span>
       <span className={columns === "two" ? "grid grid-cols-2 gap-3" : "grid gap-4 sm:grid-cols-2"}>
         {elevations.map((e) => (
-          <Elevation key={e.wall} elevation={e} scale={e.lengthMm / longest} />
+          <Elevation
+            key={e.wall}
+            elevation={e}
+            scale={e.lengthMm / longest}
+            {...(layout.start?.wall === e.wall ? { startLineMm: layout.start.lineMm } : {})}
+          />
         ))}
       </span>
     </span>

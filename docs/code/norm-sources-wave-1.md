@@ -1,12 +1,12 @@
 ---
-version: 1.7
+version: 1.8
 date: 2026-10-12
 category: code
 ---
 
 # Norm Sources — Wave 1
 
-> Version 1.7 · 2026-10-12 · [Code](../code/)
+> Version 1.8 · 2026-10-12 · [Code](../code/)
 
 ## Overview
 
@@ -47,6 +47,7 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | S21 | INDO installation manual: glue, tape, staples or screws, spacing «max 30–40 cm» | Arbiton (Decora) | https://pim.decora.pl/files/wils3fj3u4fgwr3c.pdf | 2026-10-10 |
 | S22 | «Как клеить обои в углах комнаты»: wrap 10–15 mm onto the next wall, the next strip overlapped and set by the level, start at the window | РБК Недвижимость | https://realty.rbc.ru/news/69f326cb9a7947ef7f415a11 | 2026-10-12 |
 | S23 | «Как клеить обои в углах»: wrap 1,5–5 cm, the cut-off part removed, the next strip butt-jointed on a level line | oboi-store | https://oboi-store.ru/blog/post/kak-kleit-oboi-v-uglax | 2026-10-12 |
+| S24 | «Поклейка обоев своими руками: что нужно знать»: an outer corner is wrapped 3–4 cm | Российская газета | https://rg.ru/2024/03/30/poklejka-oboev-svoimi-rukami-chto-nuzhno-znat.html | 2026-10-12 |
 | S17 | Инструкция по поклейке обоев (ARTSIMPLE) | SURGAZ (ООО «Фортпост»), manufacturer | https://artsimple.ru/instruction | 2026-10-09 |
 
 ## Norms
@@ -65,6 +66,7 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | `wallpaper.rollWidth`, `wallpaper.rollLength` | 0,53 m / 10,05 m | S5 | confirmed | 1,06 × 10,05 and 1,06 × 25 m as market presets |
 | `wallpaper.trimAllowance` | 10 cm per strip | S17 (4–5 cm top and 4–5 cm bottom) | confirmed | Upper bound of the range; editable field «Припуск на подрезку» |
 | `wallpaper.cornerWrap` | 15 mm onto the next wall at an inner corner | S22 (10–15 mm), S23 (1,5–5 cm) | confirmed (in both ranges); rest reuse decided by the owner (2026-10-12) | Wallpaper v2 hangs strips wall by wall: the rest of a corner strip (≥ 5 cm) goes on the next wall as in S22 (owner's choice); S23 throws it away. A 5 cm minimum rest and the 90 cm default window sill are practice, not norms |
+| `wallpaper.outerCornerWrap` | 30 mm round an outer corner (L-shaped rooms) | S24 (3–4 cm) | confirmed (lower bound) | Wallpaper v3: the rest goes on the next wall by a new level line, as at an inner corner. The inner wrap is an editable field «Заход во внутренний угол» (default the norm): a manufacturer may ask for another |
 | `wallpaper.rollLengthTolerance` | ±1,5% of roll length | S5 | **default, unconfirmed** | Quoted by secondary copies of ГОСТ 6810 (docs.cntd.ru refused the connection on 2026-10-10); drives the «рулон почти целиком» warning only |
 | `wallpaperPaste.coverage` | 30 m² per 250 g (non-woven) | S6 | **default, unconfirmed** | Owner can't check a pack yet; shown with «проверьте по пачке», field editable |
 | `paint.coverage` | 10 m²/l per coat | S7 (12–14 m²/l) | confirmed (owner: conservative) | Below the datasheet on purpose: rough walls and colour changes |

@@ -40,6 +40,7 @@ const S = {
   S20: "Arbiton INDO, технический лист (2500 × 70 × 26 мм), https://pim.decora.pl/files/lctdTKqqOtvc572y.pdf",
   S22: "РБК Недвижимость, «Как клеить обои в углах комнаты» (заход 10–15 мм, начинают от окна), https://realty.rbc.ru/news/69f326cb9a7947ef7f415a11",
   S23: "oboi-store, «Как клеить обои в углах» (заворот 1,5–5 см), https://oboi-store.ru/blog/post/kak-kleit-oboi-v-uglax",
+  S24: "Российская газета, «Поклейка обоев своими руками: что нужно знать» (наружный угол — заход 3–4 см), https://rg.ru/2024/03/30/poklejka-oboev-svoimi-rukami-chto-nuzhno-znat.html",
   S21: "Arbiton INDO, инструкция по монтажу (4 способа, шаг 30–40 см), https://pim.decora.pl/files/wils3fj3u4fgwr3c.pdf",
 } as const;
 
@@ -90,6 +91,10 @@ export const norms: Readonly<Record<string, Norm>> = {
   "wallpaper.cornerWrap": norm(15, "мм", `${S.S22}; ${S.S23}`, {
     checkedAt: "2026-10-12",
     note: "10–15 мм и 1,5–5 см — 15 мм входит в оба; остаток угловой полосы клеим на соседнюю стену, как в S22 (в S23 его выбрасывают) — решение владельца 2026-10-12",
+  }),
+  "wallpaper.outerCornerWrap": norm(30, "мм", S.S24, {
+    checkedAt: "2026-10-12",
+    note: "в источнике 3–4 см; берём 3 см, дальше новая вертикаль по уровню",
   }),
   "wallpaperPaste.coverage": norm(30, "м² на 250 г", S.S6, {
     unconfirmed: true,
