@@ -11,6 +11,28 @@ const m = (mm: number) => formatNumber(mm / 1000, { maxFraction: 2 });
 /** Hatching step on a wall, mm: the same on every wall, so the cuts look alike. */
 const HATCH_MM = 45;
 
+/**
+ * Where a strip hung whole over an opening is trimmed: a slanting cut from each top corner of the opening (and
+ * each bottom corner of a window) inside a strip, not at a joint.
+ */
+export function reliefCuts(e: LayoutElevation) {
+  const whole = (e.strips?.columns ?? []).filter((c) => c.kind !== "pieces" && c.kind !== "edge");
+  const cuts: { x: number; y: number; dx: number; dy: number }[] = [];
+  for (const o of e.openings) {
+    if (o.type === "bare") continue;
+    const d = Math.min(o.w, o.h) * 0.18;
+    for (const [x, dx] of [
+      [o.x, d],
+      [o.x + o.w, -d],
+    ] as const) {
+      if (!whole.some((c) => c.xMm < x - 1 && c.xMm + c.widthMm > x + 1)) continue;
+      cuts.push({ x, y: o.y, dx, dy: d });
+      if (o.type === "window") cuts.push({ x, y: o.y + o.h, dx, dy: -d });
+    }
+  }
+  return cuts;
+}
+
 /** The wall's text alternative: tiles counted on it, or the wallpaper strips hung on it. */
 function labelOf(e: LayoutElevation) {
   const length = m(e.lengthMm);
@@ -193,6 +215,31 @@ function Elevation({
               )}
             </g>
           ))}
+        {/* Joints at the edges of openings (strips cut there): the risky ones, in red. */}
+        {(elevation.strips?.edgesMm ?? []).map((x) => (
+          <line
+            key={`edge${x}`}
+            x1={x}
+            y1={0}
+            x2={x}
+            y2={H}
+            vectorEffect="non-scaling-stroke"
+            strokeWidth={3}
+            className="stroke-danger"
+          />
+        ))}
+        {reliefCuts(elevation).map((c) => (
+          <line
+            key={`relief${c.x}-${c.y}`}
+            x1={c.x}
+            y1={c.y}
+            x2={c.x + c.dx}
+            y2={c.y + c.dy}
+            vectorEffect="non-scaling-stroke"
+            strokeWidth={2}
+            className="stroke-primary"
+          />
+        ))}
         <rect
           width={L}
           height={H}

@@ -1,7 +1,7 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { type CutPlanInput, planCuts } from "../src/blocks/cutting";
-import { hangStrips } from "../src/blocks/hang";
+import { type HangColumn, hangStrips } from "../src/blocks/hang";
 import { oboi } from "../src/tools/oboi";
 import type { ElevationOpening, Layout } from "../src/types";
 
@@ -131,6 +131,117 @@ describe("hangStrips", () => {
     expect(cols.some((c) => c.x >= 1000 + 20 && c.x + c.w <= 3200 - 20)).toBe(false);
     expect(coversWall(cols, 4600, 2700, [zone])).toBe(true);
   });
+
+  /** Every point of a wall is a strip, a piece or an opening: pieces fill their column between the openings. */
+  const coversArea = (cols: readonly HangColumn[], ops: readonly ElevationOpening[], H: number) =>
+    cols
+      .filter((c) => c.kind === "pieces")
+      .every((c) => {
+        const xs = [
+          c.x,
+          c.x + c.w,
+          ...ops.flatMap((o) => [o.x, o.x + o.w]),
+          ...(c.pieces ?? []).flatMap((p) => [p.x, p.x + p.w]),
+        ]
+          .filter((x) => x >= c.x - EPS && x <= c.x + c.w + EPS)
+          .sort((a, b) => a - b);
+        return xs.every((a, k) => {
+          const b = xs[k + 1];
+          if (b === undefined || b - a < 1) return true;
+          const mid = (a + b) / 2;
+          const bands = [
+            ...(c.pieces ?? []).filter((p) => p.x <= mid && p.x + p.w >= mid).map((p) => [p.y, p.y + p.h] as const),
+            ...ops.filter((o) => o.x <= mid && o.x + o.w >= mid).map((o) => [o.y, o.y + o.h] as const),
+          ].sort((p, q) => p[0] - q[0]);
+          let y = 0;
+          for (const [top, bottom] of bands) {
+            // Gaps shorter than a piece are closed by the trim and the casing.
+            if (top > y + 50) return false;
+            y = Math.max(y, bottom);
+          }
+          return y >= H - 50;
+        });
+      });
+
+  const openingsArb = fc.array(
+    fc.record({
+      door: fc.boolean(),
+      w: fc.integer({ min: 500, max: 1800 }),
+      // 0 — right beside the previous one (a balcony door and its window).
+      gap: fc.oneof(fc.constant(0), fc.integer({ min: 30, max: 1500 })),
+    }),
+    { maxLength: 3 },
+  );
+  const place = (L: number, list: { door: boolean; w: number; gap: number }[]): ElevationOpening[] => {
+    const out: ElevationOpening[] = [];
+    let x = 200;
+    for (const o of list) {
+      x += o.gap;
+      if (x + o.w > L - 100) break;
+      out.push(o.door ? { type: "door", x, y: 500, w: o.w, h: 2200 } : { type: "window", x, y: 400, w: o.w, h: 1400 });
+      x += o.w;
+    }
+    return out;
+  };
+
+  it("doors and windows, side by side or apart, either way round them: walls covered, pieces fill the gaps", () => {
+    fc.assert(
+      fc.property(
+        fc.array(fc.integer({ min: 2000, max: 6000 }), { minLength: 4, maxLength: 4 }),
+        fc.array(openingsArb, { minLength: 4, maxLength: 4 }),
+        fc.integer({ min: 1, max: 1060 }),
+        fc.integer({ min: 0, max: 3 }),
+        fc.boolean(),
+        fc.constantFrom(530, 1060),
+        (lengths, lists, line, closing, edgeCut, rollWidthMm) => {
+          const ops = lengths.map((L, k) => place(L, lists[k] ?? []));
+          const hang = hangStrips({
+            ...hangInput(lengths, Math.min(line, lengths[0] ?? 0), closing, ops),
+            rollWidthMm,
+            edgeCut,
+          });
+          const edgeParts = hang.walls.flatMap((w) => w.columns.filter((c) => c.kind === "edge"));
+          return (
+            hang.walls.every(
+              (w, k) =>
+                coversWall(w.columns, lengths[k] ?? 0, 2700, ops[k] ?? []) && coversArea(w.columns, ops[k] ?? [], 2700),
+            ) &&
+            // Cut at the edges only when asked, never into a part under 10 cm.
+            (edgeCut || (edgeParts.length === 0 && hang.edges === 0)) &&
+            edgeParts.every((c) => c.w >= 100 - EPS)
+          );
+        },
+      ),
+      { numRuns: 400 },
+    );
+  });
+
+  it("a door beside a window is one opening: the strip across both gives a piece above both and one under the window", () => {
+    const door: ElevationOpening = { type: "door", x: 1000, y: 500, w: 850, h: 2200 };
+    const window: ElevationOpening = { type: "window", x: 1850, y: 500, w: 900, h: 1500 };
+    const hang = hangStrips({ ...hangInput([4600, 4300, 4600, 4300], 1300, 3, [[door, window]]), rollWidthMm: 1060 });
+    const col = hang.walls[0]?.columns.find((c) => Math.abs(c.x - 1300) < 1);
+    expect(col?.kind).toBe("pieces");
+    expect(col?.pieces).toEqual([
+      { x: 1300, w: 1060, y: 0, h: 500, lengthMm: 600, where: "above" },
+      { x: 1850, w: 510, y: 2000, h: 700, lengthMm: 800, where: "below" },
+    ]);
+  });
+
+  it("round a door: whole strip trimmed (its cut-off part a rest) or, with edgeCut, cut at the edge", () => {
+    const door: ElevationOpening = { type: "door", x: 1000, y: 500, w: 850, h: 2200 };
+    const input = { ...hangInput([4600, 4300, 4600, 4300], 500, 3, [[door]]), rollWidthMm: 1060 };
+    const whole = hangStrips(input);
+    expect(whole.walls[0]?.columns.find((c) => Math.abs(c.x - 500) < 1)?.kind).toBe("full");
+    const strip = whole.blanks.find((b) => b.cutouts?.length);
+    // In from the opening's edges by the 2 cm margin: 1020–1540 across, 520–2680 down.
+    expect(strip?.cutouts).toEqual([{ xMm: 520, fromMm: 520, lengthMm: 2160, widthMm: 520 }]);
+    const edge = hangStrips({ ...input, edgeCut: true });
+    const cols = edge.walls[0]?.columns ?? [];
+    expect(cols.find((c) => Math.abs(c.x - 500) < 1)).toMatchObject({ kind: "edge", w: 500 });
+    expect(cols.find((c) => Math.abs(c.x - 1000) < 1)).toMatchObject({ kind: "pieces", w: 560 });
+    expect(edge.edges).toBeGreaterThan(0);
+  });
 });
 
 describe("planCuts", () => {
@@ -149,6 +260,15 @@ describe("planCuts", () => {
         lengthMm: fc.integer({ min: 2200, max: 3200 }),
         phaseMm: fc.constantFrom(0, 320),
         restMm: fc.constantFrom(0, 0, 150, 400),
+        cutouts: fc.array(
+          fc.record({
+            xMm: fc.integer({ min: 0, max: 400 }),
+            fromMm: fc.integer({ min: 0, max: 1500 }),
+            lengthMm: fc.integer({ min: 100, max: 1200 }),
+            widthMm: fc.integer({ min: 100, max: 600 }),
+          }),
+          { maxLength: 1 },
+        ),
       }),
       { maxLength: 30 },
     ),
@@ -164,12 +284,39 @@ describe("planCuts", () => {
 
   it("cuts every strip and part once, inside its roll, never over another cut or a rest; areas add up", () => {
     fc.assert(
-      fc.property(arb, (i) => {
+      fc.property(arb, (raw) => {
+        // Cut-outs lie inside their strip (what is trimmed off over an opening).
+        const i = {
+          ...raw,
+          strips: raw.strips.map((s) => ({
+            ...s,
+            cutouts: s.cutouts.filter(
+              (c) => c.xMm + c.widthMm <= raw.rollWidthMm - s.restMm && c.fromMm + c.lengthMm <= s.lengthMm,
+            ),
+          })),
+        };
         const input: CutPlanInput = { ...i, minRestMm: 100 };
         const plan = planCuts(input);
         if (!plan.fits) return true;
         const usable = i.rollLengthMm - (i.repeatMm > 0 ? i.repeatMm - 1 : 0);
         const cuts = plan.rolls.flatMap((r) => r.cuts);
+        // Where a strip was trimmed over an opening, in its roll: rests and parts may lie there.
+        const trimmed = (r: (typeof plan.rolls)[number]) =>
+          r.cuts
+            .filter((c) => c.kind === "strip")
+            .flatMap((c) =>
+              (i.strips[c.index]?.cutouts ?? []).map((t) => ({
+                fromMm: c.fromMm + t.fromMm,
+                lengthMm: t.lengthMm,
+                xMm: t.xMm,
+                widthMm: t.widthMm,
+              })),
+            );
+        const within = (a: { fromMm: number; lengthMm: number; xMm: number; widthMm: number }, t: typeof a) =>
+          a.fromMm >= t.fromMm - EPS &&
+          a.fromMm + a.lengthMm <= t.fromMm + t.lengthMm + EPS &&
+          a.xMm >= t.xMm - EPS &&
+          a.xMm + a.widthMm <= t.xMm + t.widthMm + EPS;
         const once =
           cuts.filter((c) => c.kind === "strip").length === i.strips.length &&
           new Set(cuts.filter((c) => c.kind === "strip").map((c) => c.index)).size === i.strips.length &&
@@ -186,7 +333,12 @@ describe("planCuts", () => {
         );
         const apart = plan.rolls.every((r) => {
           const all = [...r.cuts, ...r.rests];
-          return all.every((a, k) => all.every((b, j) => j <= k || !overlap(a, b)));
+          const holes = trimmed(r);
+          const strip = (a: (typeof all)[number]) => "kind" in a && a.kind === "strip";
+          // A strip and what lies in its trimmed-off part do not clash.
+          const inHole = (a: (typeof all)[number], b: (typeof all)[number]) =>
+            (strip(a) && holes.some((t) => within(b, t))) || (strip(b) && holes.some((t) => within(a, t)));
+          return all.every((a, k) => all.every((b, j) => j <= k || !overlap(a, b) || inHole(a, b)));
         });
         const area = plan.rolls.every(
           (r) =>
@@ -259,6 +411,26 @@ describe("planCuts", () => {
   });
 });
 
+describe("planCuts: what is trimmed off over openings", () => {
+  it("a piece goes into the part of a strip trimmed off over a door instead of a new roll", () => {
+    const plan = planCuts({
+      rollWidthMm: 1060,
+      rollLengthMm: 3000,
+      repeatMm: 0,
+      strips: [
+        { lengthMm: 2900, phaseMm: 0, restMm: 0, cutouts: [{ xMm: 100, fromMm: 600, lengthMm: 1500, widthMm: 600 }] },
+      ],
+      parts: [{ widthMm: 500, lengthMm: 1000, phaseMm: 0 }],
+      minRestMm: 100,
+    });
+    expect(plan.rolls).toHaveLength(1);
+    const part = plan.rolls[0]?.cuts.find((c) => c.kind === "part");
+    expect(part).toMatchObject({ fromCutout: true, fromMm: 600, xMm: 100 });
+    const r = plan.rolls[0];
+    expect((r?.usedM2 ?? 0) + (r?.restM2 ?? 0) + (r?.wasteM2 ?? 0)).toBeCloseTo((1060 * 3000) / 1e6);
+  });
+});
+
 describe("wallpaper v3", () => {
   const consistent = (r: ReturnType<typeof oboi.compute>) => {
     const layout = r.layout as Layout;
@@ -302,7 +474,22 @@ describe("wallpaper v3", () => {
         fc.constantFrom("auto", "manual" as const),
         fc.boolean(),
         fc.option(fc.record({ offset: fc.nat(3000), width: fc.integer({ min: 300, max: 2500 }) }), { nil: undefined }),
-        (lengthMm, widthMm, heightMm, rollWidthMm, repeatMm, match, shape, startMode, symmetric, zone) => {
+        fc.constantFrom("whole", "edge" as const),
+        fc.boolean(),
+        (
+          lengthMm,
+          widthMm,
+          heightMm,
+          rollWidthMm,
+          repeatMm,
+          match,
+          shape,
+          startMode,
+          symmetric,
+          zone,
+          around,
+          balcony,
+        ) => {
           const input: Input = {
             ...defaults,
             lengthMm,
@@ -318,7 +505,22 @@ describe("wallpaper v3", () => {
             startWall: 2,
             startLineMm: 300,
             symmetric,
-            openings: [{ type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 1, offsetMm: 100 }] }],
+            aroundOpenings: around,
+            openings: [
+              { type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 1, offsetMm: 100 }] },
+              // A window right beside the door (a balcony block) or none.
+              ...(balcony
+                ? [
+                    {
+                      type: "window" as const,
+                      widthMm: 900,
+                      heightMm: 1400,
+                      count: 1,
+                      places: [{ wall: 1, offsetMm: 900 }],
+                    },
+                  ]
+                : []),
+            ],
             zones: zone
               ? [{ wall: 0, offsetMm: zone.offset, fromFloorMm: 0, widthMm: zone.width, heightMm: heightMm }]
               : [],
@@ -386,6 +588,35 @@ describe("wallpaper v3", () => {
     const zero = oboi.compute({ ...defaults, startMode: "manual", startWall: 1, startLineMm: 0 }, ctx);
     // A line in the corner leaves no sliver: it moves to the corner line, a roll width minus the wrap.
     expect(zero.layout?.start?.lineMm).toBe(515);
+  });
+
+  it("round doors and windows: whole strips by default, cut at the edges on request — with the warning and hints", () => {
+    const room: Partial<Input> = {
+      lengthMm: 4000,
+      widthMm: 3000,
+      rollWidthMm: 1060,
+      openings: [
+        { type: "window", widthMm: 1500, heightMm: 1400, count: 1, places: [{ wall: 0, offsetMm: 1250 }] },
+        { type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 2, offsetMm: 300 }] },
+      ],
+    };
+    const whole = oboi.compute({ ...defaults, ...room }, ctx);
+    const edge = oboi.compute({ ...defaults, ...room, aroundOpenings: "edge" }, ctx);
+    const codes = (r: typeof whole) => r.warnings.map((w) => w.code);
+    const cols = (r: typeof whole) => (r.layout?.elevations ?? []).flatMap((e) => e.strips?.columns ?? []);
+    expect(cols(whole).some((c) => c.kind === "edge")).toBe(false);
+    expect(codes(whole)).not.toContain("edge_seams");
+    expect(codes(whole)).toContain("edge_saves");
+    expect(cols(edge).some((c) => c.kind === "edge")).toBe(true);
+    expect(codes(edge)).toContain("edge_seams");
+    expect(codes(edge)).not.toContain("edge_saves");
+    expect(summary(edge, "rollsUsed")).toBeLessThan(summary(whole, "rollsUsed") ?? 0);
+    expect(edge.layout?.guide.map((g) => g.code)).toContain("edge_cut");
+    expect((edge.layout?.elevations ?? []).some((e) => (e.strips?.edgesMm?.length ?? 0) > 0)).toBe(true);
+    // With a pattern pieces keep their place across the roll: strips stay whole, the user is told why.
+    const pattern = oboi.compute({ ...defaults, ...room, aroundOpenings: "edge", repeatMm: 640 }, ctx);
+    expect(cols(pattern).some((c) => c.kind === "edge")).toBe(false);
+    expect(codes(pattern)).toContain("edge_pattern");
   });
 
   it("spare rolls are added on top of the plan", () => {

@@ -10,7 +10,7 @@ import { PlanEditor, type PlanRoom } from "@/features/edit-room-plan";
 import { fill } from "@/shared/lib";
 import { elevationLines, guideLines, hangLines, rollLines, rowLines, runLines, sheetLines } from "../model/scheme-text";
 import { RollMap } from "./RollMap";
-import { WallElevations } from "./WallElevations";
+import { reliefCuts, WallElevations } from "./WallElevations";
 
 const s = schemeStrings;
 const t = s.strips;
@@ -353,6 +353,21 @@ export function LayoutScheme({
               <li className="flex items-center gap-1.5">
                 <span aria-hidden="true" className="h-2 w-4 border border-text-subtle bg-surface" />
                 {t.walls.legendPiece}
+              </li>
+            ) : null}
+            {layout.elevations?.some((e) => (e.strips?.edgesMm?.length ?? 0) > 0) ? (
+              <li className="flex items-center gap-1.5">
+                <span aria-hidden="true" className="h-3 w-4 border-danger border-l-[3px]" />
+                {t.walls.legendEdge}
+              </li>
+            ) : null}
+            {layout.elevations?.some((e) => reliefCuts(e).length > 0) ? (
+              <li className="flex items-center gap-1.5">
+                <span
+                  aria-hidden="true"
+                  className="h-3 w-4 bg-[linear-gradient(135deg,transparent_42%,var(--color-primary)_42%_58%,transparent_58%)]"
+                />
+                {t.walls.legendRelief}
               </li>
             ) : null}
             {layout.elevations?.some((e) => e.openings.some((o) => o.type === "bare")) ? (

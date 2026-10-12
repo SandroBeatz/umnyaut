@@ -231,10 +231,12 @@ export interface LayoutWallStrips {
    */
   columns: readonly {
     n: number;
-    kind: "full" | "corner" | "carry" | "closing" | "pieces";
+    kind: "full" | "corner" | "carry" | "closing" | "edge" | "pieces";
     xMm: number;
     widthMm: number;
   }[];
+  /** Joints at the edges of doors and windows (strips cut lengthwise there), mm from the wall's first corner. */
+  edgesMm?: readonly number[];
   /** Level lines, mm from the wall's first corner: the start line and the first new strip after each corner. */
   linesMm: readonly number[];
   /** Pieces above and below the openings: pieces column number («К1»), where, cut length with the trim. */
@@ -255,6 +257,8 @@ export interface LayoutRollCut {
   widthMm: number;
   /** Taken from material left over from an earlier cut (a roll tail or a side rest). */
   fromRest: boolean;
+  /** Taken from what was trimmed off a strip over a door or a window. */
+  fromCutout?: boolean;
   /** What the cut gives on the walls: wall and width (a corner strip: two parts). */
   parts?: readonly { wall: number; widthMm: number }[];
 }

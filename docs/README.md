@@ -41,18 +41,18 @@ UmnyAut («Умняут») — a connected renovation calculator: enter room dim
 | [Norm Sources — Wave 1](./code/norm-sources-wave-1.md) | 1.8 |
 | [Server API and Data](./code/server-api-and-data.md) | 1.2 |
 | [Calculator Shell, Pages and Routing](./ui/calculator-shell-and-pages.md) | 1.5 |
-| [Room Plan, Layout Schemes and Laying Guides](./ui/room-plan-and-layout-guides.md) | 1.3 |
+| [Room Plan, Layout Schemes and Laying Guides](./ui/room-plan-and-layout-guides.md) | 1.4 |
 | [Design System](./design/design-system.md) | 1.2 |
 | [Telegram Bot and Mini App](./integrations/telegram-bot.md) | 1.0 |
 | [AI Vision Features](./integrations/ai-vision.md) | 1.1 |
 | [Environments and CI/CD](./deploy/environments-and-ci.md) | 1.5 |
 | [Prod Server Runbook](./deploy/prod-server-runbook.md) | 1.1 |
 | [Engineering Practices](./practices/engineering-practices.md) | 1.1 |
-| [Development Plan](./plan/development-plan.md) | 2.7 |
+| [Development Plan](./plan/development-plan.md) | 2.8 |
 | [Accounts and Services](./plan/accounts-and-services.md) | 1.1 |
 | [Dependencies](./plan/dependencies.md) | 1.3 |
 | [Content and Assets Plan](./plan/content-plan.md) | 1.2 |
-| [Progress Log](./plan/progress-log.md) | 1.5 |
+| [Progress Log](./plan/progress-log.md) | 1.6 |
 
 ## Skill specifications
 

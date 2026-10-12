@@ -1,12 +1,12 @@
 ---
-version: 1.5
+version: 1.6
 date: 2026-10-12
 category: plan
 ---
 
 # Progress Log
 
-> Version 1.5 · 2026-10-12 · [Plan](../plan/)
+> Version 1.6 · 2026-10-12 · [Plan](../plan/)
 
 ## Overview
 
@@ -41,6 +41,10 @@ Each entry:
 ## Log
 
 ### 2026-10-12
+
+- **P16.8b** Wallpaper **version 4** — the owner's real room (from the plan screenshot: a balcony door beside a window on walls 1 and 4, a door on wall 3; all openings 0,85–0,92 m, narrower than the 1,06 m roll) gave 17 strips and 6 rolls in v3: no strip lay wholly on an opening, so every strip at an opening went full height and the cut-off part was thrown away. The owner hangs pieces instead; prototypes (three HTML pages, outside the repo) compared v3, «whole strips» and «cut at the edge», web search (Brewster, OkComfort, Wallcoverings: hang whole over the opening, relief cut, trim; a joint over the corner of an opening cracks) → the owner chose: whole strips by default, cut at the edge as a switch, with hints and a warning. Changes: a door beside a window is one opening (pieces above both, under the window only); what is trimmed off over an opening is a rest for pieces; `aroundOpenings: "edge"` cuts strips at opening edges (parts ≥ 10 cm; without a pattern only). Owner's room: 5 rolls both ways (`edge_no_gain`); typical 4 × 3 m with a 1,5 m window: 5 whole, 4 cut at the edges (`edge_saves`); the example room 11 / 10. Warning `edge_seams`, guide `edge_cut`, `one_opening`, `pieces_cutouts`, `door_pieces` / `window_pieces`; red joints and relief cuts on the walls; field hint; content section. Goldens: 4 new (owner's room ×2, typical ×2), defaults and scenario A expect `edge_saves`. Tests: walls covered and pieces fill every gap with random doors and windows side by side or apart, both ways (400 runs); cut-outs as rests in the `planCuts` property; the mode switch end to end; e2e. Tool page JS 249,5 / 250 KB.
+  - Where: `feature/p16-8-wallpaper-scheme` · PR #165
+  - Notes: opening sizes of the owner's room are read by eye — exact ones would firm up its golden; the 2 cm block gap and the 2 cm cut-out margin are practice values for the master review.
 
 - **P16.8a** `formula-reviewer` pass on wallpaper v3: **CHANGES REQUIRED** → fixed. Hand checks matched (defaults, scenario A, wide roll, offset 50, L-shape, scenario B); scenario A's 6 rolls confirmed as the minimum **for continuous strips** (5 only with joints at the door and window edges and 0,8 / 1,2 m wide pieces, 4 cm slack in the room — not recommended). Fixed: (1) the start score weighed narrow inserts and the joint against a whole roll — now compared strictly: no part under 5 cm, rolls, inserts under 10 cm, joint visibility, strips, tail; (2) the quick filter ranked starts without rolls and dropped cheaper ones — every candidate now gets a one-order cutting estimate, the best twelve the full plan (3,1 × 2,7 × 2,6 m, roll 0,70: 6 → 5 rolls, new golden); (3) the closing corner could stay bare when the anticlockwise last strip ended right at it — the clockwise side then goes to the corner and wraps; a carried rest ending at or just past a corner makes the next wall wrap back; `hangStrips` now reports how far the two sides overlap round the closing corner: a start that leaves less than the wrap counts as a fault in the search (like a part under 5 cm), a manual one warns `closing_overlap_short`; (4) a manual line under 5 cm snaps to the corner line; labels say what «отрезы во всю длину» and «короткие детали из остатков» count. Goldens re-derived: repeat 64 cm 12 → 11 rolls (two strips on the window from a start on wall 4 at 8 cm), repeat 64 cm at 2,9 m 12 → 11, 1,2 m door 11 → 10, wardrobe zone 10 → 9; the 3 × 3 m room loses its narrow insert. New tests: the closing corner always has a full wrap (1 000 random rooms and lines), a bigger room never buys fewer (4 240 / 4 250 mm), manual line 0. Compute ≈ 3–5 ms.
   - Where: `feature/wallpaper-cutting-plan`

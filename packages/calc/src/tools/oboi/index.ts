@@ -68,6 +68,11 @@ const input = z.object({
   startLineMm: z.int().check(z.minimum(0), z.maximum(100_000)),
   /** Large pattern: a strip or a joint in the middle of the main wall. */
   symmetric: z.boolean(),
+  /**
+   * At doors and windows: `whole` — a strip hung whole over the edge and trimmed on the wall (manufacturers' way);
+   * `edge` — cut lengthwise at the edge, pieces above and below (fewer strips, joints at the corners of openings).
+   */
+  aroundOpenings: z.enum(["whole", "edge"]),
   /** The wall seen first (1-based); 0 — the one opposite the door. */
   mainWall: z.int().check(z.minimum(0), z.maximum(12)),
   /** Wrap round an inner corner, mm (norm `wallpaper.cornerWrap`; the manufacturer may say otherwise). */
@@ -279,7 +284,15 @@ function cutting(i: OboiInput, hang: HangResult, stripMm: number, lucky = false,
     rollLengthMm: i.rollLengthMm,
     repeatMm: i.repeatMm,
     luckyStart: lucky,
-    strips: strips.map((b) => ({ lengthMm: stripMm, phaseMm: phase(b.order), restMm: b.restMm })),
+    strips: strips.map((b) => ({
+      lengthMm: stripMm,
+      phaseMm: phase(b.order),
+      restMm: b.restMm,
+      // What is trimmed off over openings (below the top half of the trim); a strip with a side rest keeps only that.
+      ...(b.cutouts && !b.also && b.restMm < MIN_REST_MM
+        ? { cutouts: b.cutouts.map((c) => ({ ...c, fromMm: c.fromMm + i.trimMm / 2 })) }
+        : {}),
+    })),
     parts: parts.map((p) =>
       p.kind === "narrow"
         ? { widthMm: p.blank.parts[0]?.widthMm ?? i.rollWidthMm, lengthMm: stripMm, phaseMm: phase(p.blank.order) }
@@ -300,7 +313,7 @@ function cutting(i: OboiInput, hang: HangResult, stripMm: number, lucky = false,
  * of sight, then the fewest strips — compared strictly in that order. Every candidate gets a quick cutting
  * estimate (one order); the best twelve get the full plan. A manual start or a symmetric main wall fixes the line; the joint is still chosen.
  */
-function chooseStart(i: OboiInput, rw: RoomWalls, stripMm: number) {
+function chooseStart(i: OboiInput, rw: RoomWalls, stripMm: number, edge = i.aroundOpenings === "edge") {
   const { outline } = rw;
   const walls = outline.walls;
   const count = walls.length;
@@ -336,6 +349,9 @@ function chooseStart(i: OboiInput, rw: RoomWalls, stripMm: number) {
         marginMm: WINDOW_MARGIN_MM,
         start: { wall, lineMm },
         closingCorner,
+        // Cut at the edges of openings only without a pattern: with one, pieces keep their place across the roll.
+        edgeCut: edge && i.repeatMm === 0,
+        keepWidth: i.repeatMm > 0,
       },
       NARROW_MM,
     );
@@ -343,11 +359,12 @@ function chooseStart(i: OboiInput, rw: RoomWalls, stripMm: number) {
   const tiny = (c: Choice) =>
     (c.hang.narrowestMm < MIN_CARRY_MM ? 1 : 0) +
     (c.hang.closingOverlapMm < (rw.wraps[c.closingCorner] ?? 0) - 1e-6 ? 1 : 0);
-  // Strictly in this order: no part under 5 cm, rolls, awkward inserts, the joint out of sight, strips, tail.
+  // Strictly in this order: no part under 5 cm, rolls, awkward inserts and slivers of pieces, the joint out of
+  // sight, strips, tail.
   const key = (c: Choice, rolls: number, tail: number) => [
     tiny(c),
     rolls,
-    c.hang.narrow,
+    c.hang.narrow + c.hang.slivers,
     visibility(c.closingCorner),
     c.hang.blanks.length,
     -tail,
@@ -459,7 +476,7 @@ function wallpaperLayout(i: OboiInput, rw: RoomWalls, start: ReturnType<typeof c
     const pieces: LayoutPiece[] = [];
     for (const c of hanged?.columns ?? []) {
       if (c.kind === "pieces") {
-        for (const p of c.pieces ?? []) pieces.push({ x: c.x, y: p.y, w: c.w, h: p.h, cut: false, piece: c.n });
+        for (const p of c.pieces ?? []) pieces.push({ x: p.x, y: p.y, w: p.w, h: p.h, cut: false, piece: c.n });
         continue;
       }
       if (c.kind === "full") whole++;
@@ -475,6 +492,11 @@ function wallpaperLayout(i: OboiInput, rw: RoomWalls, start: ReturnType<typeof c
         row: c.n - 1,
       });
     }
+    // Joints at the edges of openings: sides of strips cut there that meet an opening.
+    const edgesMm = (hanged?.columns ?? [])
+      .filter((c) => c.kind === "edge")
+      .flatMap((c) => [c.x, c.x + c.w])
+      .filter((x) => (rw.openings[k] ?? []).some((o) => Math.abs(o.x - x) <= 21 || Math.abs(o.x + o.w - x) <= 21));
     return {
       wall: k,
       lengthMm: wall.lengthMm,
@@ -483,6 +505,7 @@ function wallpaperLayout(i: OboiInput, rw: RoomWalls, start: ReturnType<typeof c
       openings: rw.openings[k] ?? [],
       strips: {
         columns: (hanged?.columns ?? []).map((c) => ({ n: c.n, kind: c.kind, xMm: c.x, widthMm: c.w })),
+        ...(edgesMm.length > 0 ? { edgesMm: [...new Set(edgesMm)] } : {}),
         linesMm: hanged?.linesMm ?? [],
         pieces: (hanged?.columns ?? []).flatMap((c) =>
           (c.pieces ?? []).map((p) => ({ n: c.n, where: p.where, lengthMm: p.lengthMm })),
@@ -496,7 +519,14 @@ function wallpaperLayout(i: OboiInput, rw: RoomWalls, start: ReturnType<typeof c
   if (cut?.plan.fits) {
     rolls = cut.plan.rolls.map((roll) => ({
       cuts: roll.cuts.map((c) => {
-        const at = { fromMm: c.fromMm, lengthMm: c.lengthMm, xMm: c.xMm, widthMm: c.widthMm, fromRest: c.fromRest };
+        const at = {
+          fromMm: c.fromMm,
+          lengthMm: c.lengthMm,
+          xMm: c.xMm,
+          widthMm: c.widthMm,
+          fromRest: c.fromRest,
+          ...(c.fromCutout ? { fromCutout: true } : {}),
+        };
         if (c.kind === "strip") {
           const blank = cut.strips[c.index];
           return {
@@ -549,19 +579,34 @@ function wallpaperLayout(i: OboiInput, rw: RoomWalls, start: ReturnType<typeof c
   guide.push({ code: "corner_inner", values: { wrap: cm(i.wrapMm) } });
   if (rw.outer > 0) guide.push({ code: "corner_outer", values: { wrap: cm(WALLPAPER_OUTER_WRAP_MM) } });
   if (reused > 0) guide.push({ code: "carry_level", values: { min: cm(MIN_CARRY_MM) } });
+  if (hang.edges > 0) guide.push({ code: "edge_cut", values: { count: hang.edges } });
   rw.openings.forEach((list, k) => {
     const hanged = hang.walls[k];
+    const across = (col: { x: number; w: number }, o: ElevationOpening) =>
+      col.x < o.x + o.w - 1e-6 && col.x + col.w > o.x + 1e-6;
     for (const o of list) {
       if (o.type === "bare") continue;
-      const inside = (hanged?.columns ?? []).filter(
-        (col) => col.kind === "pieces" && col.x >= o.x - 1e-6 && col.x + col.w <= o.x + o.w + 1e-6,
-      ).length;
+      const inside = (hanged?.columns ?? []).filter((col) => col.kind === "pieces" && across(col, o)).length;
       const around = (hanged?.columns ?? []).filter(
-        (col) => col.kind !== "pieces" && col.x < o.x + o.w - 1e-6 && col.x + col.w > o.x + 1e-6,
+        (col) => col.kind !== "pieces" && col.kind !== "edge" && across(col, o),
       ).length;
-      guide.push({ code: o.type === "door" ? "door" : "window", values: { wall: k + 1, around, pieces: inside } });
+      const code = o.type === "door" ? "door" : "window";
+      guide.push({
+        code: around === 0 && inside > 0 ? `${code}_pieces` : code,
+        values: { wall: k + 1, around, pieces: inside },
+      });
     }
+    // A door beside a window (a balcony block) is papered round as one opening.
+    const real = list.filter((o) => o.type !== "bare").sort((a, b) => a.x - b.x);
+    if (
+      real.some(
+        (o, j) => j > 0 && o.x - ((real[j - 1] as ElevationOpening).x + (real[j - 1] as ElevationOpening).w) <= 20,
+      )
+    )
+      guide.push({ code: "one_opening", values: { wall: k + 1 } });
   });
+  const fromCutouts = rolls?.reduce((n, r) => n + r.cuts.filter((c) => c.fromCutout).length, 0) ?? 0;
+  if (fromCutouts > 0) guide.push({ code: "pieces_cutouts", values: { count: fromCutouts } });
   const bare = rw.openings.reduce((n, list) => n + list.filter((o) => o.type === "bare").length, 0);
   if (bare > 0) guide.push({ code: "bare", values: { count: bare } });
   if (i.repeatMm > 0) guide.push({ code: "repeat", values: { repeat: cm(i.repeatMm) } });
@@ -605,7 +650,9 @@ export const oboi: ToolModule<OboiInput> = {
   // 2: with every door and window placed, strips are counted wall by wall (corners, rests, pieces by position).
   // 3: the start is chosen (level line, two directions, closing corner), narrow strips and pieces are cut from the
   //    rests of other strips (a cutting plan), bare zones, L-shaped rooms with outer corners, spare rolls.
-  version: 3,
+  // 4: a door beside a window is one opening, what is trimmed off over openings is a rest for pieces, and strips
+  //    may be cut at the edges of openings (`aroundOpenings: "edge"`).
+  version: 4,
   input,
   defaults: () => ({
     lengthMm: 4600,
@@ -625,6 +672,7 @@ export const oboi: ToolModule<OboiInput> = {
     startWall: 1,
     startLineMm: 500,
     symmetric: false,
+    aroundOpenings: "whole",
     mainWall: 0,
     wrapMm: WALLPAPER_CORNER_WRAP_MM,
     spareRolls: 0,
@@ -753,6 +801,19 @@ export const oboi: ToolModule<OboiInput> = {
           values: { strip: mmToM(stripMm), roll: mmToM(R) },
         });
       }
+      // The other way round doors and windows: what it would take, for the hint.
+      const edge = i.aroundOpenings === "edge";
+      if (edge && i.repeatMm > 0) warnings.push({ code: "edge_pattern", level: "info" });
+      const papered = rw.openings.some((list) => list.some((o) => o.type !== "bare"));
+      if (fits && papered && i.repeatMm === 0) {
+        const other = chooseStart(i, rw, stripMm, !edge).chosen.cut?.plan;
+        const otherRolls = other?.fits ? other.rolls.length : undefined;
+        if (!edge && otherRolls !== undefined && otherRolls < rolls)
+          warnings.push({ code: "edge_saves", level: "info", values: { rolls: otherRolls, now: rolls } });
+        if (edge && otherRolls !== undefined && otherRolls <= rolls)
+          warnings.push({ code: "edge_no_gain", level: "info", values: { rolls: otherRolls } });
+      }
+      if (hang.edges > 0) warnings.push({ code: "edge_seams", level: "warning", values: { count: hang.edges } });
       const closingWrap = rw.wraps[start.chosen.closingCorner] ?? 0;
       if (hang.closingOverlapMm < closingWrap - 1e-6)
         warnings.push({

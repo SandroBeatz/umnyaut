@@ -141,6 +141,7 @@ export function hangLines(layout: Layout): { title: string; parts: string[] }[] 
       else if (c.kind === "carry") parts.push(fill(t.carry, { n: c.n, width: cm(c.widthMm) }));
       else if (c.kind === "corner") parts.push(fill(t.corner, { n: c.n, width: cm(c.widthMm) }));
       else if (c.kind === "closing") parts.push(fill(t.closingStrip, { n: c.n, width: cm(c.widthMm) }));
+      else if (c.kind === "edge") parts.push(fill(t.edgeStrip, { n: c.n, width: cm(c.widthMm) }));
       else {
         const list = st.pieces
           .filter((p) => p.n === c.n)
@@ -179,7 +180,7 @@ export function rollLines(rolls: readonly LayoutRoll[], rollWidthMm: number): { 
       else if (c.widthMm < rollWidthMm - 1 && (c.parts?.length ?? 0) <= 1)
         text = fill(t.rollNarrow, { n: c.strip ?? 0, length, width: cm(c.widthMm) });
       else text = fill(t.rollStrip, { n: c.strip ?? 0, length });
-      return c.fromRest ? `${text} (${t.fromRest})` : text;
+      return c.fromCutout ? `${text} (${t.fromCutout})` : c.fromRest ? `${text} (${t.fromRest})` : text;
     });
     parts.push(
       roll.rests.length > 0

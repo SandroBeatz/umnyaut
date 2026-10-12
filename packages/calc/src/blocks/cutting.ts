@@ -4,7 +4,7 @@
  * into the material already left over — roll tails and the side rests of strips cut lengthwise — and a new roll
  * is opened only when no rest fits. Every rest is a rectangle in its roll; a part taken from it splits it across
  * (guillotine): the rest along the roll keeps the full rest width, the rest beside the part keeps the part's
- * length. A rest is used once. Several part orders and fit rules are tried; the plan with the fewest rolls wins,
+ * length. What is trimmed off a strip hung whole over a door or a window is a rest too. A rest is used once. Several part orders and fit rules are tried; the plan with the fewest rolls wins,
  * then the one leaving the largest reusable rest. Areas are exact: used + reusable rests + waste = rolls bought.
  */
 export interface CutPlanInput {
@@ -14,8 +14,16 @@ export interface CutPlanInput {
   repeatMm: number;
   /** Best case: every roll starts right at the pattern (no lead lost). */
   luckyStart?: boolean;
-  /** Full-length strips in hanging order: length, pattern phase (mm into the repeat), width left after cutting it lengthwise. */
-  strips: readonly { lengthMm: number; phaseMm: number; restMm: number }[];
+  /**
+   * Full-length strips in hanging order: length, pattern phase (mm into the repeat), width left after cutting it
+   * lengthwise, and what is trimmed off it over openings (across from its left edge, along from its top).
+   */
+  strips: readonly {
+    lengthMm: number;
+    phaseMm: number;
+    restMm: number;
+    cutouts?: readonly { xMm: number; fromMm: number; lengthMm: number; widthMm: number }[];
+  }[];
   /** Smaller parts: width (≤ roll width), length, pattern phase. */
   parts: readonly { widthMm: number; lengthMm: number; phaseMm: number }[];
   /** Rests narrower or shorter than this are waste. */
@@ -35,6 +43,8 @@ export interface PlannedCut {
   widthMm: number;
   /** Cut from material left over from an earlier cut (a tail or a side rest), not from a fresh roll. */
   fromRest: boolean;
+  /** Cut from what was trimmed off a strip over an opening. */
+  fromCutout?: boolean;
 }
 
 export interface PlannedRest {
@@ -69,6 +79,7 @@ const EPS = 1e-6;
 
 interface Rest extends PlannedRest {
   roll: number;
+  cutout?: boolean;
 }
 
 interface RollState {
@@ -76,6 +87,8 @@ interface RollState {
   base: number;
   end: number;
   cuts: PlannedCut[];
+  /** Area trimmed off strips over openings, mm² (not used by the strip: a rest, a part or waste). */
+  trimmed: number;
 }
 
 function plan(i: CutPlanInput, order: number[], best: boolean): CutPlan {
@@ -97,7 +110,7 @@ function plan(i: CutPlanInput, order: number[], best: boolean): CutPlan {
     let roll = rolls.length - 1;
     let from = last ? at(last.end, last.base, s.phaseMm) : Number.POSITIVE_INFINITY;
     if (!last || from + s.lengthMm > usable + EPS) {
-      rolls.push({ base: wrap(s.phaseMm), end: 0, cuts: [] });
+      rolls.push({ base: wrap(s.phaseMm), end: 0, cuts: [], trimmed: 0 });
       roll = rolls.length - 1;
       from = 0;
     }
@@ -115,6 +128,18 @@ function plan(i: CutPlanInput, order: number[], best: boolean): CutPlan {
     r.end = from + s.lengthMm;
     if (s.restMm >= i.minRestMm)
       rests.push({ roll, fromMm: from, lengthMm: s.lengthMm, xMm: W - s.restMm, widthMm: s.restMm });
+    for (const c of s.cutouts ?? []) {
+      r.trimmed += c.widthMm * c.lengthMm;
+      if (c.widthMm >= i.minRestMm && c.lengthMm >= i.minRestMm)
+        rests.push({
+          roll,
+          fromMm: from + c.fromMm,
+          lengthMm: c.lengthMm,
+          xMm: c.xMm,
+          widthMm: c.widthMm,
+          cutout: true,
+        });
+    }
   });
   rolls.forEach((r, roll) => {
     if (usable - r.end >= i.minRestMm)
@@ -157,10 +182,11 @@ function plan(i: CutPlanInput, order: number[], best: boolean): CutPlan {
         xMm: rest.xMm,
         widthMm: p.widthMm,
         fromRest: true,
+        ...(rest.cutout ? { fromCutout: true } : {}),
       });
       rests.splice(chosen.k, 1, ...split(rest, chosen.from, p));
     } else {
-      rolls.push({ base: wrap(p.phaseMm), end: p.lengthMm, cuts: [] });
+      rolls.push({ base: wrap(p.phaseMm), end: p.lengthMm, cuts: [], trimmed: 0 });
       const roll = rolls.length - 1;
       (rolls[roll] as RollState).cuts.push({
         kind: "part",
@@ -191,8 +217,9 @@ function plan(i: CutPlanInput, order: number[], best: boolean): CutPlan {
 
   const m2 = (w: number, l: number) => (w * l) / 1e6;
   const out = rolls.map((r, roll): PlannedRoll => {
-    const left = rests.filter((rest) => rest.roll === roll).map(({ roll: _, ...rest }) => rest);
-    const usedM2 = r.cuts.reduce((n, c) => n + m2(c.widthMm, c.lengthMm), 0);
+    const left = rests.filter((rest) => rest.roll === roll).map(({ roll: _, cutout: __, ...rest }) => rest);
+    // A part cut from a strip's trimmed-off area is counted by the part, not twice.
+    const usedM2 = r.cuts.reduce((n, c) => n + m2(c.widthMm, c.lengthMm), 0) - r.trimmed / 1e6;
     const restM2 = left.reduce((n, rest) => n + m2(rest.widthMm, rest.lengthMm), 0);
     return { cuts: r.cuts, rests: left, usedM2, restM2, wasteM2: Math.max(m2(W, i.rollLengthMm) - usedM2 - restM2, 0) };
   });

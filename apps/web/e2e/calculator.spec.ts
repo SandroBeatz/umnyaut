@@ -294,7 +294,7 @@ test("tile walls scheme: four walls unfolded, the window's sill on the plan chan
   await expect(result(page)).toHaveText("50");
 });
 
-test("wallpaper scheme: a chosen start line, a cutting map, the owner's room needs 6 rolls, a bare zone", async ({
+test("wallpaper scheme: a chosen start line, a cutting map, whole strips or cut at the opening edges, a bare zone", async ({
   page,
 }) => {
   await page.goto(WALLPAPER);
@@ -307,10 +307,19 @@ test("wallpaper scheme: a chosen start line, a cutting map, the owner's room nee
   await scheme.getByText("Карта раскроя", { exact: true }).click();
   await expect(scheme.getByText(/кусок К1 под окном — 1 м \(из остатка\)/)).toBeVisible();
 
-  // Golden «Owner's room … scenario A»: 4,6 × 4,3 × 2,8, roll 1,06 × 10 m.
+  // Golden «Owner's sizes with the example door and window … scenario A»: 4,6 × 4,3 × 2,8, roll 1,06 × 10 m.
   await page.goto(`${WALLPAPER}?s=${s({ heightMm: 2800, rollWidthMm: 1060, rollLengthMm: 10_000 })}`);
   await expect(result(page)).toHaveText("6");
   await expect(page.getByText("Рулонов по карте раскроя")).toBeVisible();
+  await expect(page.getByText(/Если резать полосы по краю окон и дверей, хватит 5 рул\. вместо 6/)).toBeVisible();
+  // Golden «… cut at the edges»: the same room the other way round the openings — 5 rolls and the joints warning.
+  await page.goto(
+    `${WALLPAPER}?s=${s({ heightMm: 2800, rollWidthMm: 1060, rollLengthMm: 10_000, aroundOpenings: "edge" })}`,
+  );
+  await expect(result(page)).toHaveText("5");
+  await expect(
+    page.getByText(/Стыков по краю окон и дверей: 4\. Над углами проёмов чаще всего идут трещины/),
+  ).toBeVisible();
 
   await page.goto(`${WALLPAPER}?s=${s({ openings: [{ type: "door", widthMm: 800, heightMm: 2000, count: 1 }] })}`);
   await expect(scheme.getByText("Отметьте двери и окна на плане — тогда разложим полосы по стенам")).toBeVisible();
