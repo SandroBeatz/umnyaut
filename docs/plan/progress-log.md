@@ -1,12 +1,12 @@
 ---
 version: 1.3
-date: 2026-10-11
+date: 2026-10-12
 category: plan
 ---
 
 # Progress Log
 
-> Version 1.3 · 2026-10-11 · [Plan](../plan/)
+> Version 1.3 · 2026-10-12 · [Plan](../plan/)
 
 ## Overview
 
@@ -39,6 +39,12 @@ Each entry:
 - **Where** — short commit SHA (7 chars), PR number, and the environment it reached (`staging`, `prod`, `Vercel`).
 
 ## Log
+
+### 2026-10-12
+
+- **— (fix of P3.3, P9.5)** Favicon was missing in every browser tab on staging and prod: `icons: { apple }` in the root layout metadata (added with P9.5) switches off Next's file-based icons, so `app/icon.svg` never reached `<head>` and browsers fell back to a non-existent `/favicon.ico`. The layout no longer sets `icons`; the apple icon moved to the file convention (`public/apple-touch-icon.png` → `app/apple-icon.png`), and `app/favicon.ico` (16/32/48, from `favicon.svg`) was added for Yandex and browsers that ask for it by default. `brand-images` script writes both.
+  - Where: `fix/favicon`
+  - Notes: the committed `favicon.ico` was rendered with headless Chromium in a session without npm access; `pnpm --filter web brand-images` regenerates it with sharp. Apple icon URL is now `/apple-icon.png?<hash>`.
 
 ### 2026-10-11
 
