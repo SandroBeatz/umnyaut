@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // App icons and the shared social image (content plan G08, G09; plan P9.5).
-//   pnpm --filter web brand-images → public/{apple-touch-icon,icon-192,icon-512,og}.png
+//   pnpm --filter web brand-images → public/{icon-192,icon-512,og}.png, app/{apple-icon.png,favicon.ico}
 // Outputs are committed and change only with the brand; the OG text uses a system font with Cyrillic (Arial).
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
@@ -10,13 +10,14 @@ import sharp from "sharp";
 const root = join(dirname(fileURLToPath(import.meta.url)), "../../..");
 const brand = join(root, "packages/ui/assets/brand");
 const out = join(root, "apps/web/public");
+const app = join(root, "apps/web/app");
 const MINT = "#edf9f8";
 const NAVY = "#0f1e34";
 const OG_LINE = "Одна комната — весь список покупок";
 const OG_SUB = "Калькуляторы ремонта в пачках, рулонах и мешках";
 
 /** Icon centred on a square background; `scale` is the icon's share of the side (maskable safe zone ≤ 0.8). */
-async function icon(size, scale, file) {
+async function icon(size, scale, file, dir = out) {
   const svg = await readFile(join(brand, "icon.svg"));
   const inner = Math.round(size * scale);
   const glyph = await sharp(svg, { density: 600 })
@@ -25,7 +26,33 @@ async function icon(size, scale, file) {
   await sharp({ create: { width: size, height: size, channels: 4, background: MINT } })
     .composite([{ input: glyph, gravity: "centre" }])
     .png({ compressionLevel: 9 })
-    .toFile(join(out, file));
+    .toFile(join(dir, file));
+}
+
+/**
+ * `favicon.ico` for browsers and crawlers that ask for it by default (Yandex, older Safari): PNG frames in an
+ * ICO container, rendered from `favicon.svg` (light; an .ico cannot follow `prefers-color-scheme`).
+ */
+async function favicon(sizes) {
+  const svg = await readFile(join(brand, "favicon.svg"));
+  const frames = await Promise.all(
+    sizes.map((size) => sharp(svg, { density: 600 }).resize(size, size).png({ compressionLevel: 9 }).toBuffer()),
+  );
+  const header = Buffer.alloc(6 + 16 * sizes.length);
+  header.writeUInt16LE(1, 2);
+  header.writeUInt16LE(sizes.length, 4);
+  let offset = header.length;
+  sizes.forEach((size, i) => {
+    const entry = 6 + 16 * i;
+    header.writeUInt8(size, entry);
+    header.writeUInt8(size, entry + 1);
+    header.writeUInt16LE(1, entry + 4);
+    header.writeUInt16LE(32, entry + 6);
+    header.writeUInt32LE(frames[i].length, entry + 8);
+    header.writeUInt32LE(offset, entry + 12);
+    offset += frames[i].length;
+  });
+  await writeFile(join(app, "favicon.ico"), Buffer.concat([header, ...frames]));
 }
 
 async function og() {
@@ -52,8 +79,9 @@ async function og() {
     .toFile(join(out, "og.png"));
 }
 
-await icon(180, 0.7, "apple-touch-icon.png");
+await icon(180, 0.7, "apple-icon.png", app);
 await icon(192, 0.6, "icon-192.png");
 await icon(512, 0.6, "icon-512.png");
 await og();
+await favicon([16, 32, 48]);
 console.log(`brand images → public/ (${OG_LINE})`);
