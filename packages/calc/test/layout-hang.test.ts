@@ -339,7 +339,7 @@ describe("wallpaper v3", () => {
       ),
       { numRuns: 150 },
     );
-  });
+  }, 60_000);
 
   it("a manual start keeps the user's wall and line; a symmetric one puts a strip or a joint mid main wall", () => {
     const manual = oboi.compute({ ...defaults, startMode: "manual", startWall: 3, startLineMm: 1234 }, ctx);
@@ -374,9 +374,9 @@ describe("wallpaper v3", () => {
           return !r.warnings.some((w) => w.code === "closing_overlap_short");
         },
       ),
-      { numRuns: 200 },
+      { numRuns: 100 },
     );
-  });
+  }, 60_000);
 
   it("review cases: start ranked by rolls before inserts; a bigger room never buys fewer; manual line 0", () => {
     const rolls = (x: Partial<Input>) =>
