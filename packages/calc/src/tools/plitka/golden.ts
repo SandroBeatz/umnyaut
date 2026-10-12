@@ -120,6 +120,74 @@ export const golden: GoldenFile<PlitkaInput> = {
       },
     },
     {
+      name: "Bathroom walls with the door placed: counted tile by tile around it (v3)",
+      input: {
+        surface: "walls",
+        lengthMm: 1700,
+        widthMm: 1500,
+        heightMm: 2500,
+        openings: [{ type: "door", widthMm: 700, heightMm: 2000, count: 1, places: [{ wall: 0, offsetMm: 500 }] }],
+        tileLengthMm: 200,
+        tileWidthMm: 250,
+        jointMm: 2,
+        tilesPerBox: 20,
+      },
+      expected: { items: { tile: { packs: 18, need: 359 } }, summary: { whole: 238, cut: 88 } },
+      source: {
+        kind: "manual",
+        ref: `${KM}. Без двери 340 плиток: 270 целых, 70 подрезанных. Дверь на стене 1 от 500 до 1200 мм, высота 2000: столбцы по 202 мм — целиком внутри 606 и 808 (2), задеты 404…1010 (4); ряды от пола по 252 — внутри 0…1512 (7), задеты 0…1764 (8). Не кладём 2 × 7 = 14, по краю двери подрезаем 4 × 8 − 14 = 18: целых 270 − 14 − 18 = 238, подрезанных 70 + 18 = 88, всего 326 × 1,1 = 358,6 → 359 / 20 → 18 — столько же, сколько по оценке без плана`,
+      },
+    },
+    {
+      name: "Walls of the example room, door and window placed (v3)",
+      input: { surface: "walls" },
+      expected: {
+        items: { tile: { packs: 49, need: 588 } },
+        summary: { whole: 406, cut: 128 },
+        warnings: ["narrow_cut"],
+      },
+      source: {
+        kind: "manual",
+        ref: `${KM}. Высота 2700 по 303: 8 целых рядов от пола и подрезка 276 под потолком; стена 4600: 15 целых и 55, стена 4300: 14 целых и 58. Без проёмов 2 × 144 + 2 × 135 = 558 плиток (464 целых, 94 подрезанных). Дверь 800 × 2000 на стене 3 от 600 мм: внутри столбцы 606, 909 × ряды 0…1515 = 12, по краю 4 × 7 − 12 = 16. Окно 1200 × 1400 на стене 4 от 1550 мм, подоконник 90 см (900…2300): внутри столбцы 1818…2424 (3) × ряды 909…1818 (4) = 12, по краю 5 × 6 − 12 = 18. Целых 464 − 24 − 34 = 406, подрезанных 94 + 34 = 128, всего 534 × 1,1 = 587,4 → 588 / 12 → 49. Без мест на плане оценка дала бы 601 (51 коробку)`,
+      },
+    },
+    {
+      name: "Same walls, the window sill at 1 m",
+      input: {
+        surface: "walls",
+        openings: [
+          { type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 2, offsetMm: 600 }] },
+          {
+            type: "window",
+            widthMm: 1200,
+            heightMm: 1400,
+            count: 1,
+            places: [{ wall: 3, offsetMm: 1550, sillMm: 1000 }],
+          },
+        ],
+      },
+      expected: { items: { tile: { packs: 50, need: 591 } }, summary: { whole: 411, cut: 126 } },
+      source: {
+        kind: "manual",
+        ref: `${KM}. Окно 1000…2400 от пола: внутри ряды 1212…1818 (3) × 3 столбца = 9, по краю 5 × 5 − 9 = 16 (было 12 и 18). Целых 406 + 12 − 9 + 18 − 16 = 411, подрезанных 128 − 18 + 16 = 126, всего 537 × 1,1 = 590,7 → 591 / 12 → 50`,
+      },
+    },
+    {
+      name: "Same walls, door and window not placed: the estimate",
+      input: {
+        surface: "walls",
+        openings: [
+          { type: "door", widthMm: 800, heightMm: 2000, count: 1 },
+          { type: "window", widthMm: 1200, heightMm: 1400, count: 1 },
+        ],
+      },
+      expected: { items: { tile: { packs: 51, need: 601 } }, summary: { whole: 452, cut: 94 } },
+      source: {
+        kind: "manual",
+        ref: `${KM}. 558 плиток без проёмов; дверь где угодно закрывает ⌊(800 − 300) / 303⌋ = 1 × ⌊2003 / 303⌋ = 6 целых, окно ⌊900 / 303⌋ = 2 × ⌊1100 / 303⌋ = 3 = 6: целых 464 − 12 = 452, подрезанных 94, всего 546 × 1,1 = 600,6 → 601 / 12 → 51`,
+      },
+    },
+    {
       name: "Floor smaller than one tile",
       input: { lengthMm: 500, widthMm: 400, tileLengthMm: 600, tileWidthMm: 600, tilesPerBox: 4 },
       expected: { items: { tile: { packs: 1, need: 2 } }, summary: { whole: 0, cut: 1 } },

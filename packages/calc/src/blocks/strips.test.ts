@@ -6,7 +6,14 @@ const base = { rollLengthMm: 10_050, repeatMm: 0, offset: false, stripLengthMm: 
 describe("cutStrips", () => {
   it("without a pattern: floor(roll / strip) per roll, tails left over", () => {
     const cut = cutStrips({ ...base, strips: 7 });
-    expect(cut).toEqual({ fits: true, rolls: 3, perRoll: 3, perRollSlackMm: 1650, remnantsMm: [1650, 1650, 7250] });
+    expect(cut).toMatchObject({
+      fits: true,
+      rolls: 3,
+      perRoll: 3,
+      perRollSlackMm: 1650,
+      remnantsMm: [1650, 1650, 7250],
+    });
+    expect(cut.cuts.map((r) => r.map((c) => c.index))).toEqual([[0, 1, 2], [3, 4, 5], [6]]);
   });
 
   it("puts short pieces into roll tails before opening a new roll", () => {
@@ -32,7 +39,7 @@ describe("cutStrips", () => {
   it("offset match alternates phases 0 and repeat / 2; a new roll pays the lead once, whatever the phase", () => {
     // Roll 1: 0–2800, 2880–5680, 5760–8560; strip 4 (phase 320) opens roll 2 at 0 — the lead already reached it.
     const cut = cutStrips({ ...base, repeatMm: 640, offset: true, strips: 4 });
-    expect(cut).toEqual({
+    expect(cut).toMatchObject({
       fits: true,
       rolls: 2,
       perRoll: 3,

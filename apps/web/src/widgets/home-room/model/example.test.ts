@@ -1,6 +1,7 @@
 import { home } from "@umnyaut/catalog";
 import { describe, expect, it } from "vitest";
-import { defaultWorks, exampleCards, exampleRoom, initialExample, isInitialExample } from "./example";
+import { exampleCards, initialExample } from "./cards";
+import { defaultWorks, exampleRoom, isInitialExample } from "./example";
 
 const all = home.works.map((w) => w.id);
 

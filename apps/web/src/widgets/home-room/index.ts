@@ -1,2 +1,2 @@
-export { initialExample } from "./model/example";
+export { initialExample } from "./model/cards";
 export { HomeRoom, type HomeRoomProps } from "./ui/HomeRoom";

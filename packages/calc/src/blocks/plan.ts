@@ -1,11 +1,17 @@
 import * as z from "zod/mini";
-import type { CutCorner, LayoutMark, Opening, PlanWall } from "../types";
+import type { CutCorner, ElevationOpening, LayoutMark, Opening, PlanWall } from "../types";
 
 /**
  * Room plan (docs/ui/room-plan-and-layout-guides.md). Plan frame: x along the room length to the right, y along
  * the width down, mm. Walls are numbered clockwise from the top-left corner (the UI shows them 1-based); an
  * opening's offset runs clockwise along its wall from the wall's first corner to the opening's near edge.
  */
+
+/**
+ * Window sill height when a placed window has none: a usual 80–90 cm in flats — practice, not a norm; the user
+ * sets the real one in the plan editor.
+ */
+export const WINDOW_SILL_MM = 900;
 
 /** Places of one opening on the plan (see `OpeningPlace`). */
 export const openingPlacesSchema = z.readonly(
@@ -14,6 +20,8 @@ export const openingPlacesSchema = z.readonly(
       z.object({
         wall: z.int().check(z.minimum(0), z.maximum(11)),
         offsetMm: z.int().check(z.minimum(0), z.maximum(100_000)),
+        sillMm: z.optional(z.int().check(z.minimum(0), z.maximum(10_000))),
+        bareBelow: z.optional(z.boolean()),
       }),
     )
     .check(z.maxLength(50)),
@@ -96,7 +104,12 @@ export function roomOutline(
 export interface PlacedOpening {
   type: Opening["type"];
   wall: number;
+  /** From the wall's first corner, pulled back to fit the wall. */
+  offsetMm: number;
   widthMm: number;
+  heightMm: number;
+  sillMm?: number;
+  bareBelow?: boolean;
   mark: LayoutMark;
 }
 
@@ -121,7 +134,11 @@ export function placeOpenings(walls: readonly PlanWall[], openings: readonly Ope
       placed.push({
         type: o.type,
         wall: place.wall,
+        offsetMm: from,
         widthMm: o.widthMm,
+        heightMm: o.heightMm,
+        ...(place.sillMm === undefined ? {} : { sillMm: place.sillMm }),
+        ...(place.bareBelow ? { bareBelow: true } : {}),
         mark: {
           kind: o.type,
           wall: place.wall,
@@ -188,4 +205,32 @@ export function lightDirection(
     along += side === "left" || side === "right" ? w.widthMm : -w.widthMm;
   }
   return along > 0 ? "length" : along < 0 ? "width" : undefined;
+}
+
+/**
+ * Placed doors and windows on one wall, unfolded (x from the wall's first corner, y down from the ceiling): a
+ * door stands on the floor, a window on its sill (`WINDOW_SILL_MM` when not set); one that would pass the
+ * ceiling is held under it (`aboveCeiling` counts those windows); a window with `bareBelow` adds a bare zone from
+ * its sill to the floor. `defaultSill` — a window here has no sill of its
+ * own.
+ */
+export function wallOpenings(placed: readonly PlacedOpening[], wall: number, heightMm: number) {
+  let defaultSill = false;
+  /** Windows whose sill + height passes the ceiling: held under it (a warning in the tool). */
+  let aboveCeiling = 0;
+  const openings = placed
+    .filter((p) => p.wall === wall)
+    .flatMap((p): ElevationOpening[] => {
+      const h = Math.min(p.heightMm, heightMm);
+      if (p.type === "door") return [{ type: "door", x: p.offsetMm, y: heightMm - h, w: p.widthMm, h }];
+      if (p.sillMm === undefined) defaultSill = true;
+      if ((p.sillMm ?? WINDOW_SILL_MM) + h > heightMm) aboveCeiling++;
+      const sill = Math.min(p.sillMm ?? WINDOW_SILL_MM, heightMm - h);
+      const window: ElevationOpening = { type: "window", x: p.offsetMm, y: heightMm - sill - h, w: p.widthMm, h };
+      // Left bare under the window: a zone from the sill down to the floor, as wide as the window.
+      return p.bareBelow && sill > 0
+        ? [window, { type: "bare", x: p.offsetMm, y: heightMm - sill, w: p.widthMm, h: sill }]
+        : [window];
+    });
+  return { openings, defaultSill, aboveCeiling };
 }

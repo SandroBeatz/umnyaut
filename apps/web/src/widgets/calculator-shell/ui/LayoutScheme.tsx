@@ -1,16 +1,18 @@
 "use client";
 
-import type { Layout, LayoutPiece, Opening } from "@umnyaut/calc";
-import { lengthUnitLabels, shell, type ToolDef } from "@umnyaut/catalog";
+import type { BareZone, Layout, LayoutPiece, Opening } from "@umnyaut/calc";
+import { lengthUnitLabels, schemeStrings, shell, type ToolDef } from "@umnyaut/catalog";
 import { Button, LazyDialog, preloadDialog } from "@umnyaut/ui";
 import { ChevronDown, Maximize2, PencilRuler } from "lucide-react";
-import { useId, useRef, useState } from "react";
+import { type ReactNode, useId, useRef, useState } from "react";
 import { FloorPlan } from "@/entities/room";
 import { PlanEditor, type PlanRoom } from "@/features/edit-room-plan";
 import { fill } from "@/shared/lib";
-import { guideLines, rowLines, runLines, sheetLines } from "../model/scheme-text";
+import { elevationLines, guideLines, hangLines, rollLines, rowLines, runLines, sheetLines } from "../model/scheme-text";
+import { RollMap } from "./RollMap";
+import { reliefCuts, WallElevations } from "./WallElevations";
 
-const s = shell.scheme;
+const s = schemeStrings;
 const t = s.strips;
 const r = s.runs;
 const g = s.grid;
@@ -24,6 +26,9 @@ export interface LayoutSchemeProps {
   room: PlanRoom;
   openings?: readonly Opening[];
   onOpeningsChange?(next: readonly Opening[]): void;
+  /** Wallpaper: bare zones, edited in the plan editor. */
+  zones?: readonly BareZone[];
+  onZonesChange?(next: readonly BareZone[]): void;
 }
 
 /** Row bands for a huge layout: one rectangle per row around its pieces. */
@@ -46,6 +51,19 @@ function bands(pieces: readonly LayoutPiece[]): LayoutPiece[] {
 function texts(layout: Layout) {
   const { whole, cut, reused } = layout.stats;
   const lines = layout.marks.filter((m) => m.kind === "seam").length;
+  if (layout.kind === "strips" && layout.elevations) {
+    const hw = t.walls;
+    const pieces = layout.elevations.reduce((n, e) => n + (e.strips?.pieces.length ?? 0), 0);
+    const counts = { strips: whole + cut, pieces, rolls: layout.rolls?.length ?? 0 };
+    return {
+      summary: whole + cut > 0 ? fill(hw.summary, counts) : hw.empty,
+      label: fill(hw.label, counts),
+      whole: fill(hw.legendWhole, { count: whole }),
+      cut: fill(hw.legendCut, { count: cut }),
+      reused: fill(hw.legendReused, { count: reused }),
+      line: t.legendSeam,
+    };
+  }
   if (layout.kind === "strips") {
     const counts = { sheets: layout.sheets?.length ?? 0, seams: lines };
     return {
@@ -55,6 +73,18 @@ function texts(layout: Layout) {
       cut: fill(t.legendCut, { count: cut }),
       reused: "",
       line: t.legendSeam,
+    };
+  }
+  if (layout.kind === "grid" && layout.elevations) {
+    const counts = { pieces: whole + cut, whole, cut };
+    const w = g.walls;
+    return {
+      summary: whole + cut > 0 ? fill(w.summary, counts) : w.empty,
+      label: fill(w.label, counts),
+      whole: fill(g.legendWhole, { count: whole }),
+      cut: fill(g.legendCut, { count: cut }),
+      reused: "",
+      line: g.legendAxis,
     };
   }
   if (layout.kind === "grid") {
@@ -92,7 +122,12 @@ function texts(layout: Layout) {
 }
 
 /** The plan with every piece: whole outlined, cut hatched teal, reused with the orange dot (design spec §11). */
-function SchemePicture({ layout, className }: { layout: Layout; className?: string }) {
+function SchemePicture({ layout, className, wide }: { layout: Layout; className?: string; wide?: boolean }) {
+  if (layout.elevations) return <WallElevations layout={layout} columns={wide ? "responsive" : "two"} />;
+  return <FloorScheme layout={layout} className={className} />;
+}
+
+function FloorScheme({ layout, className }: { layout: Layout; className?: string }) {
   const hatch = useId();
   const size = Math.max(layout.widthMm, layout.heightMm);
   const step = size * 0.012;
@@ -172,17 +207,27 @@ function SchemePicture({ layout, className }: { layout: Layout; className?: stri
 }
 
 /** «Что резать по рядам» / «Что отрезать от рулона»: one line per row or sheet, folded. */
-function CutList({ title, lines }: { title: string; lines: readonly { title: string; parts: string[] }[] }) {
+function CutList({
+  title,
+  lines,
+  intro,
+}: {
+  title: string;
+  lines: readonly { title: string; parts: string[]; picture?: ReactNode }[];
+  intro?: string;
+}) {
   return (
     <details className="group rounded-md border border-border">
       <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-3 text-body-strong text-primary">
         {title}
         <ChevronDown aria-hidden="true" className="size-5 transition-transform group-open:rotate-180" />
       </summary>
+      {intro ? <p className="px-3 text-small text-text-muted">{intro}</p> : null}
       <ol className="flex flex-col divide-y divide-border px-3 pb-2 text-small">
         {lines.map((line) => (
           <li key={line.title} className="py-2">
             <p className="font-semibold text-text tabular-nums">{line.title}</p>
+            {line.picture}
             <p className="text-text-muted tabular-nums">{line.parts.join(" · ")}</p>
           </li>
         ))}
@@ -196,7 +241,15 @@ function CutList({ title, lines }: { title: string; lines: readonly { title: str
  * purchase was counted on, legend with counts, «Как укладывать» steps, the cut list per row, the plan editor
  * for doors and windows, and the scheme fullscreen on tap. The text summary is the image's alternative.
  */
-export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }: LayoutSchemeProps) {
+export function LayoutScheme({
+  tool,
+  layout,
+  room,
+  openings,
+  onOpeningsChange,
+  zones,
+  onZonesChange,
+}: LayoutSchemeProps) {
   const { reused } = layout.stats;
   const seams = layout.marks.filter((m) => m.kind === "seam").length;
   const labels = texts(layout);
@@ -227,6 +280,8 @@ export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }:
             room={room}
             openings={openings}
             onChange={onOpeningsChange}
+            sills={Boolean(layout.elevations)}
+            {...(zones && onZonesChange ? { zones, onZonesChange } : {})}
             trigger={
               <Button variant="secondary">
                 <PencilRuler aria-hidden="true" />
@@ -270,12 +325,12 @@ export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }:
           closeLabel={shell.close}
           className="max-w-[min(96vw,1100px)]"
         >
-          <SchemePicture layout={layout} className="max-h-[80dvh] w-full" />
+          <SchemePicture layout={layout} className="max-h-[80dvh] w-full" wide />
         </LazyDialog>
       </div>
 
       <div className="flex flex-col gap-3 lg:col-span-5">
-        {layout.pieces.length > 0 ? (
+        {layout.stats.whole + layout.stats.cut > 0 ? (
           <ul className="flex flex-wrap gap-x-4 gap-y-2 text-small text-text">
             <li className="flex items-center gap-1.5">
               <span aria-hidden="true" className="h-3 w-4 border border-text-subtle bg-surface" />
@@ -292,6 +347,42 @@ export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }:
               <li className="flex items-center gap-1.5">
                 <span aria-hidden="true" className="w-4 border-text border-t-2 border-dashed" />
                 {labels.line}
+              </li>
+            ) : null}
+            {layout.elevations?.some((e) => (e.strips?.pieces.length ?? 0) > 0) ? (
+              <li className="flex items-center gap-1.5">
+                <span aria-hidden="true" className="h-2 w-4 border border-text-subtle bg-surface" />
+                {t.walls.legendPiece}
+              </li>
+            ) : null}
+            {layout.elevations?.some((e) => (e.strips?.edgesMm?.length ?? 0) > 0) ? (
+              <li className="flex items-center gap-1.5">
+                <span aria-hidden="true" className="h-3 w-4 border-danger border-l-[3px]" />
+                {t.walls.legendEdge}
+              </li>
+            ) : null}
+            {layout.elevations?.some((e) => reliefCuts(e).length > 0) ? (
+              <li className="flex items-center gap-1.5">
+                <span
+                  aria-hidden="true"
+                  className="h-3 w-4 bg-[linear-gradient(135deg,transparent_42%,var(--color-primary)_42%_58%,transparent_58%)]"
+                />
+                {t.walls.legendRelief}
+              </li>
+            ) : null}
+            {layout.elevations?.some((e) => e.openings.some((o) => o.type === "bare")) ? (
+              <li className="flex items-center gap-1.5">
+                <span
+                  aria-hidden="true"
+                  className="h-3 w-4 border border-text-subtle border-dashed bg-[repeating-linear-gradient(-45deg,var(--color-border)_0_1px,transparent_1px_4px)]"
+                />
+                {t.walls.legendBare}
+              </li>
+            ) : null}
+            {layout.elevations?.some((e) => e.openings.some((o) => o.type !== "bare")) ? (
+              <li className="flex items-center gap-1.5">
+                <span aria-hidden="true" className="h-3 w-4 border-2 border-text bg-surface-sunken" />
+                {g.walls.legendOpening}
               </li>
             ) : null}
             {reused > 0 ? (
@@ -320,6 +411,27 @@ export function LayoutScheme({ tool, layout, room, openings, onOpeningsChange }:
           <CutList title={t.cutList} lines={sheetLines(layout.sheets)} />
         ) : layout.runs && layout.runs.length > 0 ? (
           <CutList title={r.cutList} lines={runLines(layout.runs)} />
+        ) : layout.elevations && layout.kind === "strips" && layout.stats.whole + layout.stats.cut > 0 ? (
+          <>
+            <CutList title={t.walls.cutList} lines={hangLines(layout)} />
+            {layout.rolls && layout.rolls.length > 0 && layout.roll ? (
+              <CutList
+                title={t.walls.rollList}
+                intro={t.walls.rollIntro}
+                lines={rollLines(layout.rolls, layout.roll.widthMm).map((line, k) => {
+                  const roll = layout.rolls?.[k];
+                  return roll && layout.roll
+                    ? {
+                        ...line,
+                        picture: <RollMap roll={roll} widthMm={layout.roll.widthMm} lengthMm={layout.roll.lengthMm} />,
+                      }
+                    : line;
+                })}
+              />
+            ) : null}
+          </>
+        ) : layout.elevations && layout.stats.whole + layout.stats.cut > 0 ? (
+          <CutList title={g.walls.cutList} lines={elevationLines(layout.elevations)} />
         ) : null}
       </div>
     </section>

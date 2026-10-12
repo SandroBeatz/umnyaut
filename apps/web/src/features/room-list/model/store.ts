@@ -1,4 +1,5 @@
-import { type ToolId, toolModules } from "@umnyaut/calc";
+import type { ToolId } from "@umnyaut/calc";
+import { tools } from "@umnyaut/catalog";
 import * as z from "zod/mini";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
@@ -10,7 +11,7 @@ export interface ListEntry {
 }
 
 const entrySchema = z.object({
-  tool: z.string().check(z.refine((id) => id in toolModules)),
+  tool: z.string().check(z.refine((id) => tools.some((t) => t.id === id))),
   input: z.record(z.string(), z.unknown()),
 });
 

@@ -1,7 +1,8 @@
+import type { ToolModule } from "@umnyaut/calc";
 import { mergeItems, type PurchaseItem } from "@umnyaut/calc";
 import { DEFAULT_COUNTRY, type ToolDef, tools } from "@umnyaut/catalog";
-import { applyRoom, type RoomDraft, roomBindings } from "@/entities/room";
-import { getToolModule, type ToolValues } from "@/entities/tool";
+import { applyRoom, type RoomDraft } from "@/entities/room";
+import type { ToolValues } from "@/entities/tool";
 import type { ListEntry } from "./store";
 
 export interface ListWork {
@@ -19,24 +20,23 @@ export interface RoomListView {
   conflicts: "walls_twice"[];
 }
 
-/** The tool's own input to store: changed fields that are not bound to “My room”. */
-export function ownInput(tool: ToolDef, values: ToolValues, defaults: ToolValues): Record<string, unknown> {
-  const bound = new Set(roomBindings(tool.fields).map(([name]) => name));
-  const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
-  return Object.fromEntries(Object.entries(values).filter(([k, v]) => !bound.has(k) && !same(v, defaults[k])));
-}
-
 /**
  * Recomputes every work with the current room (tech spec §11: the room is entered once), the way the shell
- * does: defaults → stored input → room → schema → compute. A row the schema rejects is skipped.
+ * does: defaults → stored input → room → schema → compute. A row the schema rejects (or whose module is not
+ * loaded) is skipped.
  */
-export function buildList(entries: readonly ListEntry[], room: RoomDraft | null): RoomListView {
+export function buildList(
+  entries: readonly ListEntry[],
+  room: RoomDraft | null,
+  moduleOf: (id: ListEntry["tool"]) => ToolModule<ToolValues> | undefined,
+): RoomListView {
   const ctx = { country: DEFAULT_COUNTRY };
   let wallPaint = false;
   const works = entries.flatMap((entry): ListWork[] => {
     const tool = tools.find((t) => t.id === entry.tool);
     if (!tool) return [];
-    const module = getToolModule(entry.tool);
+    const module = moduleOf(entry.tool);
+    if (!module) return [];
     const parsed = module.input.safeParse(applyRoom({ ...module.defaults(ctx), ...entry.input }, room, tool.fields));
     if (!parsed.success) return [];
     if (entry.tool === "kraska" && (parsed.data as { surface?: string }).surface !== "ceiling") wallPaint = true;
@@ -57,13 +57,4 @@ export function buildList(entries: readonly ListEntry[], room: RoomDraft | null)
   });
   const conflicts: RoomListView["conflicts"] = wallPaint && inList.has("oboi") ? ["walls_twice"] : [];
   return { works, items: mergeItems(items), next, conflicts };
-}
-
-/** Title and photo of an item key from any tool that sells it. */
-export function itemDef(key: string) {
-  for (const tool of tools) {
-    const def = tool.items?.[key];
-    if (def) return def;
-  }
-  return undefined;
 }
