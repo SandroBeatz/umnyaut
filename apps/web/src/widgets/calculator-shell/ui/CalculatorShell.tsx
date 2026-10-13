@@ -190,7 +190,7 @@ export function CalculatorShell({ category, toolId, checkedAt, sources, module }
         room={roomDimensions(room, unitLabels.m)}
         getUrl={getUrl}
       />
-      <StickyResultBar text={view.short} visible={!panelVisible} />
+      <StickyResultBar text={view.short} visible={!panelVisible} inEstimate={current?.addedAt !== undefined} />
     </>
   );
 }

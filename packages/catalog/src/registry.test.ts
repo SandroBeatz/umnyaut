@@ -8,6 +8,7 @@ import {
 } from "@umnyaut/calc";
 import { describe, expect, it } from "vitest";
 import { type CategoryDef, categories, reservedSegments } from "./categories";
+import { roomSuggestions, workOrder } from "./estimate";
 import { norms } from "./norms";
 import { toolPath } from "./paths";
 import { activeCategories, getTool, sharedItems, tools } from "./registry";
@@ -175,5 +176,18 @@ describe("validateRegistry", () => {
       "norm x.y: checkedAt must be YYYY-MM-DD",
       "norm x.y: value is not a number",
     ]);
+  });
+});
+
+describe("estimate page data", () => {
+  it("orders every tool once", () => {
+    expect([...workOrder].sort()).toEqual(tools.map((t) => t.id).sort());
+  });
+
+  it("suggests live tools with purchase items, three per room type", () => {
+    for (const ids of Object.values(roomSuggestions)) {
+      expect(ids).toHaveLength(3);
+      for (const id of ids) expect(tools.find((t) => t.id === id && t.status === "live" && t.items)).toBeDefined();
+    }
   });
 });

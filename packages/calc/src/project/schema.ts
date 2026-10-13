@@ -60,7 +60,7 @@ const projectDataV1Schema = z.object({
 });
 
 /** Limits of one estimate (spec «Данные и хранение»). */
-export const ESTIMATE_LIMITS = { rooms: 20, calcs: 60, name: 40, label: 40, openings: 20 } as const;
+export const ESTIMATE_LIMITS = { rooms: 20, calcs: 60, name: 40, estimateName: 80, label: 40, openings: 20 } as const;
 
 /** Room types; a type only suggests what to count next, it never changes a formula. */
 export const roomTypeSchema = z.enum(["living", "bedroom", "kitchen", "bathroom", "hall", "other"]);
@@ -126,7 +126,7 @@ export const projectDataSchema = z
   .object({
     schemaVersion: z.literal(2),
     id,
-    name: z.string().check(z.maxLength(80)),
+    name: z.string().check(z.maxLength(ESTIMATE_LIMITS.estimateName)),
     country: countrySchema,
     rooms: z.array(estimateRoomSchema).check(z.maxLength(ESTIMATE_LIMITS.rooms)),
     calcs: z.array(estimateCalcSchema).check(z.maxLength(ESTIMATE_LIMITS.calcs)),

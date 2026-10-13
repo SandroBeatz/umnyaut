@@ -49,6 +49,12 @@ export function createEstimate(id: string, now: number): Estimate {
   };
 }
 
+/** The estimate's own name (spec «Смета»: the pencil by the title); an empty one goes back to the default. */
+export function renameEstimate(estimate: Estimate, name: string, now: number): Estimate {
+  const next = name.trim().slice(0, ESTIMATE_LIMITS.estimateName) || shell.estimate.name;
+  return next === estimate.name ? estimate : { ...estimate, name: next, updatedAt: now };
+}
+
 /** «Комната N» by the room's place in the estimate; when that name is taken, the first free number. */
 export function freeRoomName(rooms: readonly EstimateRoom[]): string {
   const names = new Set(rooms.map((r) => r.name));

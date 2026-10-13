@@ -272,7 +272,7 @@ export const shell = {
     send: "Отправить",
     soon: "Отправка заработает в ближайшем обновлении. Спасибо, что заметили",
   },
-  sticky: { toResult: "К результату" },
+  sticky: { toResult: "К результату", toEstimate: "К смете" },
   print: {
     heading: "Список покупок",
     item: "Позиция",

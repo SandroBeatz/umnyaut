@@ -13,11 +13,22 @@ const app = join(web, ".next/server/app");
 const SKIP = /^(_not-found|_global-error)\.html$/;
 const TEXT = new Set(["/metodika/", "/o-proekte/", "/politika/", "/kontakty/", "/partneram/"]);
 
-/** KB gzip per page type, decided by the owner on 2026-10-11 (development plan, open question 12). */
-const BUDGET_KB = { text: 165, category: 195, home: 220, tool: 250 };
+/**
+ * KB gzip per page type, decided by the owner on 2026-10-11 (development plan, open question 12); the estimate page
+ * (P17.11) added with its measured size and some room. Calculator modules it loads on demand are not counted.
+ */
+const BUDGET_KB = { text: 165, category: 195, home: 220, tool: 250, estimate: 230 };
 
 const kindOf = (route) =>
-  route === "/" ? "home" : TEXT.has(route) ? "text" : route.split("/").length > 3 ? "tool" : "category";
+  route === "/"
+    ? "home"
+    : route === "/smeta/"
+      ? "estimate"
+      : TEXT.has(route)
+        ? "text"
+        : route.split("/").length > 3
+          ? "tool"
+          : "category";
 
 function pages(dir) {
   return readdirSync(dir).flatMap((name) => {

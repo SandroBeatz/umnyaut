@@ -1,19 +1,16 @@
 "use client";
 
-import type { ToolId, ToolModule } from "@umnyaut/calc";
-import { tools } from "@umnyaut/catalog";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useEstimateStore } from "@/entities/estimate";
-import { loadToolModule, type ToolValues } from "@/entities/tool";
-import { computeEstimate, type SharedItemView, sharedOf, totalsOf } from "../model/compute";
+import { computeEstimate, type SharedItemView, sharedOf } from "../model/compute";
+import { saveTotals } from "../model/save";
+import { useToolModules } from "../model/useToolModules";
 
 export interface EstimateSyncProps {
   /** The calculator's open calc: its share of the shared consumables is reported. */
   calcId: string | undefined;
   onShared(shared: Readonly<Record<string, SharedItemView>> | undefined): void;
 }
-
-const known = new Set<string>(tools.map((t) => t.id));
 
 /**
  * Keeps the estimate counted while a calculator is open (spec Р3, P17.10): loads the calculators of the estimate's
@@ -22,28 +19,11 @@ const known = new Set<string>(tools.map((t) => t.id));
  */
 export default function EstimateSync({ calcId, onShared }: EstimateSyncProps) {
   const estimate = useEstimateStore((s) => s.estimate);
-  const [modules, setModules] = useState<ReadonlyMap<string, ToolModule<ToolValues>>>(() => new Map());
+  const moduleOf = useToolModules(estimate?.calcs.map((c) => c.tool) ?? []);
 
   useEffect(() => {
-    const missing = [...new Set(estimate?.calcs.map((c) => c.tool) ?? [])].filter(
-      (id) => known.has(id) && !modules.has(id),
-    );
-    if (missing.length === 0) return;
-    let live = true;
-    void Promise.all(missing.map(async (id) => [id, await loadToolModule(id as ToolId)] as const)).then((loaded) => {
-      if (live) setModules((now) => new Map([...now, ...loaded]));
-    });
-    return () => {
-      live = false;
-    };
-  }, [estimate, modules]);
-
-  useEffect(() => {
-    if (!estimate || estimate.calcs.some((c) => known.has(c.tool) && !modules.has(c.tool))) return;
-    const moduleOf = (id: ToolId) => modules.get(id);
-    const totals = totalsOf(computeEstimate(estimate, moduleOf, (c) => c.addedAt !== undefined));
-    const { at: _, ...stored } = estimate.totals ?? { at: 0 };
-    if (JSON.stringify(stored) !== JSON.stringify(totals)) useEstimateStore.getState().setTotals(totals);
+    if (!estimate || !moduleOf) return;
+    saveTotals(computeEstimate(estimate, moduleOf, (c) => c.addedAt !== undefined));
     if (!calcId) {
       onShared(undefined);
       return;
@@ -51,7 +31,7 @@ export default function EstimateSync({ calcId, onShared }: EstimateSyncProps) {
     // The open calc counts here even below the threshold: it shows what it would buy with the estimate.
     const view = computeEstimate(estimate, moduleOf, (c) => c.addedAt !== undefined || c.id === calcId);
     onShared(sharedOf(view, estimate, calcId));
-  }, [estimate, modules, calcId, onShared]);
+  }, [estimate, moduleOf, calcId, onShared]);
 
   return null;
 }

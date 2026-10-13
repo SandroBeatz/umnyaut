@@ -25,6 +25,7 @@ interface EstimateState {
   /** The last removed calc, for «Вернуть». */
   removed: ops.Removed | null;
 
+  rename(name: string): void;
   /** The room-bound part of a tool's input → the active room (created when there is none). */
   patchActiveRoom(patch: ops.RoomGeometry): void;
   clearActiveRoom(): void;
@@ -67,6 +68,7 @@ export const useEstimateStore = create<EstimateState>()(
         estimate: null,
         removed: null,
 
+        rename: (name) => apply((e, now) => ops.renameEstimate(e, name, now)),
         patchActiveRoom: (patch) =>
           set(({ estimate }) => ({ estimate: ops.patchActiveRoom(estimate, patch, Date.now(), newId) })),
         clearActiveRoom: () =>
