@@ -57,19 +57,54 @@ export const golden: GoldenFile<PlitkaInput> = {
       },
     },
     {
+      name: "Primer under the floor tile, mockup room: one 10 l canister",
+      input: {},
+      expected: { items: { primer: { packs: 1, need: 2.967, leftover: 7.033 } } },
+      source: {
+        kind: "manual",
+        ref: "Пол 4,6 × 4,3 = 19,78 м² × 0,15 л/м² = 2,967 л → 1 канистра 10 л. Ceresit CT 17 PRO: грунтовка впитывающих оснований под плитку, 0,1–0,2 л/м² за слой, https://www.ceresit.ru/ru/products/tiling/supplementary-materials/ct_17_pro/",
+      },
+    },
+    {
+      name: "Primer under wall tile, 5 l canisters: two",
+      input: { surface: "walls", primerPackL: 5 },
+      expected: { items: { primer: { packs: 2, need: 6.717, leftover: 3.283 } } },
+      source: {
+        kind: "manual",
+        ref: "Стены 17,8 × 2,7 = 48,06 − дверь 0,8 × 2 − окно 1,2 × 1,4 = 44,78 м² × 0,15 = 6,717 л → 2 канистры по 5 л, останется 3,283 л (Ceresit CT 17 PRO, 0,1–0,2 л/м²)",
+      },
+    },
+    {
+      name: "Primer switched off: no primer to buy",
+      input: { primer: false },
+      expected: { items: { tile: { packs: 22 } }, absentItems: ["primer"] },
+      source: {
+        kind: "manual",
+        ref: "«Грунтовать основание» выключено — грунтовку не берём; плитка та же, 22 коробки",
+      },
+    },
+    {
       name: "Room fits whole tiles exactly",
       // No openings: the example window (1.55 m from the corner) would not fit this 2.1 m wall and warn.
       input: { lengthMm: 3027, widthMm: 2118, openings: [] },
-      expected: { items: { tile: { packs: 7, need: 77 } }, summary: { whole: 70, cut: 0 }, warnings: [] },
+      expected: {
+        items: { tile: { packs: 7, need: 77 } },
+        summary: { whole: 70, cut: 0 },
+        warnings: ["primer_small_need"],
+      },
       source: {
         kind: "manual",
-        ref: "10 × 300 + 9 × 3 = 3027, 7 × 300 + 6 × 3 = 2118 — 70 целых без подрезки × 1,1 = 77 / 12 → 7",
+        ref: "10 × 300 + 9 × 3 = 3027, 7 × 300 + 6 × 3 = 2118 — 70 целых без подрезки × 1,1 = 77 / 12 → 7. Подсказок о раскладке нет; грунтовки 6,41 × 0,15 = 0,96 л на канистру 10 л — подсказка взять 1 л (v4)",
       },
     },
     {
       name: "A 3 mm rest at the far wall is a gap, not a cut row (v2)",
       input: { lengthMm: 3033, widthMm: 2118, openings: [] },
-      expected: { items: { tile: { packs: 7, need: 77 } }, summary: { whole: 70, cut: 0 }, warnings: [] },
+      expected: {
+        items: { tile: { packs: 7, need: 77 } },
+        summary: { whole: 70, cut: 0 },
+        warnings: ["primer_small_need"],
+      },
       source: {
         kind: "manual",
         ref: "10 × 300 + 9 × 3 = 3027; остаётся 6 мм — шов у плитки и 3 мм у стены, резать нечего: 70 целых × 1,1 = 77 / 12 → 7. В v1 это было 7 подрезанных плиток по 3 мм и 85 штук",

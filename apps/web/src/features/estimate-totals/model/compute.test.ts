@@ -53,7 +53,7 @@ describe("estimate totals", () => {
       sum: tiles * 1650 + (glue?.item.packs ?? 0) * 520,
     });
     const shared = sharedOf(added, estimate, "c1");
-    expect(Object.keys(shared).sort()).toEqual(["grout", "tile-adhesive"]);
+    expect(Object.keys(shared).sort()).toEqual(["grout", "primer", "tile-adhesive"]);
     expect(shared["tile-adhesive"]?.share).toMatch(/^Ванная: [\d,]+\sкг$/);
     expect(shared["tile-adhesive"]?.total).toMatch(new RegExp(`^${glue?.item.packs}\\s`));
     if ((glue?.savedPacks ?? 0) > 0) expect(shared["tile-adhesive"]?.saving).toContain("общий с «Кухня»");

@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-13
 
+- **P17.6** Primer under the tile (spec Р7): toggle «Грунтовать основание» (on by default), rate 0,15 л/м² and canister 10 л like wallpaper and paint, one coat over the tiled area — the same `primer` product, so the estimate merges it with the wallpaper's and paint's primer. Norm `primer.consumption` rechecked on Ceresit CT 17 (0,1–0,2 л/м² per coat, under tiles too; strongly absorbent bases twice — in the field hint). Tile **v4**; 3 goldens added (floor 1 × 10 л, walls 2 × 5 л, primer off), 2 small-floor goldens now expect the «take 1 л» hint.
+  - Where: `feature/p17-a-estimate-model` · PR #173
+  - Notes: non-absorbent bases (old tile) need a contact primer (Бетонконтакт CT 19 / CN 94) — left for a later version. Release check and `formula-reviewer` after P17.5.
+
 - **P17.4** Consumable variants (spec Р17–Р19, owner's answers 2026-10-13). «Класс клея» C1 / C1T / C2TE / C2TE S1 / C2 S2 (default C1T) in tile and adhesive, «Цвет затирки» — 8 colours and «Свой цвет» with a name field — in tile and grout, «Тип обоев» in wallpaper → the item's `variant`, so the estimate merges only the same product and titles read «Плиточный клей C1T», «Затирка жасмин», «Обойный клей для бумажных обоев» (`itemTitle`, `ItemDef.variants`). New in the catalog: a `text` field kind, select options that `fills` other fields, validation that fills name real fields and that an item's variant titles agree across tools. Adhesive, grout and tile numbers unchanged (goldens as they were, no version bump).
   - Where: `feature/p17-a-estimate-model` · PR #173
   - Deviation: wallpaper paste does depend on the type (Metylan datasheets), so wallpaper is **v5**: non-woven 42 m² per 300 g, heavy 36, paper 35 per 250 g of a paper paste (norms `wallpaperPaste.coverage.*`, sources S25, S26) instead of the unconfirmed 30 m² per 250 g; the type fills the editable coverage field. 4 goldens updated, 3 added (40 m² of walls: 1 / 2 / 2 packs). Tool pages at 249.9 of 250 KB.

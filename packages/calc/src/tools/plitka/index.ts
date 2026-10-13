@@ -64,6 +64,10 @@ const input = z.object({
   adhesiveClass: z.enum(["C1", "C1T", "C2TE", "C2TE-S1", "C2-S2"]),
   groutColor: z.enum(["white", "light-grey", "grey", "graphite", "anthracite", "beige", "brown", "black", "custom"]),
   groutColorName: z.string().check(z.maxLength(30)),
+  /** Primer under the tile, one coat over the tiled area (norm `primer.consumption`), as in wallpaper and paint. */
+  primer: z.boolean(),
+  primerRateLPerM2: z.number().check(z.minimum(0.05), z.maximum(1)),
+  primerPackL: z.number().check(z.minimum(0.5), z.maximum(50)),
   /** Grout depth = tile thickness. */
   tileThicknessMm: z.number().check(z.minimum(3), z.maximum(30)),
 });
@@ -298,13 +302,14 @@ function wallsScheme(
  * Tile by piece count (Kerama Marazzi): a grid from a corner or from the centre over the floor or each wall;
  * every cut piece takes a tile; whole tiles inside doors and windows are left out (cut tiles around them are
  * kept — safe side). Tiles × (1 + reserve), rounded up to whole tiles; boxes via `ceilPacks`. Diagonal: area /
- * tile area × 1,15. Rectangular room.
+ * tile area × 1,15. Rectangular room. Adhesive, grout and primer over the same area come along.
  */
 export const plitka: ToolModule<PlitkaInput> = {
   id: "plitka",
   // 2: from a corner, a rest no wider than a joint is a gap at the wall, not a cut tile.
   // 3: walls with every door and window placed are counted tile by tile around them.
-  version: 3,
+  // 4: primer under the tile, one coat over the tiled area (Ceresit CT 17: 0,1–0,2 л/м², norm 0,15).
+  version: 4,
   input,
   defaults: () => ({
     surface: "floor",
@@ -332,6 +337,9 @@ export const plitka: ToolModule<PlitkaInput> = {
     adhesiveClass: "C1T",
     groutColor: "white",
     groutColorName: "",
+    primer: true,
+    primerRateLPerM2: 0.15,
+    primerPackL: 10,
     tileThicknessMm: 8,
   }),
   compute(i): ToolResult {
@@ -476,6 +484,24 @@ export const plitka: ToolModule<PlitkaInput> = {
       related.push(...fill.items.map((it) => ({ ...it, role: "related" as const })));
       const kg = fill.items.reduce((n, it) => n + it.need.value, 0);
       steps.push({ code: "grout", values: { kg, packs: fill.items.reduce((n, it) => n + it.packs, 0) } });
+    }
+
+    if (i.primer) {
+      const litres = areaM2 * i.primerRateLPerM2;
+      const primer = purchase(
+        "primer",
+        "related",
+        { value: litres, unit: "l" },
+        { kind: "canister", size: { value: i.primerPackL, unit: "l" } },
+      );
+      related.push(primer);
+      if (primer.leftover.value > 4 * litres) {
+        warnings.push({ code: "primer_small_need", level: "info", values: { need: litres, size: i.primerPackL } });
+      }
+      steps.push({
+        code: "primer",
+        values: { area: areaM2, rate: i.primerRateLPerM2, litres, packs: primer.packs, size: i.primerPackL },
+      });
     }
 
     return {

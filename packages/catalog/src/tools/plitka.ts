@@ -158,6 +158,28 @@ export const plitka: ToolDef = {
       label: "Название цвета",
       when: { grout: true, groutColor: "custom" },
     },
+    { kind: "toggle", name: "primer", label: "Грунтовать основание" },
+    {
+      kind: "number",
+      min: 0.05,
+      max: 1,
+      step: 0.01,
+      unit: "л/м²",
+      name: "primerRateLPerM2",
+      label: "Расход грунтовки",
+      hint: "На канистре: 0,1–0,2 л/м²; бетон и газобетон — в два слоя",
+      when: { primer: true },
+    },
+    {
+      kind: "number",
+      min: 0.5,
+      max: 50,
+      step: 0.5,
+      unit: "л",
+      name: "primerPackL",
+      label: "Объём канистры",
+      when: { primer: true },
+    },
     {
       kind: "number",
       min: 3,
@@ -171,6 +193,7 @@ export const plitka: ToolDef = {
     { kind: "price", item: "tile", name: "price_tile", label: "Цена коробки" },
     { kind: "price", item: "tile-adhesive", name: "price_tile-adhesive", label: "Цена мешка клея" },
     { kind: "price", item: "grout", name: "price_grout", label: "Цена упаковки затирки" },
+    { kind: "price", item: "primer", name: "price_primer", label: "Цена канистры грунтовки" },
   ],
   presets: [
     { id: "t20", label: "20 × 20", values: { tileLengthMm: 200, tileWidthMm: 200, tilesPerBox: 25 } },
@@ -189,6 +212,7 @@ export const plitka: ToolDef = {
       variants: variantTitles(adhesiveClasses),
     },
     grout: { title: "Затирка", photo: "grout", shared: true, variants: variantTitles(groutColors) },
+    primer: { title: "Грунтовка", photo: "primer", shared: true },
   },
   summary: {
     tiles: "Плиток с запасом",
@@ -209,14 +233,24 @@ export const plitka: ToolDef = {
     boxes: "Коробок по {perBox} шт.: {tiles} / {perBox} → {boxes}",
     adhesive: "Клей — как в калькуляторе клея для этой плитки: {kg} кг, мешков {bags}",
     grout: "Затирка — как в калькуляторе затирки для этого шва и толщины: {kg} кг, упаковок {packs}",
+    primer: "Грунтовка = {area} × {rate} л/м² = {litres} л → {packs} × {size} л",
   },
   warnings: {
     cut_too_large: "Вырез не меньше самой комнаты — считаем её прямоугольной. Проверьте размеры выреза",
     openings_exceed_walls: "Окна и двери больше площади стен. Проверьте их размеры",
     narrow_cut: "У края выйдет узкая подрезка {cut} см. Попробуйте раскладку от центра",
     opening_off_wall: "Проёмов не помещается на своей стене: {count}. Проверьте отступ от угла на плане",
+    primer_small_need:
+      "Грунтовки нужно всего {need} л, а канистра {size} л. Посмотрите упаковку 1 л — поле «Объём канистры»",
     window_above_ceiling:
       "Окон выше потолка: {count} — высота от пола плюс высота окна больше высоты стен. Считаем окно под самым потолком; проверьте высоты на плане",
   },
-  norms: ["tile.reserve", "tile.reserve.diagonal", "tile.perBox", "tile.joint.floor", "tile.joint.wall"],
+  norms: [
+    "tile.reserve",
+    "tile.reserve.diagonal",
+    "tile.perBox",
+    "tile.joint.floor",
+    "tile.joint.wall",
+    "primer.consumption",
+  ],
 };
