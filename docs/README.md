@@ -48,11 +48,11 @@ UmnyAut («Умняут») — a connected renovation calculator: enter room dim
 | [Environments and CI/CD](./deploy/environments-and-ci.md) | 1.5 |
 | [Prod Server Runbook](./deploy/prod-server-runbook.md) | 1.1 |
 | [Engineering Practices](./practices/engineering-practices.md) | 1.1 |
-| [Development Plan](./plan/development-plan.md) | 2.8 |
+| [Development Plan](./plan/development-plan.md) | 2.9 |
 | [Accounts and Services](./plan/accounts-and-services.md) | 1.1 |
 | [Dependencies](./plan/dependencies.md) | 1.3 |
 | [Content and Assets Plan](./plan/content-plan.md) | 1.2 |
-| [Progress Log](./plan/progress-log.md) | 1.6 |
+| [Progress Log](./plan/progress-log.md) | 1.7 |
 
 ## Skill specifications
 

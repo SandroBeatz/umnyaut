@@ -1,12 +1,12 @@
 ---
-version: 1.6
-date: 2026-10-12
+version: 1.7
+date: 2026-10-13
 category: plan
 ---
 
 # Progress Log
 
-> Version 1.6 · 2026-10-12 · [Plan](../plan/)
+> Version 1.7 · 2026-10-13 · [Plan](../plan/)
 
 ## Overview
 
@@ -39,6 +39,12 @@ Each entry:
 - **Where** — short commit SHA (7 chars), PR number, and the environment it reached (`staging`, `prod`, `Vercel`).
 
 ## Log
+
+### 2026-10-13
+
+- **—** Rooms and estimate: the owner's new RU spec analysed against the code and the mockups («Комнаты и смета» boards); decisions Р1–Р15 agreed (product key with variant for shared consumables, shared prices in the estimate, cached totals for the header, adding to the estimate by a threshold, no-CLS room row, surfaces for v1, primer in tile, no niches in v1, existing `Opening` schema, reset of geometry-bound params, scoped adhesive/grout replacement, time-zone country in the footer, print as PDF, `#` link until Supabase, the estimate replaces the planner). Spec rewritten as v2 with the implementation plan; **Phase 17** (P17.1–P17.18) added to the plan; Phase 11 marked replaced, notes on P7.6, P14.5, P16.9; open question 13.
+  - Where: `docs/rooms-and-estimate`
+  - Notes: owner to supply adhesive types, grout colours, wallpaper types, room type → tools; primer norm source (C01).
 
 ### 2026-10-12
 
