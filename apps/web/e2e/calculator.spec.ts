@@ -547,3 +547,16 @@ test("pack price gives a total and «без N позиций» for items without
   await expect(page.locator("#result").getByText(/Итого 18\s000/)).toBeVisible();
   await expect(page.locator("#result").getByText(/без 1 позиции/)).toBeVisible();
 });
+
+test("tile on «Пол и стены»: one calc for both, one box count, the estimate says so", async ({ page }) => {
+  await page.goto(TILE);
+  await page.getByRole("button", { name: "Что облицовываем" }).click();
+  await page.getByRole("radio", { name: "Пол и стены" }).click();
+  // Floor 240 + walls 534 pieces × 1,1 = 852 tiles → 71 boxes of 12.
+  await expect(result(page)).toHaveText("71");
+  await page.getByRole("button", { name: "Добавить в смету" }).click();
+  // Both surfaces are taken: nothing left for «+ Ещё».
+  await expect(page.getByRole("button", { name: /^Ещё расчёт/ })).toHaveCount(0);
+  await page.goto("/smeta/");
+  await expect(page.locator("[data-calc-row]", { hasText: "Плитка" })).toContainText("пол и стены");
+});

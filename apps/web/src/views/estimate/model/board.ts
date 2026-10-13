@@ -8,6 +8,7 @@ import {
 } from "@umnyaut/calc";
 import {
   estimatePage,
+  itemDef,
   itemTitle,
   roomSuggestions,
   shell,
@@ -113,12 +114,12 @@ function rowOf(calc: Estimate["calcs"][number], lines: readonly EstimateLine[], 
     others.length === 1 && others[0]
       ? [
           fill(t.withItem, {
-            item: itemTitle(others[0].first, tool).toLowerCase(),
+            item: itemTitle(others[0].first, tool.items?.[others[0].first.key]).toLowerCase(),
             quantity: purchaseTexts(others[0]).quantity,
           }),
         ]
       : others.length > 1
-        ? [`+ ${others.map((g) => itemTitle(g.first, tool).toLowerCase()).join(", ")}`]
+        ? [`+ ${others.map((g) => itemTitle(g.first, tool.items?.[g.first.key]).toLowerCase()).join(", ")}`]
         : [];
   const caption = [surfaceText(calc), ...(main ? extras : [t.inShared])].filter(Boolean).join(" · ");
   const priced = lines.filter((l) => l.cost !== undefined);
@@ -183,7 +184,7 @@ export function estimateBoard(estimate: Estimate, aggregate: EstimateAggregate, 
     const rooms = listText([...new Set(line.shares.map((s) => roomName(s.roomId)))]);
     return {
       key: line.productKey,
-      title: itemTitle(line.item),
+      title: itemTitle(line.item, itemDef(line.item.key)),
       from: line.savedPacks > 0 ? `${rooms} · ${fill(t.shared.instead, { count: line.separatePacks })}` : rooms,
       quantity: texts.quantity,
       ...(texts.detail ? { detail: texts.detail } : {}),
@@ -192,7 +193,9 @@ export function estimateBoard(estimate: Estimate, aggregate: EstimateAggregate, 
   });
 
   const { saved, savedPacks } = aggregate.totals;
-  const savers = [...new Set(aggregate.shared.filter((l) => l.savedPacks > 0).map((l) => itemTitle(l.item)))];
+  const savers = [
+    ...new Set(aggregate.shared.filter((l) => l.savedPacks > 0).map((l) => itemTitle(l.item, itemDef(l.item.key)))),
+  ];
   const items = listText(savers);
   const savedText =
     saved > 0

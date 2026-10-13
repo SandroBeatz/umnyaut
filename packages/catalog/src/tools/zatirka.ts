@@ -23,6 +23,7 @@ export const zatirka: ToolDef = {
       options: [
         { value: "floor", label: "Пол" },
         { value: "walls", label: "Стены" },
+        { value: "both", label: "Пол и стены" },
       ],
     },
     { kind: "preset", label: "Плитка", presets: ["t10", "t20", "t30", "t60"], main: true },
@@ -34,7 +35,7 @@ export const zatirka: ToolDef = {
       name: "heightMm",
       label: "Высота стен",
       room: "height",
-      when: { surface: "walls" },
+      when: { surface: ["walls", "both"] },
     },
     {
       kind: "select",
@@ -109,13 +110,14 @@ export const zatirka: ToolDef = {
     { id: "t60", label: "60 × 60", values: { tileLengthMm: 600, tileWidthMm: 600 } },
   ],
   nextSteps: ["klej", "plitka"],
-  surface: { field: "surface", values: { floor: "floor", walls: "walls" } },
+  surface: { field: "surface", values: { floor: "floor", walls: "walls", both: "floor-walls" } },
   items: { grout: { title: "Затирка", photo: "grout", shared: true, variants: variantTitles(groutColors) } },
   summary: { groutKg: "Затирки нужно", rate: "Расход на 1 м²", area: "Площадь облицовки" },
   steps: {
     floor: "Пол = {length} × {width} = {area} м²",
     floor_l: "Пол = {length} × {width} − вырез {cutLength} × {cutWidth} = {area} м²",
     walls: "Стены = {gross} − окна и двери {openings} = {area} м²",
+    both: "Пол и стены = {floor} + {walls} = {area} м²",
     rate: "Расход = ({a} + {b}) / ({a} × {b}) × шов {joint} × глубина {depth} × {density} = {rate} кг/м² (размеры в мм)",
     grout: "Затирка = {area} × {rate} + запас {reserve}% = {kg} кг → упаковок по {pack} кг: {packs}",
   },

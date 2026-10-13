@@ -23,6 +23,7 @@ export const plitka: ToolDef = {
       options: [
         { value: "floor", label: "Пол" },
         { value: "walls", label: "Стены" },
+        { value: "both", label: "Пол и стены" },
       ],
     },
     { kind: "preset", label: "Плитка", presets: ["t20", "t30", "t3060", "t60"], main: true },
@@ -79,7 +80,7 @@ export const plitka: ToolDef = {
       name: "heightMm",
       label: "Высота стен",
       room: "height",
-      when: { surface: "walls" },
+      when: { surface: ["walls", "both"] },
     },
     { kind: "openings", name: "openings", label: "Окна и двери", hint: "Вычитаются, если облицовываем стены" },
     { ...tile, name: "tileLengthMm", label: "Длина плитки", hint: "Вдоль длины комнаты; на стене — по горизонтали" },
@@ -202,7 +203,7 @@ export const plitka: ToolDef = {
     { id: "t60", label: "60 × 60", values: { tileLengthMm: 600, tileWidthMm: 600, tilesPerBox: 4 } },
   ],
   nextSteps: ["klej", "zatirka"],
-  surface: { field: "surface", values: { floor: "floor", walls: "walls" } },
+  surface: { field: "surface", values: { floor: "floor", walls: "walls", both: "floor-walls" } },
   items: {
     tile: { title: "Плитка", photo: "tile" },
     "tile-adhesive": {
@@ -227,6 +228,7 @@ export const plitka: ToolDef = {
       "Двери и окна стоят на плане: {tiles} целых плиток внутри них не берём, {around} у их краёв подрезаем",
     cut_out:
       "В вырезе Г-образной комнаты наверняка лежат {tiles} целых плиток — их не берём; плитки по его краям остаются в расчёте",
+    both: "Пол {floor} м² + стены {walls} м² = {area} м² — одной плиткой, запас и коробки на всё вместе",
     grid: "Раскладка: целых {whole}, подрезанных {cut} — всего {pieces} плиток",
     reserve: "С запасом {pct}% на подрезку и бой: {pieces} → {tiles}",
     diagonal: "Диагональ: {area} м² / {tile} м² + {pct}% = {tiles} плиток",

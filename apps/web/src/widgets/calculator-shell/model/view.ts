@@ -48,7 +48,7 @@ export function describeResult(tool: ToolDef, result: ToolResult, country: Count
   if (mainGroup && mainItem && length !== undefined && mainItem.pack.width) {
     main = {
       key: mainItem.key,
-      title: itemTitle(mainItem, tool),
+      title: itemTitle(mainItem, tool.items?.[mainItem.key]),
       value: number(length),
       unit: unitLabels.m,
       caption: fill(shell.result.running, {
@@ -61,7 +61,7 @@ export function describeResult(tool: ToolDef, result: ToolResult, country: Count
     const leftover = quantity(mainGroup.leftover, mainItem.leftover.unit);
     main = {
       key: mainItem.key,
-      title: itemTitle(mainItem, tool),
+      title: itemTitle(mainItem, tool.items?.[mainItem.key]),
       value: formatNumber(mainGroup.packs),
       unit: plural(mainGroup.packs, forms(packNouns[mainItem.pack.kind])),
       caption: mainGroup.sized
@@ -85,7 +85,7 @@ export function describeResult(tool: ToolDef, result: ToolResult, country: Count
       const { quantity, detail } = purchaseTexts(group);
       return {
         key: group.first.key,
-        title: itemTitle(group.first, tool),
+        title: itemTitle(group.first, tool.items?.[group.first.key]),
         quantity,
         ...(detail ? { detail } : {}),
         photo: tool.items?.[group.first.key]?.photo,

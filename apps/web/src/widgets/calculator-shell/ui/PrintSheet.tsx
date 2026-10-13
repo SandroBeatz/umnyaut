@@ -62,7 +62,7 @@ export function PrintSheet({ tool, view, items, room, getUrl }: PrintSheetProps)
               {items.map((item) => (
                 <tr key={item.key}>
                   <td className={cell}>☐</td>
-                  <td className={cell}>{itemTitle(item, tool)}</td>
+                  <td className={cell}>{itemTitle(item, tool.items?.[item.key])}</td>
                   <td className={cell}>{packText(item)}</td>
                   <td className={cell}>{formatNumber(item.packs)}</td>
                   <td className={cell} />

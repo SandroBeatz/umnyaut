@@ -23,6 +23,7 @@ export const klej: ToolDef = {
       options: [
         { value: "floor", label: "Пол" },
         { value: "walls", label: "Стены" },
+        { value: "both", label: "Пол и стены" },
       ],
     },
     { kind: "preset", label: "Плитка", presets: ["t10", "t20", "t30", "t60"], main: true },
@@ -34,7 +35,7 @@ export const klej: ToolDef = {
       name: "heightMm",
       label: "Высота стен",
       room: "height",
-      when: { surface: "walls" },
+      when: { surface: ["walls", "both"] },
     },
     {
       kind: "select",
@@ -118,7 +119,7 @@ export const klej: ToolDef = {
     { id: "t60", label: "60 × 60", values: { tileLengthMm: 600, tileWidthMm: 600 } },
   ],
   nextSteps: ["zatirka", "plitka"],
-  surface: { field: "surface", values: { floor: "floor", walls: "walls" } },
+  surface: { field: "surface", values: { floor: "floor", walls: "walls", both: "floor-walls" } },
   items: {
     "tile-adhesive": {
       title: "Плиточный клей",
@@ -132,6 +133,7 @@ export const klej: ToolDef = {
     floor: "Пол = {length} × {width} = {area} м²",
     floor_l: "Пол = {length} × {width} − вырез {cutLength} × {cutWidth} = {area} м²",
     walls: "Стены = {gross} − окна и двери {openings} = {area} м²",
+    both: "Пол и стены = {floor} + {walls} = {area} м²",
     rate_notch: "Плитка до {side} см — шпатель {notch} мм, расход от {rate} кг/м²",
     rate_layer: "Расход = {perMm} кг/м² на 1 мм × {layer} мм = {rate} кг/м²",
     back_butter: "Слой на плитку {layer} мм × {perMm} = {extra} кг/м²; всего {rate} кг/м²",

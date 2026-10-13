@@ -1,6 +1,6 @@
 import * as z from "zod/mini";
-import { coverage, mm2ToM2, mmToM, openingInputSchema, purchase, wallAreaM2 } from "../../blocks";
-import type { Room, Step, ToolModule, ToolResult, Warning } from "../../types";
+import { coverage, openingInputSchema, purchase, tiledAreaM2 } from "../../blocks";
+import type { Step, ToolModule, ToolResult, Warning } from "../../types";
 
 const length = z.int().check(z.minimum(300), z.maximum(100_000));
 
@@ -8,7 +8,8 @@ const length = z.int().check(z.minimum(300), z.maximum(100_000));
 const opening = openingInputSchema;
 
 const input = z.object({
-  surface: z.enum(["floor", "walls"]),
+  /** `both` — «Пол и стены» with one tile: the two areas summed (P17.5). */
+  surface: z.enum(["floor", "walls", "both"]),
   shape: z.enum(["rect", "l"]),
   lengthMm: length,
   widthMm: length,
@@ -56,7 +57,8 @@ const MAX_JOINT_MM = 10;
  */
 export const zatirka: ToolModule<ZatirkaInput> = {
   id: "zatirka",
-  version: 1,
+  // 2: «Пол и стены» — the floor and the walls with one tile, areas summed.
+  version: 2,
   input,
   defaults: () => ({
     surface: "floor",
@@ -82,36 +84,7 @@ export const zatirka: ToolModule<ZatirkaInput> = {
   compute(i): ToolResult {
     const warnings: Warning[] = [];
     const steps: Step[] = [];
-    let areaM2: number;
-    if (i.surface === "floor") {
-      let l = i.shape === "l" && i.cutLengthMm > 0 && i.cutWidthMm > 0;
-      if (l && (i.cutLengthMm >= i.lengthMm || i.cutWidthMm >= i.widthMm)) {
-        warnings.push({ code: "cut_too_large", level: "warning" });
-        l = false;
-      }
-      areaM2 = mm2ToM2(i.lengthMm * i.widthMm - (l ? i.cutLengthMm * i.cutWidthMm : 0));
-      steps.push(
-        l
-          ? {
-              code: "floor_l",
-              values: {
-                length: mmToM(i.lengthMm),
-                width: mmToM(i.widthMm),
-                cutLength: mmToM(i.cutLengthMm),
-                cutWidth: mmToM(i.cutWidthMm),
-                area: areaM2,
-              },
-            }
-          : { code: "floor", values: { length: mmToM(i.lengthMm), width: mmToM(i.widthMm), area: areaM2 } },
-      );
-    } else {
-      const openings = i.openings.filter((o) => o.count > 0);
-      const room: Room = { shape: "rect", lengthMm: i.lengthMm, widthMm: i.widthMm, heightMm: i.heightMm, openings };
-      const walls = wallAreaM2(room);
-      areaM2 = walls.areaM2;
-      if (walls.openingsExceedWalls) warnings.push({ code: "openings_exceed_walls", level: "warning" });
-      steps.push({ code: "walls", values: { gross: walls.grossM2, openings: walls.openingsM2, area: areaM2 } });
-    }
+    const areaM2 = tiledAreaM2(i, warnings, steps);
     if (!(areaM2 > 0)) return { items: [], summary: [], warnings, steps };
     if (i.jointMm < MIN_JOINT_MM) {
       warnings.push({ code: "joint_too_narrow", level: "warning", values: { joint: i.jointMm, min: MIN_JOINT_MM } });

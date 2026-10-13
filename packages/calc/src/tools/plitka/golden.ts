@@ -9,6 +9,14 @@ const KM =
  * (tile + joint). From the centre: n tiles in the middle, two cuts of (span − n·tile − (n+1)·joint) / 2, the
  * parity with the wider cut. Tiles = whole + one per cut piece, × (1 + reserve), rounded up; boxes = ⌈tiles / box⌉.
  */
+/** Bathroom 2,2 × 1,7 × 2,5 m, door 70 × 200 not placed on the plan (P17.5 «Пол и стены»). */
+const BATH: Partial<PlitkaInput> = {
+  lengthMm: 2200,
+  widthMm: 1700,
+  heightMm: 2500,
+  openings: [{ type: "door", widthMm: 700, heightMm: 2000, count: 1 }],
+};
+
 export const golden: GoldenFile<PlitkaInput> = {
   tool: "plitka",
   examples: [
@@ -269,6 +277,73 @@ export const golden: GoldenFile<PlitkaInput> = {
       input: { price_tile: 1200 } as Partial<PlitkaInput>,
       expected: { costTotal: 26400 },
       source: { kind: "manual", ref: "22 коробки × 1200 = 26 400 ₽; клей и затирка без цены" },
+    },
+    {
+      name: "Floor and walls, bathroom 2.2 × 1.7 × 2.5 m, tile 20 × 20 (v5)",
+      input: { ...BATH, surface: "both", tileLengthMm: 200, tileWidthMm: 200, tilesPerBox: 25 },
+      expected: {
+        items: { tile: { packs: 27, need: 662, leftover: 13 }, "tile-adhesive": { packs: 4, need: 78.624 } },
+        summary: { whole: 494, cut: 107, area: 21.84 },
+      },
+      source: {
+        kind: "manual",
+        ref: `${KM}. Пол от угла: 2200 по 203 — 10 целых и 170, 1700 — 8 целых и 76: 80 целых, 19 подрезанных. Стены 2500 по 203 — 12 рядов и 64 под потолком; стена 2200: 120 целых и 23 подрезанных, стена 1700: 96 и 21 → 432 и 88; дверь не на плане — внутри неё ⌊(700 − 200) / 203⌋ = 2 × ⌊2003 / 203⌋ = 9 = 18 целых не берём: 414. Пол и стены одной плиткой: 494 + 107 = 601 × 1,1 = 661,1 → 662 / 25 → 27 коробок (по отдельности 5 + 23 = 28). Площадь 3,74 + 19,5 − 1,4 = 21,84 м²; клей 21,84 × 3,6 (зуб 8 мм для плитки до 25 см) = 78,624 кг → 4 мешка`,
+      },
+    },
+    {
+      name: "Floor and walls, bathroom, tile 30 × 60 along the length (v5)",
+      input: { ...BATH, surface: "both", tileLengthMm: 600, tileWidthMm: 300, tilesPerBox: 8 },
+      expected: { items: { tile: { packs: 21, need: 165 } }, summary: { whole: 95, cut: 55 } },
+      source: {
+        kind: "manual",
+        ref: `${KM}. Пол: 2200 по 603 — 3 целых и 391, 1700 по 303 — 5 целых и 185: 15 целых, 9 подрезанных. Стены 2500 по 303 — 8 рядов и 76; стена 2200: 3 × 8 = 24 целых, 3 + 8 + 1 = 12 подрезанных; стена 1700 по 603: 2 и 494 — 16 и 11 → 80 и 46; в двери 70 см целой плитки 60 + 0,3 не помещается. 95 + 55 = 150 × 1,1 = 165 / 8 → 21 коробка (по отдельности 4 + 18 = 22)`,
+      },
+    },
+    {
+      name: "Floor and walls of the example room, door and window placed (v5)",
+      input: { surface: "both" },
+      expected: {
+        items: {
+          tile: { packs: 71, need: 852 },
+          "tile-adhesive": { packs: 14, need: 348.624 },
+          grout: { packs: 10, need: 18.180096 },
+          primer: { packs: 1, need: 9.684 },
+        },
+        summary: { whole: 616, cut: 158, area: 64.56 },
+      },
+      source: {
+        kind: "manual",
+        ref: "Пол — как в примере «Floor 4.6 × 4.3 m… (defaults)»: 210 целых и 30 подрезанных; стены — как в «Walls of the example room, door and window placed (v3)»: 406 и 128. 774 × 1,1 = 851,4 → 852 / 12 → 71 коробка (22 + 49 по отдельности — тоже 71). Площадь 19,78 + 44,78 = 64,56 м²: клей 64,56 × (4,2 + 1,2 на плитку) = 348,624 кг → 14 мешков; затирка 64,56 × 0,256 × 1,1 = 18,18 кг → 10 упаковок по 2 кг (по отдельности 3 + 7); грунтовка 64,56 × 0,15 = 9,684 л → 1 канистра",
+      },
+    },
+  ],
+  benchmarks: [
+    {
+      example: "Floor and walls, bathroom 2.2 × 1.7 × 2.5 m, tile 20 × 20 (v5)",
+      site: "Qalculator",
+      url: "https://qalculator.ru/scripts/calc/otdelka-plitka.js",
+      checkedAt: "2026-10-13",
+      observed: { items: { tile: { packs: 25, need: 613 }, "tile-adhesive": { packs: 5, need: 109.2 } } },
+      explanation:
+        "Qalculator «Ванная» (пол + стены до высоты, проёмы вычитаются вручную 1,4 м²) считает площадью: 21,84 × 1,05 подрезки × 1,10 запаса / (0,203 × 0,203) = 612,1 → 613 плиток, 25 коробок. Мы считаем штучно (Kerama Marazzi): каждая подрезанная плитка — целая плитка, 107 подрезок из 601 — поэтому 662 и 27. Клей у Qalculator 5 кг/м² для зуба 8 мм (109,2 кг → 5 мешков), у нас 3,6 кг/м² по техлисту Ceresit CM 11 PRO (78,6 кг → 4)",
+    },
+    {
+      example: "Floor and walls, bathroom, tile 30 × 60 along the length (v5)",
+      site: "Qalculator",
+      url: "https://qalculator.ru/scripts/calc/otdelka-plitka.js",
+      checkedAt: "2026-10-13",
+      observed: { items: { tile: { packs: 18, need: 139 } } },
+      explanation:
+        "Площадью: 21,84 × 1,155 / (0,603 × 0,303) = 138,1 → 139 плиток, 18 коробок по 8. Штучно у крупной плитки подрезок больше доли площади (55 из 150: у стен 76 мм под потолком и 391/494 мм в углах — каждая берёт целую плитку), поэтому 165 и 21",
+    },
+    {
+      example: "Floor and walls of the example room, door and window placed (v5)",
+      site: "Qalculator",
+      url: "https://qalculator.ru/scripts/calc/otdelka-plitka.js",
+      checkedAt: "2026-10-13",
+      observed: { items: { tile: { packs: 68, need: 813 } } },
+      explanation:
+        "Площадью: (19,78 + 48,06 − 3,28) × 1,155 / 0,091809 = 812,2 → 813 плиток, 68 коробок. У нас 774 куска по раскладке (158 подрезанных) × 1,1 = 852, 71 коробка: подрезка 55 и 58 мм у стен пола и 276 мм под потолком по всему периметру — 5 % на подрезку их не покрывают",
     },
   ],
 };

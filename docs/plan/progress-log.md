@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-13
 
+- **P17.5** «Пол и стены» with one tile (spec Р6) in tile, adhesive and grout: surface `both` (→ `floor-walls` in the estimate). Tile counts the floor and the walls each as alone (piece method, schemes as they were), then one reserve and one box count; the scheme card shows the floor plan and the walls unfolded, advice once. Adhesive and grout sum the floor and wall areas (shared block `tiledAreaM2`). The wall height shows for «Стены» and «Пол и стены» (`when` takes a list). Tile **v5**, adhesive **v2**, grout **v2**; goldens: tile +3, adhesive +2, grout +2; fast-check arbitraries include `both`. Qalculator (rule 12) on its «Ванная» mode: grout matches exactly (same Ceresit formula, K 1,6, 10 %); tile 613 / 139 / 813 by area × 1,155 vs our 662 / 165 / 852 by pieces (every cut piece is a tile); adhesive 5 kg/m² for an 8 mm notch vs Ceresit CM 11's 3,6 — explained in the benchmarks.
+  - Where: `feature/p17-a-estimate-model` · PR #173
+  - Notes: the tool page no longer carries the registry of all tools — `CalculatorShell` takes its tool and «Дальше по ремонту» from the server, `itemTitle` takes the item definition: tool pages 250,1 → 237,1 KB. Release check and `formula-reviewer` for stage B next.
+
 - **P17.6** Primer under the tile (spec Р7): toggle «Грунтовать основание» (on by default), rate 0,15 л/м² and canister 10 л like wallpaper and paint, one coat over the tiled area — the same `primer` product, so the estimate merges it with the wallpaper's and paint's primer. Norm `primer.consumption` rechecked on Ceresit CT 17 (0,1–0,2 л/м² per coat, under tiles too; strongly absorbent bases twice — in the field hint). Tile **v4**; 3 goldens added (floor 1 × 10 л, walls 2 × 5 л, primer off), 2 small-floor goldens now expect the «take 1 л» hint.
   - Where: `feature/p17-a-estimate-model` · PR #173
   - Notes: non-absorbent bases (old tile) need a contact primer (Бетонконтакт CT 19 / CN 94) — left for a later version. Release check and `formula-reviewer` after P17.5.

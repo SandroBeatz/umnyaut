@@ -15,7 +15,9 @@ export const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.strin
 /** Fields hidden by `when` don't render and don't count. */
 export function isVisible(field: FieldDef, values: ToolValues): boolean {
   if (!("when" in field) || !field.when) return true;
-  return Object.entries(field.when).every(([key, value]) => values[key] === value);
+  return Object.entries(field.when).every(([key, value]) =>
+    Array.isArray(value) ? value.includes(values[key] as string) : values[key] === value,
+  );
 }
 
 /** Room shape and its L-cut: part of the room, so they stand right under its length and width. */

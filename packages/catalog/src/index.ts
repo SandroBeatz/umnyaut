@@ -13,6 +13,7 @@ export { type CountryConfig, countries, DEFAULT_COUNTRY, getCountry } from "./co
 export { devUi } from "./dev-ui";
 export { estimatePage, roomSuggestions, workOrder } from "./estimate";
 export { type ExampleItem, type HomeWork, home, type MethodIcon } from "./home";
+export { itemTitle } from "./items";
 export { normTitles } from "./norm-titles";
 export { getNorm, type Norm, norms } from "./norms";
 export { toolPath } from "./paths";
@@ -21,7 +22,7 @@ export {
   activeCategories,
   getCategory,
   getTool,
-  itemTitle,
+  itemDef,
   popularTools,
   sharedItems,
   strings,

@@ -1,7 +1,7 @@
 "use client";
 
 import type { BareZone, Opening, ToolModule } from "@umnyaut/calc";
-import { getTool, shell, unitLabels } from "@umnyaut/catalog";
+import { shell, type ToolDef, unitLabels } from "@umnyaut/catalog";
 import { toast } from "@umnyaut/ui";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -39,8 +39,10 @@ const CalcOverlapHint = dynamic(() => import("./Calcs").then((m) => m.CalcOverla
 const LayoutScheme = dynamic(() => import("./LayoutScheme").then((m) => m.LayoutScheme), { ssr: false });
 
 export interface CalculatorShellProps {
-  category: string;
-  toolId: string;
+  /** The tool, looked up on the server: the registry of all tools stays out of the page's JS. */
+  tool: ToolDef;
+  /** «Дальше по ремонту», resolved on the server too. */
+  next: readonly ToolDef[];
   /** YYYY-MM-DD from the content file, for «Проверено …». */
   checkedAt?: string;
   /** Norm sources for «Как посчитано», looked up on the server (`normSources`). */
@@ -53,9 +55,7 @@ export interface CalculatorShellProps {
  * The one component that renders every tool (docs/ui/calculator-shell-and-pages.md). Phone: room, form, result
  * in one column with a sticky result bar; from 1024 px form 5/12 left, result 7/12 right and sticky.
  */
-export function CalculatorShell({ category, toolId, checkedAt, sources, module }: CalculatorShellProps) {
-  const tool = getTool(category, toolId);
-  if (!tool) throw new Error(`Unknown tool ${category}/${toolId}`);
+export function CalculatorShell({ tool, next, checkedAt, sources, module }: CalculatorShellProps) {
   const calc = useCalculator(tool, module);
   const country = useCountry();
   const room = useActiveRoom();
@@ -179,7 +179,7 @@ export function CalculatorShell({ category, toolId, checkedAt, sources, module }
               : {})}
           />
         ) : null}
-        <NextSteps tool={tool} />
+        <NextSteps tool={tool} next={next} />
         <HowCalculated tool={tool} steps={view.steps} checkedAt={checkedAt} sources={sources} />
       </div>
       <PrintSheet

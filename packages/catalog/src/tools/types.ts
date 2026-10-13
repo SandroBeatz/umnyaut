@@ -10,8 +10,11 @@ interface FieldBase {
   /** Shown in the planner's short form. */
   planner?: boolean;
   hint?: string;
-  /** Shown only while other fields have these values, e.g. the cut-out only for `shape: "l"`, a class with a toggle on. */
-  when?: Readonly<Record<string, string | boolean>>;
+  /**
+   * Shown only while other fields have these values, e.g. the cut-out only for `shape: "l"`, a class with a toggle
+   * on; a list — any of them (the wall height for «Стены» and «Пол и стены»).
+   */
+  when?: Readonly<Record<string, string | boolean | readonly string[]>>;
 }
 
 /** Parts of “My room” a field reads and writes. */

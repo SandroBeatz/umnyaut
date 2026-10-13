@@ -9,7 +9,7 @@ import { plintus } from "./tools/plintus";
 import { plitka } from "./tools/plitka";
 import { ploshchadKomnaty } from "./tools/ploshchad-komnaty";
 import { ploshchadSten } from "./tools/ploshchad-sten";
-import type { ToolDef } from "./tools/types";
+import type { ItemDef, ToolDef } from "./tools/types";
 import { zatirka } from "./tools/zatirka";
 
 /** All tools in display order. Routes, sitemap and navigation are generated from this list. */
@@ -35,14 +35,9 @@ export const sharedItems: ReadonlySet<string> = new Set(
   tools.flatMap((t) => Object.entries(t.items ?? {}).flatMap(([key, item]) => (item.shared ? [key] : []))),
 );
 
-/**
- * A purchase item's name with its variant (spec Р1): «Затирка белая», «Плиточный клей C1T», «Обойный клей для
- * бумажных обоев»; a variant the catalog does not list (a colour the user typed) is shown as it is.
- */
-export function itemTitle(item: { key: string; variant?: string | undefined }, tool?: ToolDef): string {
-  const def = tool?.items?.[item.key] ?? tools.find((t) => t.items?.[item.key])?.items?.[item.key];
-  const title = def?.title ?? item.key;
-  return item.variant ? `${title} ${def?.variants?.[item.variant] ?? item.variant}` : title;
+/** An item's display data from whichever tool describes it (the estimate shows items of every tool). */
+export function itemDef(key: string): ItemDef | undefined {
+  return tools.find((t) => t.items?.[key])?.items?.[key];
 }
 
 export function getTool(category: string, id: string): ToolDef | undefined {

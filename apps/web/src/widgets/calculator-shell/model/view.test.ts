@@ -71,8 +71,7 @@ describe("describeResult", () => {
       "RU",
     );
     expect(view.main).toMatchObject({ value: "10", unit: "пачек", caption: `21,3${NBSP}м² · останется 0,9${NBSP}м²` });
-    // An item the tool does not describe takes its name from the tool that does.
-    expect(view.related[0]).toMatchObject({ title: "Подложка", quantity: `2${NBSP}рулона` });
+    expect(view.related[0]).toMatchObject({ title: "underlay", quantity: `2${NBSP}рулона` });
     expect(view.total?.missing).toBe("без 1 позиции");
     expect(view.short).toMatch(/^10\u00a0пачек · 12/);
   });
