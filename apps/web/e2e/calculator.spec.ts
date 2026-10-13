@@ -272,8 +272,9 @@ test("room editor: name, type, an L-shape and a door on the plan reach the calcu
   await type(page, "Длина комнаты", "5");
   await page.getByRole("button", { name: "Форма, окна и двери" }).click();
   const editor = page.getByRole("dialog", { name: "Комната" });
-  await editor.getByRole("textbox", { name: "Название" }).fill("Ванная");
+  // The type names a room the user has not named.
   await editor.getByRole("button", { name: "Ванная", exact: true }).click();
+  await expect(editor.getByRole("textbox", { name: "Название" })).toHaveValue("Ванная");
   await expect(editor.getByRole("button", { name: "Ванная", exact: true })).toHaveAttribute("aria-pressed", "true");
   // 5 × 4,3 = 21,5 м², perimeter 18,6 м, walls 18,6 × 2,7 − 1,6 − 1,68 = 46,94 м².
   await expect(editor.getByText(/^21,5\sм²$/).first()).toBeVisible();

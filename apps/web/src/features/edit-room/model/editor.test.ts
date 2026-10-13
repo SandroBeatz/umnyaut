@@ -1,7 +1,7 @@
 import type { EstimateRoom } from "@umnyaut/calc";
 import { tools } from "@umnyaut/catalog";
 import { describe, expect, it } from "vitest";
-import { formOf, recalcOf, roomOf, totalsOf, wallBoundOf } from "./editor";
+import { formOf, nameForType, recalcOf, roomOf, totalsOf, wallBoundOf } from "./editor";
 
 const door = { type: "door", widthMm: 800, heightMm: 2000, count: 1 } as const;
 const window = { type: "window", widthMm: 1200, heightMm: 1400, count: 1 } as const;
@@ -42,6 +42,15 @@ describe("room editor", () => {
       openings: [door],
     });
     expect(roomOf(formOf({ ...partial, openings: [] }, "", draft)).openings).toEqual([]);
+  });
+
+  it("a type chip names the room unless the user named it: «Спальня», «Спальня 2», back to «Комната 3»", () => {
+    expect(nameForType("bedroom", "Комната 3", "Комната 3", [])).toBe("Спальня");
+    expect(nameForType("bedroom", "", "Комната 3", [])).toBe("Спальня");
+    expect(nameForType("kitchen", "Спальня", "Комната 3", [])).toBe("Кухня");
+    expect(nameForType("bedroom", "Комната 1", "Комната 3", ["Спальня", "Спальня 2"])).toBe("Спальня 3");
+    expect(nameForType("other", "Ванная", "Комната 3", [])).toBe("Комната 3");
+    expect(nameForType("bedroom", "Детская Маши", "Комната 3", [])).toBe("Детская Маши");
   });
 
   it("totals as the area tools count them: floor, perimeter, walls without openings, ceiling", () => {

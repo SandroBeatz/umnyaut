@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-13
 
+- **P17.8 (owner's review)** Room editor: a type chip names a room the user has not named (empty, «Комната N», another type's name) — «Спальня», «Спальня 2» when taken, «Другое» back to «Комната N»; a typed name stays (`nameForType`, tests). The footer no longer clips «Удалить комнату» in the 480 px desktop dialog: «Отмена» · «Сохранить комнату» on one line, delete with its confirmation below. e2e «room editor» checks the name from the type.
+  - Where: `feature/p17-a-estimate-model` · PR #173
+
 - **P17.7 (part 2, done)** Room fields leave the calculator form: sizes, shape, cut-out, doors and windows of every tool now live in the room row and the room editor; the form keeps the material. A page that opens without a room shows length and width (height where the tool counts it — paint, wallpaper, wall area, tile on walls) as compact fields right in the 56 px row (`NumberField` `compact`: caption inside the box, an out-of-range size reddens it and the result says «по прошлым значениям») with a «Форма, окна и двери» button into the editor; the first size creates «Комната 1» silently, the fields stay for the rest of that page view and the next page opens with «[Комната 1 ▾] … · Изменить». The editor starts from what the calculator counts with (`draft`: sizes and the example door and window when the room has none), so the editor and the result agree. e2e moved from the form fields to the row and the editor (`editRoom` helper); unit tests for the row parts and the draft; `pnpm check` and 27 e2e green; JS: tool page 245.8 KB of 250 (watch it), category 190.0.
   - Where: `feature/p17-a-estimate-model` · PR #173
   - Notes: next P17.9 (calcs in a room: chips, «+ Ещё», label, overlaps, remove with undo), then P17.10 (result and the estimate in the calculator).

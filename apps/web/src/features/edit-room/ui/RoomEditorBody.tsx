@@ -10,7 +10,17 @@ import { type RoomGeometry, useEstimateStore } from "@/entities/estimate";
 import { centred, FloorPlan, type PlanOpening } from "@/entities/room";
 import { fill } from "@/shared/lib";
 import { CollapsibleCard, useOpenCards } from "@/shared/ui";
-import { formOf, marksOf, planOf, type RoomForm, recalcOf, roomOf, totalsOf, wallBoundOf } from "../model/editor";
+import {
+  formOf,
+  marksOf,
+  nameForType,
+  planOf,
+  type RoomForm,
+  recalcOf,
+  roomOf,
+  totalsOf,
+  wallBoundOf,
+} from "../model/editor";
 
 const t = shell.roomEditor;
 const o = shell.openings;
@@ -40,6 +50,8 @@ export interface RoomEditorBodyProps {
  */
 export default function RoomEditorBody({ room, draft, newName, onDone }: RoomEditorBodyProps) {
   const calcs = useEstimateStore((s) => s.estimate?.calcs) ?? [];
+  const rooms = useEstimateStore((s) => s.estimate?.rooms);
+  const others = (rooms ?? []).filter((r) => r.id !== room?.id).map((r) => r.name);
   const [form, setForm] = useState<RoomForm>(() => formOf(room, newName, draft));
   const [unit, setUnit] = useState<Unit>("m");
   const [invalid, setInvalid] = useState<ReadonlySet<string>>(() => new Set());
@@ -146,7 +158,7 @@ export default function RoomEditorBody({ room, draft, newName, onDone }: RoomEdi
               key={type}
               type="button"
               aria-pressed={form.type === type}
-              onClick={() => patch({ type })}
+              onClick={() => patch({ type, name: nameForType(type, form.name, newName, others) })}
               className="h-11 rounded-full border border-border px-4 text-small font-medium text-text aria-pressed:border-transparent aria-pressed:bg-primary-soft aria-pressed:font-semibold aria-pressed:text-primary-hover"
             >
               {t.types[type]}
@@ -357,29 +369,33 @@ export default function RoomEditorBody({ room, draft, newName, onDone }: RoomEdi
         </div>
       ) : null}
 
-      <div className="flex flex-col gap-2 border-t border-border pt-4 sm:flex-row-reverse sm:items-center">
-        <Button variant="accent" size="lg" className="sm:flex-1" disabled={invalid.size > 0} onClick={save}>
-          {t.save}
-        </Button>
-        <Button variant="secondary" size="lg" className="sm:flex-1" onClick={onDone}>
-          {t.cancel}
-        </Button>
-        {room ? (
-          <Button
-            variant={confirming ? "danger" : "ghost"}
-            size="lg"
-            className={confirming ? "sm:mr-auto" : "text-danger sm:mr-auto"}
-            onClick={remove}
-          >
-            {confirming ? t.removeYes : t.remove}
+      <div className="flex flex-col gap-3 border-t border-border pt-4">
+        <div className="grid gap-2 sm:grid-cols-[1fr_2fr]">
+          <Button variant="accent" size="lg" className="sm:order-2" disabled={invalid.size > 0} onClick={save}>
+            {t.save}
           </Button>
+          <Button variant="secondary" size="lg" className="sm:order-1" onClick={onDone}>
+            {t.cancel}
+          </Button>
+        </div>
+        {room ? (
+          <div className="flex flex-col items-start gap-2">
+            {confirming ? (
+              <p role="alert" className="text-small text-danger">
+                {fill(t.removeConfirm, { tools: recalc.tools.join(", ") })}
+              </p>
+            ) : null}
+            <Button
+              variant={confirming ? "danger" : "ghost"}
+              size="md"
+              className={confirming ? undefined : "-ml-3 text-danger"}
+              onClick={remove}
+            >
+              {confirming ? t.removeYes : t.remove}
+            </Button>
+          </div>
         ) : null}
       </div>
-      {confirming ? (
-        <p role="alert" className="text-small text-danger">
-          {fill(t.removeConfirm, { tools: recalc.tools.join(", ") })}
-        </p>
-      ) : null}
     </div>
   );
 }

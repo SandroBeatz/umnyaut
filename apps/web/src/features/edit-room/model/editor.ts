@@ -9,7 +9,7 @@ import {
   type RoomType,
   wallAreaM2,
 } from "@umnyaut/calc";
-import type { ToolDef } from "@umnyaut/catalog";
+import { shell, type ToolDef } from "@umnyaut/catalog";
 import { type RoomGeometry, type SavedRoom, wallNumbering } from "@/entities/estimate";
 import { collapse, expand, type PlanOpening, type PlanRoom, planOutline } from "@/entities/room";
 
@@ -148,4 +148,27 @@ export function recalcOf(
       )
     : [];
   return { tools: used.map((t) => t.title), resets };
+}
+
+const TYPES = shell.roomEditor.types;
+const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+/** «Комната 3», «Спальня», «Спальня 2» — names the editor gave, not the user. */
+const AUTO = new RegExp(
+  `^(?:${[shell.estimate.room.replace("{n}", "\\d+"), ...Object.values(TYPES).map((t) => `${escape(t)}(?: \\d+)?`)].join("|")})$`,
+);
+
+/**
+ * The name after a type chip: a name the editor gave (empty, «Комната 3», another type's) becomes the type —
+ * «Спальня», or «Спальня 2» when another room has that name; «Другое» goes back to `fallback`. A name the user
+ * typed stays.
+ */
+export function nameForType(type: RoomType, current: string, fallback: string, others: readonly string[]): string {
+  if (current.trim() !== "" && !AUTO.test(current.trim())) return current;
+  if (type === "other") return fallback;
+  const base = TYPES[type];
+  const taken = new Set(others);
+  if (!taken.has(base)) return base;
+  let n = 2;
+  while (taken.has(`${base} ${n}`)) n++;
+  return `${base} ${n}`;
 }
