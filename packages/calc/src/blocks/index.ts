@@ -52,6 +52,7 @@ export {
   type PlacedOpening,
   type Point,
   placeOpenings,
+  planLayout,
   roomOutline,
   type StartInput,
   startOf,

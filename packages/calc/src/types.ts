@@ -276,7 +276,8 @@ export interface LayoutRoll {
 
 /** Geometry for the single `LayoutScheme` SVG component; text for `guide` codes lives in catalog. */
 export interface Layout {
-  kind: "rows" | "grid" | "strips" | "points" | "outline";
+  /** `plan`: the room plan alone — outline, walls, doors and windows (room area, wall area). */
+  kind: "rows" | "grid" | "strips" | "points" | "outline" | "plan";
   widthMm: number;
   heightMm: number;
   /** Room contour, clockwise from the top-left corner. */

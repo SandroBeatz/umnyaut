@@ -1,5 +1,5 @@
 import * as z from "zod/mini";
-import type { CutCorner, ElevationOpening, LayoutMark, Opening, PlanWall } from "../types";
+import type { CutCorner, ElevationOpening, Layout, LayoutMark, Opening, PlanWall, Step } from "../types";
 
 /**
  * Room plan (docs/ui/room-plan-and-layout-guides.md). Plan frame: x along the room length to the right, y along
@@ -233,4 +233,36 @@ export function wallOpenings(placed: readonly PlacedOpening[], wall: number, hei
         : [window];
     });
   return { openings, defaultSill, aboveCeiling };
+}
+
+/**
+ * The room plan alone (room area, wall area): outline, walls and the placed doors and windows, no pieces. The
+ * guide asks to add or place openings while the plan has none or not all of them; `off` is for the
+ * `opening_off_wall` warning.
+ */
+export function planLayout(outline: Outline, openings: readonly Opening[]): { layout: Layout; off: number } {
+  const { placed, off } = placeOpenings(outline.walls, openings);
+  const total = openings.reduce((n, o) => n + o.count, 0);
+  const guide: Step[] =
+    total === 0
+      ? [{ code: "add_openings", values: {} }]
+      : placed.length < total
+        ? [{ code: "place_openings", values: { count: total - placed.length } }]
+        : [];
+  const xs = outline.points.map(([x]) => x);
+  const ys = outline.points.map(([, y]) => y);
+  return {
+    layout: {
+      kind: "plan",
+      widthMm: Math.max(...xs),
+      heightMm: Math.max(...ys),
+      outline: outline.points,
+      walls: outline.walls,
+      pieces: [],
+      marks: placed.map((p) => p.mark),
+      guide,
+      stats: { whole: 0, cut: 0, reused: 0, wasteM2: 0 },
+    },
+    off,
+  };
 }
