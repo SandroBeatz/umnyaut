@@ -12,11 +12,58 @@ const window = (widthMm: number, heightMm: number, count = 1): Opening => ({
 
 /**
  * Hand derivations: P = 2 × (L + W), walls gross = P × H, openings = Σ w × h × n, net = gross − openings
- * (never below zero), ceiling = L × W.
+ * (never below zero), ceiling = L × W minus the L-shape's cut-out; an L-shape's perimeter is its rectangle's.
  */
 export const golden: GoldenFile<PloshchadStenInput> = {
   tool: "ploshchad-sten",
   examples: [
+    {
+      name: "L-shaped room 4.6 × 4.3 × 2.7 m, cut-out 1.5 × 1.2 m: walls as the rectangle, ceiling smaller",
+      input: { shape: "l", openings: [] },
+      expected: {
+        summary: { wallArea: 48.06, grossWallArea: 48.06, ceilingArea: 17.98, perimeter: 17.8 },
+        warnings: [],
+      },
+      source: {
+        kind: "manual",
+        ref: "Периметр Г-образной = 2 × (4,6 + 4,3) = 17,8 м; 17,8 × 2,7 = 48,06 м²; потолок 4,6 × 4,3 − 1,5 × 1,2 = 19,78 − 1,8 = 17,98 м²",
+      },
+    },
+    {
+      name: "L-shape with the cut-out top left and a door and a window: the corner changes no number",
+      input: { shape: "l", cutCorner: "nw" },
+      expected: { summary: { wallArea: 44.78, grossWallArea: 48.06, ceilingArea: 17.98 }, warnings: [] },
+      source: { kind: "manual", ref: "48,06 − 0,8 × 2 − 1,2 × 1,4 = 44,78 м²; потолок 19,78 − 1,5 × 1,2 = 17,98 м²" },
+    },
+    {
+      name: "Small L-shape 2 × 1.5 × 2.5 m, cut-out 0.6 × 0.5 m",
+      input: {
+        shape: "l",
+        lengthMm: 2000,
+        widthMm: 1500,
+        heightMm: 2500,
+        cutLengthMm: 600,
+        cutWidthMm: 500,
+        openings: [],
+      },
+      expected: { summary: { wallArea: 17.5, ceilingArea: 2.7, perimeter: 7 }, warnings: [] },
+      source: {
+        kind: "manual",
+        ref: "Периметр 2 × 3,5 = 7 м; 7 × 2,5 = 17,5 м²; потолок 2 × 1,5 − 0,6 × 0,5 = 2,7 м²",
+      },
+    },
+    {
+      name: "Cut-out as wide as the room is counted as a rectangle",
+      input: { shape: "l", lengthMm: 4000, widthMm: 3000, cutLengthMm: 1000, cutWidthMm: 3000, openings: [] },
+      expected: {
+        summary: { wallArea: 37.8, ceilingArea: 12 },
+        warnings: ["cut_too_large"],
+      },
+      source: {
+        kind: "manual",
+        ref: "Вырез во всю ширину — не Г-образная: 2 × 7 × 2,7 = 37,8 м²; потолок 4 × 3 = 12 м²",
+      },
+    },
     {
       name: "Mockup room 4.6 × 4.3 × 2.7 m with a door and a window (defaults)",
       input: {},
