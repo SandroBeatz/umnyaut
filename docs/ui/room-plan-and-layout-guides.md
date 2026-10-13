@@ -1,12 +1,12 @@
 ---
-version: 1.4
-date: 2026-10-12
+version: 1.5
+date: 2026-10-13
 category: ui
 ---
 
 # Room Plan, Layout Schemes and Laying Guides
 
-> Version 1.4 · 2026-10-12 · [UI](../ui/)
+> Version 1.5 · 2026-10-13 · [UI](../ui/)
 
 ## Overview
 
@@ -117,7 +117,7 @@ interface LayoutPiece {
 }
 
 interface Layout {
-  kind: "rows" | "grid" | "strips" | "points" | "outline";
+  kind: "rows" | "grid" | "strips" | "points" | "outline" | "plan";
   widthMm: number; heightMm: number;
   outline: readonly (readonly [number, number])[];   // room contour
   walls: readonly PlanWall[];         // clockwise, with the side each faces
@@ -165,7 +165,7 @@ Runs along the outline split by placed doors; corners inner/outer; cut list per 
 
 ### Room area, wall area
 
-`FloorPlan` with dimensions and placed openings, as a picture only (no guide). It is also the room card's picture once positions exist.
+Done 2026-10-13. Both tools return `layout` of kind `plan` from `planLayout(outline, openings)` (`blocks/plan.ts`): the outline, its walls and the placed doors and windows, no pieces; the guide only asks to add openings (`add_openings`) or to place the rest (`place_openings`). The scheme card titles it «План комнаты» with a wall/door/window summary and the plan editor. Room area adds the L-cut corner and a `plan` field (doors and windows do not change the area; they are written to “My room” for the other tools). Wall area takes the room shape so places made on an L-shaped room survive (version 2: the L-shape's ceiling loses its cut-out; walls keep the rectangle's perimeter). The plan in the room card (RoomBar) moved to the room editor, P17.8.
 
 ## Pilot status (2026-10-11)
 
@@ -223,4 +223,5 @@ The plan editor is a form field of kind `plan` (`catalog` → `FieldDef`), bound
 | `packages/calc/src/blocks/cutting.ts` | `planCuts`: the roll cutting plan — strips, parts into rests, guillotine splits, waste |
 | `apps/web/src/widgets/calculator-shell/ui/RollMap.tsx` | One roll of the cutting map as a picture |
 | `apps/web/src/widgets/calculator-shell/ui/WallElevations.tsx` | Wall tiling picture: floor plan for orientation, walls to one scale |
+| `packages/calc/test/layout-plan.test.ts` | Room plan of room area and wall area: outline, L-cut corner, placed openings, places never change areas |
 | `packages/calc/test/layout-rows.test.ts` | Outline, placement, replay = engine board count, pieces fill rows, laminate scheme cases |

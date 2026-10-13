@@ -113,6 +113,15 @@ export const schemeStrings = {
     },
   },
   /** Outline layouts (plinth): planks along the walls. */
+  /** The room plan alone (room area, wall area): walls, doors and windows, no pieces. */
+  plan: {
+    title: "План комнаты",
+    summary: "Стен: {walls} · дверей: {doors} · окон: {windows}",
+    empty: "Стен: {walls} · двери и окна не отмечены",
+    label: "План комнаты: стен {walls}, дверей {doors}, окон {windows}",
+    enlarge: "Открыть план крупно",
+    notes: "Подсказки",
+  },
   runs: {
     summary: "Участков: {runs} · планок: {planks}",
     label: "Схема плинтуса: участков {runs}, планок {planks}",
@@ -132,6 +141,16 @@ export const schemeStrings = {
 } as const;
 
 export const toolGuides: Readonly<Record<string, Readonly<Record<string, string>>>> = {
+  "ploshchad-komnaty": {
+    add_openings: "Добавьте на плане дверь и окна — обои, плитка и плинтус возьмут их отсюда",
+    place_openings:
+      "Отметьте на плане, на какой стене двери и окна (ещё {count} шт.), — обои, плитка и плинтус возьмут их отсюда",
+  },
+  "ploshchad-sten": {
+    add_openings: "Добавьте двери и окна — площадь стен посчитаем без них",
+    place_openings:
+      "Отметьте на плане, на какой стене двери и окна (ещё {count} шт.), — обои и плитка на стены разложатся по ним",
+  },
   laminat: {
     start: "Начните от стены {wall} в углу «Старт»: первый ряд — гребнем к стене, по периметру клинья {gap} мм",
     start_door: "Ряды идут от дальней стены к двери: последний ряд ляжет у входа, по уложенному ходить не придётся",

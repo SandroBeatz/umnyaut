@@ -1,5 +1,14 @@
 import * as z from "zod/mini";
-import { floorAreaM2, mm2ToM2, mmToM, perimeterMm } from "../../blocks";
+import {
+  cutCornerSchema,
+  floorAreaM2,
+  mm2ToM2,
+  mmToM,
+  openingInputSchema,
+  perimeterMm,
+  planLayout,
+  roomOutline,
+} from "../../blocks";
 import type { Room, Step, ToolModule, ToolResult, Warning } from "../../types";
 
 const length = z.int().check(z.minimum(300), z.maximum(100_000));
@@ -12,6 +21,10 @@ const input = z.object({
   /** Corner cut-out of an L-shaped room; ignored for a rectangle. */
   cutLengthMm: z.int().check(z.minimum(0), z.maximum(100_000)),
   cutWidthMm: z.int().check(z.minimum(0), z.maximum(100_000)),
+  /** Where the L-cut sits on the plan. */
+  cutCorner: cutCornerSchema,
+  /** Doors and windows of “My room”: drawn on the plan only, the floor area does not depend on them. */
+  openings: z.readonly(z.array(openingInputSchema).check(z.maxLength(20))),
   /** Niche: adds its area; its two side walls add 2 × depth to the perimeter. */
   nicheLengthMm: optional,
   nicheDepthMm: optional,
@@ -24,7 +37,8 @@ export type PloshchadKomnatyInput = z.infer<typeof input>;
 
 /**
  * Room floor area and perimeter: rectangle, L-shape (rectangle minus a corner cut-out), plus a niche and
- * minus a protrusion. Writes “My room”. No purchase items: the summary is the result.
+ * minus a protrusion. Writes “My room”. No purchase items: the summary is the result, the room plan its picture
+ * (the niche and the protrusion have no place on it).
  */
 export const ploshchadKomnaty: ToolModule<PloshchadKomnatyInput> = {
   id: "ploshchad-komnaty",
@@ -36,6 +50,8 @@ export const ploshchadKomnaty: ToolModule<PloshchadKomnatyInput> = {
     widthMm: 4300,
     cutLengthMm: 1500,
     cutWidthMm: 1200,
+    cutCorner: "se",
+    openings: [],
     nicheLengthMm: 0,
     nicheDepthMm: 0,
     protrusionLengthMm: 0,
@@ -109,6 +125,15 @@ export const ploshchadKomnaty: ToolModule<PloshchadKomnatyInput> = {
       });
     }
 
+    const outline = roomOutline(
+      i.lengthMm,
+      i.widthMm,
+      l ? { lengthMm: i.cutLengthMm, widthMm: i.cutWidthMm } : undefined,
+      i.cutCorner,
+    );
+    const { layout, off } = planLayout(outline, i.openings);
+    if (off > 0) warnings.push({ code: "opening_off_wall", level: "warning", values: { count: off } });
+
     return {
       items: [],
       summary: [
@@ -117,6 +142,7 @@ export const ploshchadKomnaty: ToolModule<PloshchadKomnatyInput> = {
       ],
       warnings,
       steps,
+      layout,
     };
   },
 };

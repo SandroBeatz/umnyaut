@@ -275,6 +275,30 @@ test("laminate scheme: rows from the count, a guide, the door moved on the plan 
   await expect(result(page)).toHaveText("10");
 });
 
+test("room plan: a door placed in wall area shows on the plan and in room area", async ({ page }) => {
+  await page.goto(WALLS);
+  const plan = page.locator("section[aria-labelledby=layout-scheme]");
+  await expect(plan.getByRole("heading", { name: "План комнаты" })).toBeVisible();
+  await expect(plan.getByText("Стен: 4 · двери и окна не отмечены")).toBeVisible();
+  await expect(plan.getByText(/ещё 2 шт\./)).toBeVisible();
+
+  await plan.getByRole("button", { name: "Отметить на плане" }).click();
+  const editor = page.getByRole("dialog");
+  await editor.getByRole("button", { name: /^Дверь ·/ }).click();
+  await editor.getByRole("button", { name: "Стена", exact: true }).first().click();
+  await page.getByRole("radio", { name: "Стена 3" }).click();
+  await editor.getByRole("button", { name: "Готово" }).click();
+  await expect(plan.getByText("Стен: 4 · дверей: 1 · окон: 0")).toBeVisible();
+  await expect(plan.getByText(/ещё 1 шт\./)).toBeVisible();
+  await expect(result(page)).toHaveText("44,78");
+
+  // The door is part of “My room” now: room area draws it too.
+  await page.goto(ROOM);
+  await expect(
+    page.locator("section[aria-labelledby=layout-scheme]").getByText("Стен: 4 · дверей: 1 · окон: 0"),
+  ).toBeVisible();
+});
+
 test("tile walls scheme: four walls unfolded, the window's sill on the plan changes the count", async ({ page }) => {
   await page.goto(`${TILE}?s=${s({ surface: "walls" })}`);
   const scheme = page.locator("section[aria-labelledby=layout-scheme]");

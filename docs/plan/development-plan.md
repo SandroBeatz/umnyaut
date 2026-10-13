@@ -1,12 +1,12 @@
 ---
-version: 2.8
-date: 2026-10-12
+version: 2.9
+date: 2026-10-13
 category: plan
 ---
 
 # Development Plan
 
-> Version 2.8 · 2026-10-12 · [Plan](../plan/)
+> Version 2.9 · 2026-10-13 · [Plan](../plan/)
 
 ## Overview
 
@@ -50,6 +50,7 @@ Product sequencing is **depth before breadth**. Qalculator.ru is the mandatory b
 | 14 | Season: wave 3, variations, master mode, AI, monetization tests | Feb – Apr 2027 | 3 | **Checkpoint M6** |
 | 15 | Scale | May – Oct 2027 | 4 | **Checkpoint M12** |
 | 16 | Room plan, layout schemes, laying guides | Oct 2026 – Jan 2027, parallel to 8–10 | 1–2 | Every wave-1 layout tool has a scheme and a guide (requirement 15) |
+| 17 | Rooms and estimate (replaces 11) | Oct – Nov 2026, after P16.9 | 1–2 | Several rooms, several calcs per room, one estimate with merged shared consumables; scenarios 1–7 green |
 
 ---
 
@@ -258,7 +259,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 - [ ] P7.3 API: `POST/GET/PUT/DELETE /api/projects[/id]`, `POST /api/projects/[id]/copy` (editToken hash, 8-char ids without look-alikes, Zod, envelope, Origin check, limits); `POST /api/reports` (honeypot, 5/h).
 - [ ] P7.4 `app/p/[id]/page.tsx` SSR (owner edit / viewer “Сохранить как свой”, `noindex`, `private, no-store`, “Расчёт обновлён” when tool version changed); preview title from dimensions.
 - [ ] P7.5 `features/save-project` (editToken in localStorage, autosave 2 s debounce, offline state), `features/report-error` wired.
-- [ ] P7.6 `CountryConfig` RU/KZ/BY/KG (C07): currency, locale, price hints; country switch in header/footer; static HTML always RU.
+- [ ] P7.6 `CountryConfig` RU/KZ/BY/KG (C07): currency, locale, price hints; country switch in header/footer; static HTML always RU. → Switch in the footer only, detection by time zone stays (rooms-and-estimate spec, Р12).
 - [ ] P7.7 API tests against local Supabase; Playwright “save and open project”, “report error”.
 
 **Exit gate:** a project saved on a phone opens on a laptop; limits return 429; `/p/*` not indexable.
@@ -338,6 +339,8 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 ## Phase 11 — Renovation planner v1 (8 Dec – 14 Jan)
 
+> **Replaced by [Phase 17](#phase-17--rooms-and-estimate-oct--nov-2026)** (owner, 2026-10-13): the estimate replaces the four-step planner and «Мои расчёты». P11.2, P11.3, P11.5, P11.6 are dropped; P11.1 (order rough → finish) moves to P17.11; P11.4 (return metric) and P11.7 stay for when Supabase arrives.
+
 **Goal:** room → works → materials → merged shopping list, saved by link.
 
 **Needs:** C21, G11 (`measure`, `empty`). **Install:** nothing new.
@@ -410,7 +413,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 - [ ] P14.2 Variations by the 3-condition rule (`[variant]` route, frontmatter guard).
 - [ ] P14.3 Light master mode: `MasterSheet` (work lines, `qtyFrom` room measures, header), client view on `/p/<id>`, print estimate; 5–10 master interviews; go/no-go metric (≥ 10% projects with work lines + ≥ 3 ready to pay).
 - [ ] P14.4 AI: migration `ai_usage`; `VisionProvider` (Gemini API via relay `GEMINI_BASE_URL`; verify current model ids and prices: fast = Flash-Lite, accurate = Flash); limits, monthly budget, kill switch; test set 30 labels + 10 plans, ≥ 90% field accuracy gate; label photo (site + bot), plan photo, text description; confirmation screen; mascot `think`, `camera`.
-- [ ] P14.5 Planner v2: multiple rooms, polygon contour, wave‑2 works, CSV + PDF (print layout).
+- [ ] P14.5 Planner v2: multiple rooms, polygon contour, wave‑2 works, CSV + PDF (print layout). → Multiple rooms moved to Phase 17 (owner, 2026-10-13); polygon contour, wave-2 works and CSV stay here.
 - [ ] P14.6 Monetization tests on top‑3 pages: РСЯ/AdSense in `AdSlot` (consent category, ≤ 2 per page on phone), «Посмотреть материал» (`ShopConfig`, `rel="sponsored nofollow noopener"`, ad label + erid, `shop_clicked`).
 - [ ] P14.7 Lawyer consult (A32) before the first ad block; acquiring check (A37).
 - [ ] P14.8 Outreach to curated lists when 20+ tools.
@@ -453,13 +456,66 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 - [x] P16.8 Wallpaper: per-wall strip engine (plumb line from the start corner, wraps at corners, pieces above/below openings, roll cut map) — **formula version 2**, new golden examples, `formula-reviewer` pass; guide (start corner by paper type, direction, step-off). → Done 2026-10-12: engine, scheme, roll map, guide, content section (version 2, golden re-derived by hand); `formula-reviewer`: CHANGES REQUIRED → fixed (piece pattern phase, window margin, sill above the ceiling).
 - [x] P16.8a Wallpaper **version 3** (owner's request, 2026-10-12): the start chosen from the room (level line, two directions, closing corner by the door, manual and symmetric starts), a real cutting plan (blanks, parts, rests, waste; narrow strips and pieces from rests), bare zones and «nothing under the window», L-shaped rooms with outer corners, spare rolls, the result block split into parts / blanks / parts from rests / rolls by the map.
 - [x] P16.8b Wallpaper **version 4** (owner's request, 2026-10-12): a door beside a window is one opening, what is trimmed off a strip over an opening is a rest for pieces, and a choice «Как клеить у окон и дверей»: whole strips trimmed in place (default, manufacturers' way) or cut at the opening edge (fewer strips, joints at the corners of openings — warning `edge_seams`, hints `edge_saves` / `edge_no_gain` / `edge_pattern`); red joints and slanting relief cuts on the walls.
-- [ ] P16.9 Room area and wall area: `FloorPlan` with placed openings as the result picture; plan in the room card (RoomBar) once positions exist.
+- [x] P16.9 Room area and wall area: `FloorPlan` with placed openings as the result picture; plan in the room card (RoomBar) once positions exist. → The plan in the room card is built in the room editor, P17.8 (owner, 2026-10-13). Done 2026-10-13: `Layout` kind `plan` (`planLayout`), «План комнаты» card with the plan editor; room area gets the L-cut corner and doors/windows on the plan; wall area takes the room shape — **version 2**, the ceiling of an L-shape loses its cut-out.
 - [ ] P16.10 Laminate diagonal / herringbone and tile diagonal schemes; drag-and-drop placing on the plan; free polygon rooms (planner v2).
 - [ ] P16.11 Master review (C10) of every guide text; release check requirement 15 for wallpaper, laminate, linoleum, tile.
 
 **Exit gate:** laminate, linoleum, tile, plinth and wallpaper show a scheme built from their own plan, with a guide reviewed by the master; release check requirement 15 passes for all four layout tools.
 
 **Who:** `calc-engineer` (builders, wallpaper engine), `formula-reviewer` (independent check of every plan), `frontend-builder` (plan, editor, scheme), owner + master (guide texts).
+
+---
+
+## Phase 17 — Rooms and estimate (Oct – Nov 2026)
+
+**Goal:** a renovation is several rooms. A room is measured once, any number of calculations run in it (one per surface: tile on the walls and tile on the floor are two lines), and every calculation lands in one estimate with a total. Shared consumables (tile adhesive, primer, grout, wallpaper paste) are summed across rooms and rounded to packs once. No sign-up: the estimate lives in the browser. Source of truth: RU spec `docs/specs/UmnyAut — комнаты и смета спецификация.md` (v2, decisions Р1–Р15, scenarios 1–7); mockups — the «Комнаты и смета» boards of the design artifact.
+
+**Replaces** Phase 11 (four-step planner, «Мои расчёты») and the multiple-rooms part of P14.5. Stages A → (B ‖ C) → D → E → F; stage G waits for Supabase (P2.7, P7.1–P7.4) and the bot (Phase 12). Estimate for A–F ≈ 4 weeks of work. **Needs:** owner — adhesive types, grout colours, wallpaper types, room type → suggested tools; C01 — primer norm under tile; C10 — review of the formula changes. **Install:** nothing new.
+
+**Tasks**
+
+*A — Model and storage*
+
+- [ ] P17.1 `ProjectData` schema 2 = the estimate: rooms with name and type, calcs with `id`, room, surface, label, own input and main-material prices; shared-consumable prices by product key; cached `totals`; limits 20 rooms / 60 calcs; `migrateProject` v1 → v2 with tests.
+- [ ] P17.2 `PurchaseItem.variant`, catalog item flag `shared`, `productKey()` (item | variant | pack kind | pack size); `mergeItems` by product key; pure `aggregateEstimate()` in `calc/project`: lines per room, shared block with each calc's share, savings in packs and money, surface overlaps per room, adhesive/grout replacement scoped to room + surface. Unit tests + fast-check (merged ≥ need, merged packs ≤ sum of separate packs).
+- [ ] P17.3 `entities/estimate`: Zustand persist `umnyaut:estimate:v1` (`skipHydration`), actions for rooms, calcs (add / update / remove / undo / split), prices, totals; one-time migration from `umnyaut:room:v1` + `umnyaut:list:v1`, old keys removed after a successful write; the room and list stores give way to it.
+
+*B — Calc changes (`calc-engineer`, every change reviewed by `formula-reviewer`)*
+
+- [ ] P17.4 Consumable variants without formula change: adhesive type (tile, adhesive), grout colour (tile, grout), wallpaper type (wallpaper) → `variant`. Goldens unchanged, no version bump.
+- [ ] P17.5 Surface `both` («Пол и стены» with one tile) for tile, adhesive and grout: version +1, ≥ 2 new goldens per tool, Qalculator comparison (rule 12).
+- [ ] P17.6 Primer as a related item of tile (floor and walls, toggle), norm with source in catalog: version +1, goldens. Release check for tile, adhesive, grout, wallpaper passes.
+
+*C — Calculator (`frontend-builder`, skill `ui-component`)*
+
+- [ ] P17.7 Room row (mint): room dropdown (sheet on phone) with sizes and «плитка есть», «+ Новая комната»; no-room state with length / width (/ height) inline and a link to the editor; same height in both states (no CLS); room fields leave the tool form while a room is selected.
+- [ ] P17.8 Room editor (dialog ≥ 1024, sheet on phone): name, type, shape and sizes (m / cm), doors and windows with wall and offset (from `PlanEditor`), mini `FloorPlan` and totals; «Пересчитаем N расчётов: …» line that also names reset geometry-bound params (wallpaper start wall, layout corner); delete with confirmation.
+- [ ] P17.9 Calcs in a room: chips row, «+ Ещё», last opened calc, «Метка» field, overlap warning and «Разделить», remove with undo toast; surfaces per tool as in the spec (wallpaper: one calc per room).
+- [ ] P17.10 Result: «Нужно купить · <room>», «Ещё понадобится · на всю смету» with the calc's share, savings `Hint` (cat head), grey «Клей и затирка · общие на смету» block with the estimate's product and «взять его?», «Добавить в смету» → «В смете ✓» by the threshold (≥ 2 fields changed, a price, or a result action), sticky «N коробок · К смете»; saving updates `totals`. Phone first screen ≤ 660 px with the chips row.
+
+*D — Estimate page*
+
+- [ ] P17.11 `/smeta/` (thin route, `noindex`, out of sitemap), `views/estimate`: title, metrics, room cards (rows lead back to the calculator with that room and calc), shared consumables, empty rooms with suggestions by type, «+ Комната», total card; modules loaded on demand, recompute on open, rows ordered rough → finish (was P11.1); JS budget for the page added to `js:check`.
+- [ ] P17.12 Export: copy as text, `navigator.share` with copy fallback, print / «PDF» via print styles with the date.
+- [ ] P17.13 Link without a server: estimate snapshot after `#`, read-only view, «Забрать себе» with «Заменить» / «Добавить комнаты»; snapshots over 8 KB suggest print.
+
+*E — Header, footer, country*
+
+- [ ] P17.14 Header: «Калькуляторы ▾» · «Методика» · «Смета <sum>» (small client island reading `totals`, reserved width, teal on `/smeta/`), phone: estimate icon with sum; country switch and «Мои расчёты» leave the header, country switch in the footer, time-zone detection stays.
+
+*F — Verify and release*
+
+- [ ] P17.15 Playwright (phone): scenarios 1–7 incl. migration of old storage; Lighthouse on a tool page with a seeded estimate (CLS ≤ 0.05, JS ≤ 250 KB, a11y ≥ 0.95) and on `/smeta/`; server-HTML guard unchanged.
+- [ ] P17.16 Docs: `docs/ui/rooms-and-estimate.md` digest via `/docs`; architecture (state), calc engine (variants, `aggregateEstimate`), calculator shell updated; RU tech and business spec sections on the planner and «Мои расчёты» point to the new spec. PR → `develop` → staging → `main` with owner approval.
+
+*G — After Supabase and the bot*
+
+- [ ] P17.17 Short link: estimate snapshot (schema 2) in `projects` (P7.1), `/p/<id>`, view and «Забрать себе», kept 12 months after the last open. Needs P2.7, P7.1–P7.4.
+- [ ] P17.18 «Сохранить в Telegram»: the bot sends the estimate link. Needs Phase 12.
+
+**Exit gate:** scenarios 1–7 green on phone and desktop; old «Моя комната» and list migrated; header shows the estimate sum; shared consumables merge with savings shown; all CI gates green; release check passes for the tools changed in stage B.
+
+**Who:** `calc-engineer` (P17.1–P17.2, stage B), `formula-reviewer` (stage B), `frontend-builder` (stages C–E), `platform-engineer` (stage G), owner (lists in Needs, approvals).
 
 ---
 
@@ -479,6 +535,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 | 10 | TypeScript 7.0 is latest; ecosystem support unverified | Spike | P1.2 |
 | 11 | Local Node is v26; spec pins Node 24 LTS | `.nvmrc` 24 | P1.1 |
 | 12 | Performance budget (tech spec §15): JS ≤ 150 KB gzip and simulated LCP ≤ 2.0 s. React + Next 16 alone are ≈ 136 KB, so pages that run a calculator cannot fit; deferring the calculator code was tried and dropped (App Router updates make React discard the server HTML, CLS 0.7) | **Decided 2026-10-11 (owner, option 1):** lab gates per page type, measured with headroom — first-screen JS text 165 / category 195 / home 220 / tool 250 KB gzip (`js:check`), Lighthouse LCP ≤ 3.0 s and performance ≥ 0.90 on text and category pages, LCP ≤ 4.0 s and performance ≥ 0.85 on home and tool pages; SEO 100, a11y ≥ 0.95, CLS ≤ 0.05 everywhere. Quality is judged by field LCP p75 ≤ 2.5 s (Metrika, CrUX) once the counter runs. RU tech spec §15 to be updated | P9.11 |
+| 13 | RU tech and business specs describe the four-step planner, «Мои расчёты» and the country chip in the header; the rooms-and-estimate spec (2026-10-13) replaces them | Point those sections to the new spec | P17.16 |
 
 ## Cross-references
 

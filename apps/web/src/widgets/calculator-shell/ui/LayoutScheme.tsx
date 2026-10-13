@@ -16,6 +16,7 @@ const s = schemeStrings;
 const t = s.strips;
 const r = s.runs;
 const g = s.grid;
+const pl = s.plan;
 /** Design spec §11: above this many pieces the scheme draws rows as bands. */
 const MAX_PIECES = 2000;
 
@@ -47,15 +48,38 @@ function bands(pieces: readonly LayoutPiece[]): LayoutPiece[] {
   return [...rows.values()];
 }
 
-/** Card summary, the picture's text alternative and legend: rows of boards, sheets of a roll or plinth runs. */
+/**
+ * Card title and summary, the picture's text alternative and legend: rows of boards, sheets of a roll, plinth runs
+ * or the room plan alone.
+ */
 function texts(layout: Layout) {
   const { whole, cut, reused } = layout.stats;
+  if (layout.kind === "plan") {
+    const counts = {
+      walls: layout.walls.length,
+      doors: layout.marks.filter((m) => m.kind === "door").length,
+      windows: layout.marks.filter((m) => m.kind === "window").length,
+    };
+    return {
+      title: pl.title,
+      enlarge: pl.enlarge,
+      guide: pl.notes,
+      summary: fill(counts.doors + counts.windows > 0 ? pl.summary : pl.empty, counts),
+      label: fill(pl.label, counts),
+      whole: "",
+      cut: "",
+      reused: "",
+      line: "",
+    };
+  }
+  const card = { title: s.title, enlarge: s.enlarge, guide: s.guide };
   const lines = layout.marks.filter((m) => m.kind === "seam").length;
   if (layout.kind === "strips" && layout.elevations) {
     const hw = t.walls;
     const pieces = layout.elevations.reduce((n, e) => n + (e.strips?.pieces.length ?? 0), 0);
     const counts = { strips: whole + cut, pieces, rolls: layout.rolls?.length ?? 0 };
     return {
+      ...card,
       summary: whole + cut > 0 ? fill(hw.summary, counts) : hw.empty,
       label: fill(hw.label, counts),
       whole: fill(hw.legendWhole, { count: whole }),
@@ -67,6 +91,7 @@ function texts(layout: Layout) {
   if (layout.kind === "strips") {
     const counts = { sheets: layout.sheets?.length ?? 0, seams: lines };
     return {
+      ...card,
       summary: fill(t.summary, counts),
       label: fill(t.label, counts),
       whole: fill(t.legendWhole, { count: whole }),
@@ -79,6 +104,7 @@ function texts(layout: Layout) {
     const counts = { pieces: whole + cut, whole, cut };
     const w = g.walls;
     return {
+      ...card,
       summary: whole + cut > 0 ? fill(w.summary, counts) : w.empty,
       label: fill(w.label, counts),
       whole: fill(g.legendWhole, { count: whole }),
@@ -90,6 +116,7 @@ function texts(layout: Layout) {
   if (layout.kind === "grid") {
     const counts = { pieces: whole + cut, whole, cut };
     return {
+      ...card,
       summary: fill(g.summary, counts),
       label: fill(g.label, counts),
       whole: fill(g.legendWhole, { count: whole }),
@@ -102,6 +129,7 @@ function texts(layout: Layout) {
     const runs = layout.runs ?? [];
     const counts = { runs: runs.length, planks: Math.max(0, ...runs.flatMap((r) => r.pieces.map((p) => p.plank))) };
     return {
+      ...card,
       summary: runs.length > 0 ? fill(r.summary, counts) : r.empty,
       label: fill(r.label, counts),
       whole: fill(r.legendWhole, { count: whole }),
@@ -112,6 +140,7 @@ function texts(layout: Layout) {
   }
   const counts = { rows: layout.rows?.length ?? 0, whole, cut };
   return {
+    ...card,
     summary: fill(s.summary, counts),
     label: fill(s.label, counts),
     whole: fill(s.legendWhole, { count: whole }),
@@ -271,7 +300,7 @@ export function LayoutScheme({
       <div className="flex flex-wrap items-start justify-between gap-2 lg:col-span-12">
         <div className="min-w-0">
           <h2 id="layout-scheme" className="text-h3 text-text">
-            {s.title}
+            {labels.title}
           </h2>
           <p className="text-small text-text-muted tabular-nums">{title}</p>
         </div>
@@ -296,14 +325,18 @@ export function LayoutScheme({
       <div className="flex flex-col gap-3 lg:col-span-7">
         <button
           type="button"
-          aria-label={s.enlarge}
+          aria-label={labels.enlarge}
           aria-haspopup="dialog"
           className="block w-full cursor-zoom-in rounded-md focus-visible:outline-2"
           onClick={enlarge}
           onPointerEnter={preloadDialog}
           onFocus={preloadDialog}
         >
-          <SchemePicture layout={layout} className="w-full lg:max-h-[640px]" />
+          {/* The plan alone has nothing small to read: half the height keeps the card compact. */}
+          <SchemePicture
+            layout={layout}
+            className={layout.kind === "plan" ? "w-full lg:max-h-[360px]" : "w-full lg:max-h-[640px]"}
+          />
         </button>
         <Button
           variant="ghost"
@@ -314,13 +347,13 @@ export function LayoutScheme({
           onFocus={preloadDialog}
         >
           <Maximize2 aria-hidden="true" />
-          {s.enlarge}
+          {labels.enlarge}
         </Button>
         <LazyDialog
           open={fullscreen}
           onOpenChange={setFullscreen}
           returnFocus={opener}
-          title={s.title}
+          title={labels.title}
           description={title}
           closeLabel={shell.close}
           className="max-w-[min(96vw,1100px)]"
@@ -396,7 +429,7 @@ export function LayoutScheme({
 
         {guide.length > 0 ? (
           <div>
-            <h3 className="text-body-strong text-text">{s.guide}</h3>
+            <h3 className="text-body-strong text-text">{labels.guide}</h3>
             <ol className="mt-1 flex list-decimal flex-col gap-1 pl-5 text-small text-text">
               {guide.map((line) => (
                 <li key={line}>{line}</li>

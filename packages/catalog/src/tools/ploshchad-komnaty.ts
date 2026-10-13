@@ -3,7 +3,7 @@ import type { ToolDef } from "./types";
 const room = { kind: "length", unit: "m", min: 300, max: 100_000 } as const;
 const part = { kind: "length", unit: "m", min: 0, max: 20_000 } as const;
 
-/** Plane geometry, no norms. Writes length, width, shape and cut-out of “My room”. */
+/** Plane geometry, no norms. Writes length, width, shape, cut-out and doors and windows of “My room”. */
 export const ploshchadKomnaty: ToolDef = {
   id: "ploshchad-komnaty",
   category: "osnova",
@@ -45,6 +45,26 @@ export const ploshchadKomnaty: ToolDef = {
       room: "cutWidth",
       when: { shape: "l" },
     },
+    {
+      kind: "select",
+      name: "cutCorner",
+      label: "Где вырез на плане",
+      room: "cutCorner",
+      dropdown: true,
+      options: [
+        { value: "ne", label: "Справа вверху" },
+        { value: "se", label: "Справа внизу" },
+        { value: "sw", label: "Слева внизу" },
+        { value: "nw", label: "Слева вверху" },
+      ],
+      when: { shape: "l" },
+    },
+    {
+      kind: "plan",
+      name: "openings",
+      label: "Двери и окна на плане",
+      hint: "На площадь не влияют — запомним их для обоев, плитки и плинтуса",
+    },
     { ...part, name: "nicheLengthMm", label: "Ниша: ширина", hint: "Прибавится к площади" },
     { ...part, name: "nicheDepthMm", label: "Ниша: глубина" },
     { ...part, name: "protrusionLengthMm", label: "Выступ: ширина", hint: "Колонна или короб у стены — вычтем" },
@@ -71,5 +91,6 @@ export const ploshchadKomnaty: ToolDef = {
   warnings: {
     cut_too_large: "Вырез не меньше комнаты по длине или ширине. Посчитали как прямоугольник — проверьте вырез",
     protrusion_too_large: "Выступ больше комнаты. Проверьте его размеры",
+    opening_off_wall: "Проёмов не помещается на своей стене: {count}. Проверьте отступ от угла на плане",
   },
 };
