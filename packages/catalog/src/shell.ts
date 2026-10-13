@@ -32,8 +32,15 @@ export const shell = {
     description: "От страны зависят валюта и типовые цены",
   },
   roomBar: {
-    empty: "Ввести размеры один раз",
     edit: "Изменить",
+    /** Sizes typed right in the row while the page has no room yet (spec «Калькулятор»). */
+    sizes: {
+      lengthMm: { label: "Длина комнаты", caption: "Длина, м" },
+      widthMm: { label: "Ширина комнаты", caption: "Ширина, м" },
+      heightMm: { label: "Высота потолка", caption: "Высота, м" },
+    },
+    /** Opens the room editor from the size fields. */
+    editor: "Форма, окна и двери",
     /** Room picker: the estimate's rooms (spec «Калькулятор», P17.7). */
     noSizes: "Размеры не заданы",
     pickTitle: "Комнаты",

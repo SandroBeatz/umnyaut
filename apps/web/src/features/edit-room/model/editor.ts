@@ -10,7 +10,7 @@ import {
   wallAreaM2,
 } from "@umnyaut/calc";
 import type { ToolDef } from "@umnyaut/catalog";
-import { type SavedRoom, wallNumbering } from "@/entities/estimate";
+import { type RoomGeometry, type SavedRoom, wallNumbering } from "@/entities/estimate";
 import { collapse, expand, type PlanOpening, type PlanRoom, planOutline } from "@/entities/room";
 
 /** What the editor holds while the user types: sizes in mm (`undefined` = empty), one opening per door or window. */
@@ -30,18 +30,26 @@ export interface RoomForm {
 /** A new L-shape starts from the usual cut-out of the tools (1,5 × 1,2 м, bottom right). */
 const CUT = { cutLengthMm: 1500, cutWidthMm: 1200, cutCorner: "se" as CutCorner };
 
-export function formOf(room: EstimateRoom | null, name: string): RoomForm {
+/**
+ * The editor's start: the room, and for what it does not know yet the calculator's `draft` — so the editor shows
+ * the sizes, shape and doors the result is counted with.
+ */
+export function formOf(room: EstimateRoom | null, name: string, draft: RoomGeometry = {}): RoomForm {
+  const known: RoomGeometry = {
+    ...draft,
+    ...Object.fromEntries(Object.entries(room ?? {}).filter(([, v]) => v !== undefined)),
+  };
   return {
     name: room?.name ?? name,
     type: room?.type ?? "other",
-    shape: room?.shape ?? "rect",
-    ...(room?.lengthMm ? { lengthMm: room.lengthMm } : {}),
-    ...(room?.widthMm ? { widthMm: room.widthMm } : {}),
-    ...(room?.heightMm ? { heightMm: room.heightMm } : {}),
-    cutLengthMm: room?.cutLengthMm || CUT.cutLengthMm,
-    cutWidthMm: room?.cutWidthMm || CUT.cutWidthMm,
-    cutCorner: room?.cutCorner ?? CUT.cutCorner,
-    openings: expand(room?.openings ?? []),
+    shape: known.shape ?? "rect",
+    ...(known.lengthMm ? { lengthMm: known.lengthMm } : {}),
+    ...(known.widthMm ? { widthMm: known.widthMm } : {}),
+    ...(known.heightMm ? { heightMm: known.heightMm } : {}),
+    cutLengthMm: known.cutLengthMm || CUT.cutLengthMm,
+    cutWidthMm: known.cutWidthMm || CUT.cutWidthMm,
+    cutCorner: known.cutCorner ?? CUT.cutCorner,
+    openings: expand(known.openings ?? []),
   };
 }
 

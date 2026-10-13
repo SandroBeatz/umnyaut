@@ -25,6 +25,11 @@ export interface NumberFieldProps {
   name?: string;
   id?: string;
   className?: string;
+  /**
+   * `compact`: the caption sits inside the 48 px box above the value and an error only reddens the border (the
+   * room row, where the height is fixed). `label` stays the accessible name; `caption` is what is shown.
+   */
+  compact?: { caption: ReactNode };
 }
 
 function validate(
@@ -58,6 +63,7 @@ export function NumberField({
   name,
   id,
   className,
+  compact,
 }: NumberFieldProps) {
   const autoId = useId();
   const inputId = id ?? autoId;
@@ -97,6 +103,40 @@ export function NumberField({
   const hintId = `${inputId}-hint`;
   const errorId = `${inputId}-error`;
   const unitId = `${inputId}-unit`;
+
+  if (compact) {
+    return (
+      <div
+        className={cn(
+          "flex h-12 min-w-0 flex-col justify-center rounded-md border bg-surface px-2 focus-within:outline-2 focus-within:outline-focus focus-within:outline-offset-2",
+          shownError ? "border-danger" : "border-border-input",
+          className,
+        )}
+      >
+        <span aria-hidden="true" className="truncate text-caption leading-4 text-text-muted">
+          {compact.caption}
+        </span>
+        <input
+          id={inputId}
+          name={name}
+          type="text"
+          inputMode="decimal"
+          autoComplete="off"
+          enterKeyHint="next"
+          value={text}
+          placeholder={placeholder}
+          disabled={disabled}
+          aria-label={typeof label === "string" ? label : undefined}
+          aria-invalid={shownError ? true : undefined}
+          title={shownError}
+          onChange={onChange}
+          onPaste={onPaste}
+          onBlur={onBlur}
+          className="h-6 min-w-0 bg-transparent text-body font-semibold text-text tabular-nums outline-none"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>

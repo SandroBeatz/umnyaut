@@ -29,6 +29,21 @@ describe("room editor", () => {
     expect(totalsOf(form)).toBeUndefined();
   });
 
+  it("what the room does not know comes from the calculator's draft; what it knows wins", () => {
+    const draft = { lengthMm: 3000, widthMm: 2500, heightMm: 2600, openings: [door] };
+    const partial: EstimateRoom = { id: "r1", name: "Кухня", type: "kitchen", lengthMm: 4000 };
+    expect(roomOf(formOf(partial, "", draft))).toEqual({
+      name: "Кухня",
+      type: "kitchen",
+      shape: "rect",
+      lengthMm: 4000,
+      widthMm: 2500,
+      heightMm: 2600,
+      openings: [door],
+    });
+    expect(roomOf(formOf({ ...partial, openings: [] }, "", draft)).openings).toEqual([]);
+  });
+
   it("totals as the area tools count them: floor, perimeter, walls without openings, ceiling", () => {
     // 4,6 × 4,3 = 19,78 м²; 2 × 8,9 = 17,8 м; 17,8 × 2,7 − 1,6 − 1,68 = 44,78 м².
     expect(totalsOf(formOf(room, ""))).toEqual({ floorM2: 19.78, perimeterM: 17.8, wallsM2: 44.78, ceilingM2: 19.78 });

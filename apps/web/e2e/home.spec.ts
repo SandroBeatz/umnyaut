@@ -35,5 +35,5 @@ test("home: “My room” recomputes the example and carries over to a tool", as
   await expect(page.getByRole("heading", { name: "Порядок работ" })).toBeVisible();
   await page.getByRole("link", { name: "Плинтус", exact: true }).click();
   await expect(page).toHaveURL("/pol/plintus/");
-  await expect(page.getByRole("textbox", { name: "Длина комнаты" })).toHaveValue("6");
+  await expect(page.locator("[data-room-dimensions]")).toHaveText(/^6\s×\s3\s×\s2,7\sм$/);
 });

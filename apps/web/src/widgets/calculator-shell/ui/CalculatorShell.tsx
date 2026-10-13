@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCountry } from "@/entities/country";
 import { useActiveRoom } from "@/entities/estimate";
-import { roomDimensions } from "@/entities/room";
+import { roomDimensions, roomPatch } from "@/entities/room";
 import type { ToolValues } from "@/entities/tool";
 import { RoomBar } from "@/features/edit-room";
 import { AddToList, RoomList } from "@/features/room-list";
@@ -15,6 +15,7 @@ import { track } from "@/shared/analytics";
 import { AdSlot } from "@/shared/ui";
 
 import { planRoomOf } from "../model/plan";
+import { fieldsOf, sizeParts } from "../model/room";
 import { useCalcEvents } from "../model/useCalcEvents";
 import { useCalculator } from "../model/useCalculator";
 import { describeResult, resultText } from "../model/view";
@@ -85,7 +86,15 @@ export function CalculatorShell({ category, toolId, checkedAt, sources, module }
       <div className="flex flex-col gap-6 print:hidden">
         <div className="grid gap-3 lg:grid-cols-12 lg:items-start lg:gap-6">
           <div className="flex flex-col gap-3 lg:col-span-5 lg:rounded-xl lg:border lg:border-border lg:bg-surface lg:p-6 lg:shadow-sm">
-            <RoomBar tool={tool} />
+            <RoomBar
+              tool={tool}
+              draft={roomPatch(values, tool.fields)}
+              parts={sizeParts(tool.fields, values)}
+              onSizes={(patch) => calc.setValues(fieldsOf(patch, tool.fields))}
+              onInvalid={(part, bad) => {
+                for (const name of Object.keys(fieldsOf({ [part]: 0 }, tool.fields))) calc.setInvalid(name, bad);
+              }}
+            />
             <ToolForm
               tool={tool}
               values={values}

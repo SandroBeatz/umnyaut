@@ -62,11 +62,14 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
     });
   };
   const bound = new Map(roomBindings(tool.fields));
+  // The room's fields (sizes, shape, doors and windows) live in the room row and the room editor (spec
+  // «Калькулятор»); the form keeps what is about the material.
+  const fields = tool.fields.filter((field) => !("name" in field && bound.has(field.name)));
 
-  const { main, more } = formSections(tool.fields, values);
+  const { main, more } = formSections(fields, values);
   const shapeDropdown = shapeAsDropdown(main);
-  const changed = changedHidden(tool.fields, values, defaults);
-  const hasLengths = tool.fields.some((field) => field.kind === "length" || field.kind === "openings");
+  const changed = changedHidden(fields, values, defaults);
+  const hasLengths = fields.some((field) => field.kind === "length" || field.kind === "openings");
 
   const label = (field: FieldDef & { name: string }): ReactNode => {
     const key = bound.get(field.name);

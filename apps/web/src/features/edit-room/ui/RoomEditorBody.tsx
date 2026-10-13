@@ -6,7 +6,7 @@ import { Button, NumberField, Segment, Select, UnitToggle } from "@umnyaut/ui";
 import { formatNumber, NBSP } from "@umnyaut/ui/format";
 import { DoorOpen, Plus, RectangleHorizontal } from "lucide-react";
 import { useId, useState } from "react";
-import { useEstimateStore } from "@/entities/estimate";
+import { type RoomGeometry, useEstimateStore } from "@/entities/estimate";
 import { centred, FloorPlan, type PlanOpening } from "@/entities/room";
 import { fill } from "@/shared/lib";
 import { CollapsibleCard, useOpenCards } from "@/shared/ui";
@@ -27,6 +27,8 @@ const cm = (mm: number) => `${formatNumber(mm / 10)}${NBSP}${lengthUnitLabels.cm
 export interface RoomEditorBodyProps {
   /** The room to edit; `null` — a new one. */
   room: EstimateRoom | null;
+  /** What the calculator counts with: fills what the room does not know yet. */
+  draft?: RoomGeometry;
   /** Name of a new room («Комната 3»). */
   newName: string;
   onDone(): void;
@@ -36,9 +38,9 @@ export interface RoomEditorBodyProps {
  * The room editor (spec «Редактор комнаты»): name, type, shape and sizes, doors and windows with their wall and
  * offset, the plan with the room's numbers, what will be recounted. Loaded only when the editor opens.
  */
-export default function RoomEditorBody({ room, newName, onDone }: RoomEditorBodyProps) {
+export default function RoomEditorBody({ room, draft, newName, onDone }: RoomEditorBodyProps) {
   const calcs = useEstimateStore((s) => s.estimate?.calcs) ?? [];
-  const [form, setForm] = useState<RoomForm>(() => formOf(room, newName));
+  const [form, setForm] = useState<RoomForm>(() => formOf(room, newName, draft));
   const [unit, setUnit] = useState<Unit>("m");
   const [invalid, setInvalid] = useState<ReadonlySet<string>>(() => new Set());
   const [confirming, setConfirming] = useState(false);

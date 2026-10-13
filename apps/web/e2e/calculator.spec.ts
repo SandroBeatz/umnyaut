@@ -1,4 +1,4 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, type Locator, type Page, test } from "@playwright/test";
 
 const ROOM = "/osnova/ploshchad-komnaty/";
 const WALLS = "/osnova/ploshchad-sten/";
@@ -20,6 +20,20 @@ async function type(page: Page, label: string, value: string) {
   const field = page.getByRole("textbox", { name: label });
   await field.fill(value);
   await field.blur();
+}
+
+/** Opens the room editor (from the size fields or «Изменить»), fills its fields by label, saves. */
+async function editRoom(page: Page, sizes: Record<string, string>, more?: (editor: Locator) => Promise<void>) {
+  await page.getByRole("button", { name: /^(Изменить|Форма, окна и двери)$/ }).click();
+  const editor = page.getByRole("dialog");
+  for (const [label, value] of Object.entries(sizes)) {
+    const field = editor.getByRole("textbox", { name: label, exact: true });
+    await field.fill(value);
+    await field.blur();
+  }
+  await more?.(editor);
+  await editor.getByRole("button", { name: "Сохранить комнату" }).click();
+  await expect(editor).toBeHidden();
 }
 
 test("the result number is on the first phone screen of every tool", async ({ page }) => {
@@ -58,13 +72,12 @@ test("room area writes “My room”, wall area picks it up", async ({ page }) =
     .first()
     .click();
   await expect(page).toHaveURL(WALLS);
-  await expect(page.getByRole("textbox", { name: "Длина комнаты" })).toHaveValue("5");
-  await expect(page.getByRole("textbox", { name: "Ширина комнаты" })).toHaveValue("4");
+  // The page opens with the room: its name and sizes instead of the fields.
   await expect(page.locator("[data-room-dimensions]")).toHaveText(/^5\s×\s4\sм$/);
   // 2 × (5 + 4) × 2,7 = 48,6 − door 1,6 − window 1,68 = 45,32
   await expect(result(page)).toHaveText("45,32");
 
-  await type(page, "Высота потолка", "3");
+  await editRoom(page, { "Высота потолка": "3" });
   await page.goto(ROOM);
   await expect(page.locator("[data-room-dimensions]")).toHaveText(/^5\s×\s4\s×\s3\sм$/);
 });
@@ -99,19 +112,26 @@ test("an L-shaped room shows the cut-out fields and subtracts the corner", async
   await page.goto(ROOM);
   await type(page, "Длина комнаты", "6");
   await type(page, "Ширина комнаты", "4");
+  // Shape and cut-out are the room's: the form has none of them, the editor starts from the sizes typed above.
   await expect(page.getByRole("textbox", { name: "Длина выреза" })).toHaveCount(0);
-  // The shape stands right under the room size, not behind «Ещё параметры».
-  await page.getByRole("radio", { name: "Г-образная" }).click();
-  await type(page, "Длина выреза", "2");
-  await type(page, "Ширина выреза", "1,5");
+  await editRoom(page, {}, async (editor) => {
+    await expect(editor.getByRole("textbox", { name: "Длина", exact: true })).toHaveValue("6");
+    await editor.getByRole("radio", { name: "Г-образная" }).click();
+    for (const [label, value] of [
+      ["Вырез по длине", "2"],
+      ["Вырез по ширине", "1,5"],
+    ] as const) {
+      await editor.getByRole("textbox", { name: label }).fill(value);
+      await editor.getByRole("textbox", { name: label }).blur();
+    }
+  });
   await expect(result(page)).toHaveText("21");
-  await expect(page.getByRole("button", { name: "Ещё параметры", exact: true })).toBeVisible();
 });
 
 test("an invalid field keeps the last result and says so", async ({ page }) => {
   await page.goto(WALLS);
   await type(page, "Длина комнаты", "500");
-  await expect(page.getByText("От 0,3 до 100 м")).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Длина комнаты" })).toHaveAttribute("aria-invalid", "true");
   await expect(page.getByText("По прошлым значениям")).toBeVisible();
   await expect(result(page)).toHaveText("44,78");
 });
@@ -189,8 +209,8 @@ test("room list: wallpaper on the walls and paint on the ceiling share one prime
   await expect(rows.filter({ hasText: "Грунтовка" }).locator("[data-list-quantity]")).toHaveText(/^1\sканистра$/);
   await expect(rows.filter({ hasText: "Обои" }).first().locator("[data-list-quantity]")).toHaveText(/^11\sрулонов$/);
 
-  // The list follows “My room”: a longer room needs more wallpaper.
-  await type(page, "Длина комнаты", "6");
+  // The list follows the room: a longer room needs more wallpaper.
+  await editRoom(page, { Длина: "6" });
   await expect(rows.filter({ hasText: "Обои" }).first().locator("[data-list-quantity]")).not.toHaveText(/^11\s/);
 
   await list.getByRole("button", { name: "Убрать «Обои» из списка" }).click();
@@ -225,6 +245,8 @@ test("the old «Моя комната» and room list move into the estimate onc
 test("rooms: a new room starts from the example, the picker brings the first one back", async ({ page }) => {
   await page.goto(LAMINATE);
   await type(page, "Длина комнаты", "5");
+  // The fields stay while the user types; the next page opens with the room.
+  await page.reload();
   await expect(page.getByRole("button", { name: /^Комната 1, 5\s×\s4,3\sм/ })).toBeVisible();
 
   await page.getByRole("button", { name: /^Комната 1,/ }).click();
@@ -233,23 +255,22 @@ test("rooms: a new room starts from the example, the picker brings the first one
   await expect(editor.getByRole("textbox", { name: "Название" })).toHaveValue("Комната 2");
   await editor.getByRole("button", { name: "Сохранить комнату" }).click();
   await expect(page.getByRole("button", { name: /^Комната 2, Размеры не заданы/ })).toBeVisible();
-  await expect(page.getByRole("textbox", { name: "Длина комнаты" })).toHaveValue("4,6");
-  await type(page, "Длина комнаты", "3");
-  await type(page, "Ширина комнаты", "2,5");
+  // 4,6 × 4,3 м of the example: 10 packs.
+  await expect(result(page)).toHaveText("10");
+  await editRoom(page, { Длина: "3", Ширина: "2,5" });
   await expect(page.locator("[data-room-dimensions]")).toHaveText(/^3\s×\s2,5\sм$/);
 
   await page.getByRole("button", { name: /^Комната 2,/ }).click();
   const first = page.getByRole("button", { name: /^Комната 1\s*5\s×\s4,3\sм/ });
   await expect(first).toBeVisible();
   await first.click();
-  await expect(page.getByRole("textbox", { name: "Длина комнаты" })).toHaveValue("5");
-  await expect(page.getByRole("textbox", { name: "Ширина комнаты" })).toHaveValue("4,3");
+  await expect(page.locator("[data-room-dimensions]")).toHaveText(/^5\s×\s4,3\sм$/);
 });
 
 test("room editor: name, type, an L-shape and a door on the plan reach the calculator; delete", async ({ page }) => {
   await page.goto(WALLS);
   await type(page, "Длина комнаты", "5");
-  await page.getByRole("button", { name: "Изменить", exact: true }).click();
+  await page.getByRole("button", { name: "Форма, окна и двери" }).click();
   const editor = page.getByRole("dialog", { name: "Комната" });
   await editor.getByRole("textbox", { name: "Название" }).fill("Ванная");
   await editor.getByRole("button", { name: "Ванная", exact: true }).click();
@@ -264,13 +285,14 @@ test("room editor: name, type, an L-shape and a door on the plan reach the calcu
   await expect(editor).toBeHidden();
 
   await expect(page.getByRole("button", { name: /^Ванная, 5\s×\s4,3\s×\s2,7\sм/ })).toBeVisible();
-  // The room's doors and windows replace the tool's example: walls 2 × (5 + 4,3) × 2,7 = 50,22 − door 1,6 = 48,62.
-  await expect(result(page)).toHaveText("48,62");
+  // The editor started from the door and window the result was counted with, one more door added:
+  // walls 2 × (5 + 4,3) × 2,7 = 50,22 − 1,6 − 1,68 − 1,6 = 45,34.
+  await expect(result(page)).toHaveText("45,34");
 
   await page.getByRole("button", { name: "Изменить", exact: true }).click();
   await editor.getByRole("button", { name: "Удалить комнату" }).click();
   await expect(editor).toBeHidden();
-  await expect(page.getByText("Ввести размеры один раз")).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Длина комнаты" })).toBeVisible();
 });
 
 test("plinth: planks and fittings, an L-shaped room adds corners", async ({ page }) => {
@@ -279,7 +301,7 @@ test("plinth: planks and fittings, an L-shaped room adds corners", async ({ page
   await expect(result(page)).toHaveText("7");
   await expect(page.getByText(/^4\sштуки$/)).toBeVisible();
 
-  await page.getByRole("radio", { name: "Г-образная" }).click();
+  await editRoom(page, {}, (editor) => editor.getByRole("radio", { name: "Г-образная" }).click());
   await expect(page.locator("#result").getByText("Наружный угол")).toBeVisible();
 });
 
