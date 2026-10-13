@@ -105,8 +105,13 @@ export const estimateCalcSchema = z.object({
   /** Main-material pack price by item key; shared consumables are priced in the estimate. */
   prices: z.optional(z.record(z.string(), price)),
   openedAt: time,
-  /** Set once the calc passed the threshold and is in the estimate (Р4); unset = a draft not counted. */
+  /** Set once «Добавить в смету» put the calc in the estimate (Р4); unset = a draft not counted. */
   addedAt: z.optional(time),
+  /**
+   * Edits made in the calculator after the calc is in the estimate, not yet saved by «Обновить в смете» (owner,
+   * 2026-10-13): the estimate keeps counting `input` until then.
+   */
+  draft: z.optional(z.record(z.string(), z.unknown())),
 });
 
 /** The estimate total kept for the header, so the header never loads calculators (Р3). */

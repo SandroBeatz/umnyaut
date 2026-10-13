@@ -28,9 +28,14 @@ export default function EstimateSync({ calcId, onShared }: EstimateSyncProps) {
       onShared(undefined);
       return;
     }
-    // The open calc counts here even below the threshold: it shows what it would buy with the estimate.
-    const view = computeEstimate(estimate, moduleOf, (c) => c.addedAt !== undefined || c.id === calcId);
-    onShared(sharedOf(view, estimate, calcId));
+    // The open calc counts here as it is on screen — not yet added, or with unsaved edits: what it would buy with
+    // the estimate.
+    const shown = {
+      ...estimate,
+      calcs: estimate.calcs.map((c) => (c.id === calcId && c.draft ? { ...c, input: c.draft } : c)),
+    };
+    const view = computeEstimate(shown, moduleOf, (c) => c.addedAt !== undefined || c.id === calcId);
+    onShared(sharedOf(view, shown, calcId));
   }, [estimate, moduleOf, calcId, onShared]);
 
   return null;

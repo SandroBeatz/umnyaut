@@ -388,6 +388,7 @@ export const plitka: ToolModule<PlitkaInput> = {
         warnings.push({ code: "openings_exceed_walls", level: "warning" });
         // «Пол и стены» keeps the floor; walls alone have nothing to tile.
         if (!both) return { items: [], summary: [], warnings, steps };
+        steps.push({ code: "both", values: { floor: floorM2, walls: 0, area: areaM2 } });
       } else {
         areaM2 += walls.areaM2;
         if (both) {

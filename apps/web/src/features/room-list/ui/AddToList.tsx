@@ -2,20 +2,38 @@
 
 import { shell } from "@umnyaut/catalog";
 import { Button, toast } from "@umnyaut/ui";
-import { Check, ListPlus } from "lucide-react";
+import { Check, ListPlus, RefreshCw } from "lucide-react";
 
 const t = shell.toEstimate;
 
 export interface AddToListProps {
-  /** The open calc is already in the estimate. */
-  added: boolean;
+  /** Not in the estimate; in it with unsaved edits; in it as shown. */
+  state: "add" | "update" | "added";
   onAdd(): void;
+  onUpdate(): void;
   className?: string;
 }
 
-/** «Добавить в смету» → «В смете» (spec Р4): the calculator's open calc joins the estimate. */
-export function AddToList({ added, onAdd, className }: AddToListProps) {
-  if (added) {
+/**
+ * «Добавить в смету» → «В смете»; after a change «Обновить в смете» (spec Р4, owner 2026-10-13): the estimate takes
+ * a calc and its edits only by this button.
+ */
+export function AddToList({ state, onAdd, onUpdate, className }: AddToListProps) {
+  if (state === "update") {
+    return (
+      <Button
+        className={className}
+        onClick={() => {
+          onUpdate();
+          toast(t.updatedToast);
+        }}
+      >
+        <RefreshCw aria-hidden="true" />
+        {t.update}
+      </Button>
+    );
+  }
+  if (state === "added") {
     return (
       <Button variant="secondary" className={className} disabled>
         <Check aria-hidden="true" />

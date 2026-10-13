@@ -298,7 +298,9 @@ export const linoleum: ToolModule<LinoleumInput> = {
     });
 
     const warnings: Warning[] =
-      best.sheets > 1 ? [{ code: "seams", level: "info", values: { seams: best.sheets - 1 } }] : [];
+      best.sheets > 1
+        ? [{ code: i.weld ? "seams" : "seams_no_weld", level: "info", values: { seams: best.sheets - 1 } }]
+        : [];
     if (i.shape === "l" && !cut && i.cutLengthMm > 0 && i.cutWidthMm > 0) {
       warnings.push({ code: "cut_too_large", level: "warning" });
     }

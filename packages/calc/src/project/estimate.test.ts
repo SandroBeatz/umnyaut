@@ -129,6 +129,21 @@ describe("aggregateEstimate", () => {
     expect(any.replaced.map((r) => r.calcId)).toEqual(["tileFloor", "tileWalls"]);
   });
 
+  it("an adhesive calc covering only part of a tile calc replaces nothing: the walls' share is not lost", () => {
+    const result = aggregateEstimate({
+      roomIds: ["bath"],
+      calcs: [
+        calc("tileBoth", "bath", [tile(200), glue(70)], { surface: "floor-walls" }),
+        calc("glueFloor", "bath", [glue(30, "main")], { surface: "floor" }),
+      ],
+      shared,
+      prices: {},
+    });
+    expect(result.replaced).toEqual([]);
+    // Both kept: 70 + 30 kg — a little extra on the floor rather than the walls without adhesive.
+    expect(result.shared.find((l) => l.item.key === "tile-adhesive")?.shares.map((x) => x.need)).toEqual([70, 30]);
+  });
+
   it("finds two finishes on one surface of a room: tile on «Пол и стены» and on «Пол», wallpaper and paint", () => {
     const paint = purchase("paint", "main", { value: 9, unit: "l" }, { kind: "can", size: { value: 9, unit: "l" } });
     const paper = purchase(

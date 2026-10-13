@@ -190,6 +190,26 @@ describe("estimate steps", () => {
   });
 });
 
+describe("edits of a calc in the estimate wait for «Обновить в смете»", () => {
+  it("a draft holds the edits; the same input again clears it; commit saves it with the surface", () => {
+    let e = ops.patchActiveRoom(null, { lengthMm: 4600 }, 1, id);
+    e = ops.addCalc(e, { roomId: "r1", tool: "plitka", toolVersion: 4, surface: "floor", input: {} }, 2).estimate;
+    e = ops.markAdded(e, "c1", 3);
+    e = valid(ops.setDraft(e, "c1", { surface: "walls", tileLengthMm: 600 }, 4));
+    expect(e.calcs[0]).toMatchObject({ input: {}, draft: { surface: "walls", tileLengthMm: 600 } });
+    expect(ops.setDraft(e, "c1", undefined, 5).calcs[0]?.draft).toBeUndefined();
+    const saved = valid(ops.commitDraft(e, "c1", { surface: "walls", toolVersion: 5 }, 6));
+    expect(saved.calcs[0]).toMatchObject({
+      input: { surface: "walls", tileLengthMm: 600 },
+      surface: "walls",
+      toolVersion: 5,
+      addedAt: 3,
+    });
+    expect(saved.calcs[0]?.draft).toBeUndefined();
+    expect(ops.commitDraft(saved, "c1", { surface: "walls", toolVersion: 5 }, 7)).toBe(saved);
+  });
+});
+
 describe("move from «Моя комната» and the room list", () => {
   it("reads the old room and list, dropping broken data and repeated tools", () => {
     expect(legacyRoom({ room: { lengthMm: 4600, widthMm: 4300 } })).toEqual({ lengthMm: 4600, widthMm: 4300 });

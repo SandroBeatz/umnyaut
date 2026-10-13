@@ -34,8 +34,10 @@ export interface Calculator {
   seedRoom(): void;
   /** The calc for the current values, created in the active room when there is none; its id. */
   ensureCalc(): string | undefined;
-  /** «Добавить в смету», a result action or the threshold (Р4): the open calc joins the estimate. */
+  /** «Добавить в смету» — the only way a calc joins the estimate (owner, 2026-10-13). */
   addToEstimate(): void;
+  /** «Обновить в смете»: the edits made since the calc joined the estimate replace what it counts. */
+  updateEstimate(): void;
   /** Shows another calc of this tool in the room (a chip). */
   openCalc(id: string): void;
   /** «+ Ещё»: a new calc with default material on the first free surface. */
@@ -60,7 +62,8 @@ function seen(tool: ToolDef, values: ToolValues) {
 /**
  * State of one calculator (tech spec §6, spec «Несколько расчётов»). Render 1 = server render: defaults, RU. After
  * mount the input comes from `?s=` if present, otherwise from the last opened calc of this tool in the active room
- * over the room's sizes. Own edits are written to that calc (created on the first one); room edits go to the room,
+ * over the room's sizes. Own edits are written to that calc (created on the first one; once it is in the estimate,
+ * to its draft until «Обновить в смете»); room edits go to the room,
  * and room edits made elsewhere (the room row, the editor, another room chosen) flow into the fields.
  */
 export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Calculator {
@@ -95,7 +98,8 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
   /** A calc's values in the active room: defaults → its input → the room. */
   const valuesOf = useCallback(
     (calc: EstimateCalc | undefined, base: ToolValues = defaults) => {
-      const own = parse({ ...base, ...calc?.input }) ?? base;
+      // A calc in the estimate shows its unsaved edits, if any.
+      const own = parse({ ...base, ...(calc?.draft ?? calc?.input) }) ?? base;
       return parse(applyRoom(own, selectActiveRoom(useEstimateStore.getState()), tool.fields)) ?? own;
     },
     [defaults, parse, tool],
@@ -142,7 +146,7 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
           setAll(valuesOf(next));
           return;
         }
-        if (calc && !same(calc.input, ownInput(tool, shown.current, defaults))) {
+        if (calc && !same(calc.draft ?? calc.input, ownInput(tool, shown.current, defaults))) {
           // The calc's own input changed outside the form («Разделить» set its surface).
           setAll(valuesOf(calc));
           return;
@@ -169,7 +173,13 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
       const surface = surfaceOf(tool, next);
       const fields = { input: ownInput(tool, next, defaults), toolVersion: module.version, surface };
       const id = current.current;
-      if (id && store.estimate?.calcs.some((c) => c.id === id)) {
+      const calc = store.estimate?.calcs.find((c) => c.id === id);
+      if (id && calc?.addedAt !== undefined) {
+        // In the estimate: the edits wait in the draft for «Обновить в смете»; back to what is saved — no draft.
+        store.setDraft(id, same(fields.input, calc.input) ? undefined : fields.input);
+        return id;
+      }
+      if (id && calc) {
         store.updateCalc(id, fields);
         return id;
       }
@@ -199,18 +209,10 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
         // The first edit creates the room from what the form shows, not from one field.
         store.patchActiveRoom({ ...(selectActiveRoom(store) === null ? seen(tool, next) : {}), ...room });
       }
-      // An own field changed: it belongs to the calc.
+      // An own field changed: it belongs to the calc. Nothing joins the estimate without «Добавить в смету».
       if (Object.keys(patch).length > Object.keys(room).length) writeCalc(next, true);
-      // Р4: two changed fields or a price entered — the calc joins the estimate by itself, on the edit only (a
-      // removed calc is not brought back by a state that still says «two fields»).
-      const priced = tool.fields.some((f) => f.kind === "price" && typeof patch[f.name] === "number");
-      if (keepsCalcs && (changed.current.size >= 2 || priced)) {
-        const id = writeCalc(next, true);
-        const calc = useEstimateStore.getState().estimate?.calcs.find((c) => c.id === id);
-        if (id && calc?.addedAt === undefined) useEstimateStore.getState().markAdded(id);
-      }
     },
-    [parse, tool, writeCalc, keepsCalcs],
+    [parse, tool, writeCalc],
   );
 
   const ensureCalc = useCallback(() => writeCalc(shown.current, true), [writeCalc]);
@@ -219,6 +221,14 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
     const id = writeCalc(shown.current, true);
     if (id) useEstimateStore.getState().markAdded(id);
   }, [writeCalc]);
+
+  const updateEstimate = useCallback(() => {
+    const id = current.current;
+    if (!id) return;
+    useEstimateStore
+      .getState()
+      .commitDraft(id, { surface: surfaceOf(tool, shown.current), toolVersion: module.version });
+  }, [tool, module.version]);
 
   const openCalc = useCallback(
     (id: string) => {
@@ -269,8 +279,11 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
       if (!calc) return;
       const copy = store.splitCalc(id, surfaces);
       if (!copy) return;
-      store.updateCalc(id, { input: { ...calc.input, ...surfaceInput(tool, surfaces[0]) } });
-      store.updateCalc(copy, { input: { ...calc.input, ...surfaceInput(tool, surfaces[1]) } });
+      const input = calc.draft ?? calc.input;
+      store.updateCalc(id, { input: { ...input, ...surfaceInput(tool, surfaces[0]) } });
+      store.updateCalc(copy, { input: { ...input, ...surfaceInput(tool, surfaces[1]) } });
+      store.setDraft(id, undefined);
+      store.setDraft(copy, undefined);
       if (current.current === id)
         setAll(valuesOf(useEstimateStore.getState().estimate?.calcs.find((c) => c.id === id)));
     },
@@ -322,6 +335,7 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
     seedRoom,
     ensureCalc,
     addToEstimate,
+    updateEstimate,
     openCalc,
     addCalc,
     setLabel,

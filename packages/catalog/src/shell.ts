@@ -181,11 +181,13 @@ export const shell = {
     split: "Разделить на два расчёта?",
     splitButton: "Разделить",
   },
-  /** «Добавить в смету» → «В смете» (spec Р4: also by itself after two changed fields, a price or a result action). */
+  /** «Добавить в смету» → «В смете»; after edits «Обновить в смете» (spec Р4: only by the button). */
   toEstimate: {
     add: "Добавить в смету",
     added: "В смете",
     addedToast: "Добавлено в смету",
+    update: "Обновить в смете",
+    updatedToast: "Смета обновлена",
   },
   /** Room plan editor (popup): doors and windows on walls, docs/ui/room-plan-and-layout-guides.md. */
   plan: {

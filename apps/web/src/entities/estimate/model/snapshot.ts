@@ -27,7 +27,7 @@ export async function encodeSnapshot(estimate: Estimate): Promise<string> {
   const { totals: _, activeRoomId: __, ...rest } = estimate;
   const calcs = rest.calcs
     .filter((c) => c.addedAt !== undefined)
-    .map(({ openedAt: _o, ...c }) => ({ ...c, openedAt: 0 }));
+    .map(({ openedAt: _o, draft: _d, ...c }) => ({ ...c, openedAt: 0 }));
   const json = JSON.stringify({ ...rest, calcs });
   const packed = await pipe(new TextEncoder().encode(json), new CompressionStream("deflate-raw"));
   // base64url of the bytes themselves (`toBase64Url` in shared/lib encodes text).

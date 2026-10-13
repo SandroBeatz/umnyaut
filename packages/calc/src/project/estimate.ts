@@ -25,6 +25,16 @@ function sharedParts(a?: Surface, b?: Surface): SurfacePart[] {
   return pa.filter((p) => pb.includes(p));
 }
 
+/**
+ * `by` covers every part of `of`: an adhesive on «Пол» does not cover tile on «Пол и стены» — dropping that tile's
+ * adhesive would lose the walls' share. A calc without a surface covers anything.
+ */
+function covers(by?: Surface, of?: Surface): boolean {
+  if (!by) return true;
+  if (!of) return false;
+  return PARTS[of].every((p) => PARTS[by].includes(p));
+}
+
 /** One calc already computed by the browser: its items for the room as it is now. */
 export interface EstimateCalcItems {
   id: string;
@@ -123,7 +133,8 @@ const finishes = (calc: EstimateCalcItems, shared: ReadonlySet<string>) =>
  * The estimate (spec «Общие расходники», «Смета»): main materials stay with their room line by line; shared
  * consumables of all rooms are summed per product key and rounded to packs once, each calc's share kept. A calc that
  * counts a consumable itself (adhesive, grout) replaces the same consumable another calc of the room brings along on
- * an overlapping surface. Pure: the browser computes each calc and passes its items.
+ * a surface it covers whole; covering only part of it (adhesive on the floor, tile on floor and walls), both stay —
+ * a little extra rather than the walls' share lost. Pure: the browser computes each calc and passes its items.
  */
 export function aggregateEstimate({ roomIds, calcs, shared, prices }: AggregateInput): EstimateAggregate {
   const replaced: Replacement[] = [];
@@ -139,7 +150,7 @@ export function aggregateEstimate({ roomIds, calcs, shared, prices }: AggregateI
           (o) =>
             o !== calc &&
             o.items.some((i) => i.role === "main" && i.key === item.key) &&
-            sharedParts(o.surface, calc.surface).length > 0,
+            covers(o.surface, calc.surface),
         );
         if (!by) return true;
         if (!replaced.some((r) => r.calcId === calc.id && r.key === item.key))

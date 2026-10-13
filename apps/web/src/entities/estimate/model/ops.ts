@@ -222,6 +222,40 @@ export function lastOpened(
 }
 
 /** The calc passed the threshold (Р4) and counts in the estimate from now on. */
+/** The calculator's unsaved edits of a calc in the estimate; `undefined` — none (the same as what is saved). */
+export function setDraft(
+  estimate: Estimate,
+  id: string,
+  draft: Readonly<Record<string, unknown>> | undefined,
+  now: number,
+): Estimate {
+  const calc = estimate.calcs.find((c) => c.id === id);
+  if (!calc || (draft === undefined && calc.draft === undefined)) return estimate;
+  const { draft: _, ...rest } = calc;
+  const next: EstimateCalc = draft === undefined ? rest : { ...rest, draft: { ...draft } };
+  return { ...estimate, calcs: estimate.calcs.map((c) => (c.id === id ? next : c)), updatedAt: now };
+}
+
+/** «Обновить в смете»: the draft becomes the calc's input, with the surface and formula version it was made with. */
+export function commitDraft(
+  estimate: Estimate,
+  id: string,
+  saved: { surface: Surface | undefined; toolVersion: number },
+  now: number,
+): Estimate {
+  const calc = estimate.calcs.find((c) => c.id === id);
+  if (!calc?.draft) return estimate;
+  const { draft, surface: _, ...rest } = calc;
+  const next: EstimateCalc = {
+    ...rest,
+    input: draft,
+    toolVersion: saved.toolVersion,
+    ...(saved.surface ? { surface: saved.surface } : {}),
+    openedAt: now,
+  };
+  return { ...estimate, calcs: estimate.calcs.map((c) => (c.id === id ? next : c)), updatedAt: now };
+}
+
 export function markAdded(estimate: Estimate, id: string, now: number): Estimate {
   const calc = estimate.calcs.find((c) => c.id === id);
   return !calc || calc.addedAt !== undefined ? estimate : updateCalc(estimate, id, { addedAt: now }, now);

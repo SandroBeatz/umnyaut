@@ -348,16 +348,32 @@ test("calcs: «+ Ещё» while a surface is free; a calc on both overlaps — �
   await expect(chips.getByRole("button", { name: /^Открыть расчёт/ })).toHaveText(["Потолок", "Стены", "Потолок"]);
 });
 
-test("estimate in the calculator: two changed fields add the calc, adhesive is counted for the whole estimate", async ({
-  page,
-}) => {
+test("estimate in the calculator: only the button adds, edits wait for «Обновить в смете»", async ({ page }) => {
+  const stored = () =>
+    page.evaluate(() => JSON.parse(localStorage.getItem("umnyaut:estimate:v1") ?? "null")?.state.estimate);
   await page.goto(TILE);
   await type(page, "Длина комнаты", "2,2");
-  await expect(page.getByRole("button", { name: "Добавить в смету" })).toBeVisible();
-  // Р4: the second changed field puts the calc in the estimate.
   await type(page, "Ширина комнаты", "1,7");
+  await page.getByRole("button", { name: /Ещё параметры/ }).click();
+  await type(page, "Цена коробки", "1650");
+  // Changed fields and a price add nothing by themselves.
+  await expect(page.getByRole("button", { name: "Добавить в смету" })).toBeVisible();
+  expect((await stored())?.calcs.every((c: { addedAt?: number }) => c.addedAt === undefined)).toBe(true);
+  await page.getByRole("button", { name: "Добавить в смету" }).click();
   await expect(page.getByRole("button", { name: "В смете" })).toBeDisabled();
   await expect(page.locator("#result").getByText("Нужно купить · Комната 1")).toBeVisible();
+
+  // A change after that waits: the estimate keeps what was added until «Обновить в смете».
+  await type(page, "Цена коробки", "2000");
+  await expect(page.getByRole("button", { name: "Обновить в смете" })).toBeVisible();
+  expect((await stored())?.calcs[0].input.price_tile).toBe(1650);
+  await page.getByRole("button", { name: "Обновить в смете" }).click();
+  await expect(page.getByRole("button", { name: "В смете" })).toBeDisabled();
+  expect((await stored())?.calcs[0].input.price_tile).toBe(2000);
+  // Back to the saved value: nothing to update.
+  await type(page, "Цена коробки", "1650");
+  await type(page, "Цена коробки", "2000");
+  await expect(page.getByRole("button", { name: "В смете" })).toBeDisabled();
 
   // A second room with tile: the adhesive line shows this room's share and the estimate's bags.
   await page.reload();
@@ -374,17 +390,16 @@ test("estimate in the calculator: two changed fields add the calc, adhesive is c
   }
   await editor.getByRole("button", { name: "Сохранить комнату" }).click();
   await page.getByRole("radio", { name: "30 × 60" }).click();
+  await page.getByRole("button", { name: "Добавить в смету" }).click();
   await expect(page.getByRole("button", { name: "В смете" })).toBeDisabled();
   const result = page.locator("#result");
   await expect(result.getByText("Нужно купить · Кухня")).toBeVisible();
   await expect(result.getByText("Ещё понадобится · на всю смету")).toBeVisible();
   await expect(result.getByText(/^Кухня: [\d,]+\sкг$/).first()).toBeVisible();
 
-  // The header's total is saved in the estimate (Р3).
-  const totals = await page.evaluate(
-    () => JSON.parse(localStorage.getItem("umnyaut:estimate:v1") ?? "null")?.state.estimate.totals,
-  );
-  expect(totals).toMatchObject({ sum: 0, byRoom: { r1: 0, r2: 0 } });
+  // The header's total is saved in the estimate (Р3): the bathroom's tile is priced, the kitchen's is not.
+  await expect.poll(async () => (await stored())?.totals?.byRoom?.r1).toBeGreaterThan(0);
+  expect((await stored())?.totals?.byRoom?.r2).toBe(0);
 });
 
 test("plinth: planks and fittings, an L-shaped room adds corners", async ({ page }) => {

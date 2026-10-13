@@ -148,15 +148,15 @@ export function CalculatorShell({ tool, next, checkedAt, sources, module }: Calc
               getText={getText}
               getUrl={getUrl}
               onAction={(action) => {
-                if (tool.items) calc.addToEstimate();
                 if (action === "copy") track("result_copied", { tool: tool.id });
                 else track("project_shared", { channel: action });
               }}
               primary={
                 view.mode === "buy" ? (
                   <AddToList
-                    added={current?.addedAt !== undefined}
+                    state={current?.addedAt === undefined ? "add" : current.draft ? "update" : "added"}
                     onAdd={calc.addToEstimate}
+                    onUpdate={calc.updateEstimate}
                     className="min-w-32 flex-1"
                   />
                 ) : undefined

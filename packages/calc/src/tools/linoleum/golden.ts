@@ -196,5 +196,14 @@ export const golden: GoldenFile<LinoleumInput> = {
       expected: { costTotal: 17200 },
       source: { kind: "manual", ref: "21,5 м² × 800 ₽/м² = 17 200 ₽ (8,6 м × 2,5 м)" },
     },
+    {
+      name: "Welding switched off: the seam hint asks to switch it on, nothing to weld bought",
+      input: { weld: false },
+      expected: { absentItems: ["seam-weld"], warnings: ["seams_no_weld"] },
+      source: {
+        kind: "manual",
+        ref: "Пример комнаты кладут в 2 полотна — 1 стык; «Холодная сварка швов» выключена: сварку не берём и не пишем, что она в покупках",
+      },
+    },
   ],
 };

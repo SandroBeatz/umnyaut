@@ -45,6 +45,8 @@ interface EstimateState {
   addCalc(calc: ops.NewCalc): string | undefined;
   updateCalc(id: string, patch: Parameters<typeof ops.updateCalc>[2]): void;
   markAdded(id: string): void;
+  setDraft(id: string, draft: Readonly<Record<string, unknown>> | undefined): void;
+  commitDraft(id: string, saved: { surface: Surface | undefined; toolVersion: number }): void;
   openCalc(id: string): void;
   removeCalc(id: string): void;
   undoRemove(): void;
@@ -103,6 +105,8 @@ export const useEstimateStore = create<EstimateState>()(
         },
         updateCalc: (id, patch) => apply((e, now) => ops.updateCalc(e, id, patch, now)),
         markAdded: (id) => apply((e, now) => ops.markAdded(e, id, now)),
+        setDraft: (id, draft) => apply((e, now) => ops.setDraft(e, id, draft, now)),
+        commitDraft: (id, saved) => apply((e, now) => ops.commitDraft(e, id, saved, now)),
         openCalc: (id) => apply((e, now) => ops.openCalc(e, id, now)),
         removeCalc: (id) => {
           const { estimate } = get();
