@@ -205,8 +205,8 @@ export const oboi: ToolDef = {
   nextSteps: ["kraska", "ploshchad-sten"],
   items: {
     wallpaper: { title: "Обои", photo: "wallpaper" },
-    "wallpaper-glue": { title: "Обойный клей", photo: "wallpaper-glue" },
-    primer: { title: "Грунтовка", photo: "primer" },
+    "wallpaper-glue": { title: "Обойный клей", photo: "wallpaper-glue", shared: true },
+    primer: { title: "Грунтовка", photo: "primer", shared: true },
   },
   summary: {
     parts: "Монтажных деталей на стенах",

@@ -96,6 +96,11 @@ export const shell = {
     related: "Ещё понадобится",
   },
   /** Local list of works for one room (P6.11); the full planner is /remont/ in Phase 11. */
+  /** Names the estimate gives itself and its rooms until the user renames them (spec «Комнаты и смета»). */
+  estimate: {
+    name: "Ремонт квартиры",
+    room: "Комната {n}",
+  },
   roomList: {
     title: "Список для комнаты",
     lead: "Одинаковые материалы сложены и округлены до упаковок один раз. Размеры — из «Моей комнаты».",

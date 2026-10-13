@@ -5,7 +5,8 @@ import { Button, NumberField, ResponsiveSheet } from "@umnyaut/ui";
 import { formatNumber } from "@umnyaut/ui/format";
 import { Ruler } from "lucide-react";
 import { useEffect, useState } from "react";
-import { hydrateRoom, type RoomDraft, roomDimensions, useRoomStore } from "@/entities/room";
+import { hydrateEstimate, useActiveRoom, useEstimateStore } from "@/entities/estimate";
+import { type RoomDraft, roomDimensions } from "@/entities/room";
 import { fill } from "@/shared/lib";
 
 const t = shell.roomBar;
@@ -22,12 +23,12 @@ const range = ([min, max]: readonly [number, number]) =>
  * the stored room appears after mount.
  */
 export function RoomBar() {
-  const room = useRoomStore((s) => s.room);
+  const room = useActiveRoom();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Record<Part, number | null>>({ lengthMm: null, widthMm: null, heightMm: null });
 
   useEffect(() => {
-    void hydrateRoom();
+    void hydrateEstimate();
   }, []);
 
   const onOpenChange = (next: boolean) => {
@@ -49,7 +50,7 @@ export function RoomBar() {
       const value = draft[part];
       if (value !== null) patch[part] = Math.round(value * 1000);
     }
-    useRoomStore.getState().updateRoom(patch);
+    useEstimateStore.getState().patchActiveRoom(patch);
     setOpen(false);
   };
 
@@ -108,7 +109,7 @@ export function RoomBar() {
             size="lg"
             className="sm:flex-1"
             onClick={() => {
-              useRoomStore.getState().clearRoom();
+              useEstimateStore.getState().clearActiveRoom();
               setOpen(false);
             }}
           >

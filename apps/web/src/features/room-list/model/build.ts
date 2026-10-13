@@ -1,9 +1,14 @@
-import type { ToolModule } from "@umnyaut/calc";
+import type { ToolId, ToolModule } from "@umnyaut/calc";
 import { mergeItems, type PurchaseItem } from "@umnyaut/calc";
 import { DEFAULT_COUNTRY, type ToolDef, tools } from "@umnyaut/catalog";
 import { applyRoom, type RoomDraft } from "@/entities/room";
 import type { ToolValues } from "@/entities/tool";
-import type { ListEntry } from "./store";
+
+/** One work in the room list: the tool and its own input (fields not bound to “My room”, only changed ones). */
+export interface ListEntry {
+  tool: ToolId;
+  input: Readonly<Record<string, unknown>>;
+}
 
 export interface ListWork {
   tool: ToolDef;

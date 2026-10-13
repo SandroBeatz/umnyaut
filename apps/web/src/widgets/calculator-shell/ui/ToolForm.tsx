@@ -7,7 +7,7 @@ import { formatMoney, formatNumber } from "@umnyaut/ui/format";
 import { ChevronDown, PencilRuler, Ruler } from "lucide-react";
 import { type ReactNode, useId, useState } from "react";
 import { useCountry } from "@/entities/country";
-import { useRoomStore } from "@/entities/room";
+import { useActiveRoom } from "@/entities/estimate";
 import type { ToolValues } from "@/entities/tool";
 import { PlanEditor } from "@/features/edit-room-plan";
 import { fill } from "@/shared/lib";
@@ -48,7 +48,7 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
   const [unit, setUnit] = useState<LengthUnit>("m");
   const [open, setOpen] = useState(false);
   const moreId = useId();
-  const room = useRoomStore((s) => s.room);
+  const room = useActiveRoom();
   const country = useCountry();
   const config = getCountry(country);
   const sign = config.sign;

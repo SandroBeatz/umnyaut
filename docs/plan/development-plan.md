@@ -1,12 +1,12 @@
 ---
-version: 2.9
+version: 2.10
 date: 2026-10-13
 category: plan
 ---
 
 # Development Plan
 
-> Version 2.9 · 2026-10-13 · [Plan](../plan/)
+> Version 2.10 · 2026-10-13 · [Plan](../plan/)
 
 ## Overview
 
@@ -476,9 +476,9 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 *A — Model and storage*
 
-- [ ] P17.1 `ProjectData` schema 2 = the estimate: rooms with name and type, calcs with `id`, room, surface, label, own input and main-material prices; shared-consumable prices by product key; cached `totals`; limits 20 rooms / 60 calcs; `migrateProject` v1 → v2 with tests.
-- [ ] P17.2 `PurchaseItem.variant`, catalog item flag `shared`, `productKey()` (item | variant | pack kind | pack size); `mergeItems` by product key; pure `aggregateEstimate()` in `calc/project`: lines per room, shared block with each calc's share, savings in packs and money, surface overlaps per room, adhesive/grout replacement scoped to room + surface. Unit tests + fast-check (merged ≥ need, merged packs ≤ sum of separate packs).
-- [ ] P17.3 `entities/estimate`: Zustand persist `umnyaut:estimate:v1` (`skipHydration`), actions for rooms, calcs (add / update / remove / undo / split), prices, totals; one-time migration from `umnyaut:room:v1` + `umnyaut:list:v1`, old keys removed after a successful write; the room and list stores give way to it.
+- [x] P17.1 `ProjectData` schema 2 = the estimate: rooms with name and type, calcs with `id`, room, surface, label, own input and main-material prices; shared-consumable prices by product key; cached `totals`; limits 20 rooms / 60 calcs; `migrateProject` v1 → v2 with tests.
+- [x] P17.2 `PurchaseItem.variant`, catalog item flag `shared`, `productKey()` (item | variant | pack kind | pack size); `mergeItems` by product key; pure `aggregateEstimate()` in `calc/project`: lines per room, shared block with each calc's share, savings in packs and money, surface overlaps per room, adhesive/grout replacement scoped to room + surface. Unit tests + fast-check (merged ≥ need, merged packs ≤ sum of separate packs).
+- [x] P17.3 `entities/estimate`: Zustand persist `umnyaut:estimate:v1` (`skipHydration`), actions for rooms, calcs (add / update / remove / undo / split), prices, totals; one-time migration from `umnyaut:room:v1` + `umnyaut:list:v1`, old keys removed after a successful write; the room and list stores give way to it. → Done 2026-10-13 (stage A): schema 2, `productKey`, `aggregateEstimate`, `entities/estimate` with the one-time move; the room list keeps its v1 behaviour on the estimate until stage C.
 
 *B — Calc changes (`calc-engineer`, every change reviewed by `formula-reviewer`)*
 

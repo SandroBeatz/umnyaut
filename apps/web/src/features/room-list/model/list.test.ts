@@ -3,26 +3,8 @@ import { describe, expect, it } from "vitest";
 import { getToolModule } from "@/entities/tool";
 import { buildList } from "./build";
 import { ownInput } from "./input";
-import { migrateList } from "./store";
 
 describe("room list", () => {
-  it("drops unknown tools and broken rows; the last entry of a tool wins", () => {
-    expect(
-      migrateList(
-        {
-          entries: [
-            { tool: "oboi", input: { repeatMm: 640 } },
-            { tool: "nope", input: {} },
-            { tool: "kraska" },
-            { tool: "oboi", input: {} },
-          ],
-        },
-        1,
-      ),
-    ).toEqual({ entries: [{ tool: "oboi", input: {} }] });
-    expect(migrateList(null, 1)).toEqual({ entries: [] });
-  });
-
   it("stores only the tool's own changed fields, not the room", () => {
     const tool = getTool("steny", "oboi");
     if (!tool) throw new Error("no tool");

@@ -76,8 +76,13 @@ export interface CalcContext {
 }
 
 export interface PurchaseItem {
-  /** 'laminate' | 'underlay' | 'plinth' — also the photo key and the merge key in the planner. */
+  /** 'laminate' | 'underlay' | 'plinth' — also the photo key; with `variant` and the pack, the product key. */
   key: string;
+  /**
+   * Kind of the same item that is a different product in the shop (adhesive type, grout colour, wallpaper type):
+   * white and graphite grout never merge in the estimate. No variant = the item's usual kind.
+   */
+  variant?: string;
   role: "main" | "related";
   need: Quantity;
   pack: Pack;

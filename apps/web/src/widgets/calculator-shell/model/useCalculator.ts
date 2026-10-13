@@ -4,7 +4,7 @@ import type { ToolId, ToolModule, ToolResult } from "@umnyaut/calc";
 import { DEFAULT_COUNTRY, type ToolDef } from "@umnyaut/catalog";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCountry } from "@/entities/country";
-import { hydrateRoom, useRoomStore } from "@/entities/room";
+import { hydrateEstimate, selectActiveRoom, useEstimateStore } from "@/entities/estimate";
 import type { ToolValues } from "@/entities/tool";
 import { decodeShare } from "@/features/share-result";
 import { readJson, writeStorage } from "@/shared/lib";
@@ -58,13 +58,13 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
     if (fromLink) {
       setAll(fromLink);
       loaded.current = true;
-      void hydrateRoom();
+      void hydrateEstimate();
       return;
     }
     const saved = readJson<ToolValues>(toolKey(tool.id));
     const base = (saved && parse({ ...defaults, ...saved })) ?? defaults;
-    void hydrateRoom().then(() => {
-      const withRoom = parse(applyRoom(base, useRoomStore.getState().room, tool.fields));
+    void hydrateEstimate().then(() => {
+      const withRoom = parse(applyRoom(base, selectActiveRoom(useEstimateStore.getState()), tool.fields));
       setAll(withRoom ?? base);
       loaded.current = true;
     });
@@ -73,8 +73,9 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
   // Room edits from RoomBar or another tab.
   useEffect(
     () =>
-      useRoomStore.subscribe(({ room }, previous) => {
-        if (!loaded.current || same(room, previous.room)) return;
+      useEstimateStore.subscribe((state, previous) => {
+        const room = selectActiveRoom(state);
+        if (!loaded.current || same(room, selectActiveRoom(previous))) return;
         setAll((current) => {
           const next = parse(applyRoom(current, room, tool.fields));
           return next && !same(next, current) ? next : current;
@@ -90,7 +91,7 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
       setFieldsChanged(changed.current.size);
       setAll((current) => parse({ ...current, ...patch }) ?? current);
       const room = roomPatch(patch, tool.fields);
-      if (Object.keys(room).length > 0) useRoomStore.getState().updateRoom(room);
+      if (Object.keys(room).length > 0) useEstimateStore.getState().patchActiveRoom(room);
     },
     [parse, tool],
   );

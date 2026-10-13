@@ -74,7 +74,7 @@ export const kraska: ToolDef = {
   nextSteps: ["ploshchad-sten", "oboi"],
   items: {
     paint: { title: "Краска", photo: "paint" },
-    primer: { title: "Грунтовка", photo: "primer" },
+    primer: { title: "Грунтовка", photo: "primer", shared: true },
   },
   summary: {
     paintLitres: "Краски нужно",

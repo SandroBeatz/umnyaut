@@ -70,6 +70,15 @@ export function validateRegistry({ categories, reservedSegments, tools, modules,
     for (const id of tool.norms ?? []) if (!norms[id]) errors.push(`${at}: unknown norm ${id}`);
   }
 
+  // One item key is one product everywhere: shared in one tool and a room material in another would split it.
+  const sharedBy = new Map<string, Set<boolean>>();
+  for (const tool of tools) {
+    for (const [key, item] of Object.entries(tool.items ?? {})) {
+      sharedBy.set(key, (sharedBy.get(key) ?? new Set()).add(item.shared === true));
+    }
+  }
+  for (const [key, flags] of sharedBy) if (flags.size > 1) errors.push(`item ${key}: shared in some tools only`);
+
   for (const [id, norm] of Object.entries(norms)) {
     if (!norm.source.trim()) errors.push(`norm ${id}: missing source`);
     if (!DATE.test(norm.checkedAt)) errors.push(`norm ${id}: checkedAt must be YYYY-MM-DD`);

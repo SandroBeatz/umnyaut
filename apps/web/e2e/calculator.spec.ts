@@ -197,6 +197,31 @@ test("room list: wallpaper on the walls and paint on the ceiling share one prime
   await expect(rows.filter({ hasText: "Обои" })).toHaveCount(0);
 });
 
+test("the old «Моя комната» and room list move into the estimate once", async ({ page }) => {
+  await page.goto(LAMINATE);
+  // What the builds before the estimate stored (zustand persist, version 1).
+  await page.evaluate(() => {
+    const old = (state: object) => JSON.stringify({ state, version: 1 });
+    localStorage.setItem("umnyaut:room:v1", old({ room: { lengthMm: 3000, widthMm: 2500, heightMm: 2600 } }));
+    localStorage.setItem("umnyaut:list:v1", old({ entries: [{ tool: "laminat", input: {} }] }));
+  });
+  await page.reload();
+  await expect(page.getByText(/^3\s×\s2,5\s×\s2,6\sм$/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "В списке" })).toBeDisabled();
+  await expect(page.locator("[data-room-list]").getByRole("link", { name: /Ламинат/ })).toBeVisible();
+  const stored = await page.evaluate(() => ({
+    room: localStorage.getItem("umnyaut:room:v1"),
+    list: localStorage.getItem("umnyaut:list:v1"),
+    estimate: JSON.parse(localStorage.getItem("umnyaut:estimate:v1") ?? "null")?.state.estimate,
+  }));
+  expect(stored.room).toBeNull();
+  expect(stored.list).toBeNull();
+  expect(stored.estimate.rooms).toEqual([
+    { id: "r1", name: "Комната 1", type: "other", lengthMm: 3000, widthMm: 2500, heightMm: 2600 },
+  ]);
+  expect(stored.estimate.calcs.map((c: { tool: string }) => c.tool)).toEqual(["laminat"]);
+});
+
 test("plinth: planks and fittings, an L-shaped room adds corners", async ({ page }) => {
   await page.goto(PLINTH);
   // 17,8 − 0,8 = 17 м → 7 планок по 2,5 м.

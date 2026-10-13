@@ -60,6 +60,11 @@ export interface ItemDef {
   title: string;
   /** Material photo key in the image pipeline (`materialImages`); none → category icon. */
   photo?: string;
+  /**
+   * A consumable bought once for the whole renovation (adhesive, primer, grout, wallpaper paste): the estimate sums
+   * it across rooms and rounds to packs once. Without the flag the item is a room's own material.
+   */
+  shared?: true;
 }
 
 export interface ToolDef {

@@ -23,7 +23,7 @@ export function purchase(
   role: PurchaseItem["role"],
   need: Quantity,
   pack: Pack,
-  extra: Pick<PurchaseItem, "shopQuery" | "nextTool"> = {},
+  extra: Pick<PurchaseItem, "variant" | "shopQuery" | "nextTool"> = {},
 ): PurchaseItem {
   const packs = ceilPacks(need.value, pack.size.value);
   const bought = packs * pack.size.value;

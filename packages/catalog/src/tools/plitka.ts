@@ -156,8 +156,8 @@ export const plitka: ToolDef = {
   nextSteps: ["klej", "zatirka"],
   items: {
     tile: { title: "Плитка", photo: "tile" },
-    "tile-adhesive": { title: "Плиточный клей", photo: "tile-adhesive" },
-    grout: { title: "Затирка", photo: "grout" },
+    "tile-adhesive": { title: "Плиточный клей", photo: "tile-adhesive", shared: true },
+    grout: { title: "Затирка", photo: "grout", shared: true },
   },
   summary: {
     tiles: "Плиток с запасом",

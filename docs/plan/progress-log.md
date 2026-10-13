@@ -1,12 +1,12 @@
 ---
-version: 1.7
+version: 1.8
 date: 2026-10-13
 category: plan
 ---
 
 # Progress Log
 
-> Version 1.7 · 2026-10-13 · [Plan](../plan/)
+> Version 1.8 · 2026-10-13 · [Plan](../plan/)
 
 ## Overview
 
@@ -41,6 +41,11 @@ Each entry:
 ## Log
 
 ### 2026-10-13
+
+- **P17.1, P17.2, P17.3** Rooms and estimate, stage A — model and storage. **P17.1** `ProjectData` schema 2 = the estimate (`calc/project/schema.ts`): rooms (name ≤ 40, type, optional sizes — a room exists from the first size entered, flat L-cut like the tool fields), calcs (`id`, room, tool, formula version, surface `floor | walls | ceiling | floor-walls | walls-ceiling`, label ≤ 40, own input, main-material prices, `openedAt`, `addedAt`), shared prices by product key, cached `totals`, `activeRoomId`; limits 20 rooms / 60 calcs; refinements: unique ids, every calc's room exists, the active room exists; `migrateProject` v1 → v2; pure `nextId`. **P17.2** `PurchaseItem.variant` (`purchase()` takes it), `productKey()` = item | variant | pack kind | pack size, `mergeItems` by it; catalog `ItemDef.shared` on adhesive, grout, primer, wallpaper paste, `sharedItems`, registry rule «one flag per item everywhere»; pure `aggregateEstimate()` (`calc/project/estimate.ts`): main-material lines per room with prices, shared lines merged once with each calc's share, savings in packs and money, finishes overlapping on a surface of a room, adhesive/grout replacement scoped to room + overlapping surface (Р11), totals. **P17.3** `entities/estimate`: pure steps (`ops.ts` — rooms, calcs add / update / mark added / remove / restore / split, prices, totals, list on the estimate), Zustand persist `umnyaut:estimate:v1` with `skipHydration`, one-time move of `umnyaut:room:v1` + `umnyaut:list:v1` into «Комната 1» and its calcs, old keys removed after the estimate is written; the room and list stores are gone — RoomBar, home room card, calculator (fields, room sync, plan editor) and the room list read and write the active room and its calcs. Tests: calc 185 (schema, migration, limits, `aggregateEstimate` incl. real tile in two rooms and a fast-check property: merged need = shares, merged packs ≤ apart, totals = priced lines), web estimate 17, e2e «old room and list move into the estimate» on records in the old format; `pnpm check` and 25 e2e green; JS: category 187.6 KB, home 192.1, tool 243.0.
+  - Where: `feature/p17-a-estimate-model`
+  - Notes: no formula changed (no tool returns a variant yet — P17.4), goldens untouched, so no `formula-reviewer` pass; stage B is next for calc, stage C for the UI. The room list keeps its v1 behaviour on top of the estimate (one calc per tool in the active room, «Другая комната» clears the active room's sizes) until P17.7–P17.10 replace it. Calcs moved from the old list have formula version 0 (not stored then).
+  - Deviation: spec «Данные и хранение» shows `cut?: { lengthMm, widthMm }` and required room sizes; the room keeps the flat `cutLengthMm` / `cutWidthMm` the tool fields bind to and optional sizes (a room exists from the first size, scenario 1); `totals` also carries `savedPacks` only in `aggregateEstimate`, not in storage. The old list's tool ids are checked by shape, not against the registry (keeps the registry out of every page's JS; the list skips unknown tools).
 
 - **P16.9** Room plan in room area and wall area: new `Layout` kind `plan` (`planLayout` in `calc/blocks/plan.ts` — outline, walls, placed doors and windows, a guide to add or place them), both tools return it, the scheme card shows «План комнаты» (own title, summary «Стен: 4 · дверей: 1 · окон: 1», «Подсказки», plan at most 360 px high on desktop) with «Отметить на плане». Room area: fields «Где вырез на плане» and «Двери и окна на плане» (no effect on the area, written to “My room”), `opening_off_wall`. Wall area **version 2**: takes the room shape (shape, cut-out, corner) so places made on an L-shaped room's six walls survive; walls unchanged (same perimeter), the ceiling of an L-shape is L × W − cut-out (was the rectangle), `cut_too_large`, steps `ceiling_l` and `perimeter_l`, perimeter from whole millimetres, 4 new goldens. `formula-reviewer`: APPROVE WITH NOTES (goldens re-derived, 20 000 random rooms: ceiling = room-area floor, places change no number) → notes applied (L-shape perimeter step, mm perimeter, two more goldens, the property over every shape, corner and wall 0–11, niche line in the content). Content of both pages updated. Tests: `layout-plan.test.ts` (7, incl. places never change a number), e2e «room plan» (door placed in wall area shows in room area); `pnpm check` and 24 e2e green.
   - Where: `feature/p16-9-room-plan`

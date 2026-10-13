@@ -30,6 +30,11 @@ export const strings = {
   draftNotice: "Калькулятор скоро появится.",
 } as const;
 
+/** Item keys of the shared consumables (`ItemDef.shared`): the estimate merges them across rooms. */
+export const sharedItems: ReadonlySet<string> = new Set(
+  tools.flatMap((t) => Object.entries(t.items ?? {}).flatMap(([key, item]) => (item.shared ? [key] : []))),
+);
+
 export function getTool(category: string, id: string): ToolDef | undefined {
   return tools.find((tool) => tool.category === category && tool.id === id);
 }

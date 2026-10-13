@@ -100,7 +100,7 @@ export const zatirka: ToolDef = {
     { id: "t60", label: "60 × 60", values: { tileLengthMm: 600, tileWidthMm: 600 } },
   ],
   nextSteps: ["klej", "plitka"],
-  items: { grout: { title: "Затирка", photo: "grout" } },
+  items: { grout: { title: "Затирка", photo: "grout", shared: true } },
   summary: { groutKg: "Затирки нужно", rate: "Расход на 1 м²", area: "Площадь облицовки" },
   steps: {
     floor: "Пол = {length} × {width} = {area} м²",

@@ -5,15 +5,14 @@ import { shell, toolPath } from "@umnyaut/catalog";
 import { categoryIcons, MaterialThumb, toast } from "@umnyaut/ui";
 import { Calculator, Copy, Trash2, X } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { useRoomStore } from "@/entities/room";
+import { useEffect, useMemo, useState } from "react";
+import { hydrateEstimate, useActiveCalcs, useActiveRoom, useEstimateStore } from "@/entities/estimate";
 import { groupPurchases, loadToolModule, purchaseTexts, ToolCard, type ToolValues } from "@/entities/tool";
 import { materialImages } from "@/shared/config";
 import { fill } from "@/shared/lib";
 import { Hint } from "@/shared/ui";
-import { buildList } from "../model/build";
+import { buildList, type ListEntry } from "../model/build";
 import { itemDef } from "../model/input";
-import { hydrateList, useListStore } from "../model/store";
 
 const t = shell.roomList;
 
@@ -28,12 +27,14 @@ const photoOf = (key: string | undefined) =>
 export function RoomList() {
   const [ready, setReady] = useState(false);
   useEffect(() => {
-    void hydrateList().then(() => setReady(true));
+    void hydrateEstimate().then(() => setReady(true));
   }, []);
-  const entries = useListStore((s) => s.entries);
-  const remove = useListStore((s) => s.remove);
-  const clear = useListStore((s) => s.clear);
-  const room = useRoomStore((s) => s.room);
+  const calcs = useActiveCalcs();
+  const entries = useMemo(() => calcs.map((c): ListEntry => ({ tool: c.tool as ToolId, input: c.input })), [calcs]);
+  const removeToolCalcs = useEstimateStore((s) => s.removeToolCalcs);
+  const remove = (tool: ToolId) => removeToolCalcs([tool]);
+  const clear = () => removeToolCalcs();
+  const room = useActiveRoom();
   // Each work's calculator is loaded when the list needs it, not with the page.
   const [modules, setModules] = useState<ReadonlyMap<ToolId, ToolModule<ToolValues>>>(() => new Map());
   useEffect(() => {

@@ -5,7 +5,8 @@ import { getTool, unitLabels } from "@umnyaut/catalog";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCountry } from "@/entities/country";
-import { roomDimensions, useRoomStore } from "@/entities/room";
+import { useActiveRoom } from "@/entities/estimate";
+import { roomDimensions } from "@/entities/room";
 import type { ToolValues } from "@/entities/tool";
 import { RoomBar } from "@/features/edit-room";
 import { AddToList, RoomList } from "@/features/room-list";
@@ -50,7 +51,7 @@ export function CalculatorShell({ category, toolId, checkedAt, sources, module }
   if (!tool) throw new Error(`Unknown tool ${category}/${toolId}`);
   const calc = useCalculator(tool, module);
   const country = useCountry();
-  const room = useRoomStore((s) => s.room);
+  const room = useActiveRoom();
   const view = describeResult(tool, calc.result, country);
 
   const panel = useRef<HTMLElement>(null);
@@ -106,7 +107,13 @@ export function CalculatorShell({ category, toolId, checkedAt, sources, module }
               }
               primary={
                 view.mode === "buy" ? (
-                  <AddToList tool={tool} values={values} defaults={defaults} className="min-w-32 flex-1" />
+                  <AddToList
+                    tool={tool}
+                    version={module.version}
+                    values={values}
+                    defaults={defaults}
+                    className="min-w-32 flex-1"
+                  />
                 ) : undefined
               }
             />

@@ -10,7 +10,7 @@ import { describe, expect, it } from "vitest";
 import { type CategoryDef, categories, reservedSegments } from "./categories";
 import { norms } from "./norms";
 import { toolPath } from "./paths";
-import { activeCategories, getTool, tools } from "./registry";
+import { activeCategories, getTool, sharedItems, tools } from "./registry";
 import { toolGuides } from "./scheme";
 import type { ToolDef } from "./tools/types";
 import { type RegistryInput, validateRegistry } from "./validate";
@@ -20,6 +20,16 @@ const real: RegistryInput = { categories, reservedSegments, tools, modules: tool
 describe("registry", () => {
   it("passes every registry rule", () => {
     expect(validateRegistry(real)).toEqual([]);
+  });
+
+  it("shared consumables are adhesive, grout, primer and wallpaper paste — one flag per item everywhere", () => {
+    expect([...sharedItems].sort()).toEqual(["grout", "primer", "tile-adhesive", "wallpaper-glue"]);
+    const [kraska] = tools.filter((t) => t.id === "kraska");
+    const unflagged = { ...kraska, items: { ...kraska?.items, primer: { title: "Грунтовка" } } } as ToolDef;
+    const others = tools.filter((t) => t.id !== "kraska");
+    expect(validateRegistry({ ...real, tools: [...others, unflagged] })).toEqual([
+      "item primer: shared in some tools only",
+    ]);
   });
 
   it("tool URLs are unique", () => {
