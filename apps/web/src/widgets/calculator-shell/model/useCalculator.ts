@@ -34,6 +34,8 @@ export interface Calculator {
   seedRoom(): void;
   /** The calc for the current values, created in the active room when there is none; its id. */
   ensureCalc(): string | undefined;
+  /** «Добавить в смету», a result action or the threshold (Р4): the open calc joins the estimate. */
+  addToEstimate(): void;
   /** Shows another calc of this tool in the room (a chip). */
   openCalc(id: string): void;
   /** «+ Ещё»: a new calc with default material on the first free surface. */
@@ -199,11 +201,24 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
       }
       // An own field changed: it belongs to the calc.
       if (Object.keys(patch).length > Object.keys(room).length) writeCalc(next, true);
+      // Р4: two changed fields or a price entered — the calc joins the estimate by itself, on the edit only (a
+      // removed calc is not brought back by a state that still says «two fields»).
+      const priced = tool.fields.some((f) => f.kind === "price" && typeof patch[f.name] === "number");
+      if (keepsCalcs && (changed.current.size >= 2 || priced)) {
+        const id = writeCalc(next, true);
+        const calc = useEstimateStore.getState().estimate?.calcs.find((c) => c.id === id);
+        if (id && calc?.addedAt === undefined) useEstimateStore.getState().markAdded(id);
+      }
     },
-    [parse, tool, writeCalc],
+    [parse, tool, writeCalc, keepsCalcs],
   );
 
   const ensureCalc = useCallback(() => writeCalc(shown.current, true), [writeCalc]);
+
+  const addToEstimate = useCallback(() => {
+    const id = writeCalc(shown.current, true);
+    if (id) useEstimateStore.getState().markAdded(id);
+  }, [writeCalc]);
 
   const openCalc = useCallback(
     (id: string) => {
@@ -306,6 +321,7 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
     setInvalid,
     seedRoom,
     ensureCalc,
+    addToEstimate,
     openCalc,
     addCalc,
     setLabel,

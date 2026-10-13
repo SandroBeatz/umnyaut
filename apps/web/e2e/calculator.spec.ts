@@ -192,8 +192,8 @@ test("paint: a can set with sizes, ceiling switch, primer canister", async ({ pa
 test("room list: wallpaper on the walls and paint on the ceiling share one primer canister", async ({ page }) => {
   await page.goto(WALLPAPER);
   await expect(result(page)).toHaveText("11");
-  await page.getByRole("button", { name: "В список" }).click();
-  await expect(page.getByRole("button", { name: "В списке" })).toBeDisabled();
+  await page.getByRole("button", { name: "Добавить в смету" }).click();
+  await expect(page.getByRole("button", { name: "В смете" })).toBeDisabled();
   // Wallpaper is one calc per room: no chips row to choose from.
   await expect(page.locator("[data-calc-chips]")).toHaveCount(0);
   const list = page.locator("[data-room-list]");
@@ -203,7 +203,7 @@ test("room list: wallpaper on the walls and paint on the ceiling share one prime
   await expect(page).toHaveURL(PAINT);
   await page.getByRole("button", { name: "Что красим" }).click();
   await page.getByRole("radio", { name: "Потолок", exact: true }).click();
-  await page.getByRole("button", { name: "В список" }).click();
+  await page.getByRole("button", { name: "Добавить в смету" }).click();
 
   // Walls 44,78 × 0,15 + ceiling 19,78 × 0,15 = 9,68 л → one canister for both works.
   const rows = list.locator("li", { has: page.locator("[data-list-quantity]") });
@@ -229,7 +229,7 @@ test("the old «Моя комната» and room list move into the estimate onc
   });
   await page.reload();
   await expect(page.locator("[data-room-dimensions]")).toHaveText(/^3\s×\s2,5\s×\s2,6\sм$/);
-  await expect(page.getByRole("button", { name: "В списке" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "В смете" })).toBeDisabled();
   await expect(page.locator("[data-room-list]").getByRole("link", { name: /Ламинат/ })).toBeVisible();
   const stored = await page.evaluate(() => ({
     room: localStorage.getItem("umnyaut:room:v1"),
@@ -350,6 +350,45 @@ test("calcs: «+ Ещё» while a surface is free; a calc on both overlaps — �
   await expect(page.getByText("Потолок уже в расчёте «Краска: Потолок». Разделить на два расчёта?")).toBeVisible();
   await page.getByRole("button", { name: "Разделить", exact: true }).click();
   await expect(chips.getByRole("button", { name: /^Открыть расчёт/ })).toHaveText(["Потолок", "Стены", "Потолок"]);
+});
+
+test("estimate in the calculator: two changed fields add the calc, adhesive is counted for the whole estimate", async ({
+  page,
+}) => {
+  await page.goto(TILE);
+  await type(page, "Длина комнаты", "2,2");
+  await expect(page.getByRole("button", { name: "Добавить в смету" })).toBeVisible();
+  // Р4: the second changed field puts the calc in the estimate.
+  await type(page, "Ширина комнаты", "1,7");
+  await expect(page.getByRole("button", { name: "В смете" })).toBeDisabled();
+  await expect(page.locator("#result").getByText("Нужно купить · Комната 1")).toBeVisible();
+
+  // A second room with tile: the adhesive line shows this room's share and the estimate's bags.
+  await page.reload();
+  await page.getByRole("button", { name: /^Комната 1,/ }).click();
+  await page.getByRole("button", { name: "Новая комната" }).click();
+  const editor = page.getByRole("dialog", { name: "Новая комната" });
+  await editor.getByRole("button", { name: "Кухня", exact: true }).click();
+  for (const [label, value] of [
+    ["Длина", "3"],
+    ["Ширина", "2,8"],
+  ] as const) {
+    await editor.getByRole("textbox", { name: label, exact: true }).fill(value);
+    await editor.getByRole("textbox", { name: label, exact: true }).blur();
+  }
+  await editor.getByRole("button", { name: "Сохранить комнату" }).click();
+  await page.getByRole("radio", { name: "30 × 60" }).click();
+  await expect(page.getByRole("button", { name: "В смете" })).toBeDisabled();
+  const result = page.locator("#result");
+  await expect(result.getByText("Нужно купить · Кухня")).toBeVisible();
+  await expect(result.getByText("Ещё понадобится · на всю смету")).toBeVisible();
+  await expect(result.getByText(/^Кухня: [\d,]+\sкг$/).first()).toBeVisible();
+
+  // The header's total is saved in the estimate (Р3).
+  const totals = await page.evaluate(
+    () => JSON.parse(localStorage.getItem("umnyaut:estimate:v1") ?? "null")?.state.estimate.totals,
+  );
+  expect(totals).toMatchObject({ sum: 0, byRoom: { r1: 0, r2: 0 } });
 });
 
 test("plinth: planks and fittings, an L-shaped room adds corners", async ({ page }) => {

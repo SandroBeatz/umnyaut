@@ -101,6 +101,14 @@ export const shell = {
     missing: "без {count} {positions}",
     positions: { one: "позиции", few: "позиций", many: "позиций" },
     related: "Ещё понадобится",
+    /** Shared consumables with the estimate (spec «Калькулятор»): quantities for the whole estimate. */
+    relatedEstimate: "Ещё понадобится · на всю смету",
+    /** «Нужно купить · Ванная». */
+    buyIn: "{buy} · {room}",
+    /** This calc's share of a shared consumable: «Ванная: 104,6 кг». */
+    share: "{room}: {need}",
+    saving: "{item} на всю смету: {total} вместо {instead}",
+    savingWith: "{item} на всю смету: {total} вместо {instead} — общий с «{rooms}»",
   },
   /** Local list of works for one room (P6.11); the full planner is /remont/ in Phase 11. */
   /** Names the estimate gives itself and its rooms until the user renames them (spec «Комнаты и смета»). */
@@ -170,6 +178,12 @@ export const shell = {
     overlap: "{parts} уже в расчёте «{calc}».",
     split: "Разделить на два расчёта?",
     splitButton: "Разделить",
+  },
+  /** «Добавить в смету» → «В смете» (spec Р4: also by itself after two changed fields, a price or a result action). */
+  toEstimate: {
+    add: "Добавить в смету",
+    added: "В смете",
+    addedToast: "Добавлено в смету",
   },
   roomList: {
     title: "Список для комнаты",

@@ -2,7 +2,9 @@ import { shell, type ToolDef } from "@umnyaut/catalog";
 import { categoryIcons, cn, Mascot, MaterialThumb } from "@umnyaut/ui";
 import { Calculator, Info } from "lucide-react";
 import type { Ref } from "react";
+import type { SharedItemView } from "@/features/estimate-totals";
 import { mascotImages, materialImages } from "@/shared/config";
+import { fill } from "@/shared/lib";
 import { Hint } from "@/shared/ui";
 import type { ResultView } from "../model/view";
 
@@ -16,6 +18,10 @@ export interface ResultPanelProps {
   view: ResultView;
   example: boolean;
   stale: boolean;
+  /** The active room's name: «Нужно купить · Ванная». */
+  room?: string;
+  /** Shared consumables counted with the estimate, by item key (loaded after mount). */
+  shared?: Readonly<Record<string, SharedItemView>>;
   ref?: Ref<HTMLElement>;
 }
 
@@ -23,7 +29,7 @@ export interface ResultPanelProps {
  * «Нужно купить» card (design spec §11): mascot `done` in the header line (adds no height), the main figure,
  * warnings right under it, related items, summary tiles, total. The numbers are in the server HTML.
  */
-export function ResultPanel({ tool, view, example, stale, ref }: ResultPanelProps) {
+export function ResultPanel({ tool, view, example, stale, room, shared, ref }: ResultPanelProps) {
   const CategoryIcon = categoryIcons[tool.category as keyof typeof categoryIcons] ?? Calculator;
   const { main } = view;
   return (
@@ -37,7 +43,13 @@ export function ResultPanel({ tool, view, example, stale, ref }: ResultPanelProp
         <Mascot image={mascotImages.done} size={56} alt="" spot />
         <div className="min-w-0">
           <p className="text-small font-semibold text-text">
-            {example ? r.example : view.mode === "buy" ? r.buy : r.measure}
+            {example
+              ? r.example
+              : view.mode === "buy"
+                ? room
+                  ? fill(r.buyIn, { buy: r.buy, room })
+                  : r.buy
+                : r.measure}
           </p>
           {main ? <p className="text-small text-text-muted">{main.title}</p> : null}
         </div>
@@ -83,21 +95,34 @@ export function ResultPanel({ tool, view, example, stale, ref }: ResultPanelProp
 
       {view.related.length > 0 ? (
         <div className="mt-4">
-          <h3 className="text-small font-semibold text-text-muted">{r.related}</h3>
+          <h3 className="text-small font-semibold text-text-muted">
+            {view.related.some((item) => shared?.[item.key]) ? r.relatedEstimate : r.related}
+          </h3>
           <ul className="mt-1 divide-y divide-border">
-            {view.related.map((item) => (
-              <li key={item.key} className="flex items-center gap-3 py-2">
-                <MaterialThumb image={photoOf(item.photo)} fallbackIcon={<CategoryIcon />} alt="" size={56} />
-                <span className="flex flex-1 flex-col">
-                  <span className="text-body">{item.title}</span>
-                  {item.detail ? <span className="text-small text-text-muted tabular-nums">{item.detail}</span> : null}
-                </span>
-                <span className="text-quantity tabular-nums" data-result-value>
-                  {item.quantity}
-                </span>
-              </li>
-            ))}
+            {view.related.map((item) => {
+              const merged = shared?.[item.key];
+              const detail = merged?.share ?? item.detail;
+              return (
+                <li key={item.key} className="flex items-center gap-3 py-2">
+                  <MaterialThumb image={photoOf(item.photo)} fallbackIcon={<CategoryIcon />} alt="" size={56} />
+                  <span className="flex flex-1 flex-col">
+                    <span className="text-body">{item.title}</span>
+                    {detail ? <span className="text-small text-text-muted tabular-nums">{detail}</span> : null}
+                  </span>
+                  <span className="text-quantity tabular-nums" data-result-value>
+                    {merged?.total ?? item.quantity}
+                  </span>
+                </li>
+              );
+            })}
           </ul>
+          {view.related
+            .flatMap((item) => shared?.[item.key]?.saving ?? [])
+            .map((saving) => (
+              <Hint key={saving} className="mt-2">
+                {saving}
+              </Hint>
+            ))}
         </div>
       ) : null}
 

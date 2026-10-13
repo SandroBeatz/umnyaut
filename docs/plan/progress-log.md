@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-13
 
+- **P17.10 (part 1)** Result and the estimate in the calculator. «Нужно купить · Кухня»; shared consumables «Ещё понадобится · на всю смету» — on the right the estimate's quantity, under the title this calc's share («Кухня: 48,24 кг»), a `Hint` when merging saved packs («Плиточный клей на всю смету: 7 мешков вместо 9 — общий с «Кухня»»). «Добавить в смету» → «В смете» (was «В список»); the threshold Р4 on the edit itself — two changed fields, a price, or «Отправить» / «Скопировать» / «Печать» — so a removed calc is not brought back. New feature `estimate-totals` (`calcItems`, `computeEstimate`, `sharedOf`, `totalsOf`; `EstimateSync` loaded after mount): loads the calculators of the estimate's calcs, saves `totals` for the header (calcs in the estimate only; the open draft counts in its own view), a pack price typed in a calculator for a shared consumable stands in for the estimate's price by product key (Р2). Tests: estimate totals 3 (own room, drafts out, merged adhesive share, saving text), e2e «estimate in the calculator» (threshold, two rooms, share, saved totals); `pnpm check` and 30 e2e green; tool page JS 248.7 KB of 250.
+  - Where: `feature/p17-a-estimate-model` · PR #173
+  - Notes: left in P17.10 — the grey «Клей и затирка · общие на смету» block with «взять его?» (needs the variants of P17.4) and the sticky «N коробок · К смете» (needs `/smeta/`, P17.11). The room list «Список для комнаты» stays until the estimate page replaces it.
+
 - **P17.9 (owner's decision Р16)** Several calcs in a room only for tools with a surface choice — tile, adhesive, grout, paint — one per surface; laminate, linoleum, plinth, wallpaper keep one calc per room (`manyCalcs`, the `oneCalcPerRoom` flag is gone). «+ Ещё» only while a surface is free («Стены и потолок» in one calc leaves none); the chips row only when there is a choice (two calcs, or one and a free surface). RU spec v2.1: decision Р16, the surfaces table and the «+ Ещё» rule. e2e «calcs: «+ Ещё» while a surface is free; a calc on both overlaps — «Разделить»».
   - Where: `feature/p17-a-estimate-model` · PR #173
   - Deviation: none — the spec now says so.

@@ -10,6 +10,7 @@ import { useActiveRoom, useEstimateStore, useRoomCalcs, useToolCalcs } from "@/e
 import { roomDimensions, roomPatch } from "@/entities/room";
 import type { ToolValues } from "@/entities/tool";
 import { RoomBar } from "@/features/edit-room";
+import type { SharedItemView } from "@/features/estimate-totals";
 import { AddToList, RoomList } from "@/features/room-list";
 import { ResultActions, shareUrl } from "@/features/share-result";
 import { track } from "@/shared/analytics";
@@ -32,6 +33,7 @@ import { ToolForm } from "./ToolForm";
  * The scheme card sits below the form and the result, never on the first screen: it is rendered in the browser
  * only, and its code (pictures, guides, cut lists) stays out of the first-screen JS budget.
  */
+const EstimateSync = dynamic(() => import("@/features/estimate-totals").then((m) => m.EstimateSync), { ssr: false });
 const CalcChips = dynamic(() => import("./Calcs").then((m) => m.CalcChips), { ssr: false });
 const CalcOverlapHint = dynamic(() => import("./Calcs").then((m) => m.CalcOverlapHint), { ssr: false });
 const LayoutScheme = dynamic(() => import("./LayoutScheme").then((m) => m.LayoutScheme), { ssr: false });
@@ -60,6 +62,7 @@ export function CalculatorShell({ category, toolId, checkedAt, sources, module }
   const toolCalcs = useToolCalcs(tool.id);
   const roomCalcs = useRoomCalcs();
   const current = toolCalcs.find((c) => c.id === calc.calcId);
+  const [shared, setShared] = useState<Readonly<Record<string, SharedItemView>>>();
   const removeCalc = (id: string) => {
     const store = useEstimateStore.getState();
     store.removeCalc(id);
@@ -130,24 +133,30 @@ export function CalculatorShell({ category, toolId, checkedAt, sources, module }
             />
           </div>
           <div className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-[88px] lg:col-span-7">
-            <ResultPanel ref={panel} tool={tool} view={view} example={calc.example} stale={calc.stale} />
+            <ResultPanel
+              ref={panel}
+              tool={tool}
+              view={view}
+              example={calc.example}
+              stale={calc.stale}
+              room={room?.name}
+              shared={shared}
+            />
+            {tool.items ? <EstimateSync calcId={calc.calcId} onShared={setShared} /> : null}
             <ResultActions
               title={tool.title}
               getText={getText}
               getUrl={getUrl}
-              onAction={(action) =>
-                action === "copy"
-                  ? track("result_copied", { tool: tool.id })
-                  : track("project_shared", { channel: action })
-              }
+              onAction={(action) => {
+                if (tool.items) calc.addToEstimate();
+                if (action === "copy") track("result_copied", { tool: tool.id });
+                else track("project_shared", { channel: action });
+              }}
               primary={
                 view.mode === "buy" ? (
                   <AddToList
                     added={current?.addedAt !== undefined}
-                    onAdd={() => {
-                      const id = calc.ensureCalc();
-                      if (id) useEstimateStore.getState().markAdded(id);
-                    }}
+                    onAdd={calc.addToEstimate}
                     className="min-w-32 flex-1"
                   />
                 ) : undefined

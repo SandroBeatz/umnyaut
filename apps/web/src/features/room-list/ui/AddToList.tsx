@@ -4,16 +4,16 @@ import { shell } from "@umnyaut/catalog";
 import { Button, toast } from "@umnyaut/ui";
 import { Check, ListPlus } from "lucide-react";
 
-const t = shell.roomList;
+const t = shell.toEstimate;
 
 export interface AddToListProps {
-  /** The open calc is already in the list (the estimate). */
+  /** The open calc is already in the estimate. */
   added: boolean;
   onAdd(): void;
   className?: string;
 }
 
-/** «В список» → «В списке»: the calculator's open calc joins the room's list (its own input follows every edit). */
+/** «Добавить в смету» → «В смете» (spec Р4): the calculator's open calc joins the estimate. */
 export function AddToList({ added, onAdd, className }: AddToListProps) {
   if (added) {
     return (
