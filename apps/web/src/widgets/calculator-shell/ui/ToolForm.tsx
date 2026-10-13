@@ -30,6 +30,8 @@ export interface ToolFormProps {
   defaults: ToolValues;
   onChange(patch: ToolValues): void;
   onInvalid(name: string, invalid: boolean): void;
+  /** Last of «Ещё параметры»: the calc's «Метка». */
+  extra?: ReactNode;
 }
 
 const f = shell.form;
@@ -44,7 +46,7 @@ const checkedFormat = new Intl.DateTimeFormat("ru-RU", {
  * Form from `FieldDef[]` (design spec §11–12): main fields two per row with the room shape right under the room
  * size, preset chips, then «Ещё параметры · N» with the m/cm switch. From 1024 px everything is open.
  */
-export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFormProps) {
+export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra }: ToolFormProps) {
   const [unit, setUnit] = useState<LengthUnit>("m");
   const [open, setOpen] = useState(false);
   const moreId = useId();
@@ -69,6 +71,7 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
   const { main, more } = formSections(fields, values);
   const shapeDropdown = shapeAsDropdown(main);
   const changed = changedHidden(fields, values, defaults);
+  const hasMore = more.length > 0 || Boolean(extra);
   const hasLengths = fields.some((field) => field.kind === "length" || field.kind === "openings");
 
   const label = (field: FieldDef & { name: string }): ReactNode => {
@@ -252,9 +255,9 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
   return (
     <form className="flex flex-col gap-3" onSubmit={(e) => e.preventDefault()} noValidate>
       <div className="grid grid-cols-2 gap-x-3 gap-y-3">{main.map(render)}</div>
-      {more.length > 0 || hasLengths ? (
+      {hasMore || hasLengths ? (
         <div className="flex min-h-12 items-center justify-between gap-3">
-          {more.length > 0 ? (
+          {hasMore ? (
             <button
               type="button"
               aria-expanded={open}
@@ -273,12 +276,13 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid }: ToolFo
           ) : null}
         </div>
       ) : null}
-      {more.length > 0 ? (
+      {hasMore ? (
         <div
           id={moreId}
           className={open ? "grid grid-cols-2 gap-x-3 gap-y-4" : "hidden grid-cols-2 gap-x-3 gap-y-4 lg:grid"}
         >
           {more.map(render)}
+          {extra ? <div className="col-span-2">{extra}</div> : null}
         </div>
       ) : null}
     </form>

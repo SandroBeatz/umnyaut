@@ -198,6 +198,23 @@ export function updateCalc(
   return { ...estimate, calcs, updatedAt: now };
 }
 
+/** The calc is opened in its calculator: the last opened one is what the calculator shows next time. */
+export function openCalc(estimate: Estimate, id: string, now: number): Estimate {
+  const calcs = estimate.calcs.map((c) => (c.id === id ? { ...c, openedAt: now } : c));
+  return estimate.calcs.some((c) => c.id === id) ? { ...estimate, calcs } : estimate;
+}
+
+/** The calc of a tool in a room opened last; `undefined` when the tool has none there. */
+export function lastOpened(
+  estimate: Estimate | null,
+  roomId: string | undefined,
+  tool: string,
+): EstimateCalc | undefined {
+  return (estimate?.calcs ?? [])
+    .filter((c) => c.roomId === roomId && c.tool === tool)
+    .reduce<EstimateCalc | undefined>((best, c) => (!best || c.openedAt >= best.openedAt ? c : best), undefined);
+}
+
 /** The calc passed the threshold (Р4) and counts in the estimate from now on. */
 export function markAdded(estimate: Estimate, id: string, now: number): Estimate {
   const calc = estimate.calcs.find((c) => c.id === id);

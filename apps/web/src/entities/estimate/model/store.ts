@@ -42,6 +42,7 @@ interface EstimateState {
   addCalc(calc: ops.NewCalc): string | undefined;
   updateCalc(id: string, patch: Parameters<typeof ops.updateCalc>[2]): void;
   markAdded(id: string): void;
+  openCalc(id: string): void;
   removeCalc(id: string): void;
   undoRemove(): void;
   splitCalc(id: string, surfaces: readonly [Surface, Surface]): string | undefined;
@@ -102,6 +103,7 @@ export const useEstimateStore = create<EstimateState>()(
         },
         updateCalc: (id, patch) => apply((e, now) => ops.updateCalc(e, id, patch, now)),
         markAdded: (id) => apply((e, now) => ops.markAdded(e, id, now)),
+        openCalc: (id) => apply((e, now) => ops.openCalc(e, id, now)),
         removeCalc: (id) => {
           const { estimate } = get();
           if (!estimate) return;
@@ -194,3 +196,21 @@ export const selectActiveCalcs = (s: Pick<EstimateState, "estimate">): readonly 
 };
 
 export const useActiveCalcs = () => useEstimateStore(useShallow(selectActiveCalcs));
+
+/** Every calc of the active room, drafts too (overlaps between tools). */
+export const useRoomCalcs = () =>
+  useEstimateStore(
+    useShallow((s): readonly EstimateCalc[] => {
+      const room = ops.activeRoomOf(s.estimate);
+      return room ? (s.estimate?.calcs ?? []).filter((c) => c.roomId === room.id) : [];
+    }),
+  );
+
+/** Every calc of a tool in the active room, drafts too, in estimate order (the chips row). */
+export const useToolCalcs = (tool: string) =>
+  useEstimateStore(
+    useShallow((s): readonly EstimateCalc[] => {
+      const room = ops.activeRoomOf(s.estimate);
+      return room ? (s.estimate?.calcs ?? []).filter((c) => c.roomId === room.id && c.tool === tool) : [];
+    }),
+  );

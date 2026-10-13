@@ -1,11 +1,12 @@
 "use client";
 
 import type { BareZone, Opening, ToolModule } from "@umnyaut/calc";
-import { getTool, unitLabels } from "@umnyaut/catalog";
+import { getTool, shell, unitLabels } from "@umnyaut/catalog";
+import { toast } from "@umnyaut/ui";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCountry } from "@/entities/country";
-import { useActiveRoom } from "@/entities/estimate";
+import { useActiveRoom, useEstimateStore, useRoomCalcs, useToolCalcs } from "@/entities/estimate";
 import { roomDimensions, roomPatch } from "@/entities/room";
 import type { ToolValues } from "@/entities/tool";
 import { RoomBar } from "@/features/edit-room";
@@ -13,12 +14,12 @@ import { AddToList, RoomList } from "@/features/room-list";
 import { ResultActions, shareUrl } from "@/features/share-result";
 import { track } from "@/shared/analytics";
 import { AdSlot } from "@/shared/ui";
-
 import { planRoomOf } from "../model/plan";
 import { fieldsOf, sizeParts } from "../model/room";
 import { useCalcEvents } from "../model/useCalcEvents";
 import { useCalculator } from "../model/useCalculator";
 import { describeResult, resultText } from "../model/view";
+import { CalcLabel } from "./CalcLabel";
 import { HowCalculated } from "./HowCalculated";
 import { NextSteps } from "./NextSteps";
 import { PrintSheet } from "./PrintSheet";
@@ -30,6 +31,8 @@ import { ToolForm } from "./ToolForm";
  * The scheme card sits below the form and the result, never on the first screen: it is rendered in the browser
  * only, and its code (pictures, guides, cut lists) stays out of the first-screen JS budget.
  */
+const CalcChips = dynamic(() => import("./Calcs").then((m) => m.CalcChips), { ssr: false });
+const CalcOverlapHint = dynamic(() => import("./Calcs").then((m) => m.CalcOverlapHint), { ssr: false });
 const LayoutScheme = dynamic(() => import("./LayoutScheme").then((m) => m.LayoutScheme), { ssr: false });
 
 export interface CalculatorShellProps {
@@ -53,6 +56,14 @@ export function CalculatorShell({ category, toolId, checkedAt, sources, module }
   const calc = useCalculator(tool, module);
   const country = useCountry();
   const room = useActiveRoom();
+  const toolCalcs = useToolCalcs(tool.id);
+  const roomCalcs = useRoomCalcs();
+  const current = toolCalcs.find((c) => c.id === calc.calcId);
+  const removeCalc = (id: string) => {
+    const store = useEstimateStore.getState();
+    store.removeCalc(id);
+    toast(shell.calcs.removed, { action: { label: shell.calcs.undo, onClick: () => store.undoRemove() } });
+  };
   const view = describeResult(tool, calc.result, country);
 
   const panel = useRef<HTMLElement>(null);
@@ -85,7 +96,7 @@ export function CalculatorShell({ category, toolId, checkedAt, sources, module }
     <>
       <div className="flex flex-col gap-6 print:hidden">
         <div className="grid gap-3 lg:grid-cols-12 lg:items-start lg:gap-6">
-          <div className="flex flex-col gap-3 lg:col-span-5 lg:rounded-xl lg:border lg:border-border lg:bg-surface lg:p-6 lg:shadow-sm">
+          <div className="flex min-w-0 flex-col gap-3 lg:col-span-5 lg:rounded-xl lg:border lg:border-border lg:bg-surface lg:p-6 lg:shadow-sm">
             <RoomBar
               tool={tool}
               draft={roomPatch(values, tool.fields)}
@@ -95,15 +106,26 @@ export function CalculatorShell({ category, toolId, checkedAt, sources, module }
                 for (const name of Object.keys(fieldsOf({ [part]: 0 }, tool.fields))) calc.setInvalid(name, bad);
               }}
             />
+            {tool.items && toolCalcs.length > 0 ? (
+              <CalcChips
+                tool={tool}
+                calcs={toolCalcs}
+                currentId={calc.calcId}
+                onOpen={calc.openCalc}
+                onAdd={calc.addCalc}
+                onRemove={removeCalc}
+              />
+            ) : null}
             <ToolForm
               tool={tool}
               values={values}
               defaults={defaults}
               onChange={calc.setValues}
               onInvalid={calc.setInvalid}
+              extra={tool.items ? <CalcLabel value={current?.label ?? ""} onChange={calc.setLabel} /> : undefined}
             />
           </div>
-          <div className="flex flex-col gap-4 lg:sticky lg:top-[88px] lg:col-span-7">
+          <div className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-[88px] lg:col-span-7">
             <ResultPanel ref={panel} tool={tool} view={view} example={calc.example} stale={calc.stale} />
             <ResultActions
               title={tool.title}
@@ -117,16 +139,17 @@ export function CalculatorShell({ category, toolId, checkedAt, sources, module }
               primary={
                 view.mode === "buy" ? (
                   <AddToList
-                    tool={tool}
-                    version={module.version}
-                    values={values}
-                    defaults={defaults}
-                    onBeforeAdd={calc.seedRoom}
+                    added={current?.addedAt !== undefined}
+                    onAdd={() => {
+                      const id = calc.ensureCalc();
+                      if (id) useEstimateStore.getState().markAdded(id);
+                    }}
                     className="min-w-32 flex-1"
                   />
                 ) : undefined
               }
             />
+            {current?.surface ? <CalcOverlapHint current={current} calcs={roomCalcs} onSplit={calc.splitCalc} /> : null}
             <AdSlot placement="after-result" />
           </div>
         </div>

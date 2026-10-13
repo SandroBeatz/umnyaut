@@ -154,6 +154,7 @@ export const plitka: ToolDef = {
     { id: "t60", label: "60 × 60", values: { tileLengthMm: 600, tileWidthMm: 600, tilesPerBox: 4 } },
   ],
   nextSteps: ["klej", "zatirka"],
+  surface: { field: "surface", values: { floor: "floor", walls: "walls" } },
   items: {
     tile: { title: "Плитка", photo: "tile" },
     "tile-adhesive": { title: "Плиточный клей", photo: "tile-adhesive", shared: true },

@@ -69,6 +69,12 @@ export function validateRegistry({ categories, reservedSegments, tools, modules,
     }
     for (const id of tool.norms ?? []) if (!norms[id]) errors.push(`${at}: unknown norm ${id}`);
     const input = module?.defaults?.({ country: "RU" }) as Record<string, unknown> | undefined;
+    const surface = tool.surface && "field" in tool.surface ? tool.surface : undefined;
+    const select = surface && tool.fields.find((f) => f.kind === "select" && f.name === surface.field);
+    if (surface && select?.kind !== "select") errors.push(`${at}: surface field ${surface.field} is not a select`);
+    else if (surface && select?.kind === "select")
+      for (const option of select.options)
+        if (!(option.value in surface.values)) errors.push(`${at}: surface option ${option.value} has no surface`);
     for (const name of tool.wallBound?.fields ?? [])
       if (input && !(name in input)) errors.push(`${at}: wall-bound field ${name} is not in the tool's input`);
   }

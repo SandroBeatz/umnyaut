@@ -296,6 +296,58 @@ test("room editor: name, type, an L-shape and a door on the plan reach the calcu
   await expect(page.getByRole("textbox", { name: "Длина комнаты" })).toBeVisible();
 });
 
+test("calcs in a room: chips, a label, «+ Ещё» on the next surface, remove and «Вернуть»", async ({ page }) => {
+  await page.goto(TILE);
+  await type(page, "Длина комнаты", "3");
+  // A material edit opens the room's first tile calc.
+  await page.getByRole("radio", { name: "30 × 60" }).click();
+  const chips = page.locator("[data-calc-chips]");
+  await expect(chips.getByRole("button", { name: "Открыть расчёт «Пол»" })).toHaveAttribute("aria-pressed", "true");
+
+  await page.getByRole("button", { name: /Ещё параметры/ }).click();
+  await page.getByRole("textbox", { name: "Метка" }).fill("графит");
+  await expect(chips.getByRole("button", { name: "Открыть расчёт «Пол · графит»" })).toBeVisible();
+
+  await chips.getByRole("button", { name: "Ещё расчёт: Плитка" }).click();
+  await expect(chips.getByRole("button", { name: "Открыть расчёт «Стены»" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "Что облицовываем" })).toHaveText(/Стены/);
+  await expect(page.getByRole("radio", { name: "30 × 60" })).not.toBeChecked();
+
+  await chips.getByRole("button", { name: "Открыть расчёт «Пол · графит»" }).click();
+  await expect(page.getByRole("button", { name: "Что облицовываем" })).toHaveText(/Пол/);
+  await expect(page.getByRole("radio", { name: "30 × 60" })).toBeChecked();
+
+  await chips.getByRole("button", { name: "Убрать расчёт «Стены»" }).click();
+  await expect(chips.getByRole("button", { name: "Открыть расчёт «Стены»" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Вернуть", exact: true }).click();
+  await expect(chips.getByRole("button", { name: "Открыть расчёт «Стены»" })).toBeVisible();
+  // The chips scroll inside their row; the page never scrolls sideways.
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBe(
+    0,
+  );
+
+  // The next visit opens the calc opened last.
+  await page.reload();
+  await expect(chips.getByRole("button", { name: "Открыть расчёт «Пол · графит»" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+});
+
+test("calcs overlap: paint on «Стены и потолок» and on «Стены» — «Разделить»", async ({ page }) => {
+  await page.goto(PAINT);
+  await page.getByRole("button", { name: "Что красим" }).click();
+  await page.getByRole("radio", { name: "Стены и потолок" }).click();
+  const chips = page.locator("[data-calc-chips]");
+  await chips.getByRole("button", { name: "Ещё расчёт: Краска" }).click();
+  await expect(chips.getByRole("button", { name: "Открыть расчёт «Стены»" })).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    page.getByText("Стены уже в расчёте «Краска: Стены и потолок». Разделить на два расчёта?"),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Разделить", exact: true }).click();
+  await expect(chips.getByRole("button", { name: /^Открыть расчёт/ })).toHaveText(["Стены", "Потолок", "Стены"]);
+});
+
 test("plinth: planks and fittings, an L-shaped room adds corners", async ({ page }) => {
   await page.goto(PLINTH);
   // 17,8 − 0,8 = 17 м → 7 планок по 2,5 м.

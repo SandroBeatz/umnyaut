@@ -1,37 +1,21 @@
 "use client";
 
-import { shell, type ToolDef } from "@umnyaut/catalog";
+import { shell } from "@umnyaut/catalog";
 import { Button, toast } from "@umnyaut/ui";
-import { Check, ListPlus, RefreshCw } from "lucide-react";
-import { useEffect } from "react";
-import { hydrateEstimate, selectActiveCalcs, useEstimateStore } from "@/entities/estimate";
-import type { ToolValues } from "@/entities/tool";
-import { ownInput } from "../model/input";
+import { Check, ListPlus } from "lucide-react";
 
 const t = shell.roomList;
 
 export interface AddToListProps {
-  tool: ToolDef;
-  /** Formula version of the tool's calc module, stored with the calc. */
-  version: number;
-  values: ToolValues;
-  defaults: ToolValues;
-  /** Creates the room from the form first, so the list never sits in a room without sizes. */
-  onBeforeAdd?(): void;
+  /** The open calc is already in the list (the estimate). */
+  added: boolean;
+  onAdd(): void;
   className?: string;
 }
 
-/** «В список» → «В списке» once added; «Обновить в списке» when the tool's own input changed since. */
-export function AddToList({ tool, version, values, defaults, onBeforeAdd, className }: AddToListProps) {
-  useEffect(() => {
-    void hydrateEstimate();
-  }, []);
-  const entry = useEstimateStore((s) => selectActiveCalcs(s).find((c) => c.tool === tool.id));
-  const put = useEstimateStore((s) => s.putToolCalc);
-  const input = ownInput(tool, values, defaults);
-  const state = !entry ? "add" : JSON.stringify(entry.input) === JSON.stringify(input) ? "added" : "update";
-
-  if (state === "added") {
+/** «В список» → «В списке»: the calculator's open calc joins the room's list (its own input follows every edit). */
+export function AddToList({ added, onAdd, className }: AddToListProps) {
+  if (added) {
     return (
       <Button variant="secondary" className={className} disabled>
         <Check aria-hidden="true" />
@@ -43,13 +27,12 @@ export function AddToList({ tool, version, values, defaults, onBeforeAdd, classN
     <Button
       className={className}
       onClick={() => {
-        onBeforeAdd?.();
-        put({ tool: tool.id, toolVersion: version, input });
-        if (state === "add") toast(t.addedToast);
+        onAdd();
+        toast(t.addedToast);
       }}
     >
-      {state === "add" ? <ListPlus aria-hidden="true" /> : <RefreshCw aria-hidden="true" />}
-      {state === "add" ? t.add : t.update}
+      <ListPlus aria-hidden="true" />
+      {t.add}
     </Button>
   );
 }

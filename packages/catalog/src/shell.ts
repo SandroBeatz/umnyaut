@@ -151,6 +151,26 @@ export const shell = {
     removeConfirm: "Удалить комнату вместе с расчётами: {tools}?",
     removeYes: "Да, удалить комнату",
   },
+  /** Calcs of one tool in a room (spec «Несколько расчётов», P17.9). */
+  calcs: {
+    /** Row label: «Плитка в комнате:». */
+    title: "{tool}:",
+    /** A chip without a label or a surface: «Расчёт 2». */
+    unnamed: "Расчёт {n}",
+    more: "Ещё",
+    moreLabel: "Ещё расчёт: {tool}",
+    open: "Открыть расчёт «{calc}»",
+    remove: "Убрать расчёт «{calc}»",
+    removed: "Расчёт убран",
+    undo: "Вернуть",
+    label: "Метка",
+    labelHint: "Например, «белая глянцевая» — видна в смете",
+    parts: { floor: "Пол", walls: "Стены", ceiling: "Потолок" },
+    /** «Пол уже в расчёте «Плитка: Пол и стены».» */
+    overlap: "{parts} уже в расчёте «{calc}».",
+    split: "Разделить на два расчёта?",
+    splitButton: "Разделить",
+  },
   roomList: {
     title: "Список для комнаты",
     lead: "Одинаковые материалы сложены и округлены до упаковок один раз. Размеры — из «Моей комнаты».",

@@ -5,12 +5,20 @@ import { cn } from "../lib/cn";
 
 /** How long a confirmation stays (design spec §11: short confirmations only). */
 const DURATION_MS = 3000;
+/** A toast with an action («Вернуть») stays longer, so there is time to reach it. */
+const ACTION_DURATION_MS = 6000;
 const MAX_VISIBLE = 3;
+
+export interface ToastAction {
+  label: string;
+  onClick(): void;
+}
 
 interface ToastItem {
   id: number;
   text: string;
   tone: "default" | "error";
+  action?: ToastAction;
 }
 
 let items: readonly ToastItem[] = [];
@@ -20,20 +28,28 @@ const emit = () => {
   for (const listener of listeners) listener();
 };
 
-function show(text: string, tone: ToastItem["tone"]) {
-  const id = nextId++;
-  items = [...items, { id, text, tone }].slice(-MAX_VISIBLE);
+const hide = (id: number) => {
+  items = items.filter((item) => item.id !== id);
   emit();
-  setTimeout(() => {
-    items = items.filter((item) => item.id !== id);
-    emit();
-  }, DURATION_MS);
+};
+
+function show(text: string, tone: ToastItem["tone"], action?: ToastAction) {
+  const id = nextId++;
+  items = [...items, { id, text, tone, ...(action ? { action } : {}) }].slice(-MAX_VISIBLE);
+  emit();
+  setTimeout(() => hide(id), action ? ACTION_DURATION_MS : DURATION_MS);
 }
 
-/** «Ссылка скопирована»: `toast(text)`, `toast.error(text)`. Works once `Toaster` is mounted. */
-export const toast = Object.assign((text: string) => show(text, "default"), {
-  error: (text: string) => show(text, "error"),
-});
+/**
+ * «Ссылка скопирована»: `toast(text)`, `toast.error(text)`; «Расчёт убран · Вернуть»: `toast(text, { action })`.
+ * Works once `Toaster` is mounted.
+ */
+export const toast = Object.assign(
+  (text: string, options?: { action?: ToastAction }) => show(text, "default", options?.action),
+  {
+    error: (text: string) => show(text, "error"),
+  },
+);
 
 const subscribe = (listener: () => void) => {
   listeners.add(listener);
@@ -62,7 +78,19 @@ export function Toaster() {
             item.tone === "error" ? "bg-danger text-white" : "bg-text text-bg",
           )}
         >
-          {item.text}
+          <span className="flex-1">{item.text}</span>
+          {item.action ? (
+            <button
+              type="button"
+              className="pointer-events-auto -my-2 -mr-2 min-h-12 rounded-md px-3 underline underline-offset-4 hover:bg-white/10"
+              onClick={() => {
+                item.action?.onClick();
+                hide(item.id);
+              }}
+            >
+              {item.action.label}
+            </button>
+          ) : null}
         </p>
       ))}
     </div>

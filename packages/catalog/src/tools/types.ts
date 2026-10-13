@@ -1,4 +1,4 @@
-import type { ToolId } from "@umnyaut/calc";
+import type { Surface, ToolId } from "@umnyaut/calc";
 import type { CategorySlug } from "../categories";
 
 /** Common to every input field. `name` is the key in the calc module's input. */
@@ -95,6 +95,13 @@ export interface ToolDef {
    * anew (shape or cut corner changed), the room editor resets them and names `note` (spec Р10).
    */
   wallBound?: { fields: readonly string[]; note: string };
+  /**
+   * The surface a calc of this tool covers in the room (spec «Несколько расчётов»): read from a select field (option
+   * value → surface) or always the same. Tools without it (plinth, area tools) cover no surface.
+   */
+  surface?: { field: string; values: Readonly<Record<string, Surface>> } | { fixed: Surface };
+  /** One calc per room (wallpaper: all the room's walls; accent walls later) — no «+ Ещё». */
+  oneCalcPerRoom?: true;
   /** Norm ids this tool uses (see norms.ts); “How calculated” lists their sources. */
   norms?: readonly string[];
 }

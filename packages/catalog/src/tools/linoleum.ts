@@ -122,6 +122,7 @@ export const linoleum: ToolDef = {
     { kind: "price", item: "seam-weld", name: "price_seam-weld", label: "Цена тюбика сварки" },
   ],
   nextSteps: ["plintus", "ploshchad-komnaty"],
+  surface: { fixed: "floor" },
   items: { linoleum: { title: "Линолеум", photo: "linoleum" }, "seam-weld": { title: "Холодная сварка" } },
   summary: {
     length: "Длина отреза",

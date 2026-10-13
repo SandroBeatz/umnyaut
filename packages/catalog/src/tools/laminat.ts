@@ -130,6 +130,7 @@ export const laminat: ToolDef = {
     { id: "b1292", label: "1292 × 194, 8 шт.", values: { boardLengthMm: 1292, boardWidthMm: 194, boardsPerPack: 8 } },
   ],
   nextSteps: ["plintus", "ploshchad-komnaty"],
+  surface: { fixed: "floor" },
   items: {
     laminate: { title: "Ламинат", photo: "laminate" },
     underlay: { title: "Подложка", photo: "underlay" },

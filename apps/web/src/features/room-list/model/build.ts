@@ -6,11 +6,14 @@ import type { ToolValues } from "@/entities/tool";
 
 /** One work in the room list: the tool and its own input (fields not bound to “My room”, only changed ones). */
 export interface ListEntry {
+  /** The estimate's calc. */
+  id: string;
   tool: ToolId;
   input: Readonly<Record<string, unknown>>;
 }
 
 export interface ListWork {
+  id: string;
   tool: ToolDef;
   items: readonly PurchaseItem[];
 }
@@ -45,7 +48,7 @@ export function buildList(
     const parsed = module.input.safeParse(applyRoom({ ...module.defaults(ctx), ...entry.input }, room, tool.fields));
     if (!parsed.success) return [];
     if (entry.tool === "kraska" && (parsed.data as { surface?: string }).surface !== "ceiling") wallPaint = true;
-    return [{ tool, items: module.compute(parsed.data, ctx).items }];
+    return [{ id: entry.id, tool, items: module.compute(parsed.data, ctx).items }];
   });
   const inList = new Set(works.map((w) => w.tool.id));
   const categories = new Set(works.map((w) => w.tool.category));

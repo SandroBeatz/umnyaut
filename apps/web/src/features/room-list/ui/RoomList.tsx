@@ -30,9 +30,17 @@ export function RoomList() {
     void hydrateEstimate().then(() => setReady(true));
   }, []);
   const calcs = useActiveCalcs();
-  const entries = useMemo(() => calcs.map((c): ListEntry => ({ tool: c.tool as ToolId, input: c.input })), [calcs]);
+  const entries = useMemo(
+    () => calcs.map((c): ListEntry => ({ id: c.id, tool: c.tool as ToolId, input: c.input })),
+    [calcs],
+  );
   const removeToolCalcs = useEstimateStore((s) => s.removeToolCalcs);
-  const remove = (tool: ToolId) => removeToolCalcs([tool]);
+  const remove = (id: string) => {
+    useEstimateStore.getState().removeCalc(id);
+    toast(shell.calcs.removed, {
+      action: { label: shell.calcs.undo, onClick: () => useEstimateStore.getState().undoRemove() },
+    });
+  };
   const clear = () => removeToolCalcs();
   const room = useActiveRoom();
   // Each work's calculator is loaded when the list needs it, not with the page.
@@ -80,10 +88,10 @@ export function RoomList() {
 
       <h3 className="mt-4 text-small font-semibold text-text-muted">{t.works}</h3>
       <ul className="mt-2 flex flex-wrap gap-2">
-        {view.works.map(({ tool }) => {
+        {view.works.map(({ id, tool }) => {
           const Icon = categoryIcons[tool.category as keyof typeof categoryIcons] ?? Calculator;
           return (
-            <li key={tool.id} className="flex items-center rounded-full border border-border bg-surface-sunken">
+            <li key={id} className="flex items-center rounded-full border border-border bg-surface-sunken">
               <Link href={toolPath(tool)} className="flex min-h-12 items-center gap-2 pl-4 text-body text-text">
                 <Icon aria-hidden="true" className="size-5 text-primary" />
                 {tool.title}
@@ -92,7 +100,7 @@ export function RoomList() {
                 type="button"
                 className="flex size-12 items-center justify-center rounded-full text-text-muted hover:text-danger"
                 aria-label={fill(t.remove, { tool: tool.title })}
-                onClick={() => remove(tool.id)}
+                onClick={() => remove(id)}
               >
                 <X aria-hidden="true" className="size-5" />
               </button>

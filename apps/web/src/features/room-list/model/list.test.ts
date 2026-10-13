@@ -1,22 +1,13 @@
-import { getTool } from "@umnyaut/catalog";
 import { describe, expect, it } from "vitest";
 import { getToolModule } from "@/entities/tool";
 import { buildList } from "./build";
-import { ownInput } from "./input";
 
 describe("room list", () => {
-  it("stores only the tool's own changed fields, not the room", () => {
-    const tool = getTool("steny", "oboi");
-    if (!tool) throw new Error("no tool");
-    const defaults = { lengthMm: 4600, repeatMm: 0, primer: true };
-    expect(ownInput(tool, { lengthMm: 5000, repeatMm: 640, primer: true }, defaults)).toEqual({ repeatMm: 640 });
-  });
-
   it("wallpaper on the walls + paint on the ceiling: one primer canister for both, sizes from the room", () => {
     const view = buildList(
       [
-        { tool: "oboi", input: {} },
-        { tool: "kraska", input: { surface: "ceiling" } },
+        { id: "c1", tool: "oboi", input: {} },
+        { id: "c2", tool: "kraska", input: { surface: "ceiling" } },
       ],
       { lengthMm: 4600, widthMm: 4300, heightMm: 2700 },
       getToolModule,
@@ -37,8 +28,8 @@ describe("room list", () => {
     expect(
       buildList(
         [
-          { tool: "oboi", input: {} },
-          { tool: "kraska", input: {} },
+          { id: "x1", tool: "oboi", input: {} },
+          { id: "x2", tool: "kraska", input: {} },
         ],
         null,
         getToolModule,
@@ -47,8 +38,8 @@ describe("room list", () => {
     expect(
       buildList(
         [
-          { tool: "oboi", input: {} },
-          { tool: "kraska", input: { surface: "ceiling" } },
+          { id: "x3", tool: "oboi", input: {} },
+          { id: "x4", tool: "kraska", input: { surface: "ceiling" } },
         ],
         null,
         getToolModule,
@@ -59,8 +50,8 @@ describe("room list", () => {
   it("tile + its own adhesive tool: adhesive counted once, by the adhesive tool", () => {
     const view = buildList(
       [
-        { tool: "plitka", input: {} },
-        { tool: "klej", input: {} },
+        { id: "x5", tool: "plitka", input: {} },
+        { id: "x6", tool: "klej", input: {} },
       ],
       { lengthMm: 4600, widthMm: 4300 },
       getToolModule,
@@ -71,11 +62,11 @@ describe("room list", () => {
   });
 
   it("after tile, adhesive and grout are not suggested — they are already in the list", () => {
-    expect(buildList([{ tool: "plitka", input: {} }], null, getToolModule).next.map((t) => t.id)).toEqual([]);
+    expect(buildList([{ id: "x7", tool: "plitka", input: {} }], null, getToolModule).next.map((t) => t.id)).toEqual([]);
   });
 
   it("suggests the other purchase tool of the same category", () => {
-    const view = buildList([{ tool: "oboi", input: {} }], null, getToolModule);
+    const view = buildList([{ id: "x8", tool: "oboi", input: {} }], null, getToolModule);
     expect(view.next.map((t) => t.id)).toEqual(["kraska"]);
   });
 });

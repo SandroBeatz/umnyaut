@@ -72,6 +72,7 @@ export const kraska: ToolDef = {
     { kind: "price", item: "primer", name: "price_primer", label: "Цена канистры грунтовки" },
   ],
   nextSteps: ["ploshchad-sten", "oboi"],
+  surface: { field: "surface", values: { walls: "walls", ceiling: "ceiling", both: "walls-ceiling" } },
   items: {
     paint: { title: "Краска", photo: "paint" },
     primer: { title: "Грунтовка", photo: "primer", shared: true },

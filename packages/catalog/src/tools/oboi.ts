@@ -203,6 +203,8 @@ export const oboi: ToolDef = {
     { id: "r106x25", label: "1,06 × 25 м", values: { rollWidthMm: 1060, rollLengthMm: 25_000 } },
   ],
   nextSteps: ["kraska", "ploshchad-sten"],
+  surface: { fixed: "walls" },
+  oneCalcPerRoom: true,
   wallBound: {
     fields: ["startMode", "startWall", "startLineMm", "mainWall", "zones"],
     note: "начало оклейки, главную стену и зоны без обоев",
