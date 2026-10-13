@@ -194,6 +194,8 @@ test("room list: wallpaper on the walls and paint on the ceiling share one prime
   await expect(result(page)).toHaveText("11");
   await page.getByRole("button", { name: "В список" }).click();
   await expect(page.getByRole("button", { name: "В списке" })).toBeDisabled();
+  // Wallpaper is one calc per room: no chips row to choose from.
+  await expect(page.locator("[data-calc-chips]")).toHaveCount(0);
   const list = page.locator("[data-room-list]");
   await expect(list.getByRole("heading", { name: "Список для комнаты" })).toBeVisible();
 

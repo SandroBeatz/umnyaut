@@ -34,9 +34,14 @@ function surfaceLabel(tool: ToolDef, calc: EstimateCalc): string | undefined {
   return field?.kind === "select" ? field.options.find((o) => o.value === value)?.label : undefined;
 }
 
-/** «Стены · белая», «белая», «Стены», or «Расчёт 2» by its place among the tool's calcs. */
+/**
+ * «Стены · белая», «белая», «Стены»; a tool with one fixed surface names it, numbered from the second calc («Пол»,
+ * «Пол 2»); else «Расчёт 2» by its place among the tool's calcs.
+ */
 export function chipLabel(tool: ToolDef, calc: EstimateCalc, index: number): string {
-  const parts = [surfaceLabel(tool, calc), calc.label?.trim() || undefined].filter(Boolean);
+  const fixed = tool.surface && "fixed" in tool.surface ? partsLabel(surfaceParts(tool.surface.fixed)) : undefined;
+  const surface = surfaceLabel(tool, calc) ?? (fixed && index > 0 ? `${fixed} ${index + 1}` : fixed);
+  const parts = [surface, calc.label?.trim() || undefined].filter(Boolean);
   return parts.length > 0 ? parts.join(" · ") : fill(t.unnamed, { n: index + 1 });
 }
 

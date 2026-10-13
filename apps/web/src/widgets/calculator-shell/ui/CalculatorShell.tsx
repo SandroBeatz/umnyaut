@@ -106,7 +106,8 @@ export function CalculatorShell({ category, toolId, checkedAt, sources, module }
                 for (const name of Object.keys(fieldsOf({ [part]: 0 }, tool.fields))) calc.setInvalid(name, bad);
               }}
             />
-            {tool.items && toolCalcs.length > 0 ? (
+            {/* One calc per room (wallpaper): nothing to choose between, no row. */}
+            {tool.items && !tool.oneCalcPerRoom && toolCalcs.length > 0 ? (
               <CalcChips
                 tool={tool}
                 calcs={toolCalcs}

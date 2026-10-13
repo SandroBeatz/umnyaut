@@ -39,7 +39,10 @@ describe("calcs of a tool in a room", () => {
   it("names chips by surface and label, else «Расчёт N»", () => {
     expect(chipLabel(tile, calc("c1", "plitka", { surface: "walls", label: "белая" }), 0)).toBe("Стены · белая");
     expect(chipLabel(paint, calc("c1", "kraska", { surface: "walls-ceiling" }), 0)).toBe("Стены и потолок");
-    expect(chipLabel(tool("pol", "laminat"), calc("c2", "laminat", { surface: "floor" }), 1)).toBe("Расчёт 2");
+    const laminate = tool("pol", "laminat");
+    expect(chipLabel(laminate, calc("c1", "laminat", { surface: "floor" }), 0)).toBe("Пол");
+    expect(chipLabel(laminate, calc("c2", "laminat", { surface: "floor" }), 1)).toBe("Пол 2");
+    expect(chipLabel(tool("pol", "plintus"), calc("c3", "plintus"), 0)).toBe("Расчёт 1");
   });
 
   it("«+ Ещё» takes the first surface no calc covers", () => {
