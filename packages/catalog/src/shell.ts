@@ -41,7 +41,14 @@ export const shell = {
     width: "Ширина",
     height: "Высота потолка",
     save: "Сохранить комнату",
-    clear: "Другая комната",
+    /** Room picker: the estimate's rooms (spec «Калькулятор», P17.7). */
+    noSizes: "Размеры не заданы",
+    pickTitle: "Комнаты",
+    pickDescription: "Калькулятор считает одну комнату. Размеры подставятся сами",
+    pickLabel: "{room}, {dimensions}. Выбрать другую комнату",
+    newRoom: "Новая комната",
+    /** The tool is already counted in that room: «плитка есть». */
+    counted: "{tool} есть",
   },
   form: {
     units: "Единицы",

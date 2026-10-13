@@ -60,13 +60,13 @@ test("room area writes “My room”, wall area picks it up", async ({ page }) =
   await expect(page).toHaveURL(WALLS);
   await expect(page.getByRole("textbox", { name: "Длина комнаты" })).toHaveValue("5");
   await expect(page.getByRole("textbox", { name: "Ширина комнаты" })).toHaveValue("4");
-  await expect(page.getByText(/Моя комната: 5\s×\s4\sм/)).toBeVisible();
+  await expect(page.locator("[data-room-dimensions]")).toHaveText(/^5\s×\s4\sм$/);
   // 2 × (5 + 4) × 2,7 = 48,6 − door 1,6 − window 1,68 = 45,32
   await expect(result(page)).toHaveText("45,32");
 
   await type(page, "Высота потолка", "3");
   await page.goto(ROOM);
-  await expect(page.getByText(/Моя комната: 5\s×\s4\s×\s3\sм/)).toBeVisible();
+  await expect(page.locator("[data-room-dimensions]")).toHaveText(/^5\s×\s4\s×\s3\sм$/);
 });
 
 test("a ?s= link reproduces the result and «Отправить» builds one", async ({ page, context }) => {
@@ -206,7 +206,7 @@ test("the old «Моя комната» and room list move into the estimate onc
     localStorage.setItem("umnyaut:list:v1", old({ entries: [{ tool: "laminat", input: {} }] }));
   });
   await page.reload();
-  await expect(page.getByText(/^3\s×\s2,5\s×\s2,6\sм$/)).toBeVisible();
+  await expect(page.locator("[data-room-dimensions]")).toHaveText(/^3\s×\s2,5\s×\s2,6\sм$/);
   await expect(page.getByRole("button", { name: "В списке" })).toBeDisabled();
   await expect(page.locator("[data-room-list]").getByRole("link", { name: /Ламинат/ })).toBeVisible();
   const stored = await page.evaluate(() => ({
@@ -220,6 +220,27 @@ test("the old «Моя комната» and room list move into the estimate onc
     { id: "r1", name: "Комната 1", type: "other", lengthMm: 3000, widthMm: 2500, heightMm: 2600 },
   ]);
   expect(stored.estimate.calcs.map((c: { tool: string }) => c.tool)).toEqual(["laminat"]);
+});
+
+test("rooms: a new room starts from the example, the picker brings the first one back", async ({ page }) => {
+  await page.goto(LAMINATE);
+  await type(page, "Длина комнаты", "5");
+  await expect(page.getByRole("button", { name: /^Комната 1, 5\s×\s4,3\sм/ })).toBeVisible();
+
+  await page.getByRole("button", { name: /^Комната 1,/ }).click();
+  await page.getByRole("button", { name: "Новая комната" }).click();
+  await expect(page.getByRole("button", { name: /^Комната 2, Размеры не заданы/ })).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Длина комнаты" })).toHaveValue("4,6");
+  await type(page, "Длина комнаты", "3");
+  await type(page, "Ширина комнаты", "2,5");
+  await expect(page.locator("[data-room-dimensions]")).toHaveText(/^3\s×\s2,5\sм$/);
+
+  await page.getByRole("button", { name: /^Комната 2,/ }).click();
+  const first = page.getByRole("button", { name: /^Комната 1\s*5\s×\s4,3\sм/ });
+  await expect(first).toBeVisible();
+  await first.click();
+  await expect(page.getByRole("textbox", { name: "Длина комнаты" })).toHaveValue("5");
+  await expect(page.getByRole("textbox", { name: "Ширина комнаты" })).toHaveValue("4,3");
 });
 
 test("plinth: planks and fittings, an L-shaped room adds corners", async ({ page }) => {

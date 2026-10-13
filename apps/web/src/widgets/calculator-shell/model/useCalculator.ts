@@ -36,6 +36,9 @@ export interface Calculator {
 export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Calculator {
   const defaults = useMemo(() => module.defaults({ country: DEFAULT_COUNTRY }), [module]);
   const [values, setAll] = useState<ToolValues>(defaults);
+  /** The values on screen, for the room created by the first edit. */
+  const shown = useRef(values);
+  shown.current = values;
   const [invalid, setInvalidSet] = useState<ReadonlySet<string>>(() => new Set());
   const [edits, setEdits] = useState(0);
   const changed = useRef(new Set<string>());
@@ -75,13 +78,19 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
     () =>
       useEstimateStore.subscribe((state, previous) => {
         const room = selectActiveRoom(state);
-        if (!loaded.current || same(room, selectActiveRoom(previous))) return;
+        const before = selectActiveRoom(previous);
+        if (!loaded.current || same(room, before)) return;
+        // Another room is chosen: what it does not know yet comes from the defaults, not from the last room.
+        const switched = before !== null && room?.id !== before.id;
+        const bound = switched
+          ? Object.fromEntries(roomBindings(tool.fields).map(([name]) => [name, defaults[name]]))
+          : {};
         setAll((current) => {
-          const next = parse(applyRoom(current, room, tool.fields));
+          const next = parse(applyRoom({ ...current, ...bound }, room, tool.fields));
           return next && !same(next, current) ? next : current;
         });
       }),
-    [parse, tool],
+    [parse, tool, defaults],
   );
 
   const setValues = useCallback(
@@ -91,7 +100,15 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
       setFieldsChanged(changed.current.size);
       setAll((current) => parse({ ...current, ...patch }) ?? current);
       const room = roomPatch(patch, tool.fields);
-      if (Object.keys(room).length > 0) useEstimateStore.getState().patchActiveRoom(room);
+      if (Object.keys(room).length === 0) return;
+      const store = useEstimateStore.getState();
+      // The first edit creates the room from the sizes and shape the form shows (hidden fields such as the wall
+      // height of floor tile are not shown, so not taken), not from one field. The tool's
+      // doors and windows are an example: they reach the room only when the user changes them.
+      const fresh = selectActiveRoom(store) === null;
+      const visible = tool.fields.filter((f) => isVisible(f, shown.current));
+      const { openings: _, ...seen } = fresh ? roomPatch(shown.current, visible) : {};
+      store.patchActiveRoom({ ...seen, ...room });
     },
     [parse, tool],
   );

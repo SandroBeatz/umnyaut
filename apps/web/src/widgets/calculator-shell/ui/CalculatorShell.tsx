@@ -85,7 +85,7 @@ export function CalculatorShell({ category, toolId, checkedAt, sources, module }
       <div className="flex flex-col gap-6 print:hidden">
         <div className="grid gap-3 lg:grid-cols-12 lg:items-start lg:gap-6">
           <div className="flex flex-col gap-3 lg:col-span-5 lg:rounded-xl lg:border lg:border-border lg:bg-surface lg:p-6 lg:shadow-sm">
-            <RoomBar />
+            <RoomBar tool={tool} />
             <ToolForm
               tool={tool}
               values={values}
