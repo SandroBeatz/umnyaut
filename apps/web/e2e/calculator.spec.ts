@@ -336,18 +336,20 @@ test("calcs in a room: chips, a label, «+ Ещё» on the next surface, remove 
   );
 });
 
-test("calcs overlap: paint on «Стены и потолок» and on «Стены» — «Разделить»", async ({ page }) => {
+test("calcs: «+ Ещё» while a surface is free; a calc on both overlaps — «Разделить»", async ({ page }) => {
   await page.goto(PAINT);
   await page.getByRole("button", { name: "Что красим" }).click();
-  await page.getByRole("radio", { name: "Стены и потолок" }).click();
+  await page.getByRole("radio", { name: "Потолок", exact: true }).click();
   const chips = page.locator("[data-calc-chips]");
   await chips.getByRole("button", { name: "Ещё расчёт: Краска" }).click();
   await expect(chips.getByRole("button", { name: "Открыть расчёт «Стены»" })).toHaveAttribute("aria-pressed", "true");
-  await expect(
-    page.getByText("Стены уже в расчёте «Краска: Стены и потолок». Разделить на два расчёта?"),
-  ).toBeVisible();
+  // Walls and ceiling are both counted: no more «+ Ещё».
+  await expect(chips.getByRole("button", { name: "Ещё расчёт: Краска" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Что красим" }).click();
+  await page.getByRole("radio", { name: "Стены и потолок" }).click();
+  await expect(page.getByText("Потолок уже в расчёте «Краска: Потолок». Разделить на два расчёта?")).toBeVisible();
   await page.getByRole("button", { name: "Разделить", exact: true }).click();
-  await expect(chips.getByRole("button", { name: /^Открыть расчёт/ })).toHaveText(["Стены", "Потолок", "Стены"]);
+  await expect(chips.getByRole("button", { name: /^Открыть расчёт/ })).toHaveText(["Потолок", "Стены", "Потолок"]);
 });
 
 test("plinth: planks and fittings, an L-shaped room adds corners", async ({ page }) => {

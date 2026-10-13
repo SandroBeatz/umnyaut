@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-13
 
+- **P17.9 (owner's decision Р16)** Several calcs in a room only for tools with a surface choice — tile, adhesive, grout, paint — one per surface; laminate, linoleum, plinth, wallpaper keep one calc per room (`manyCalcs`, the `oneCalcPerRoom` flag is gone). «+ Ещё» only while a surface is free («Стены и потолок» in one calc leaves none); the chips row only when there is a choice (two calcs, or one and a free surface). RU spec v2.1: decision Р16, the surfaces table and the «+ Ещё» rule. e2e «calcs: «+ Ещё» while a surface is free; a calc on both overlaps — «Разделить»».
+  - Where: `feature/p17-a-estimate-model` · PR #173
+  - Deviation: none — the spec now says so.
+
 - **P17.9 (owner's review)** The chips row is gone for one-calc-per-room tools (wallpaper): a single chip with only «×» had nothing to choose. Fixed-surface tools name their chips by the surface — «Пол», «Пол 2» (laminate, linoleum) instead of «Расчёт 1»; plinth keeps «Расчёт N». e2e checks wallpaper has no row.
   - Where: `feature/p17-a-estimate-model` · PR #173
 

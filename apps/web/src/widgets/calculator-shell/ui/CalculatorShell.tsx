@@ -14,6 +14,7 @@ import { AddToList, RoomList } from "@/features/room-list";
 import { ResultActions, shareUrl } from "@/features/share-result";
 import { track } from "@/shared/analytics";
 import { AdSlot } from "@/shared/ui";
+import { manyCalcs, nextSurface } from "../model/calcs";
 import { planRoomOf } from "../model/plan";
 import { fieldsOf, sizeParts } from "../model/room";
 import { useCalcEvents } from "../model/useCalcEvents";
@@ -106,8 +107,10 @@ export function CalculatorShell({ category, toolId, checkedAt, sources, module }
                 for (const name of Object.keys(fieldsOf({ [part]: 0 }, tool.fields))) calc.setInvalid(name, bad);
               }}
             />
-            {/* One calc per room (wallpaper): nothing to choose between, no row. */}
-            {tool.items && !tool.oneCalcPerRoom && toolCalcs.length > 0 ? (
+            {/* Only when there is a choice: two calcs, or one and a free surface for «+ Ещё». */}
+            {tool.items &&
+            manyCalcs(tool) &&
+            (toolCalcs.length > 1 || (toolCalcs.length === 1 && nextSurface(tool, toolCalcs))) ? (
               <CalcChips
                 tool={tool}
                 calcs={toolCalcs}

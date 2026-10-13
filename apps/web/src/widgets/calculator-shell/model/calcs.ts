@@ -34,24 +34,24 @@ function surfaceLabel(tool: ToolDef, calc: EstimateCalc): string | undefined {
   return field?.kind === "select" ? field.options.find((o) => o.value === value)?.label : undefined;
 }
 
-/**
- * «Стены · белая», «белая», «Стены»; a tool with one fixed surface names it, numbered from the second calc («Пол»,
- * «Пол 2»); else «Расчёт 2» by its place among the tool's calcs.
- */
+/** «Стены · белая», «белая», «Стены», or «Расчёт 2» by its place among the tool's calcs. */
 export function chipLabel(tool: ToolDef, calc: EstimateCalc, index: number): string {
-  const fixed = tool.surface && "fixed" in tool.surface ? partsLabel(surfaceParts(tool.surface.fixed)) : undefined;
-  const surface = surfaceLabel(tool, calc) ?? (fixed && index > 0 ? `${fixed} ${index + 1}` : fixed);
-  const parts = [surface, calc.label?.trim() || undefined].filter(Boolean);
+  const parts = [surfaceLabel(tool, calc), calc.label?.trim() || undefined].filter(Boolean);
   return parts.length > 0 ? parts.join(" · ") : fill(t.unnamed, { n: index + 1 });
 }
 
-/** «+ Ещё»: the first surface option no calc of the tool covers yet, else the first option. */
-export function nextSurface(tool: ToolDef, calcs: readonly EstimateCalc[]): ToolValues {
-  if (!tool.surface || "fixed" in tool.surface) return {};
+/**
+ * Several calcs in a room only for a tool with a surface choice (tile, adhesive, grout, paint), one per surface
+ * (owner, 2026-10-13); laminate, linoleum, plinth and wallpaper keep one.
+ */
+export const manyCalcs = (tool: ToolDef) => Boolean(tool.surface && "field" in tool.surface);
+
+/** «+ Ещё»: the input of the first surface option no calc of the tool covers yet; none when all are covered. */
+export function nextSurface(tool: ToolDef, calcs: readonly EstimateCalc[]): ToolValues | undefined {
+  if (!tool.surface || !("field" in tool.surface)) return undefined;
   const taken = new Set(calcs.flatMap((c) => (c.surface ? surfaceParts(c.surface) : [])));
-  const options = Object.entries(tool.surface.values);
-  const free = options.find(([, s]) => surfaceParts(s).every((p) => !taken.has(p))) ?? options[0];
-  return free ? { [tool.surface.field]: free[0] } : {};
+  const free = Object.entries(tool.surface.values).find(([, s]) => surfaceParts(s).every((p) => !taken.has(p)));
+  return free ? { [tool.surface.field]: free[0] } : undefined;
 }
 
 /** A tool lays a finish: it covers a surface with a material of its own (not adhesive or grout). */

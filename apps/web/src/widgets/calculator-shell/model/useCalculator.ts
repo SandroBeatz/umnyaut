@@ -223,7 +223,9 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
     const roomId = useEstimateStore.getState().estimate?.activeRoomId;
     if (!roomId) return;
     const mine = store.estimate?.calcs.filter((c) => c.roomId === roomId && c.tool === tool.id) ?? [];
-    const next = valuesOf(undefined, parse({ ...defaults, ...nextSurface(tool, mine) }) ?? defaults);
+    const free = nextSurface(tool, mine);
+    if (!free) return;
+    const next = valuesOf(undefined, parse({ ...defaults, ...free }) ?? defaults);
     const surface = surfaceOf(tool, next);
     const id = store.addCalc({
       roomId,

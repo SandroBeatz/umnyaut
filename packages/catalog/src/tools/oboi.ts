@@ -204,7 +204,6 @@ export const oboi: ToolDef = {
   ],
   nextSteps: ["kraska", "ploshchad-sten"],
   surface: { fixed: "walls" },
-  oneCalcPerRoom: true,
   wallBound: {
     fields: ["startMode", "startWall", "startLineMm", "mainWall", "zones"],
     note: "начало оклейки, главную стену и зоны без обоев",

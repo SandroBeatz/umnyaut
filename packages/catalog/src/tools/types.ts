@@ -97,11 +97,10 @@ export interface ToolDef {
   wallBound?: { fields: readonly string[]; note: string };
   /**
    * The surface a calc of this tool covers in the room (spec «Несколько расчётов»): read from a select field (option
-   * value → surface) or always the same. Tools without it (plinth, area tools) cover no surface.
+   * value → surface) or always the same. Tools without it (plinth, area tools) cover no surface. Only a tool with a
+   * surface field has several calcs in a room, one per surface (owner, 2026-10-13); the rest have one.
    */
   surface?: { field: string; values: Readonly<Record<string, Surface>> } | { fixed: Surface };
-  /** One calc per room (wallpaper: all the room's walls; accent walls later) — no «+ Ещё». */
-  oneCalcPerRoom?: true;
   /** Norm ids this tool uses (see norms.ts); “How calculated” lists their sources. */
   norms?: readonly string[];
 }

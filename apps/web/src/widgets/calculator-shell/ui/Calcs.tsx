@@ -8,7 +8,7 @@ import { Button } from "@umnyaut/ui";
 import { Plus, X } from "lucide-react";
 import { fill } from "@/shared/lib";
 import { Hint } from "@/shared/ui";
-import { chipLabel, overlapOf, partsLabel } from "../model/calcs";
+import { chipLabel, nextSurface, overlapOf, partsLabel } from "../model/calcs";
 
 const t = shell.calcs;
 
@@ -24,11 +24,12 @@ export interface CalcChipsProps {
 
 /**
  * «Плитка: [Стены · белая ×] [Пол · графит ×] [+ Ещё]» under the room row (spec «Несколько расчётов»): the calcs of
- * this tool in the room, the open one marked; one line that scrolls sideways on the phone.
+ * this tool in the room, the open one marked, «+ Ещё» while a surface is free; one line that scrolls sideways on the
+ * phone.
  */
 export function CalcChips({ tool, calcs, currentId, onOpen, onAdd, onRemove }: CalcChipsProps) {
   if (calcs.length === 0) return null;
-  const canAdd = !tool.oneCalcPerRoom;
+  const canAdd = nextSurface(tool, calcs) !== undefined;
   return (
     <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 lg:mx-0 lg:flex-wrap lg:px-0" data-calc-chips>
       <span className="shrink-0 text-small text-text-muted">{fill(t.title, { tool: tool.title })}</span>
