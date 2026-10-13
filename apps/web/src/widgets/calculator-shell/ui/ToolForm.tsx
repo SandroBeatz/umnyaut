@@ -23,6 +23,7 @@ import {
 } from "../model/fields";
 import { planRoomOf } from "../model/plan";
 import { OpeningsField } from "./OpeningsField";
+import { TextField } from "./TextField";
 
 export interface ToolFormProps {
   tool: ToolDef;
@@ -151,7 +152,12 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra }:
       }
       case "select": {
         // Options are strings; a numeric input (linoleum roll width) gets its number back.
-        const pick = (v: string) => onChange({ [field.name]: typeof values[field.name] === "number" ? Number(v) : v });
+        // An option may set other fields with it: a wallpaper type fills the paste coverage of its kind.
+        const pick = (v: string) =>
+          onChange({
+            [field.name]: typeof values[field.name] === "number" ? Number(v) : v,
+            ...field.options.find((o) => o.value === v)?.fills,
+          });
         if (field.room === "shape" && !shapeDropdown) {
           // Under the room size the options speak for themselves; the group keeps its name for screen readers.
           return (
@@ -196,6 +202,18 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra }:
             />
             {field.label}
           </label>
+        );
+      case "text":
+        return (
+          <TextField
+            key={field.name}
+            name={field.name}
+            label={label(field)}
+            hint={field.hint}
+            maxLength={field.maxLength}
+            value={typeof values[field.name] === "string" ? (values[field.name] as string) : ""}
+            onChange={(text) => onChange({ [field.name]: text })}
+          />
         );
       case "openings":
         return (

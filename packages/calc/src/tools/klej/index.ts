@@ -22,6 +22,8 @@ const input = z.object({
   /** By the trowel notch for the tile size, or by a known layer thickness. */
   method: z.enum(["notch", "layer"]),
   layerMm: z.number().check(z.minimum(1), z.maximum(20)),
+  /** Class on the bag (ГОСТ Р 56387 / EN 12004): the product variant, not the rate — the notch sets that. */
+  adhesiveClass: z.enum(["C1", "C1T", "C2TE", "C2TE-S1", "C2-S2"]),
   /** Norm `tileAdhesive.bag`. */
   bagKg: z.number().check(z.minimum(1), z.maximum(50)),
   /** Combined method from 30 × 30: a thin layer on the tile back, mm (norm `tileAdhesive.backButter`, unconfirmed). */
@@ -75,6 +77,7 @@ export const klej: ToolModule<KlejInput> = {
     tileWidthMm: 300,
     method: "notch",
     layerMm: 3,
+    adhesiveClass: "C1T",
     bagKg: 25,
     backButterMm: 1,
   }),
@@ -155,6 +158,7 @@ export const klej: ToolModule<KlejInput> = {
         kind: "bag",
         size: { value: i.bagKg, unit: "kg" },
       },
+      { variant: i.adhesiveClass },
     );
     steps.push({ code: "adhesive", values: { area: areaM2, rate, kg, bag: i.bagKg, bags: item.packs } });
 

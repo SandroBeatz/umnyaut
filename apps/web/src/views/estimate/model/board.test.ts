@@ -74,8 +74,8 @@ describe("estimate board", () => {
   });
 
   it("shared consumables with the rooms they come from; metrics and the total", () => {
-    expect(board.shared.map((r) => r.title)).toContain("Плиточный клей");
-    expect(board.shared.find((r) => r.title === "Плиточный клей")?.from).toBe("Ванная");
+    expect(board.shared.map((r) => r.title)).toContain("Плиточный клей C1T");
+    expect(board.shared.find((r) => r.title === "Плиточный клей C1T")?.from).toBe("Ванная");
     expect(board.metrics).toMatchObject({ rooms: 3, calcs: 3 });
     const floors = [19.78, 3.74, 12.16].reduce((a, b) => a + b, 0);
     expect(board.metrics.floorM2).toBeCloseTo(floors, 2);
@@ -129,7 +129,7 @@ describe("estimate as text", () => {
     const text = estimateText("Ремонт квартиры", board, "RU").replace(/\s/g, " ");
     expect(text).toMatch(/^Ремонт квартиры {2}Зал Ламинат — \d+ пачек — [\d ]+ ₽ \(пол · \+ подложка/);
     expect(text).toContain("  Ванная Плитка · графит — ");
-    expect(text).toContain("  Общие расходники Плиточный клей — ");
+    expect(text).toContain("  Общие расходники Плиточный клей C1T — ");
     expect(text).toMatch(/ {2}Итого: [\d ]+ ₽, без \d+ позици[йи]$/);
   });
 });

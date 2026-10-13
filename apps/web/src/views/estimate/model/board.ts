@@ -4,10 +4,18 @@ import {
   type EstimateLine,
   type EstimateRoom,
   floorAreaM2,
-  type PurchaseItem,
   surfaceParts,
 } from "@umnyaut/calc";
-import { estimatePage, roomSuggestions, shell, type ToolDef, tools, unitLabels, workOrder } from "@umnyaut/catalog";
+import {
+  estimatePage,
+  itemTitle,
+  roomSuggestions,
+  shell,
+  type ToolDef,
+  tools,
+  unitLabels,
+  workOrder,
+} from "@umnyaut/catalog";
 import { type Country, formatMoney, formatNumber, NBSP, plural } from "@umnyaut/ui/format";
 import { roomDimensions } from "@/entities/room";
 import { groupPurchases, purchaseTexts } from "@/entities/tool";
@@ -61,11 +69,6 @@ export interface EstimateBoard {
 }
 
 const toolOf = (id: string) => tools.find((tool) => tool.id === id);
-const itemTitle = (tool: ToolDef | undefined, key: string) => tool?.items?.[key]?.title ?? key;
-const sharedTitle = (item: PurchaseItem) => {
-  const title = tools.flatMap((tool) => tool.items?.[item.key]?.title ?? [])[0] ?? item.key;
-  return item.variant ? `${title} ${item.variant}` : title;
-};
 const order = (id: string) => {
   const at = workOrder.indexOf(id as (typeof workOrder)[number]);
   return at === -1 ? workOrder.length : at;
@@ -110,12 +113,12 @@ function rowOf(calc: Estimate["calcs"][number], lines: readonly EstimateLine[], 
     others.length === 1 && others[0]
       ? [
           fill(t.withItem, {
-            item: itemTitle(tool, others[0].first.key).toLowerCase(),
+            item: itemTitle(others[0].first, tool).toLowerCase(),
             quantity: purchaseTexts(others[0]).quantity,
           }),
         ]
       : others.length > 1
-        ? [`+ ${others.map((g) => itemTitle(tool, g.first.key).toLowerCase()).join(", ")}`]
+        ? [`+ ${others.map((g) => itemTitle(g.first, tool).toLowerCase()).join(", ")}`]
         : [];
   const caption = [surfaceText(calc), ...(main ? extras : [t.inShared])].filter(Boolean).join(" · ");
   const priced = lines.filter((l) => l.cost !== undefined);
@@ -180,7 +183,7 @@ export function estimateBoard(estimate: Estimate, aggregate: EstimateAggregate, 
     const rooms = listText([...new Set(line.shares.map((s) => roomName(s.roomId)))]);
     return {
       key: line.productKey,
-      title: sharedTitle(line.item),
+      title: itemTitle(line.item),
       from: line.savedPacks > 0 ? `${rooms} · ${fill(t.shared.instead, { count: line.separatePacks })}` : rooms,
       quantity: texts.quantity,
       ...(texts.detail ? { detail: texts.detail } : {}),
@@ -189,7 +192,7 @@ export function estimateBoard(estimate: Estimate, aggregate: EstimateAggregate, 
   });
 
   const { saved, savedPacks } = aggregate.totals;
-  const savers = [...new Set(aggregate.shared.filter((l) => l.savedPacks > 0).map((l) => sharedTitle(l.item)))];
+  const savers = [...new Set(aggregate.shared.filter((l) => l.savedPacks > 0).map((l) => itemTitle(l.item)))];
   const items = listText(savers);
   const savedText =
     saved > 0

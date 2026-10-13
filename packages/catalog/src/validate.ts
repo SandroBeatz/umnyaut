@@ -67,6 +67,13 @@ export function validateRegistry({ categories, reservedSegments, tools, modules,
         if (!names.includes(key)) errors.push(`${at}: preset ${preset.id} sets unknown field ${key}`);
       }
     }
+    for (const field of tool.fields) {
+      if (field.kind !== "select") continue;
+      for (const option of field.options)
+        for (const key of Object.keys(option.fills ?? {}))
+          if (!names.includes(key))
+            errors.push(`${at}: option ${field.name}=${option.value} fills unknown field ${key}`);
+    }
     for (const id of tool.norms ?? []) if (!norms[id]) errors.push(`${at}: unknown norm ${id}`);
     const input = module?.defaults?.({ country: "RU" }) as Record<string, unknown> | undefined;
     const surface = tool.surface && "field" in tool.surface ? tool.surface : undefined;
@@ -87,6 +94,13 @@ export function validateRegistry({ categories, reservedSegments, tools, modules,
     }
   }
   for (const [key, flags] of sharedBy) if (flags.size > 1) errors.push(`item ${key}: shared in some tools only`);
+  // …and reads the same in every tool: one set of variant titles per item key.
+  const variantsBy = new Map<string, Set<string>>();
+  for (const tool of tools)
+    for (const [key, item] of Object.entries(tool.items ?? {}))
+      variantsBy.set(key, (variantsBy.get(key) ?? new Set()).add(JSON.stringify(item.variants ?? null)));
+  for (const [key, sets] of variantsBy)
+    if (sets.size > 1) errors.push(`item ${key}: variant titles differ between tools`);
 
   for (const [id, norm] of Object.entries(norms)) {
     if (!norm.source.trim()) errors.push(`norm ${id}: missing source`);

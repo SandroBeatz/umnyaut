@@ -26,6 +26,9 @@ const input = z.object({
   /** Norm `grout.reserve`. */
   reservePct: z.number().check(z.minimum(0), z.maximum(30)),
   packKg: z.number().check(z.minimum(0.5), z.maximum(25)),
+  /** The product variant: a colour of the palette, or `custom` with the user's own name. */
+  groutColor: z.enum(["white", "light-grey", "grey", "graphite", "anthracite", "beige", "brown", "black", "custom"]),
+  groutColorName: z.string().check(z.maxLength(30)),
 });
 
 export type ZatirkaInput = z.infer<typeof input>;
@@ -33,6 +36,15 @@ export type ZatirkaInput = z.infer<typeof input>;
 /** Norm `grout.density`, kg/dm³ (Ceresit; owner's choice over Mapei's ≈ 1,5). */
 export const GROUT_DENSITY = 1.6;
 const shape = (a: number, b: number) => (a + b) / (a * b);
+
+/**
+ * The grout's product variant: the palette colour, or the name the user typed, trimmed and in lower case so «Жасмин»
+ * and «жасмин » are one product in the estimate; no name — `custom`.
+ */
+export function groutVariant(i: Pick<ZatirkaInput, "groutColor" | "groutColorName">): string {
+  if (i.groutColor !== "custom") return i.groutColor;
+  return i.groutColorName.trim().replace(/\s+/g, " ").toLowerCase() || "custom";
+}
 
 /** Joint range the grout is made for (CE 40: 1–10 mm). */
 const MIN_JOINT_MM = 1;
@@ -64,6 +76,8 @@ export const zatirka: ToolModule<ZatirkaInput> = {
     depthMm: 8,
     reservePct: 10,
     packKg: 2,
+    groutColor: "white",
+    groutColorName: "",
   }),
   compute(i): ToolResult {
     const warnings: Warning[] = [];
@@ -120,6 +134,7 @@ export const zatirka: ToolModule<ZatirkaInput> = {
         kind: "pack",
         size: { value: i.packKg, unit: "kg" },
       },
+      { variant: groutVariant(i) },
     );
     steps.push(
       {

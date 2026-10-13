@@ -1,5 +1,5 @@
 import type { Country, ToolResult } from "@umnyaut/calc";
-import { packNouns, shell, type ToolDef, unitLabels } from "@umnyaut/catalog";
+import { itemTitle, packNouns, shell, type ToolDef, unitLabels } from "@umnyaut/catalog";
 import { formatMoney, formatNumber, NBSP, plural } from "@umnyaut/ui/format";
 import { groupPurchases, purchaseTexts, runningLength, setText } from "@/entities/tool";
 import { fill } from "@/shared/lib";
@@ -48,7 +48,7 @@ export function describeResult(tool: ToolDef, result: ToolResult, country: Count
   if (mainGroup && mainItem && length !== undefined && mainItem.pack.width) {
     main = {
       key: mainItem.key,
-      title: tool.items?.[mainItem.key]?.title ?? mainItem.key,
+      title: itemTitle(mainItem, tool),
       value: number(length),
       unit: unitLabels.m,
       caption: fill(shell.result.running, {
@@ -61,7 +61,7 @@ export function describeResult(tool: ToolDef, result: ToolResult, country: Count
     const leftover = quantity(mainGroup.leftover, mainItem.leftover.unit);
     main = {
       key: mainItem.key,
-      title: tool.items?.[mainItem.key]?.title ?? mainItem.key,
+      title: itemTitle(mainItem, tool),
       value: formatNumber(mainGroup.packs),
       unit: plural(mainGroup.packs, forms(packNouns[mainItem.pack.kind])),
       caption: mainGroup.sized
@@ -85,7 +85,7 @@ export function describeResult(tool: ToolDef, result: ToolResult, country: Count
       const { quantity, detail } = purchaseTexts(group);
       return {
         key: group.first.key,
-        title: tool.items?.[group.first.key]?.title ?? group.first.key,
+        title: itemTitle(group.first, tool),
         quantity,
         ...(detail ? { detail } : {}),
         photo: tool.items?.[group.first.key]?.photo,

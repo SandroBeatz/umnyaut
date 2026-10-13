@@ -9,7 +9,7 @@ import {
   type ToolId,
   type ToolModule,
 } from "@umnyaut/calc";
-import { packNouns, sharedItems, shell, tools } from "@umnyaut/catalog";
+import { itemTitle, packNouns, sharedItems, shell, tools } from "@umnyaut/catalog";
 import { plural } from "@umnyaut/ui/format";
 import { applyRoom } from "@/entities/room";
 import { groupPurchases, purchaseTexts, quantityText, type ToolValues } from "@/entities/tool";
@@ -118,7 +118,7 @@ export function sharedOf(
       const saved = lines.reduce((n, l) => n + l.savedPacks, 0);
       const total = group ? purchaseTexts(group).quantity : "";
       const others = [...new Set(shares.filter((s) => s.roomId !== own?.roomId).map((s) => roomName(s.roomId)))];
-      const title = tools.flatMap((t) => (t.items?.[key] ? [t.items[key].title] : []))[0] ?? key;
+      const title = first ? itemTitle(first.item) : key;
       const view: SharedItemView = {
         total,
         share: fill(shell.result.share, {

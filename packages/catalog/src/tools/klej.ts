@@ -1,4 +1,5 @@
 import type { ToolDef } from "./types";
+import { adhesiveClasses, options, variantTitles } from "./variants";
 
 const room = { kind: "length", unit: "m", min: 300, max: 100_000 } as const;
 const tile = { kind: "length", unit: "cm", min: 20, max: 3000 } as const;
@@ -89,6 +90,14 @@ export const klej: ToolDef = {
       hint: "Для неровного основания — больше",
       when: { method: "layer" },
     },
+    {
+      kind: "select",
+      name: "adhesiveClass",
+      label: "Класс клея",
+      hint: "На мешке; на расход не влияет — его задаёт зуб шпателя",
+      dropdown: true,
+      options: options(adhesiveClasses),
+    },
     { kind: "number", min: 1, max: 50, step: 1, unit: "кг", name: "bagKg", label: "Мешок" },
     {
       kind: "number",
@@ -110,7 +119,14 @@ export const klej: ToolDef = {
   ],
   nextSteps: ["zatirka", "plitka"],
   surface: { field: "surface", values: { floor: "floor", walls: "walls" } },
-  items: { "tile-adhesive": { title: "Плиточный клей", photo: "tile-adhesive", shared: true } },
+  items: {
+    "tile-adhesive": {
+      title: "Плиточный клей",
+      photo: "tile-adhesive",
+      shared: true,
+      variants: variantTitles(adhesiveClasses),
+    },
+  },
   summary: { adhesiveKg: "Клея нужно", area: "Площадь облицовки", notch: "Зуб шпателя" },
   steps: {
     floor: "Пол = {length} × {width} = {area} м²",

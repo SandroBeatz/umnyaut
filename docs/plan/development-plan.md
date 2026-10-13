@@ -482,7 +482,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 *B — Calc changes (`calc-engineer`, every change reviewed by `formula-reviewer`)*
 
-- [ ] P17.4 Consumable variants without formula change: adhesive type (tile, adhesive), grout colour (tile, grout), wallpaper type (wallpaper) → `variant`. Goldens unchanged, no version bump.
+- [x] P17.4 Consumable variants without formula change: adhesive type (tile, adhesive), grout colour (tile, grout), wallpaper type (wallpaper) → `variant`. Goldens unchanged, no version bump.
 - [ ] P17.5 Surface `both` («Пол и стены» with one tile) for tile, adhesive and grout: version +1, ≥ 2 new goldens per tool, Qalculator comparison (rule 12).
 - [ ] P17.6 Primer as a related item of tile (floor and walls, toggle), norm with source in catalog: version +1, goldens. Release check for tile, adhesive, grout, wallpaper passes.
 

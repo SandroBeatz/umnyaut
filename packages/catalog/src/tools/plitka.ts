@@ -1,4 +1,5 @@
 import type { ToolDef } from "./types";
+import { adhesiveClasses, groutColors, options, variantTitles } from "./variants";
 
 const room = { kind: "length", unit: "m", min: 300, max: 100_000 } as const;
 const tile = { kind: "length", unit: "cm", min: 20, max: 3000 } as const;
@@ -132,7 +133,31 @@ export const plitka: ToolDef = {
       hint: "Проверьте на коробке",
     },
     { kind: "toggle", name: "adhesive", label: "Плиточный клей" },
+    {
+      kind: "select",
+      name: "adhesiveClass",
+      label: "Класс клея",
+      hint: "На мешке; на расход не влияет — его задаёт зуб шпателя",
+      dropdown: true,
+      options: options(adhesiveClasses),
+      when: { adhesive: true },
+    },
     { kind: "toggle", name: "grout", label: "Затирка" },
+    {
+      kind: "select",
+      name: "groutColor",
+      label: "Цвет затирки",
+      dropdown: true,
+      options: options(groutColors),
+      when: { grout: true },
+    },
+    {
+      kind: "text",
+      maxLength: 30,
+      name: "groutColorName",
+      label: "Название цвета",
+      when: { grout: true, groutColor: "custom" },
+    },
     {
       kind: "number",
       min: 3,
@@ -157,8 +182,13 @@ export const plitka: ToolDef = {
   surface: { field: "surface", values: { floor: "floor", walls: "walls" } },
   items: {
     tile: { title: "Плитка", photo: "tile" },
-    "tile-adhesive": { title: "Плиточный клей", photo: "tile-adhesive", shared: true },
-    grout: { title: "Затирка", photo: "grout", shared: true },
+    "tile-adhesive": {
+      title: "Плиточный клей",
+      photo: "tile-adhesive",
+      shared: true,
+      variants: variantTitles(adhesiveClasses),
+    },
+    grout: { title: "Затирка", photo: "grout", shared: true, variants: variantTitles(groutColors) },
   },
   summary: {
     tiles: "Плиток с запасом",

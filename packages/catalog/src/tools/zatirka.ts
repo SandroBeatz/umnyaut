@@ -1,4 +1,5 @@
 import type { ToolDef } from "./types";
+import { groutColors, options, variantTitles } from "./variants";
 
 const room = { kind: "length", unit: "m", min: 300, max: 100_000 } as const;
 const tile = { kind: "length", unit: "cm", min: 20, max: 3000 } as const;
@@ -90,6 +91,14 @@ export const zatirka: ToolDef = {
       hint: "Глубина шва — толщина плитки. Керамогранит 60 × 60 — обычно 9–14 мм, смотрите на коробке",
     },
     { kind: "number", min: 0, max: 30, step: 1, unit: "%", name: "reservePct", label: "Запас" },
+    {
+      kind: "select",
+      name: "groutColor",
+      label: "Цвет затирки",
+      dropdown: true,
+      options: options(groutColors),
+    },
+    { kind: "text", maxLength: 30, name: "groutColorName", label: "Название цвета", when: { groutColor: "custom" } },
     { kind: "number", min: 0.5, max: 25, step: 0.5, unit: "кг", name: "packKg", label: "Упаковка" },
     { kind: "price", item: "grout", name: "price_grout", label: "Цена упаковки" },
   ],
@@ -101,7 +110,7 @@ export const zatirka: ToolDef = {
   ],
   nextSteps: ["klej", "plitka"],
   surface: { field: "surface", values: { floor: "floor", walls: "walls" } },
-  items: { grout: { title: "Затирка", photo: "grout", shared: true } },
+  items: { grout: { title: "Затирка", photo: "grout", shared: true, variants: variantTitles(groutColors) } },
   summary: { groutKg: "Затирки нужно", rate: "Расход на 1 м²", area: "Площадь облицовки" },
   steps: {
     floor: "Пол = {length} × {width} = {area} м²",

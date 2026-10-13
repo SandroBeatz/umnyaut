@@ -41,6 +41,8 @@ const S = {
   S22: "РБК Недвижимость, «Как клеить обои в углах комнаты» (заход 10–15 мм, начинают от окна), https://realty.rbc.ru/news/69f326cb9a7947ef7f415a11",
   S23: "oboi-store, «Как клеить обои в углах» (заворот 1,5–5 см), https://oboi-store.ru/blog/post/kak-kleit-oboi-v-uglax",
   S24: "Российская газета, «Поклейка обоев своими руками: что нужно знать» (наружный угол — заход 3–4 см), https://rg.ru/2024/03/30/poklejka-oboev-svoimi-rukami-chto-nuzhno-znat.html",
+  S25: "Метилан Флизелин Экстра Комфорт, https://www.metylan.ru/ru/katalog/oboynyy-kley-metylan/metilan-flizelin-extra-comfort.html",
+  S26: "Метилан Универсал Премиум, https://www.metylan.ru/ru/katalog/oboynyy-kley-metylan/metilan-universal-premium.html",
   S21: "Arbiton INDO, инструкция по монтажу (4 способа, шаг 30–40 см), https://pim.decora.pl/files/wils3fj3u4fgwr3c.pdf",
 } as const;
 
@@ -96,13 +98,24 @@ export const norms: Readonly<Record<string, Norm>> = {
     checkedAt: "2026-10-12",
     note: "в источнике 3–4 см; берём 3 см, дальше новая вертикаль по уровню",
   }),
-  "wallpaperPaste.coverage": norm(30, "м² на 250 г", S.S6, {
-    unconfirmed: true,
-    note: "флизелиновые обои; цифра не сверена с пачкой",
+  "wallpaperPaste.coverage.nonwoven": norm(42, "м² на 300 г", S.S25, {
+    checkedAt: "2026-10-13",
+    note: "стандартные обои на флизелиновой основе; в источнике 42–54 м², берём нижнюю границу",
+  }),
+  "wallpaperPaste.coverage.heavy": norm(36, "м² на 300 г", S.S25, {
+    checkedAt: "2026-10-13",
+    note: "тяжёлые: винил с объёмным рисунком, пенообои, стеклообои; в источнике 36–48 м²",
+  }),
+  "wallpaperPaste.coverage.paper": norm(35, "м² на 250 г", S.S26, {
+    checkedAt: "2026-10-13",
+    note: "бумажные дуплекс; симплекс 40–50 м² — берём дуплекс с запасом. Клей для флизелина бумажным не подходит",
   }),
   "paint.coverage": norm(10, "м²/л", S.S7, { note: "в источнике 12–14 м²/л; берём с запасом на шероховатые стены" }),
   "paint.coats": norm(2, "слоя", S.S7),
-  "primer.consumption": norm(0.15, "л/м²", S.S8, { note: "в источнике 0,1–0,2 л/м²" }),
+  "primer.consumption": norm(0.15, "л/м²", S.S8, {
+    checkedAt: "2026-10-13",
+    note: "в источнике 0,1–0,2 л/м² за слой — в том числе под плитку; сильно впитывающее основание грунтуют дважды",
+  }),
   "laminate.minOffset": norm(300, "мм", `${S.S9}; ${S.S10}`),
   "laminate.minLastRow": norm(50, "мм", S.S10),
   "laminate.expansionGap": norm(10, "мм", S.S9, { note: "в источнике 10–15 мм" }),

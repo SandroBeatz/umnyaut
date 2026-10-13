@@ -1,4 +1,5 @@
 import type { ToolDef } from "./types";
+import { variantTitles, wallpaperKinds } from "./variants";
 
 const room = { kind: "length", unit: "m", min: 300, max: 100_000 } as const;
 
@@ -172,6 +173,18 @@ export const oboi: ToolDef = {
       hint: "Сверху и снизу вместе",
     },
     {
+      kind: "select",
+      name: "wallpaperType",
+      label: "Тип обоев",
+      hint: "От него зависят клей и его расход",
+      dropdown: true,
+      options: wallpaperKinds.map(({ value, label, coverageM2 }) => ({
+        value,
+        label,
+        fills: { pasteCoverageM2: coverageM2 },
+      })),
+    },
+    {
       kind: "number",
       min: 1,
       max: 200,
@@ -179,7 +192,7 @@ export const oboi: ToolDef = {
       unit: "м²",
       name: "pasteCoverageM2",
       label: "Клей: площадь на пачку",
-      hint: "Проверьте по пачке: для тяжёлых обоев меньше",
+      hint: "Подставлено по типу обоев; проверьте по своей пачке",
     },
     { kind: "toggle", name: "primer", label: "Грунтовать стены под обои" },
     {
@@ -210,7 +223,12 @@ export const oboi: ToolDef = {
   },
   items: {
     wallpaper: { title: "Обои", photo: "wallpaper" },
-    "wallpaper-glue": { title: "Обойный клей", photo: "wallpaper-glue", shared: true },
+    "wallpaper-glue": {
+      title: "Обойный клей",
+      photo: "wallpaper-glue",
+      shared: true,
+      variants: variantTitles(wallpaperKinds),
+    },
     primer: { title: "Грунтовка", photo: "primer", shared: true },
   },
   summary: {
@@ -285,7 +303,9 @@ export const oboi: ToolDef = {
     "wallpaper.cornerWrap",
     "wallpaper.outerCornerWrap",
     "wallpaper.rollLengthTolerance",
-    "wallpaperPaste.coverage",
+    "wallpaperPaste.coverage.nonwoven",
+    "wallpaperPaste.coverage.heavy",
+    "wallpaperPaste.coverage.paper",
     "primer.consumption",
   ],
 };

@@ -10,8 +10,8 @@ interface FieldBase {
   /** Shown in the planner's short form. */
   planner?: boolean;
   hint?: string;
-  /** Shown only while other fields have these values, e.g. the cut-out only for `shape: "l"`. */
-  when?: Readonly<Record<string, string>>;
+  /** Shown only while other fields have these values, e.g. the cut-out only for `shape: "l"`, a class with a toggle on. */
+  when?: Readonly<Record<string, string | boolean>>;
 }
 
 /** Parts of “My room” a field reads and writes. */
@@ -34,13 +34,16 @@ export type FieldDef =
   | (FieldBase & { kind: "number"; min: number; max: number; step?: number; unit?: string })
   | (FieldBase & {
       kind: "select";
-      options: readonly { value: string; label: string }[];
+      /** `fills` — other fields an option sets with it (a wallpaper type sets the paste coverage of its kind). */
+      options: readonly { value: string; label: string; fills?: Readonly<Record<string, unknown>> }[];
       /** `shape` reads and writes the room shape, `cutCorner` where its L-cut sits on the plan. */
       room?: "shape" | "cutCorner";
       /** Dropdown in half a row instead of a full-width segment (up to 4 options are a segment by default). */
       dropdown?: boolean;
     })
   | (FieldBase & { kind: "toggle" })
+  /** A short name the user types (their own grout colour). */
+  | (FieldBase & { kind: "text"; maxLength: number })
   | (FieldBase & { kind: "price" /** Purchase item key the pack price belongs to. */; item: string })
   /** Windows and doors list; always bound to the openings of “My room”. */
   | (FieldBase & { kind: "openings" })
@@ -65,6 +68,11 @@ export interface ItemDef {
    * it across rooms and rounds to packs once. Without the flag the item is a room's own material.
    */
   shared?: true;
+  /**
+   * How the item's `variant` reads after its title: «Затирка белая», «Плиточный клей C1T». A variant not listed (a
+   * colour the user typed) is shown as it is.
+   */
+  variants?: Readonly<Record<string, string>>;
 }
 
 export interface ToolDef {

@@ -87,8 +87,10 @@ const input = z.object({
   match: z.enum(["straight", "offset"]),
   /** Trim allowance per strip, top and bottom together (norm `wallpaper.trimAllowance`). */
   trimMm: z.int().check(z.minimum(0), z.maximum(300)),
-  /** Wall area one pack of paste covers, from the pack (norm `wallpaperPaste.coverage`). */
+  /** Wall area one pack of paste covers, from the pack (norms `wallpaperPaste.coverage.*` by wallpaper type). */
   pasteCoverageM2: z.number().check(z.minimum(1), z.maximum(200)),
+  /** Sets the paste (another product for paper) and, in the form, its coverage (norms `wallpaperPaste.coverage.*`). */
+  wallpaperType: z.enum(["nonwoven", "heavy", "paper"]),
   /** Primer under the wallpaper, one coat (norm `primer.consumption`), one canister size as in paint. */
   primer: z.boolean(),
   primerRateLPerM2: z.number().check(z.minimum(0.05), z.maximum(1)),
@@ -657,7 +659,9 @@ export const oboi: ToolModule<OboiInput> = {
   //    rests of other strips (a cutting plan), bare zones, L-shaped rooms with outer corners, spare rolls.
   // 4: a door beside a window is one opening, what is trimmed off over openings is a rest for pieces, and strips
   //    may be cut at the edges of openings (`aroundOpenings: "edge"`).
-  version: 4,
+  // 5: the paste by wallpaper type (Metylan datasheets): 42 m² per 300 g for non-woven, 36 for heavy, 35 per
+  //    250 g of a paper paste — was 30 m² per 250 g, unconfirmed.
+  version: 5,
   input,
   defaults: () => ({
     lengthMm: 4600,
@@ -686,7 +690,8 @@ export const oboi: ToolModule<OboiInput> = {
     repeatMm: 0,
     match: "straight",
     trimMm: 100,
-    pasteCoverageM2: 30,
+    pasteCoverageM2: 42,
+    wallpaperType: "nonwoven",
     primer: true,
     primerRateLPerM2: 0.15,
     primerPackL: 10,
@@ -926,6 +931,7 @@ export const oboi: ToolModule<OboiInput> = {
       "related",
       { value: areaM2, unit: "m2" },
       { kind: "pack", size: { value: i.pasteCoverageM2, unit: "m2" } },
+      { variant: i.wallpaperType },
     );
     items.push(paste);
     steps.push(

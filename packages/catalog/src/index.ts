@@ -21,6 +21,7 @@ export {
   activeCategories,
   getCategory,
   getTool,
+  itemTitle,
   popularTools,
   sharedItems,
   strings,

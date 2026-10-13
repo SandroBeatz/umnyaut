@@ -35,6 +35,16 @@ export const sharedItems: ReadonlySet<string> = new Set(
   tools.flatMap((t) => Object.entries(t.items ?? {}).flatMap(([key, item]) => (item.shared ? [key] : []))),
 );
 
+/**
+ * A purchase item's name with its variant (spec Р1): «Затирка белая», «Плиточный клей C1T», «Обойный клей для
+ * бумажных обоев»; a variant the catalog does not list (a colour the user typed) is shown as it is.
+ */
+export function itemTitle(item: { key: string; variant?: string | undefined }, tool?: ToolDef): string {
+  const def = tool?.items?.[item.key] ?? tools.find((t) => t.items?.[item.key])?.items?.[item.key];
+  const title = def?.title ?? item.key;
+  return item.variant ? `${title} ${def?.variants?.[item.variant] ?? item.variant}` : title;
+}
+
 export function getTool(category: string, id: string): ToolDef | undefined {
   return tools.find((tool) => tool.category === category && tool.id === id);
 }

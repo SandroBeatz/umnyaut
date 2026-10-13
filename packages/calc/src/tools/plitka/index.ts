@@ -60,6 +60,10 @@ const input = z.object({
   /** Related: tile adhesive and grout, counted by the adhesive and grout tools with this tile and joint. */
   adhesive: z.boolean(),
   grout: z.boolean(),
+  /** Product variants of the related adhesive and grout (see those tools). */
+  adhesiveClass: z.enum(["C1", "C1T", "C2TE", "C2TE-S1", "C2-S2"]),
+  groutColor: z.enum(["white", "light-grey", "grey", "graphite", "anthracite", "beige", "brown", "black", "custom"]),
+  groutColorName: z.string().check(z.maxLength(30)),
   /** Grout depth = tile thickness. */
   tileThicknessMm: z.number().check(z.minimum(3), z.maximum(30)),
 });
@@ -325,6 +329,9 @@ export const plitka: ToolModule<PlitkaInput> = {
     tilesPerBox: 12,
     adhesive: true,
     grout: true,
+    adhesiveClass: "C1T",
+    groutColor: "white",
+    groutColorName: "",
     tileThicknessMm: 8,
   }),
   compute(i): ToolResult {
@@ -446,14 +453,24 @@ export const plitka: ToolModule<PlitkaInput> = {
       tileWidthMm: i.tileWidthMm,
     };
     if (i.adhesive) {
-      const glue = klej.compute({ ...klej.defaults({ country: "RU" }), ...surface }, { country: "RU" });
+      const glue = klej.compute(
+        { ...klej.defaults({ country: "RU" }), ...surface, adhesiveClass: i.adhesiveClass },
+        { country: "RU" },
+      );
       related.push(...glue.items.map((it) => ({ ...it, role: "related" as const })));
       const kg = glue.items.reduce((n, it) => n + it.need.value, 0);
       steps.push({ code: "adhesive", values: { kg, bags: glue.items.reduce((n, it) => n + it.packs, 0) } });
     }
     if (i.grout && i.jointMm > 0) {
       const fill = zatirka.compute(
-        { ...zatirka.defaults({ country: "RU" }), ...surface, jointMm: i.jointMm, depthMm: i.tileThicknessMm },
+        {
+          ...zatirka.defaults({ country: "RU" }),
+          ...surface,
+          jointMm: i.jointMm,
+          depthMm: i.tileThicknessMm,
+          groutColor: i.groutColor,
+          groutColorName: i.groutColorName,
+        },
         { country: "RU" },
       );
       related.push(...fill.items.map((it) => ({ ...it, role: "related" as const })));
