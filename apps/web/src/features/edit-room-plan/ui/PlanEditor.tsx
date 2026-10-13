@@ -6,10 +6,9 @@ import { Button, NumberField, ResponsiveSheet, Select } from "@umnyaut/ui";
 import { formatNumber, NBSP } from "@umnyaut/ui/format";
 import { DoorOpen, Plus, RectangleHorizontal, SquareDashed } from "lucide-react";
 import { type ReactNode, useState } from "react";
-import { FloorPlan } from "@/entities/room";
+import { centred, collapse, expand, FloorPlan, type PlanOpening, type PlanRoom, planOutline } from "@/entities/room";
 import { fill } from "@/shared/lib";
 import { CollapsibleCard, useOpenCards } from "@/shared/ui";
-import { centred, collapse, expand, type PlanOpening, type PlanRoom, planOutline } from "../model/plan";
 
 const t = shell.plan;
 const o = shell.openings;

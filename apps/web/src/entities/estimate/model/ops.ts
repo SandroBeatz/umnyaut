@@ -50,7 +50,7 @@ export function createEstimate(id: string, now: number): Estimate {
 }
 
 /** «Комната N» by the room's place in the estimate; when that name is taken, the first free number. */
-function freeRoomName(rooms: readonly EstimateRoom[]): string {
+export function freeRoomName(rooms: readonly EstimateRoom[]): string {
   const names = new Set(rooms.map((r) => r.name));
   const name = (n: number) => fill(shell.estimate.room, { n });
   let n = rooms.length + 1;
@@ -88,6 +88,44 @@ export function updateRoom(
   if (!estimate.rooms.some((r) => r.id === id)) return estimate;
   const rooms = estimate.rooms.map((r) => (r.id === id ? { ...r, ...defined(patch), id } : r));
   return { ...estimate, rooms, updatedAt: now };
+}
+
+/**
+ * How the room's walls are numbered: a rectangle has 4, an L-shape 6 starting from its cut corner. Two rooms with
+ * the same value number their walls alike, so wall-bound parameters keep meaning the same walls.
+ */
+export function wallNumbering(room: RoomGeometry): string {
+  const { lengthMm = 0, widthMm = 0, cutLengthMm = 0, cutWidthMm = 0 } = room;
+  const l = room.shape === "l" && cutLengthMm > 0 && cutWidthMm > 0 && cutLengthMm < lengthMm && cutWidthMm < widthMm;
+  return l ? `l-${room.cutCorner ?? "se"}` : "rect";
+}
+
+export type SavedRoom = Omit<EstimateRoom, "id">;
+
+/**
+ * The room editor's «Сохранить комнату»: the whole room replaces the stored one (a cleared size is gone), or a new
+ * room is added. When the walls are numbered anew, the fields of the room's calcs that point at walls are dropped
+ * back to the tool's defaults (`wallBound`: tool id → input fields, spec Р10).
+ */
+export function saveRoom(
+  estimate: Estimate,
+  id: string | undefined,
+  room: SavedRoom,
+  wallBound: Readonly<Record<string, readonly string[]>>,
+  now: number,
+): { estimate: Estimate; id?: string } {
+  const before = estimate.rooms.find((r) => r.id === id);
+  if (!before) return addRoom(estimate, room, now);
+  const renumbered = wallNumbering(before) !== wallNumbering(room);
+  const calcs = estimate.calcs.map((c) => {
+    const fields = c.roomId === before.id && renumbered ? wallBound[c.tool] : undefined;
+    if (!fields?.some((f) => f in c.input)) return c;
+    return { ...c, input: Object.fromEntries(Object.entries(c.input).filter(([k]) => !fields.includes(k))) };
+  });
+  const rooms = estimate.rooms.map((r) =>
+    r.id === before.id ? { ...(defined(room) as SavedRoom), id: before.id } : r,
+  );
+  return { estimate: { ...estimate, rooms, calcs, updatedAt: now }, id: before.id };
 }
 
 /** Forgets the room's sizes and openings; its name, type and calcs stay. */

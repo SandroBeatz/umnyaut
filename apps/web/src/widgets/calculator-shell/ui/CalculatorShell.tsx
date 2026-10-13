@@ -112,6 +112,7 @@ export function CalculatorShell({ category, toolId, checkedAt, sources, module }
                     version={module.version}
                     values={values}
                     defaults={defaults}
+                    onBeforeAdd={calc.seedRoom}
                     className="min-w-32 flex-1"
                   />
                 ) : undefined

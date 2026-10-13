@@ -56,6 +56,47 @@ describe("estimate steps", () => {
     expect(cleared.calcs).toHaveLength(1);
   });
 
+  it("saving a room replaces it; new walls numbering resets the wall-bound fields of its calcs only (Р10)", () => {
+    let e = ops.patchActiveRoom(null, { lengthMm: 4600, widthMm: 4300, heightMm: 2700 }, 1, id);
+    const wallpaper = { startMode: "manual", startWall: 3, repeatMm: 640 };
+    e = ops.addCalc(e, { roomId: "r1", tool: "oboi", toolVersion: 4, input: wallpaper }, 2).estimate;
+    e = ops.addRoom(e, {}, 3).estimate;
+    e = ops.addCalc(e, { roomId: "r2", tool: "oboi", toolVersion: 4, input: wallpaper }, 3).estimate;
+    const bound = { oboi: ["startMode", "startWall", "startLineMm", "mainWall", "zones"] };
+    const resized = ops.saveRoom(
+      e,
+      "r1",
+      { name: "Зал", type: "living", shape: "rect", lengthMm: 5000, widthMm: 4300 },
+      bound,
+      4,
+    );
+    expect(resized.estimate.rooms[0]).toEqual({
+      id: "r1",
+      name: "Зал",
+      type: "living",
+      shape: "rect",
+      lengthMm: 5000,
+      widthMm: 4300,
+    });
+    expect(resized.estimate.calcs[0]?.input).toEqual(wallpaper);
+    const l = {
+      name: "Зал",
+      type: "living" as const,
+      shape: "l" as const,
+      lengthMm: 5000,
+      widthMm: 4300,
+      cutLengthMm: 1500,
+      cutWidthMm: 1200,
+    };
+    const reshaped = valid(ops.saveRoom(e, "r1", l, bound, 5).estimate);
+    expect(reshaped.calcs.map((c) => c.input)).toEqual([{ repeatMm: 640 }, wallpaper]);
+    expect(ops.wallNumbering({ ...l, cutCorner: "nw" })).toBe("l-nw");
+    expect(ops.wallNumbering({ ...l, cutLengthMm: 5000 })).toBe("rect");
+    const added = ops.saveRoom(e, undefined, { name: "Кухня", type: "kitchen" }, bound, 6);
+    expect(added.id).toBe("r3");
+    expect(added.estimate.activeRoomId).toBe("r3");
+  });
+
   it("keeps the limits: 20 rooms, 60 calcs", () => {
     let e = ops.createEstimate("e1", 0);
     for (let i = 0; i < ESTIMATE_LIMITS.rooms + 1; i++) e = ops.addRoom(e, {}, i).estimate;

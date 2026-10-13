@@ -12,7 +12,7 @@ export interface RegistryInput {
   categories: readonly CategoryDef[];
   reservedSegments: readonly string[];
   tools: readonly ToolDef[];
-  modules: Readonly<Record<string, Pick<ToolModule, "id" | "version">>>;
+  modules: Readonly<Record<string, Pick<ToolModule, "id" | "version"> & Partial<Pick<ToolModule, "defaults">>>>;
   norms: Readonly<Record<string, Norm>>;
 }
 
@@ -68,6 +68,9 @@ export function validateRegistry({ categories, reservedSegments, tools, modules,
       }
     }
     for (const id of tool.norms ?? []) if (!norms[id]) errors.push(`${at}: unknown norm ${id}`);
+    const input = module?.defaults?.({ country: "RU" }) as Record<string, unknown> | undefined;
+    for (const name of tool.wallBound?.fields ?? [])
+      if (input && !(name in input)) errors.push(`${at}: wall-bound field ${name} is not in the tool's input`);
   }
 
   // One item key is one product everywhere: shared in one tool and a room material in another would split it.

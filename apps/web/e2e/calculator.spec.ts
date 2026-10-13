@@ -229,6 +229,9 @@ test("rooms: a new room starts from the example, the picker brings the first one
 
   await page.getByRole("button", { name: /^Комната 1,/ }).click();
   await page.getByRole("button", { name: "Новая комната" }).click();
+  const editor = page.getByRole("dialog", { name: "Новая комната" });
+  await expect(editor.getByRole("textbox", { name: "Название" })).toHaveValue("Комната 2");
+  await editor.getByRole("button", { name: "Сохранить комнату" }).click();
   await expect(page.getByRole("button", { name: /^Комната 2, Размеры не заданы/ })).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Длина комнаты" })).toHaveValue("4,6");
   await type(page, "Длина комнаты", "3");
@@ -241,6 +244,33 @@ test("rooms: a new room starts from the example, the picker brings the first one
   await first.click();
   await expect(page.getByRole("textbox", { name: "Длина комнаты" })).toHaveValue("5");
   await expect(page.getByRole("textbox", { name: "Ширина комнаты" })).toHaveValue("4,3");
+});
+
+test("room editor: name, type, an L-shape and a door on the plan reach the calculator; delete", async ({ page }) => {
+  await page.goto(WALLS);
+  await type(page, "Длина комнаты", "5");
+  await page.getByRole("button", { name: "Изменить", exact: true }).click();
+  const editor = page.getByRole("dialog", { name: "Комната" });
+  await editor.getByRole("textbox", { name: "Название" }).fill("Ванная");
+  await editor.getByRole("button", { name: "Ванная", exact: true }).click();
+  await expect(editor.getByRole("button", { name: "Ванная", exact: true })).toHaveAttribute("aria-pressed", "true");
+  // 5 × 4,3 = 21,5 м², perimeter 18,6 м, walls 18,6 × 2,7 − 1,6 − 1,68 = 46,94 м².
+  await expect(editor.getByText(/^21,5\sм²$/).first()).toBeVisible();
+  await editor.getByRole("radio", { name: "Г-образная" }).click();
+  // 21,5 − 1,5 × 1,2 = 19,7 м².
+  await expect(editor.getByText(/^19,7\sм²$/).first()).toBeVisible();
+  await editor.getByRole("button", { name: "Дверь", exact: true }).click();
+  await editor.getByRole("button", { name: "Сохранить комнату" }).click();
+  await expect(editor).toBeHidden();
+
+  await expect(page.getByRole("button", { name: /^Ванная, 5\s×\s4,3\s×\s2,7\sм/ })).toBeVisible();
+  // The room's doors and windows replace the tool's example: walls 2 × (5 + 4,3) × 2,7 = 50,22 − door 1,6 = 48,62.
+  await expect(result(page)).toHaveText("48,62");
+
+  await page.getByRole("button", { name: "Изменить", exact: true }).click();
+  await editor.getByRole("button", { name: "Удалить комнату" }).click();
+  await expect(editor).toBeHidden();
+  await expect(page.getByText("Ввести размеры один раз")).toBeVisible();
 });
 
 test("plinth: planks and fittings, an L-shaped room adds corners", async ({ page }) => {

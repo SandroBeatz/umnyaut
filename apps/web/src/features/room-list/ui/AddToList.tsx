@@ -16,11 +16,13 @@ export interface AddToListProps {
   version: number;
   values: ToolValues;
   defaults: ToolValues;
+  /** Creates the room from the form first, so the list never sits in a room without sizes. */
+  onBeforeAdd?(): void;
   className?: string;
 }
 
 /** «В список» → «В списке» once added; «Обновить в списке» when the tool's own input changed since. */
-export function AddToList({ tool, version, values, defaults, className }: AddToListProps) {
+export function AddToList({ tool, version, values, defaults, onBeforeAdd, className }: AddToListProps) {
   useEffect(() => {
     void hydrateEstimate();
   }, []);
@@ -41,6 +43,7 @@ export function AddToList({ tool, version, values, defaults, className }: AddToL
     <Button
       className={className}
       onClick={() => {
+        onBeforeAdd?.();
         put({ tool: tool.id, toolVersion: version, input });
         if (state === "add") toast(t.addedToast);
       }}

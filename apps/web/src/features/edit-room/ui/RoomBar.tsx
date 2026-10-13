@@ -2,22 +2,16 @@
 
 import { ESTIMATE_LIMITS } from "@umnyaut/calc";
 import { shell, unitLabels } from "@umnyaut/catalog";
-import { Button, NumberField, ResponsiveSheet } from "@umnyaut/ui";
-import { formatNumber } from "@umnyaut/ui/format";
+import { Button, ResponsiveSheet } from "@umnyaut/ui";
 import { Check, ChevronDown, Plus, Ruler } from "lucide-react";
 import { useEffect, useState } from "react";
-import { hydrateEstimate, useActiveRoom, useEstimateStore } from "@/entities/estimate";
-import { type RoomDraft, roomDimensions } from "@/entities/room";
+import { freeRoomName, hydrateEstimate, useActiveRoom, useEstimateStore } from "@/entities/estimate";
+import { roomDimensions } from "@/entities/room";
 import { fill } from "@/shared/lib";
+import { RoomEditor } from "./RoomEditor";
 
 const t = shell.roomBar;
 const m = unitLabels.m;
-const LIMITS = { lengthMm: [300, 100_000], widthMm: [300, 100_000], heightMm: [1000, 10_000] } as const;
-type Part = keyof typeof LIMITS;
-
-const toM = (mm: number | undefined) => (mm === undefined ? null : mm / 1000);
-const range = ([min, max]: readonly [number, number]) =>
-  fill(shell.form.range, { min: formatNumber(min / 1000), max: formatNumber(max / 1000), unit: m });
 /** «Плитка» → «плитка есть». */
 const counted = (title: string) => fill(t.counted, { tool: title.charAt(0).toLowerCase() + title.slice(1) });
 
@@ -28,7 +22,7 @@ export interface RoomBarProps {
 
 /**
  * The mint room row (spec «Калькулятор», P17.7): «[Ванная ▾] 2,2 × 1,7 × 2,5 м · Изменить». The name opens the
- * estimate's rooms with «+ Новая комната»; «Изменить» edits the sizes. The server renders the empty state; the
+ * estimate's rooms with «+ Новая комната»; «Изменить» opens the room editor. The server renders the empty state; the
  * stored room appears after mount at the same 56 px height (no layout shift).
  */
 export function RoomBar({ tool }: RoomBarProps) {
@@ -36,35 +30,12 @@ export function RoomBar({ tool }: RoomBarProps) {
   const rooms = useEstimateStore((s) => s.estimate?.rooms);
   const calcs = useEstimateStore((s) => s.estimate?.calcs);
   const [picking, setPicking] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState<Record<Part, number | null>>({ lengthMm: null, widthMm: null, heightMm: null });
+  /** The editor is open on the active room, or on a new one («+ Новая комната»). */
+  const [editing, setEditing] = useState<{ open: boolean; isNew: boolean }>({ open: false, isNew: false });
 
   useEffect(() => {
     void hydrateEstimate();
   }, []);
-
-  const onOpenChange = (next: boolean) => {
-    if (next) setDraft({ lengthMm: toM(room?.lengthMm), widthMm: toM(room?.widthMm), heightMm: toM(room?.heightMm) });
-    setOpen(next);
-  };
-
-  const valid = (part: Part) => {
-    const value = draft[part];
-    if (value === null) return true;
-    const mm = Math.round(value * 1000);
-    return mm >= LIMITS[part][0] && mm <= LIMITS[part][1];
-  };
-  const canSave = (Object.keys(LIMITS) as Part[]).every(valid);
-
-  const save = () => {
-    const patch: RoomDraft = {};
-    for (const part of Object.keys(LIMITS) as Part[]) {
-      const value = draft[part];
-      if (value !== null) patch[part] = Math.round(value * 1000);
-    }
-    useEstimateStore.getState().patchActiveRoom(patch);
-    setOpen(false);
-  };
 
   const dimensions = roomDimensions(room, m);
 
@@ -131,8 +102,8 @@ export function RoomBar({ tool }: RoomBarProps) {
                   type="button"
                   className="flex min-h-14 w-full items-center gap-3 rounded-md px-3 text-left text-body font-semibold text-primary hover:bg-surface-sunken"
                   onClick={() => {
-                    useEstimateStore.getState().addRoom();
                     setPicking(false);
+                    setEditing({ open: true, isNew: true });
                   }}
                 >
                   <Plus aria-hidden="true" className="size-5" />
@@ -145,42 +116,17 @@ export function RoomBar({ tool }: RoomBarProps) {
       ) : (
         <p className="min-w-0 flex-1 truncate font-semibold">{t.empty}</p>
       )}
-      <ResponsiveSheet
-        open={open}
-        onOpenChange={onOpenChange}
-        title={room?.name ?? t.sheetTitle}
-        description={t.sheetDescription}
-        closeLabel={shell.close}
+      <RoomEditor
+        open={editing.open}
+        onOpenChange={(open) => setEditing((e) => ({ open, isNew: open && e.isNew }))}
+        room={editing.isNew ? null : room}
+        newName={freeRoomName(rooms ?? [])}
         trigger={
           <Button variant="ghost" size="md" className="shrink-0">
             {t.edit}
           </Button>
         }
-      >
-        <div className="grid grid-cols-2 gap-3 pt-2">
-          {(
-            [
-              ["lengthMm", t.length],
-              ["widthMm", t.width],
-              ["heightMm", t.height],
-            ] as const
-          ).map(([part, label]) => (
-            <NumberField
-              key={part}
-              label={label}
-              unit={m}
-              value={draft[part]}
-              onValueChange={(value) => setDraft((d) => ({ ...d, [part]: value }))}
-              min={LIMITS[part][0] / 1000}
-              max={LIMITS[part][1] / 1000}
-              messages={{ range: range(LIMITS[part]) }}
-            />
-          ))}
-        </div>
-        <Button size="lg" className="mt-4 w-full" disabled={!canSave} onClick={save}>
-          {t.save}
-        </Button>
-      </ResponsiveSheet>
+      />
     </div>
   );
 }

@@ -90,6 +90,11 @@ export interface ToolDef {
   summary?: Readonly<Record<string, string>>;
   /** Text per step code of “How calculated”, same placeholders. */
   steps?: Readonly<Record<string, string>>;
+  /**
+   * Fields that point at walls by number (the wallpaper start wall, bare zones). When the room's walls are numbered
+   * anew (shape or cut corner changed), the room editor resets them and names `note` (spec Р10).
+   */
+  wallBound?: { fields: readonly string[]; note: string };
   /** Norm ids this tool uses (see norms.ts); “How calculated” lists their sources. */
   norms?: readonly string[];
 }

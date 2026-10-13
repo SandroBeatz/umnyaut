@@ -30,6 +30,12 @@ interface EstimateState {
   clearActiveRoom(): void;
   addRoom(patch?: Parameters<typeof ops.addRoom>[1]): string | undefined;
   updateRoom(id: string, patch: Parameters<typeof ops.updateRoom>[2]): void;
+  /** The room editor's save: replaces the room (or adds a new one) and resets wall-bound fields (Р10). */
+  saveRoom(
+    id: string | undefined,
+    room: ops.SavedRoom,
+    wallBound: Readonly<Record<string, readonly string[]>>,
+  ): string | undefined;
   removeRoom(id: string): void;
   setActiveRoom(id: string): void;
 
@@ -73,6 +79,17 @@ export const useEstimateStore = create<EstimateState>()(
           return result.id;
         },
         updateRoom: (id, patch) => apply((e, now) => ops.updateRoom(e, id, patch, now)),
+        saveRoom: (id, room, wallBound) => {
+          const result = ops.saveRoom(
+            get().estimate ?? ops.createEstimate(newId(), Date.now()),
+            id,
+            room,
+            wallBound,
+            Date.now(),
+          );
+          set({ estimate: result.estimate });
+          return result.id;
+        },
         removeRoom: (id) => apply((e, now) => ops.removeRoom(e, id, now)),
         setActiveRoom: (id) => apply((e) => ops.setActiveRoom(e, id)),
 

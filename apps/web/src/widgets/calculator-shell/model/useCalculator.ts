@@ -25,7 +25,21 @@ export interface Calculator {
   /** Distinct fields the user changed since load (for `calc_completed`). */
   fieldsChanged: number;
   setValues(patch: ToolValues): void;
+  /** Creates the active room from what the form shows, when there is none yet («В список» before any edit). */
+  seedRoom(): void;
   setInvalid(name: string, invalid: boolean): void;
+}
+
+/**
+ * The room a tool's form shows: sizes and shape of the visible fields (the wall height of floor tile is hidden, so
+ * not taken). The tool's doors and windows are an example: they reach the room only when the user changes them.
+ */
+function seen(tool: ToolDef, values: ToolValues) {
+  const { openings: _, ...room } = roomPatch(
+    values,
+    tool.fields.filter((f) => isVisible(f, values)),
+  );
+  return room;
 }
 
 /**
@@ -102,16 +116,16 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
       const room = roomPatch(patch, tool.fields);
       if (Object.keys(room).length === 0) return;
       const store = useEstimateStore.getState();
-      // The first edit creates the room from the sizes and shape the form shows (hidden fields such as the wall
-      // height of floor tile are not shown, so not taken), not from one field. The tool's
-      // doors and windows are an example: they reach the room only when the user changes them.
-      const fresh = selectActiveRoom(store) === null;
-      const visible = tool.fields.filter((f) => isVisible(f, shown.current));
-      const { openings: _, ...seen } = fresh ? roomPatch(shown.current, visible) : {};
-      store.patchActiveRoom({ ...seen, ...room });
+      // The first edit creates the room from what the form shows, not from one field.
+      store.patchActiveRoom({ ...(selectActiveRoom(store) === null ? seen(tool, shown.current) : {}), ...room });
     },
     [parse, tool],
   );
+
+  const seedRoom = useCallback(() => {
+    const store = useEstimateStore.getState();
+    if (selectActiveRoom(store) === null) store.patchActiveRoom(seen(tool, shown.current));
+  }, [tool]);
 
   // Remember the tool's own (not room-bound) values that differ from defaults.
   useEffect(() => {
@@ -155,5 +169,6 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
     fieldsChanged,
     setValues,
     setInvalid,
+    seedRoom,
   };
 }
