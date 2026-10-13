@@ -151,10 +151,10 @@ export function recalcOf(
 }
 
 const TYPES = shell.roomEditor.types;
-const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 /** «Комната 3», «Спальня», «Спальня 2» — names the editor gave, not the user. */
 const AUTO = new RegExp(
-  `^(?:${[shell.estimate.room.replace("{n}", "\\d+"), ...Object.values(TYPES).map((t) => `${escape(t)}(?: \\d+)?`)].join("|")})$`,
+  `^(?:${[shell.estimate.room.replace("{n}", "\\d+"), ...Object.values(TYPES).map((t) => `${escapeRegExp(t)}(?: \\d+)?`)].join("|")})$`,
 );
 
 /**
