@@ -22,6 +22,8 @@ const openCalc = (row: CalcRow) => {
   store.openCalc(row.id);
 };
 
+const rowClass = "group flex min-h-[72px] min-w-0 flex-1 items-center gap-3 py-2 text-text lg:gap-4";
+
 const NO_ROOMS: readonly EstimateRoom[] = [];
 
 const removeCalc = (id: string) => {
@@ -36,24 +38,26 @@ function EditRoom({ room, trigger }: { room: EstimateRoom | null; trigger: React
   return <RoomEditor open={open} onOpenChange={setOpen} room={room} newName={freeRoomName(rooms)} trigger={trigger} />;
 }
 
-function RoomTitle({ room, size }: { room: EstimateRoom; size?: string }) {
+function RoomTitle({ room, size, readOnly }: { room: EstimateRoom; size?: string; readOnly?: boolean }) {
   return (
     <span className="flex min-w-0 flex-1 flex-col">
       <span className="flex items-center gap-1">
         <h2 className="min-w-0 truncate text-h3">{room.name}</h2>
-        <EditRoom
-          room={room}
-          trigger={
-            <Button
-              variant="ghost"
-              size="icon"
-              className="-my-2 text-text-muted"
-              aria-label={fill(t.editRoom, { room: room.name })}
-            >
-              <Pencil aria-hidden="true" />
-            </Button>
-          }
-        />
+        {readOnly ? null : (
+          <EditRoom
+            room={room}
+            trigger={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="-my-2 text-text-muted print:hidden"
+                aria-label={fill(t.editRoom, { room: room.name })}
+              >
+                <Pencil aria-hidden="true" />
+              </Button>
+            }
+          />
+        )}
       </span>
       {size ? <span className="text-small text-text-muted tabular-nums">{size}</span> : null}
     </span>
@@ -61,14 +65,14 @@ function RoomTitle({ room, size }: { room: EstimateRoom; size?: string }) {
 }
 
 /** A room with its calcs; each row leads back to the calculator with this room and this calc. */
-export function RoomCardView({ card, country }: { card: RoomCard; country: Country }) {
+export function RoomCardView({ card, country, readOnly }: { card: RoomCard; country: Country; readOnly?: boolean }) {
   return (
     <section
-      className="rounded-lg border border-border bg-surface px-4 pt-4 pb-2 shadow-sm lg:px-6 lg:pt-5"
+      className="rounded-lg border border-border bg-surface px-4 pt-4 pb-2 shadow-sm lg:px-6 lg:pt-5 print:break-inside-avoid print:shadow-none"
       data-room-card={card.room.name}
     >
       <header className="flex items-center gap-3 pb-3">
-        <RoomTitle room={card.room} {...(card.size ? { size: card.size } : {})} />
+        <RoomTitle room={card.room} readOnly={readOnly} {...(card.size ? { size: card.size } : {})} />
         {card.sum > 0 ? (
           <span className="text-h3 font-extrabold tabular-nums">{formatMoney(card.sum, country)}</span>
         ) : null}
@@ -76,41 +80,53 @@ export function RoomCardView({ card, country }: { card: RoomCard; country: Count
       <ul>
         {card.rows.map((row) => {
           const Icon = categoryIcons[row.tool.category as keyof typeof categoryIcons] ?? Calculator;
+          const content = (
+            <>
+              <span
+                aria-hidden="true"
+                className="flex size-12 shrink-0 items-center justify-center rounded-md bg-surface-mint text-primary-hover [&_svg]:size-6"
+              >
+                <Icon />
+              </span>
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="text-body-strong group-hover:text-primary-hover">{row.title}</span>
+                {row.caption ? <span className="text-small text-text-muted">{row.caption}</span> : null}
+              </span>
+              <span className="flex shrink-0 flex-col items-end tabular-nums sm:flex-row sm:items-center sm:gap-6">
+                {row.quantity ? <span className="text-body-strong">{row.quantity}</span> : null}
+                {row.cost !== undefined ? (
+                  <span className="text-small text-text-muted sm:min-w-24 sm:text-right sm:text-body sm:text-text">
+                    {formatMoney(row.cost, country)}
+                  </span>
+                ) : null}
+              </span>
+              {readOnly ? null : (
+                <ChevronRight
+                  aria-hidden="true"
+                  className="hidden size-5 shrink-0 text-primary sm:block print:hidden"
+                />
+              )}
+            </>
+          );
           return (
             <li key={row.id} className="flex items-center border-border border-t" data-calc-row>
-              <Link
-                href={toolPath(row.tool)}
-                onClick={() => openCalc(row)}
-                className="group flex min-h-[72px] min-w-0 flex-1 items-center gap-3 py-2 text-text lg:gap-4"
-              >
-                <span
-                  aria-hidden="true"
-                  className="flex size-12 shrink-0 items-center justify-center rounded-md bg-surface-mint text-primary-hover [&_svg]:size-6"
+              {readOnly ? (
+                <div className={rowClass}>{content}</div>
+              ) : (
+                <Link href={toolPath(row.tool)} onClick={() => openCalc(row)} className={rowClass}>
+                  {content}
+                </Link>
+              )}
+              {readOnly ? null : (
+                <button
+                  type="button"
+                  className="flex size-12 shrink-0 items-center justify-center rounded-md text-text-muted hover:text-danger print:hidden"
+                  aria-label={fill(t.remove, { calc: row.title })}
+                  onClick={() => removeCalc(row.id)}
                 >
-                  <Icon />
-                </span>
-                <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="text-body-strong group-hover:text-primary-hover">{row.title}</span>
-                  {row.caption ? <span className="text-small text-text-muted">{row.caption}</span> : null}
-                </span>
-                <span className="flex shrink-0 flex-col items-end tabular-nums sm:flex-row sm:items-center sm:gap-6">
-                  {row.quantity ? <span className="text-body-strong">{row.quantity}</span> : null}
-                  {row.cost !== undefined ? (
-                    <span className="text-small text-text-muted sm:min-w-24 sm:text-right sm:text-body sm:text-text">
-                      {formatMoney(row.cost, country)}
-                    </span>
-                  ) : null}
-                </span>
-                <ChevronRight aria-hidden="true" className="hidden size-5 shrink-0 text-primary sm:block" />
-              </Link>
-              <button
-                type="button"
-                className="flex size-12 shrink-0 items-center justify-center rounded-md text-text-muted hover:text-danger"
-                aria-label={fill(t.remove, { calc: row.title })}
-                onClick={() => removeCalc(row.id)}
-              >
-                <X aria-hidden="true" className="size-5" />
-              </button>
+                  <X aria-hidden="true" className="size-5" />
+                </button>
+              )}
             </li>
           );
         })}
@@ -123,7 +139,7 @@ export function RoomCardView({ card, country }: { card: RoomCard; country: Count
 export function SharedCard({ board, country }: { board: EstimateBoard; country: Country }) {
   return (
     <section
-      className="rounded-lg border border-border bg-surface px-4 pt-4 pb-2 shadow-sm lg:px-6 lg:pt-5"
+      className="rounded-lg border border-border bg-surface px-4 pt-4 pb-2 shadow-sm lg:px-6 lg:pt-5 print:break-inside-avoid print:shadow-none"
       data-shared-card
     >
       <header className="flex items-center gap-3 pb-3">
@@ -158,17 +174,18 @@ export function SharedCard({ board, country }: { board: EstimateBoard; country: 
 }
 
 /** A room with nothing counted yet: the usual works of its type, one tap into the calculator with this room. */
-export function EmptyRoomCard({ card }: { card: RoomCard }) {
+export function EmptyRoomCard({ card, readOnly }: { card: RoomCard; readOnly?: boolean }) {
   return (
     <section
-      className="flex flex-col gap-3 rounded-lg border border-border-input border-dashed px-4 py-4 lg:px-6"
+      className="flex flex-col gap-3 rounded-lg border border-border-input border-dashed px-4 py-4 lg:px-6 print:hidden"
       data-empty-room={card.room.name}
     >
       <RoomTitle
         room={card.room}
+        readOnly={readOnly}
         size={card.size ? `${card.size} · ${t.emptyRoom}` : t.emptyRoom.charAt(0).toUpperCase() + t.emptyRoom.slice(1)}
       />
-      {card.suggestions.length > 0 ? (
+      {!readOnly && card.suggestions.length > 0 ? (
         <ul className="flex flex-wrap gap-2">
           {card.suggestions.map((tool) => (
             <li key={tool.id}>
@@ -194,7 +211,7 @@ export function AddRoom() {
     <EditRoom
       room={null}
       trigger={
-        <Button variant="ghost" size="md" className="self-start px-3">
+        <Button variant="ghost" size="md" className="self-start px-3 print:hidden">
           <Plus aria-hidden="true" />
           {t.addRoom}
         </Button>

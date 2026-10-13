@@ -11,7 +11,7 @@ import { roomDimensions, roomPatch } from "@/entities/room";
 import type { ToolValues } from "@/entities/tool";
 import { RoomBar } from "@/features/edit-room";
 import type { SharedItemView } from "@/features/estimate-totals";
-import { AddToList, RoomList } from "@/features/room-list";
+import { AddToList } from "@/features/room-list";
 import { ResultActions, shareUrl } from "@/features/share-result";
 import { track } from "@/shared/analytics";
 import { AdSlot } from "@/shared/ui";
@@ -179,7 +179,6 @@ export function CalculatorShell({ category, toolId, checkedAt, sources, module }
               : {})}
           />
         ) : null}
-        <RoomList />
         <NextSteps tool={tool} />
         <HowCalculated tool={tool} steps={view.steps} checkedAt={checkedAt} sources={sources} />
       </div>

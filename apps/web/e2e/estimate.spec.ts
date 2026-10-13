@@ -127,3 +127,74 @@ test("a suggestion opens the calculator for the empty room", async ({ page }) =>
   await expect(page).toHaveURL(/\/pol\/laminat\/$/);
   expect((await stored(page))?.activeRoomId).toBe("r3");
 });
+
+test("«Скопировать» gives the estimate as text for a messenger", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await open(page);
+  await page.getByRole("button", { name: "Скопировать" }).click();
+  await expect(page.getByText("Смета скопирована")).toBeVisible();
+  const text = (await page.evaluate(() => navigator.clipboard.readText())).replace(/\s/g, " ");
+  expect(text).toMatch(/^Ремонт квартиры {2}Зал Ламинат — \d+ пачек — [\d ]+ ₽/);
+  expect(text).toContain("Общие расходники");
+  expect(text).toMatch(/Итого: [\d ]+ ₽/);
+});
+
+test("a link carries the estimate: view only, «Забрать себе» on an empty device", async ({
+  page,
+  context,
+  browser,
+}) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await open(page);
+  await page.getByRole("button", { name: "Ссылка" }).click();
+  await expect(page.getByText(/Ссылка скопирована/)).toBeVisible();
+  const url = await page.evaluate(() => navigator.clipboard.readText());
+  expect(url).toMatch(/\/smeta\/#s=[\w-]+$/);
+
+  const other = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await other.goto(url);
+  await expect(other.locator('[data-estimate="link"]')).toBeVisible();
+  await expect(other.getByText("Смета по ссылке")).toBeVisible();
+  await expect(other.locator('[data-room-card="Зал"] [data-calc-row]')).toHaveCount(2);
+  await expect(other.locator("[data-calc-row] a")).toHaveCount(0);
+  await expect(other.getByRole("button", { name: /^Убрать/ })).toHaveCount(0);
+  await other.getByRole("button", { name: "Забрать себе" }).click();
+  await expect(other.locator('[data-estimate="own"]')).toBeVisible();
+  expect(new URL(other.url()).hash).toBe("");
+  const mine = await stored(other);
+  expect(mine?.rooms.map((r: { name: string }) => r.name)).toEqual(["Зал", "Ванная", "Спальня"]);
+  await other.close();
+});
+
+test("with an estimate of one's own, «Забрать себе» asks and can add the rooms", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await open(page);
+  await page.getByRole("button", { name: "Ссылка" }).click();
+  const url = await page.evaluate(() => navigator.clipboard.readText());
+  await page.goto(url);
+  await expect(page.locator('[data-estimate="link"]')).toBeVisible();
+  await page.getByRole("button", { name: "Забрать себе" }).click();
+  await page.getByRole("button", { name: "Добавить комнаты в мою" }).click();
+  await expect(page.getByText("Добавлено комнат: 3")).toBeVisible();
+  expect((await stored(page))?.rooms).toHaveLength(6);
+});
+
+test("a broken link says so and shows this device's estimate", async ({ page }) => {
+  await page.goto(`${ESTIMATE}#s=broken`);
+  await expect(page.getByText(/Ссылка на смету повреждена/)).toBeVisible();
+  await expect(page.locator("[data-estimate-empty]")).toBeVisible();
+});
+
+test("header: «Смета» everywhere, its sum once the estimate has one, teal on the estimate page", async ({ page }) => {
+  await page.goto("/pol/laminat/");
+  const button = page.locator("[data-estimate-button]");
+  await expect(button).toHaveText("Смета");
+  await expect(button.locator("[data-header-sum]")).toHaveCount(0);
+
+  await open(page);
+  await expect(button).toHaveAttribute("aria-current", "page");
+  await expect(button.locator("[data-header-sum]")).toHaveText(/^[\d\s]+₽$/);
+  await page.locator('[data-room-card="Зал"] [data-calc-row] a').first().click();
+  await expect(button).not.toHaveAttribute("aria-current", "page");
+  await expect(button.locator("[data-header-sum]")).toBeVisible();
+});

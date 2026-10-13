@@ -2,10 +2,12 @@ import { type Estimate, type EstimateCalc, type EstimateTotals, migrateProject, 
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { useShallow } from "zustand/react/shallow";
+import { ESTIMATE_EVENT, ESTIMATE_KEY } from "@/shared/config";
 import { fromLegacy, LIST_KEY, ROOM_KEY } from "./legacy";
 import * as ops from "./ops";
 
-export const ESTIMATE_KEY = "umnyaut:estimate:v1";
+export { ESTIMATE_KEY };
+
 const ESTIMATE_VERSION = 1;
 
 /** Stored data → the estimate; unknown or broken data is no estimate. */
@@ -47,10 +49,6 @@ interface EstimateState {
   removeCalc(id: string): void;
   undoRemove(): void;
   splitCalc(id: string, surfaces: readonly [Surface, Surface]): string | undefined;
-  /** The room list on the estimate until stage C: one calc per tool in the active room. */
-  putToolCalc(calc: Pick<EstimateCalc, "tool" | "toolVersion" | "input">): void;
-  /** Removes the active room's calcs of these tools (all of them without a list). */
-  removeToolCalcs(tools?: readonly string[]): void;
 
   setPrice(productKey: string, price: number | undefined): void;
   setTotals(totals: Omit<EstimateTotals, "at">): void;
@@ -123,15 +121,6 @@ export const useEstimateStore = create<EstimateState>()(
           set({ estimate: result.estimate });
           return result.id;
         },
-        putToolCalc: (calc) =>
-          set(({ estimate }) => ({ estimate: ops.putToolCalc(estimate, calc, Date.now(), newId) })),
-        removeToolCalcs: (tools) =>
-          apply((e, now) => {
-            const room = ops.activeRoomOf(e);
-            const gone = (c: EstimateCalc) => c.roomId === room?.id && (!tools || tools.includes(c.tool));
-            return e.calcs.some(gone) ? { ...e, calcs: e.calcs.filter((c) => !gone(c)), updatedAt: now } : e;
-          }),
-
         setPrice: (key, price) => apply((e, now) => ops.setPrice(e, key, price, now)),
         setTotals: (totals) => apply((e, now) => ops.setTotals(e, totals, now)),
       };
@@ -140,7 +129,15 @@ export const useEstimateStore = create<EstimateState>()(
       name: ESTIMATE_KEY,
       version: ESTIMATE_VERSION,
       // `window.` throws on the server, so no storage is created there (Node 24 has its own `localStorage`).
-      storage: createJSONStorage(() => window.localStorage),
+      // Every write also tells this tab (the header's sum); other tabs hear the `storage` event.
+      storage: createJSONStorage(() => ({
+        getItem: (key) => window.localStorage.getItem(key),
+        setItem: (key, value) => {
+          window.localStorage.setItem(key, value);
+          window.dispatchEvent(new Event(ESTIMATE_EVENT));
+        },
+        removeItem: (key) => window.localStorage.removeItem(key),
+      })),
       partialize: ({ estimate }) => ({ estimate }),
       migrate: migrateEstimate,
       merge: (persisted, current) => ({ ...current, ...migrateEstimate(persisted, ESTIMATE_VERSION) }),
@@ -190,14 +187,6 @@ export function hydrateEstimate(): Promise<void> {
 export const selectActiveRoom = (s: Pick<EstimateState, "estimate">) => ops.activeRoomOf(s.estimate);
 
 export const useActiveRoom = () => useEstimateStore(selectActiveRoom);
-
-/** Calcs of the active room already in the estimate (the room list until stage C). */
-export const selectActiveCalcs = (s: Pick<EstimateState, "estimate">): readonly EstimateCalc[] => {
-  const room = ops.activeRoomOf(s.estimate);
-  return room ? (s.estimate?.calcs ?? []).filter((c) => c.roomId === room.id && c.addedAt !== undefined) : [];
-};
-
-export const useActiveCalcs = () => useEstimateStore(useShallow(selectActiveCalcs));
 
 /** Every calc of the active room, drafts too (overlaps between tools). */
 export const useRoomCalcs = () =>

@@ -189,34 +189,31 @@ test("paint: a can set with sizes, ceiling switch, primer canister", async ({ pa
   await expect(page.getByText(/1\s×\s9\sл \+ 1\s×\s2,7\sл \+ 2\s×\s0,9\sл/)).toBeVisible();
 });
 
-test("room list: wallpaper on the walls and paint on the ceiling share one primer canister", async ({ page }) => {
+test("estimate: wallpaper on the walls and paint on the ceiling share one primer canister", async ({ page }) => {
   await page.goto(WALLPAPER);
   await expect(result(page)).toHaveText("11");
   await page.getByRole("button", { name: "Добавить в смету" }).click();
   await expect(page.getByRole("button", { name: "В смете" })).toBeDisabled();
   // Wallpaper is one calc per room: no chips row to choose from.
   await expect(page.locator("[data-calc-chips]")).toHaveCount(0);
-  const list = page.locator("[data-room-list]");
-  await expect(list.getByRole("heading", { name: "Список для комнаты" })).toBeVisible();
 
-  await list.getByRole("link", { name: /Краска/ }).click();
-  await expect(page).toHaveURL(PAINT);
+  await page.goto(PAINT);
   await page.getByRole("button", { name: "Что красим" }).click();
   await page.getByRole("radio", { name: "Потолок", exact: true }).click();
   await page.getByRole("button", { name: "Добавить в смету" }).click();
 
   // Walls 44,78 × 0,15 + ceiling 19,78 × 0,15 = 9,68 л → one canister for both works.
-  const rows = list.locator("li", { has: page.locator("[data-list-quantity]") });
-  await expect(rows).toHaveCount(4);
-  await expect(rows.filter({ hasText: "Грунтовка" }).locator("[data-list-quantity]")).toHaveText(/^1\sканистра$/);
-  await expect(rows.filter({ hasText: "Обои" }).first().locator("[data-list-quantity]")).toHaveText(/^11\sрулонов$/);
+  await page.goto("/smeta/");
+  const primer = page.locator("[data-shared-row]", { hasText: "Грунтовка" });
+  await expect(primer).toContainText(/1\sканистра/);
+  const wallpaper = page.locator("[data-calc-row]", { hasText: "Обои" });
+  await expect(wallpaper).toContainText(/11\sрулонов/);
 
-  // The list follows the room: a longer room needs more wallpaper.
+  // The estimate follows the room: a longer room needs more wallpaper.
+  await page.goto(WALLPAPER);
   await editRoom(page, { Длина: "6" });
-  await expect(rows.filter({ hasText: "Обои" }).first().locator("[data-list-quantity]")).not.toHaveText(/^11\s/);
-
-  await list.getByRole("button", { name: "Убрать «Обои» из списка" }).click();
-  await expect(rows.filter({ hasText: "Обои" })).toHaveCount(0);
+  await page.goto("/smeta/");
+  await expect(wallpaper).not.toContainText(/11\sрулонов/);
 });
 
 test("the old «Моя комната» and room list move into the estimate once", async ({ page }) => {
@@ -230,7 +227,6 @@ test("the old «Моя комната» and room list move into the estimate onc
   await page.reload();
   await expect(page.locator("[data-room-dimensions]")).toHaveText(/^3\s×\s2,5\s×\s2,6\sм$/);
   await expect(page.getByRole("button", { name: "В смете" })).toBeDisabled();
-  await expect(page.locator("[data-room-list]").getByRole("link", { name: /Ламинат/ })).toBeVisible();
   const stored = await page.evaluate(() => ({
     room: localStorage.getItem("umnyaut:room:v1"),
     list: localStorage.getItem("umnyaut:list:v1"),

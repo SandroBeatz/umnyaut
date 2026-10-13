@@ -3,7 +3,7 @@ import { ESTIMATE_LIMITS, type Estimate, migrateProject } from "@umnyaut/calc";
 import { beforeEach, describe, expect, it } from "vitest";
 import { fromLegacy, LIST_KEY, legacyList, legacyRoom, ROOM_KEY } from "./legacy";
 import * as ops from "./ops";
-import { ESTIMATE_KEY, hydrateEstimate, selectActiveCalcs, selectActiveRoom, useEstimateStore } from "./store";
+import { ESTIMATE_KEY, hydrateEstimate, selectActiveRoom, useEstimateStore } from "./store";
 
 const id = () => "e1";
 /** The step's result passes the estimate schema (ids, rooms of calcs, limits). */
@@ -276,17 +276,15 @@ describe("estimate store", () => {
     expect(useEstimateStore.getState().estimate).toBeNull();
   });
 
-  it("remove and undo; the list shows added calcs of the active room only", () => {
+  it("remove and undo put the calc back in its place", () => {
     const s = useEstimateStore.getState;
-    s().putToolCalc({ tool: "oboi", toolVersion: 4, input: {} });
+    s().patchActiveRoom({ lengthMm: 4600 });
+    s().addCalc({ roomId: "r1", tool: "oboi", toolVersion: 4, input: {}, addedAt: 1 });
     s().addCalc({ roomId: "r1", tool: "kraska", toolVersion: 1, input: {} });
-    expect(selectActiveCalcs(s()).map((c) => c.tool)).toEqual(["oboi"]);
     s().removeCalc("c1");
     expect(s().estimate?.calcs.map((c) => c.id)).toEqual(["c2"]);
     s().undoRemove();
     expect(s().estimate?.calcs.map((c) => c.id)).toEqual(["c1", "c2"]);
-    s().removeToolCalcs(["oboi"]);
-    expect(selectActiveCalcs(s())).toEqual([]);
   });
 
   it("hydration moves the old keys once and removes them after the estimate is written", async () => {

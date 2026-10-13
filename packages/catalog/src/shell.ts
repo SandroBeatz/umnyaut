@@ -9,6 +9,9 @@ export const shell = {
     menuTitle: "Разделы",
     calculators: "Калькуляторы",
     country: "Страна и валюта",
+    /** The estimate button (spec «Шапка и футер»); the sum is added after mount. */
+    estimate: "Смета",
+    methodology: "Методика",
   },
   close: "Закрыть",
   breadcrumbs: { label: "Навигация", home: "Главная", back: "Назад" },
@@ -110,7 +113,6 @@ export const shell = {
     saving: "{item} на всю смету: {total} вместо {instead}",
     savingWith: "{item} на всю смету: {total} вместо {instead} — общий с «{rooms}»",
   },
-  /** Local list of works for one room (P6.11); the full planner is /remont/ in Phase 11. */
   /** Names the estimate gives itself and its rooms until the user renames them (spec «Комнаты и смета»). */
   estimate: {
     name: "Ремонт квартиры",
@@ -184,25 +186,6 @@ export const shell = {
     add: "Добавить в смету",
     added: "В смете",
     addedToast: "Добавлено в смету",
-  },
-  roomList: {
-    title: "Список для комнаты",
-    lead: "Одинаковые материалы сложены и округлены до упаковок один раз. Размеры — из «Моей комнаты».",
-    add: "В список",
-    added: "В списке",
-    update: "Обновить в списке",
-    addedToast: "Добавлено в список для комнаты",
-    works: "Расчёты",
-    remove: "Убрать «{tool}» из списка",
-    buy: "Купить",
-    next: "Добавьте в список",
-    copy: "Скопировать список",
-    copied: "Список скопирован",
-    clear: "Очистить список",
-    /** Conflicts between works of the list, by code. */
-    conflicts: {
-      walls_twice: "Стены и в обоях, и в краске. Если красите только потолок, выберите в краске «Потолок»",
-    },
   },
   /** Room plan editor (popup): doors and windows on walls, docs/ui/room-plan-and-layout-guides.md. */
   plan: {

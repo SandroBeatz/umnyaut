@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { getToolModule } from "@/entities/tool";
 import { computeEstimate } from "@/features/estimate-totals";
 import { estimateBoard, floorOf } from "./board";
+import { estimateText } from "./export";
 
 const estimate: Estimate = {
   schemaVersion: 2,
@@ -119,5 +120,16 @@ describe("estimate board", () => {
         openings: [],
       }),
     ).toBeCloseTo(11, 5);
+  });
+});
+
+describe("estimate as text", () => {
+  it("name, rooms with their lines, shared consumables, the total", () => {
+    const board = estimateBoard(estimate, computeEstimate(estimate, getToolModule, added), "RU");
+    const text = estimateText("Ремонт квартиры", board, "RU").replace(/\s/g, " ");
+    expect(text).toMatch(/^Ремонт квартиры {2}Зал Ламинат — \d+ пачек — [\d ]+ ₽ \(пол · \+ подложка/);
+    expect(text).toContain("  Ванная Плитка · графит — ");
+    expect(text).toContain("  Общие расходники Плиточный клей — ");
+    expect(text).toMatch(/ {2}Итого: [\d ]+ ₽, без \d+ позици[йи]$/);
   });
 });
