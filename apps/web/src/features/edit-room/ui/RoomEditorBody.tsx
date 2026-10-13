@@ -4,7 +4,7 @@ import type { CutCorner, EstimateRoom, RoomType } from "@umnyaut/calc";
 import { lengthUnitLabels, shell, tools, unitLabels } from "@umnyaut/catalog";
 import { Button, NumberField, Segment, Select, UnitToggle } from "@umnyaut/ui";
 import { formatNumber, NBSP } from "@umnyaut/ui/format";
-import { DoorOpen, Plus, RectangleHorizontal } from "lucide-react";
+import { DoorOpen, Plus, RectangleHorizontal, Trash2 } from "lucide-react";
 import { useId, useState } from "react";
 import { type RoomGeometry, useEstimateStore } from "@/entities/estimate";
 import { centred, FloorPlan, type PlanOpening } from "@/entities/room";
@@ -370,31 +370,36 @@ export default function RoomEditorBody({ room, draft, newName, onDone }: RoomEdi
       ) : null}
 
       <div className="flex flex-col gap-3 border-t border-border pt-4">
-        <div className="grid gap-2 sm:grid-cols-[1fr_2fr]">
-          <Button variant="accent" size="lg" className="sm:order-2" disabled={invalid.size > 0} onClick={save}>
-            {t.save}
-          </Button>
-          <Button variant="secondary" size="lg" className="sm:order-1" onClick={onDone}>
-            {t.cancel}
-          </Button>
-        </div>
-        {room ? (
-          <div className="flex flex-col items-start gap-2">
-            {confirming ? (
-              <p role="alert" className="text-small text-danger">
-                {fill(t.removeConfirm, { tools: recalc.tools.join(", ") })}
-              </p>
-            ) : null}
+        {confirming ? (
+          <p role="alert" className="text-small text-danger">
+            {fill(t.removeConfirm, { tools: recalc.tools.join(", ") })}
+          </p>
+        ) : null}
+        <div className="flex gap-2">
+          {room ? (
             <Button
-              variant={confirming ? "danger" : "ghost"}
-              size="md"
-              className={confirming ? undefined : "-ml-3 text-danger"}
+              variant={confirming ? "danger" : "secondary"}
+              size="icon"
+              className={confirming ? "size-14 rounded-lg" : "size-14 rounded-lg text-danger"}
+              aria-label={confirming ? t.removeYes : t.remove}
               onClick={remove}
             >
-              {confirming ? t.removeYes : t.remove}
+              <Trash2 aria-hidden="true" />
             </Button>
-          </div>
-        ) : null}
+          ) : null}
+          <Button variant="secondary" size="lg" className="shrink-0 px-4 sm:flex-1" onClick={onDone}>
+            {t.cancel}
+          </Button>
+          <Button
+            variant="accent"
+            size="lg"
+            className="min-w-0 flex-1 px-4 sm:flex-[2]"
+            disabled={invalid.size > 0}
+            onClick={save}
+          >
+            {t.save}
+          </Button>
+        </div>
       </div>
     </div>
   );

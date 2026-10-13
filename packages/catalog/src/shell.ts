@@ -149,7 +149,7 @@ export const shell = {
     save: "Сохранить комнату",
     remove: "Удалить комнату",
     removeConfirm: "Удалить комнату вместе с расчётами: {tools}?",
-    removeYes: "Удалить",
+    removeYes: "Да, удалить комнату",
   },
   roomList: {
     title: "Список для комнаты",
