@@ -73,3 +73,11 @@ export function matchingPreset(presets: readonly PresetDef[], ids: readonly stri
 }
 
 export { applyRoom, roomBindings, roomPatch } from "@/entities/room";
+
+/**
+ * The form has lengths the м/см switch converts: the room's sizes (typed in the room row), a length in metres, or the
+ * doors and windows.
+ */
+export function hasRoomUnits(fields: readonly FieldDef[]): boolean {
+  return fields.some((field) => (field.kind === "length" && field.unit === "m") || field.kind === "openings");
+}

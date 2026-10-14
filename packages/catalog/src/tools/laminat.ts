@@ -24,7 +24,7 @@ export const laminat: ToolDef = {
         { value: "herringbone", label: "Ёлочка" },
       ],
     },
-    { kind: "preset", label: "Доска", presets: ["b1285", "b1380", "b1292"], main: true },
+    { kind: "preset", label: "Типовые доски", presets: ["b1285", "b1380", "b1292"], main: true },
     {
       kind: "select",
       name: "shape",

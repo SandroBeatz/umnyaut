@@ -26,7 +26,7 @@ export const plitka: ToolDef = {
         { value: "both", label: "Пол и стены" },
       ],
     },
-    { kind: "preset", label: "Плитка", presets: ["t20", "t30", "t3060", "t60"], main: true },
+    { kind: "preset", label: "Типовые размеры плитки", presets: ["t20", "t30", "t3060", "t60"], main: true },
     {
       kind: "select",
       name: "shape",

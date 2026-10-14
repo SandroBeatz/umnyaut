@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-14
 
+- **— (owner's request)** Calculator form heading «Размеры и материал» («Размеры» for area tools) with the м/см switch on the same row: units first, then fields; the switch now also converts the room row's sizes («Длина, см» → 460). Preset chips get a visible name: «Типовые доски», «Типовые размеры плитки», «Типовые рулоны», «Типовая длина планки» (rooms and wall height kept theirs). The «Ещё параметры» row is phone-only. The link e2e waits for the copy toast (was racy).
+  - Where: `feature/p17-a-estimate-model` · PR #173
+
 - **— (owner's request)** Tile and wallpaper forms in blocks like linoleum. Tile: «Плитка» (size, thickness, per box, box price), «Раскладка» (start, laying, joint, reserve), «☐ Плиточный клей» (class, bag price), «☐ Затирка» (colour, own name, pack price), «☐ Грунтовать основание» (rate, canister, price). Wallpaper: «Обои» (type, roll width and length, spare rolls, roll price), «☐ Рисунок нужно совмещать» (repeat, match), «Поклейка» (openings, start, main wall, corner wrap, trim), «Обойный клей» (coverage, pack price), «☐ Грунтовать стены под обои». Wallpaper **v6**: new `pattern` input, the repeat counts only with it on (7 goldens and 2 layout tests set it).
   - Where: `feature/p17-a-estimate-model` · PR #173
 

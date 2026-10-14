@@ -12,7 +12,7 @@ export const plintus: ToolDef = {
   fields: [
     { ...room, name: "lengthMm", label: "Длина комнаты", room: "length", main: true, planner: true },
     { ...room, name: "widthMm", label: "Ширина комнаты", room: "width", main: true, planner: true },
-    { kind: "preset", label: "Длина планки", presets: ["p200", "p220", "p250"], main: true },
+    { kind: "preset", label: "Типовая длина планки", presets: ["p200", "p220", "p250"], main: true },
     {
       kind: "select",
       name: "shape",

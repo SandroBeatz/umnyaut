@@ -26,7 +26,7 @@ export const zatirka: ToolDef = {
         { value: "both", label: "Пол и стены" },
       ],
     },
-    { kind: "preset", label: "Плитка", presets: ["t10", "t20", "t30", "t60"], main: true },
+    { kind: "preset", label: "Типовые размеры плитки", presets: ["t10", "t20", "t30", "t60"], main: true },
     {
       kind: "length",
       unit: "m",

@@ -38,9 +38,9 @@ export const shell = {
     edit: "Изменить",
     /** Sizes typed right in the row while the page has no room yet (spec «Калькулятор»). */
     sizes: {
-      lengthMm: { label: "Длина комнаты", caption: "Длина, м" },
-      widthMm: { label: "Ширина комнаты", caption: "Ширина, м" },
-      heightMm: { label: "Высота потолка", caption: "Высота, м" },
+      lengthMm: { label: "Длина комнаты", caption: "Длина, {unit}" },
+      widthMm: { label: "Ширина комнаты", caption: "Ширина, {unit}" },
+      heightMm: { label: "Высота потолка", caption: "Высота, {unit}" },
     },
     /** Opens the room editor from the size fields. */
     editor: "Форма, окна и двери",
@@ -54,6 +54,9 @@ export const shell = {
     counted: "{tool} есть",
   },
   form: {
+    /** The form card's heading (with the м/см switch beside it). */
+    title: "Размеры и материал",
+    titleSizes: "Размеры",
     units: "Единицы",
     unitLabels: { m: "м", cm: "см" },
     more: "Ещё параметры",

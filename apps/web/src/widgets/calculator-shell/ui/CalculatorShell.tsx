@@ -2,7 +2,7 @@
 
 import type { BareZone, Opening, ToolModule } from "@umnyaut/calc";
 import { shell, type ToolDef, unitLabels } from "@umnyaut/catalog";
-import { toast } from "@umnyaut/ui";
+import { toast, UnitToggle } from "@umnyaut/ui";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCountry } from "@/entities/country";
@@ -16,6 +16,7 @@ import { ResultActions, shareUrl } from "@/features/share-result";
 import { track } from "@/shared/analytics";
 import { AdSlot } from "@/shared/ui";
 import { manyCalcs, nextSurface } from "../model/calcs";
+import { hasRoomUnits, type LengthUnit } from "../model/fields";
 import { planRoomOf } from "../model/plan";
 import { fieldsOf, sizeParts } from "../model/room";
 import { useCalcEvents } from "../model/useCalcEvents";
@@ -57,6 +58,7 @@ export interface CalculatorShellProps {
  */
 export function CalculatorShell({ tool, next, checkedAt, sources, module }: CalculatorShellProps) {
   const calc = useCalculator(tool, module);
+  const [unit, setUnit] = useState<LengthUnit>("m");
   const country = useCountry();
   const room = useActiveRoom();
   const toolCalcs = useToolCalcs(tool.id);
@@ -104,7 +106,20 @@ export function CalculatorShell({ tool, next, checkedAt, sources, module }: Calc
       <div className="flex flex-col gap-6 print:hidden">
         <div className="grid gap-3 lg:grid-cols-12 lg:items-start lg:gap-6">
           <div className="flex min-w-0 flex-col gap-3 lg:col-span-5 lg:rounded-xl lg:border lg:border-border lg:bg-surface lg:p-6 lg:shadow-sm">
+            {/* First the units, then the fields: the heading row holds the м/см switch. */}
+            <div className="flex min-h-12 items-center justify-between gap-3">
+              <h2 className="text-h3">{tool.items ? shell.form.title : shell.form.titleSizes}</h2>
+              {hasRoomUnits(tool.fields) ? (
+                <UnitToggle
+                  label={shell.form.units}
+                  labels={shell.form.unitLabels}
+                  value={unit}
+                  onValueChange={setUnit}
+                />
+              ) : null}
+            </div>
             <RoomBar
+              unit={unit}
               tool={tool}
               draft={roomPatch(values, tool.fields)}
               parts={sizeParts(tool.fields, values)}
@@ -132,6 +147,7 @@ export function CalculatorShell({ tool, next, checkedAt, sources, module }: Calc
               defaults={defaults}
               onChange={calc.setValues}
               onInvalid={calc.setInvalid}
+              unit={unit}
               extra={tool.items ? <CalcLabel value={current?.label ?? ""} onChange={calc.setLabel} /> : undefined}
             />
           </div>

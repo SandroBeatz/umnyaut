@@ -2,7 +2,7 @@
 
 import type { Opening } from "@umnyaut/calc";
 import { type FieldDef, getCountry, lengthUnitLabels, shell, type ToolDef } from "@umnyaut/catalog";
-import { Button, NumberField, PresetChips, Segment, Select, UnitToggle } from "@umnyaut/ui";
+import { Button, NumberField, PresetChips, Segment, Select } from "@umnyaut/ui";
 import { formatMoney, formatNumber } from "@umnyaut/ui/format";
 import { ChevronDown, PencilRuler, Ruler } from "lucide-react";
 import { type ReactNode, useId, useState } from "react";
@@ -33,6 +33,8 @@ export interface ToolFormProps {
   onInvalid(name: string, invalid: boolean): void;
   /** Last of «Ещё параметры»: the calc's «Метка». */
   extra?: ReactNode;
+  /** м or см for room-sized lengths; chosen in the form's heading row (`FormHeading`). */
+  unit: LengthUnit;
 }
 
 const f = shell.form;
@@ -47,8 +49,7 @@ const checkedFormat = new Intl.DateTimeFormat("ru-RU", {
  * Form from `FieldDef[]` (design spec §11–12): main fields two per row with the room shape right under the room
  * size, preset chips, then «Ещё параметры · N» with the m/cm switch. From 1024 px everything is open.
  */
-export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra }: ToolFormProps) {
-  const [unit, setUnit] = useState<LengthUnit>("m");
+export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra, unit }: ToolFormProps) {
   const [open, setOpen] = useState(false);
   const moreId = useId();
   const room = useActiveRoom();
@@ -73,7 +74,6 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra }:
   const shapeDropdown = shapeAsDropdown(main);
   const changed = changedHidden(fields, values, defaults);
   const hasMore = more.length > 0 || Boolean(extra);
-  const hasLengths = fields.some((field) => field.kind === "length" || field.kind === "openings");
 
   const label = (field: FieldDef & { name: string }): ReactNode => {
     const key = bound.get(field.name);
@@ -254,17 +254,18 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra }:
       case "preset": {
         const presets = tool.presets ?? [];
         return (
-          <PresetChips
-            key={`preset-${field.label}`}
-            label={field.label}
-            className="col-span-2"
-            chips={presets.filter((p) => field.presets.includes(p.id)).map((p) => ({ value: p.id, label: p.label }))}
-            value={matchingPreset(presets, field.presets, values) ?? null}
-            onValueChange={(id) => {
-              const preset = presets.find((p) => p.id === id);
-              if (preset) onChange(preset.values);
-            }}
-          />
+          <div key={`preset-${field.label}`} className="col-span-2 flex flex-col gap-1.5">
+            <span className="text-small font-medium text-text">{field.label}</span>
+            <PresetChips
+              label={field.label}
+              chips={presets.filter((p) => field.presets.includes(p.id)).map((p) => ({ value: p.id, label: p.label }))}
+              value={matchingPreset(presets, field.presets, values) ?? null}
+              onValueChange={(id) => {
+                const preset = presets.find((p) => p.id === id);
+                if (preset) onChange(preset.values);
+              }}
+            />
+          </div>
         );
       }
     }
@@ -273,25 +274,18 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra }:
   return (
     <form className="flex flex-col gap-3" onSubmit={(e) => e.preventDefault()} noValidate>
       <div className="grid grid-cols-2 gap-x-3 gap-y-3">{main.map(render)}</div>
-      {hasMore || hasLengths ? (
-        <div className="flex min-h-12 items-center justify-between gap-3">
-          {hasMore ? (
-            <button
-              type="button"
-              aria-expanded={open}
-              aria-controls={moreId}
-              onClick={() => setOpen(!open)}
-              className="inline-flex min-h-12 items-center gap-1.5 text-body-strong text-primary hover:text-primary-hover lg:hidden"
-            >
-              {open ? f.less : changed > 0 ? `${f.more} · ${changed}` : f.more}
-              <ChevronDown aria-hidden="true" className={open ? "size-5 rotate-180" : "size-5"} />
-            </button>
-          ) : (
-            <span />
-          )}
-          {hasLengths ? (
-            <UnitToggle label={f.units} labels={f.unitLabels} value={unit} onValueChange={setUnit} />
-          ) : null}
+      {hasMore ? (
+        <div className="flex min-h-12 items-center lg:hidden">
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-controls={moreId}
+            onClick={() => setOpen(!open)}
+            className="inline-flex min-h-12 items-center gap-1.5 text-body-strong text-primary hover:text-primary-hover"
+          >
+            {open ? f.less : changed > 0 ? `${f.more} · ${changed}` : f.more}
+            <ChevronDown aria-hidden="true" className={open ? "size-5 rotate-180" : "size-5"} />
+          </button>
         </div>
       ) : null}
       {hasMore ? (

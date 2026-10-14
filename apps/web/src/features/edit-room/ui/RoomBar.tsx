@@ -41,6 +41,8 @@ export interface RoomBarProps {
   onSizes?(patch: RoomGeometry): void;
   /** A size out of range: the calculator keeps the last result and says so. */
   onInvalid?(part: SizePart, invalid: boolean): void;
+  /** м or см for the size fields, as the form's switch says. */
+  unit?: "m" | "cm";
 }
 
 /**
@@ -55,7 +57,10 @@ export function RoomBar({
   parts = ["lengthMm", "widthMm", "heightMm"],
   onSizes,
   onInvalid,
+  unit = "m",
 }: RoomBarProps) {
+  const per = unit === "cm" ? 10 : 1000;
+  const unitText = shell.form.unitLabels[unit];
   const room = useActiveRoom();
   const rooms = useEstimateStore((s) => s.estimate?.rooms);
   const calcs = useEstimateStore((s) => s.estimate?.calcs);
@@ -113,17 +118,21 @@ export function RoomBar({
                 key={part}
                 name={`room-${part}`}
                 label={t.sizes[part].label}
-                compact={{ caption: t.sizes[part].caption }}
-                value={mm === undefined ? null : mm / 1000}
-                min={min / 1000}
-                max={max / 1000}
+                compact={{ caption: fill(t.sizes[part].caption, { unit: unitText }) }}
+                value={mm === undefined ? null : mm / per}
+                min={min / per}
+                max={max / per}
                 error={
                   invalid.has(part)
-                    ? fill(shell.form.range, { min: formatNumber(min / 1000), max: formatNumber(max / 1000), unit: m })
+                    ? fill(shell.form.range, {
+                        min: formatNumber(min / per),
+                        max: formatNumber(max / per),
+                        unit: unitText,
+                      })
                     : undefined
                 }
                 onValueChange={(value) => {
-                  const next = value === null ? Number.NaN : Math.round(value * 1000);
+                  const next = value === null ? Number.NaN : Math.round(value * per);
                   const bad = !(next >= min && next <= max);
                   setInvalid((current) => {
                     if (current.has(part) === bad) return current;

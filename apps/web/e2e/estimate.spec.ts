@@ -170,6 +170,8 @@ test("with an estimate of one's own, «Забрать себе» asks and can ad
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await open(page);
   await page.getByRole("button", { name: "Ссылка" }).click();
+  // The link is packed asynchronously: read the clipboard once it is written.
+  await expect(page.getByText(/Ссылка скопирована/)).toBeVisible();
   const url = await page.evaluate(() => navigator.clipboard.readText());
   await page.goto(url);
   await expect(page.locator('[data-estimate="link"]')).toBeVisible();

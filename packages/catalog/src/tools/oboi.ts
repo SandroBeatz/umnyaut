@@ -27,7 +27,7 @@ export const oboi: ToolDef = {
       main: true,
       planner: true,
     },
-    { kind: "preset", label: "Рулон", presets: ["r053", "r106", "r106x25"], main: true },
+    { kind: "preset", label: "Типовые рулоны", presets: ["r053", "r106", "r106x25"], main: true },
     {
       kind: "select",
       name: "shape",
