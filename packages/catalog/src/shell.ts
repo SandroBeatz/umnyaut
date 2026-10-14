@@ -105,6 +105,7 @@ export const shell = {
     running: "ширина {width} · {area}",
     width: "ширина {size}",
     total: "Итого {total}",
+    totalLabel: "Итого",
     perM2: "{price} за м²",
     /** A main item priced per m² or litre: «21,75 м² по 350 сом». */
     unitPrice: "{amount} по {price}",

@@ -16,6 +16,8 @@ export interface MainFigure {
   /** «22,1 м² · останется 2,3 м²». */
   caption?: string;
   photo?: string;
+  /** What this item costs at the typed price: «10 300 ₽». */
+  cost?: string;
 }
 
 export interface ResultView {
@@ -23,9 +25,10 @@ export interface ResultView {
   mode: "buy" | "measure";
   main?: MainFigure;
   /** `detail`: pack sizes of a volume/weight item («по 10 л», «1 × 10 л + 1 × 1 л»), small under the title. */
-  related: { key: string; title: string; quantity: string; detail?: string; photo?: string }[];
+  related: { key: string; title: string; quantity: string; detail?: string; photo?: string; cost?: string }[];
   tiles: { key: string; label: string; value: string }[];
-  total?: { text: string; missing?: string };
+  /** `text` — one line for share and print; `amount` and `note` — the total bar: «12 460 ₽», «630 ₽ за м²». */
+  total?: { text: string; amount: string; note?: string; missing?: string };
   /** Sticky bar: «10 пачек · 12 460 ₽», «44,78 м²». */
   short: string;
   warnings: { code: string; text: string }[];
@@ -47,6 +50,14 @@ export function describeResult(
 ): ResultView {
   const quantity = (value: number, unit: keyof typeof unitLabels) => `${number(value)}${NBSP}${unitLabels[unit]}`;
   const groups = groupPurchases(result.items);
+  /** An item's cost at its typed price: packs × price, or bought amount × price for a price per m² or litre. */
+  const costOf = (group: (typeof groups)[number]): string | undefined => {
+    const price = pricing?.values[`price_${group.first.key}`];
+    if (typeof price !== "number") return undefined;
+    const amount =
+      pricing?.basis?.[group.first.key] === "unit" ? group.lines.reduce((n, l) => n + l.bought.value, 0) : group.packs;
+    return formatMoney(amount * price, country);
+  };
   const mainGroup = groups.find((g) => g.first.role === "main");
   const mainItem = mainGroup?.first;
   let main: MainFigure | undefined;
@@ -62,6 +73,7 @@ export function describeResult(
         area: quantity(mainItem.bought.value, mainItem.bought.unit),
       }),
       photo: tool.items?.[mainItem.key]?.photo,
+      ...(costOf(mainGroup) ? { cost: costOf(mainGroup) as string } : {}),
     };
   } else if (mainGroup && mainItem) {
     const leftover = quantity(mainGroup.leftover, mainItem.leftover.unit);
@@ -74,6 +86,7 @@ export function describeResult(
         ? fill(shell.result.set, { set: setText(mainGroup.lines), leftover })
         : fill(shell.result.need, { need: quantity(mainGroup.need, mainItem.need.unit), leftover }),
       photo: tool.items?.[mainItem.key]?.photo,
+      ...(costOf(mainGroup) ? { cost: costOf(mainGroup) as string } : {}),
     };
   } else if (result.summary[0]) {
     const first = result.summary[0];
@@ -95,6 +108,7 @@ export function describeResult(
         quantity,
         ...(detail ? { detail } : {}),
         photo: tool.items?.[group.first.key]?.photo,
+        ...(costOf(group) ? { cost: costOf(group) as string } : {}),
       };
     });
 
@@ -120,6 +134,8 @@ export function describeResult(
     const count = result.cost.missing.length;
     total = {
       text: parts.join(" · "),
+      amount: formatMoney(result.cost.total, country),
+      ...(parts[1] ? { note: parts[1] } : {}),
       missing:
         count > 0 ? fill(shell.result.missing, { count, positions: plural(count, shell.result.positions) }) : undefined,
     };

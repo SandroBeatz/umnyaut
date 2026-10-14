@@ -179,7 +179,7 @@ test("paint: a can set with sizes, ceiling switch, primer canister", async ({ pa
   await page.goto(PAINT);
   // Walls 44,78 m² × 2 / 10 = 8,956 l → one 9 l can; primer 6,7 l → one 10 l canister.
   await expect(result(page)).toHaveText("1");
-  await expect(page.getByText(/1\s×\s9\sл · останется/)).toBeVisible();
+  await expect(page.getByText(/1\s×\s9\sл\s·\sостанется/)).toBeVisible();
   await expect(page.getByText(/^1\sканистра$/)).toBeVisible();
   await expect(page.getByText(/^по 10\sл$/)).toBeVisible();
 
@@ -430,11 +430,11 @@ test("linoleum: the best width and the cut length, a pinned width", async ({ pag
   await page.goto(LINOLEUM);
   // 4,6 × 4,3: no roll covers it; 2,5 м across, 2 × 4,3 = 8,6 м, 21,5 м².
   await expect(result(page)).toHaveText("8,6");
-  await expect(page.getByText(/ширина 2,5\sм · 21,5\sм²/)).toBeVisible();
+  await expect(page.getByText(/ширина 2,5\sм\s·\s21,5\sм²/)).toBeVisible();
 
   await page.getByRole("button", { name: "Ширина рулона" }).click();
   await page.getByRole("radio", { name: "4 м" }).click();
-  await expect(page.getByText(/ширина 4\sм · 34,4\sм²/)).toBeVisible();
+  await expect(page.getByText(/ширина 4\sм\s·\s34,4\sм²/)).toBeVisible();
 });
 
 test("laminate: the mockup room — 10 packs (85 boards), 9 across; diagonal adds 15 %", async ({ page }) => {
@@ -560,8 +560,10 @@ test("pack price gives a total and «без N позиций» for items without
   await page.getByRole("button", { name: /Ещё параметры/ }).click();
   await type(page, "Цена пачки", "1800");
   // 10 пачек × 1800; подложка без цены.
-  await expect(page.locator("#result").getByText(/Итого 18\s000/)).toBeVisible();
-  await expect(page.locator("#result").getByText(/без 1 позиции/)).toBeVisible();
+  const total = page.locator("#result [data-result-total]");
+  await expect(total).toContainText("Итого");
+  await expect(total).toContainText(/18\s000/);
+  await expect(total).toContainText(/без 1 позиции/);
 });
 
 test("tile on «Пол и стены»: one calc for both, one box count, the estimate says so", async ({ page }) => {

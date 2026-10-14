@@ -39,20 +39,12 @@ export function ResultPanel({ tool, view, example, stale, room, shared, ref }: R
       aria-label={r.region}
       className="scroll-mt-20 rounded-lg border border-border bg-surface px-4 pt-3 pb-4 shadow-md lg:p-6"
     >
-      <header className="-mt-2 flex min-h-14 items-center gap-3 lg:-mt-1">
-        <Mascot image={mascotImages.done} size={56} alt="" spot />
-        <div className="min-w-0">
-          <p className="text-small font-semibold text-text">
-            {example
-              ? r.example
-              : view.mode === "buy"
-                ? room
-                  ? fill(r.buyIn, { buy: r.buy, room })
-                  : r.buy
-                : r.measure}
-          </p>
-          {main ? <p className="text-small text-text-muted">{main.title}</p> : null}
-        </div>
+      {/* Heading on the left, the cat on the right: no extra height above the number (rule 8). */}
+      <header className="-mt-1 flex min-h-12 items-center justify-between gap-3">
+        <p className="min-w-0 text-body-strong text-text-muted">
+          {example ? r.example : view.mode === "buy" ? (room ? fill(r.buyIn, { buy: r.buy, room }) : r.buy) : r.measure}
+        </p>
+        <Mascot image={mascotImages.done} size={56} alt="" spot className="-my-2 shrink-0" />
       </header>
 
       {main ? (
@@ -60,7 +52,7 @@ export function ResultPanel({ tool, view, example, stale, room, shared, ref }: R
           {view.mode === "buy" ? (
             <MaterialThumb image={photoOf(main.photo)} fallbackIcon={<CategoryIcon />} alt="" size={64} />
           ) : null}
-          <div className="min-w-0" aria-live="polite" aria-atomic="true">
+          <div className="min-w-0 flex-1" aria-live="polite" aria-atomic="true">
             <p className={cn("tabular-nums transition-opacity duration-150", stale && "opacity-60")}>
               <span className="sr-only">{main.title}: </span>
               <span className="text-result" data-result-value>
@@ -68,8 +60,17 @@ export function ResultPanel({ tool, view, example, stale, room, shared, ref }: R
               </span>{" "}
               <span className="text-result-unit">{main.unit}</span>
             </p>
-            {main.caption ? <p className="text-small text-text-muted tabular-nums">{main.caption}</p> : null}
+            {/* The dot sticks to the word before it, so a line never starts with «·». */}
+            <p className="text-small text-text-muted tabular-nums">
+              <span className="font-semibold text-text">{main.title}</span>
+              {main.caption ? `\u00a0· ${main.caption.replaceAll(" · ", "\u00a0· ")}` : null}
+            </p>
+            {/* Phone: the cost under the caption, so the caption keeps the width; wider: on the right. */}
+            {main.cost ? <p className="mt-0.5 text-body-strong tabular-nums sm:hidden">{main.cost}</p> : null}
           </div>
+          {main.cost ? (
+            <p className="hidden shrink-0 text-h3 font-extrabold tabular-nums sm:block">{main.cost}</p>
+          ) : null}
         </div>
       ) : null}
 
@@ -94,8 +95,8 @@ export function ResultPanel({ tool, view, example, stale, room, shared, ref }: R
       ) : null}
 
       {view.related.length > 0 ? (
-        <div className="mt-4">
-          <h3 className="text-small font-semibold text-text-muted">
+        <div className="mt-5">
+          <h3 className="text-caption font-semibold tracking-wide text-text-muted uppercase">
             {view.related.some((item) => shared?.[item.key]) ? r.relatedEstimate : r.related}
           </h3>
           <ul className="mt-1 divide-y divide-border">
@@ -103,14 +104,22 @@ export function ResultPanel({ tool, view, example, stale, room, shared, ref }: R
               const merged = shared?.[item.key];
               const detail = merged?.share ?? item.detail;
               return (
-                <li key={item.key} className="flex items-center gap-3 py-2">
+                <li key={item.key} className="flex items-center gap-3 py-2.5">
                   <MaterialThumb image={photoOf(item.photo)} fallbackIcon={<CategoryIcon />} alt="" size={56} />
-                  <span className="flex flex-1 flex-col">
-                    <span className="text-body">{item.title}</span>
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="text-body-strong">{item.title}</span>
                     {detail ? <span className="text-small text-text-muted tabular-nums">{detail}</span> : null}
                   </span>
-                  <span className="text-quantity tabular-nums" data-result-value>
-                    {merged?.total ?? item.quantity}
+                  {/* Phone: quantity over its price; wider: side by side in two columns. */}
+                  <span className="flex shrink-0 flex-col items-end tabular-nums sm:flex-row sm:items-center sm:gap-6">
+                    <span className="text-quantity" data-result-value>
+                      {merged?.total ?? item.quantity}
+                    </span>
+                    {item.cost ? (
+                      <span className="text-small text-text-muted sm:min-w-20 sm:text-right sm:text-body-strong sm:text-text">
+                        {item.cost}
+                      </span>
+                    ) : null}
                   </span>
                 </li>
               );
@@ -140,10 +149,19 @@ export function ResultPanel({ tool, view, example, stale, room, shared, ref }: R
       ) : null}
 
       {view.total ? (
-        <p className="mt-4 border-border border-t pt-3 text-body-strong tabular-nums">
-          {view.total.text}
-          {view.total.missing ? <span className="text-small text-text-muted"> · {view.total.missing}</span> : null}
-        </p>
+        <div
+          className="mt-4 flex items-center justify-between gap-3 rounded-md bg-surface-mint px-4 py-3"
+          data-result-total
+        >
+          <p className="flex min-w-0 flex-col sm:flex-row sm:items-baseline sm:gap-3">
+            <span className="text-body-strong">{r.totalLabel}</span>
+            {view.total.note ? (
+              <span className="text-small text-text-muted tabular-nums">{view.total.note}</span>
+            ) : null}
+            {view.total.missing ? <span className="text-small text-text-muted">{view.total.missing}</span> : null}
+          </p>
+          <p className="shrink-0 text-h2 font-extrabold tabular-nums">{view.total.amount}</p>
+        </div>
       ) : null}
     </section>
   );

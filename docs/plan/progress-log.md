@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-14
 
+- **— (owner's request)** Result card after the owner's reference: muted «Нужно купить · <room>» with the cat on the right of the heading row; the main line — photo, big number, «Ламинат · 20,97 м² · останется …» and the main item's cost (right from 640 px, under the caption on a phone); «ЕЩЁ ПОНАДОБИТСЯ» in small caps with each item's quantity and cost (stacked on a phone); «Итого» as a mint bar — the note on the left, the total large on the right (`data-result-total`). Per-item costs in the view model (`costOf`: packs × price, or amount × price for a per-m² / per-litre price).
+  - Where: `feature/p17-a-estimate-model` · PR #173
+
 - **— (owner's request)** Wallpaper «Поклейка»: «Главная стена» on a whole row, «Заход во внутренний угол | Припуск на подрезку» paired under it (field flag `wide`). Dropdowns now show their hint under the field (main wall, start wall, wallpaper type, adhesive class had hints that never showed).
   - Where: `feature/p17-a-estimate-model` · PR #173
 
