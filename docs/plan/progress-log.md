@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-14
 
+- **— (owner's request)** Estimate title pencil: a 32 px button with its own hover, 48 px tap area, like the room cards.
+  - Where: `feature/p17-a-estimate-model` · PR #173
+  - Notes: e2e «an L-shaped room shows the cut-out fields…» failed once under a slow full run (11,5 s) and passed 3/3 alone and in the next full run — watch it for flakiness.
+
 - **— (owner's request)** Paint form in blocks: «Краска» (price per litre on a whole row, then coats | coverage) and «☐ Грунтовать перед покраской» with rate, canister and price only when on.
   - Where: `feature/p17-a-estimate-model` · PR #173
 

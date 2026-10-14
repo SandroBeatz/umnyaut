@@ -240,17 +240,17 @@ function EstimateName({ name }: { name: string }) {
     );
   }
   return (
-    <div className="mt-2 flex items-center gap-1">
+    <div className="mt-2 flex items-center gap-2">
       <h1 className="min-w-0 break-words text-h1">{name}</h1>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="print:hidden"
+      {/* A 32 px button beside the title; the tap area is 48 px all the same (`after:` widens it unseen). */}
+      <button
+        type="button"
+        className="relative inline-flex size-8 shrink-0 items-center justify-center rounded-md text-primary transition-colors after:absolute after:-inset-2 hover:bg-primary-soft hover:text-primary-hover print:hidden"
         aria-label={t.rename}
         onClick={() => setEditing(true)}
       >
-        <Pencil aria-hidden="true" />
-      </Button>
+        <Pencil aria-hidden="true" className="size-4" />
+      </button>
     </div>
   );
 }
