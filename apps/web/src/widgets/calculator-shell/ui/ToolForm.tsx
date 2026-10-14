@@ -87,7 +87,7 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra, u
     );
   };
 
-  const render = (field: FieldDef): ReactNode => {
+  const renderField = (field: FieldDef): ReactNode => {
     switch (field.kind) {
       case "length": {
         const shown = field.unit === "m" ? unit : field.unit;
@@ -187,13 +187,10 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra, u
             <Segment label={field.label} options={options} value={String(values[field.name])} onValueChange={pick} />
           </div>
         ) : (
-          <Select
-            key={field.name}
-            label={label(field)}
-            options={options}
-            value={String(values[field.name])}
-            onValueChange={pick}
-          />
+          <div key={field.name} className="flex flex-col gap-1.5">
+            <Select label={label(field)} options={options} value={String(values[field.name])} onValueChange={pick} />
+            {field.hint ? <p className="text-small text-text-muted">{field.hint}</p> : null}
+          </div>
         );
       }
       case "toggle":
@@ -275,6 +272,15 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra, u
       }
     }
   };
+
+  const render = (field: FieldDef): ReactNode =>
+    "wide" in field && field.wide ? (
+      <div key={`wide-${field.name}`} className="col-span-2">
+        {renderField(field)}
+      </div>
+    ) : (
+      renderField(field)
+    );
 
   return (
     <form className="flex flex-col gap-3" onSubmit={(e) => e.preventDefault()} noValidate>

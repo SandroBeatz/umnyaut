@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-14
 
+- **— (owner's request)** Wallpaper «Поклейка»: «Главная стена» on a whole row, «Заход во внутренний угол | Припуск на подрезку» paired under it (field flag `wide`). Dropdowns now show their hint under the field (main wall, start wall, wallpaper type, adhesive class had hints that never showed).
+  - Where: `feature/p17-a-estimate-model` · PR #173
+
 - **— (owner's requests)** Wallpaper: «Главная стена» and «Стена старта» are pickers of the room's walls («Авто», «Стена 1…4», six for an L-shape; select option `walls`) instead of numbers with «0 — напротив двери»; clearer hints for the corner wrap and the trim. «Обои» block starts «Тип обоев | Цена рулона», then roll width and length, then spare rolls. The key plan above the wall elevations is larger (up to 320 px). Field values 16 px / 500 instead of 18 px / 600 — design spec updated (owner's decision; 16 px is iOS's no-zoom minimum).
   - Where: `feature/p17-a-estimate-model` · PR #173
 

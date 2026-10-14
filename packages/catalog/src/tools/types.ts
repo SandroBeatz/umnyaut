@@ -11,6 +11,8 @@ interface FieldBase {
   planner?: boolean;
   /** The form block it belongs to (`ToolDef.groups`): the main material, cutting, a related material. */
   group?: string;
+  /** A whole row, so the next two fields pair up below it. */
+  wide?: boolean;
   hint?: string;
   /**
    * Shown only while other fields have these values, e.g. the cut-out only for `shape: "l"`, a class with a toggle

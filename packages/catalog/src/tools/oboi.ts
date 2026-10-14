@@ -178,6 +178,7 @@ export const oboi: ToolDef = {
       kind: "select",
       name: "mainWall",
       label: "Главная стена",
+      wide: true,
       hint: "Её видно первой при входе; «Авто» — стена напротив двери. Последний стык уйдёт в незаметный угол у двери",
       dropdown: true,
       walls: true,
