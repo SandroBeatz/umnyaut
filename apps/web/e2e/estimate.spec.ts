@@ -198,7 +198,9 @@ test("header: the estimate icon everywhere, its sum once the estimate has one, c
 }) => {
   await page.goto("/pol/laminat/");
   const button = page.locator("[data-estimate-button]");
-  await expect(button).toHaveText("Список покупок");
+  // The phone shows no word; screen readers hear the full name.
+  await expect(button).toHaveAccessibleName("Список покупок");
+  await expect(button.getByText("Список", { exact: true })).toBeHidden();
   await expect(button.locator("[data-header-sum]")).toHaveCount(0);
 
   await open(page);

@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-14
 
+- **— (owner's request)** Header list button: from the desktop up (`lg`) the icon, «Список» and the sum in its white chip; the phone keeps the icon and the sum (icon alone while empty). Spec «Шапка и футер» updated.
+  - Where: `feature/p17-a-estimate-model` · PR #173
+
 - **— (pre-merge review: code-reviewer + formula-reviewer)** Fixes before merging PR #173.
   - Old input keeps its pattern: links and saved calcs of wallpaper and linoleum from before the «Рисунок» toggle had a repeat and no `pattern`; defaults turned the toggle off and dropped the repeat (fewer rolls, no warning). `ToolModule.upgrade` + `upgradeInput()` fill `pattern = repeatMm > 0` wherever stored input is read (link, saved values, estimate calcs, estimate totals).
   - Adhesive/grout replacement (Р11): calcs on «Пол» and «Стены» together now replace tile on «Пол и стены» (was bought twice); a calc without a surface (moved from the old planner) replaces nothing (was dropping the walls' share). Spec Р11 updated.

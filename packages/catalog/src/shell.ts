@@ -11,6 +11,8 @@ export const shell = {
     country: "Страна и валюта",
     /** The estimate button (spec «Шапка и футер»); the sum is added after mount. */
     estimate: "Список покупок",
+    /** The word on the button from the desktop up; the phone shows the icon and the sum. */
+    estimateShort: "Список",
     methodology: "Методика",
   },
   close: "Закрыть",
