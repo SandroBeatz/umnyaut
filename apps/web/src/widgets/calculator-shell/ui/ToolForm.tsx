@@ -311,6 +311,9 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra, u
                 "group" in field && field.group === group.id && !("name" in field && field.name === group.toggle),
             );
             const on = group.toggle ? values[group.toggle] === true : true;
+            // The toggle's own hint («На клей или скотч — выключите») under the heading it became.
+            const toggleField = tool.fields.find((f) => "name" in f && f.name === group.toggle);
+            const toggleHint = toggleField && "hint" in toggleField ? toggleField.hint : undefined;
             if (!group.toggle && inGroup.length === 0) return null;
             // A block per material: its heading (or the toggle that switches it on), then its fields.
             return (
@@ -333,6 +336,9 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra, u
                   ) : (
                     <span className="text-body-strong text-text">{group.title}</span>
                   )}
+                  {toggleHint ? (
+                    <span className="-mt-1 block pl-8 text-small text-text-muted">{toggleHint}</span>
+                  ) : null}
                 </legend>
                 {on ? inGroup.map(render) : null}
               </fieldset>

@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-14
 
+- **— (owner's request)** Plinth form in blocks: «Плинтус» (plank length | plank price), «Углы, заглушки, соединители · цена за штуку» (inner | outer corner, cap | joiner), «☐ Крепить на дюбели» (spacing | dowel price, only when on). A toggle heading shows its toggle's hint under it («На клей или скотч — выключите»).
+  - Where: `feature/p17-a-estimate-model` · PR #173
+
 - **— (owner's requests)** Estimate rows: a red trash that asks in the row itself — «Убрать «Краска» из сметы?» with «Убрать» / «Отмена» — then «Вернуть» in a toast (a Popover first, but it pulled Radix into `/smeta/`: 247,4 KB over the 230 budget; the in-row confirm keeps it at 224,5). Items without a photo get their own icon instead of the category's (`ItemDef.icon`): the dowel-screw a bolt, the cold welding a tube. Saving hint names after the first in lower case.
   - Where: `feature/p17-a-estimate-model` · PR #173
 
