@@ -50,7 +50,7 @@ function RoomTitle({ room, size, readOnly }: { room: EstimateRoom; size?: string
               <Button
                 variant="ghost"
                 size="icon"
-                className="-my-2 text-text-muted print:hidden"
+                className="-my-2 -ml-2 text-text-muted print:hidden [&_svg]:size-4"
                 aria-label={fill(t.editRoom, { room: room.name })}
               >
                 <Pencil aria-hidden="true" />
