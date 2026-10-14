@@ -1,10 +1,9 @@
-import { shell, type ToolDef, tools } from "@umnyaut/catalog";
+import { shell, type ToolDef } from "@umnyaut/catalog";
 import { ToolCard } from "@/entities/tool";
 import { track } from "@/shared/analytics";
 
 /** «Дальше по ремонту»: tools that continue the work; “My room” carries the sizes over. */
-export function NextSteps({ tool }: { tool: ToolDef }) {
-  const next = (tool.nextSteps ?? []).flatMap((id) => tools.find((t) => t.id === id) ?? []);
+export function NextSteps({ tool, next }: { tool: ToolDef; next: readonly ToolDef[] }) {
   if (next.length === 0) return null;
   return (
     <section aria-labelledby="next-steps" className="print:hidden">

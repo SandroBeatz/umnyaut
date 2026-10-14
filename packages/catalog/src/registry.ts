@@ -9,7 +9,7 @@ import { plintus } from "./tools/plintus";
 import { plitka } from "./tools/plitka";
 import { ploshchadKomnaty } from "./tools/ploshchad-komnaty";
 import { ploshchadSten } from "./tools/ploshchad-sten";
-import type { ToolDef } from "./tools/types";
+import type { ItemDef, ToolDef } from "./tools/types";
 import { zatirka } from "./tools/zatirka";
 
 /** All tools in display order. Routes, sitemap and navigation are generated from this list. */
@@ -29,6 +29,16 @@ export const tools: readonly ToolDef[] = [
 export const strings = {
   draftNotice: "Калькулятор скоро появится.",
 } as const;
+
+/** Item keys of the shared consumables (`ItemDef.shared`): the estimate merges them across rooms. */
+export const sharedItems: ReadonlySet<string> = new Set(
+  tools.flatMap((t) => Object.entries(t.items ?? {}).flatMap(([key, item]) => (item.shared ? [key] : []))),
+);
+
+/** An item's display data from whichever tool describes it (the estimate shows items of every tool). */
+export function itemDef(key: string): ItemDef | undefined {
+  return tools.find((t) => t.items?.[key])?.items?.[key];
+}
 
 export function getTool(category: string, id: string): ToolDef | undefined {
   return tools.find((tool) => tool.category === category && tool.id === id);

@@ -61,4 +61,5 @@ export {
 } from "./plan";
 export { layRows, type RowPlan, type RowsInput, type RowsResult } from "./rows";
 export { cutStrips, type StripCut, type StripCutInput } from "./strips";
+export { type TiledSurfaceInput, tiledAreaM2 } from "./tiled";
 export { type WasteRule, wastePct, withWaste } from "./waste";

@@ -7,7 +7,8 @@ import { ArrowRight, Package } from "lucide-react";
 import Link from "next/link";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useCountry } from "@/entities/country";
-import { hydrateRoom, type RoomDraft, RoomScheme, useRoomStore } from "@/entities/room";
+import { hydrateEstimate, useActiveRoom, useEstimateStore } from "@/entities/estimate";
+import { type RoomDraft, RoomScheme } from "@/entities/room";
 import { materialImages } from "@/shared/config";
 import { fill } from "@/shared/lib";
 import { defaultWorks, type ExampleCard, exampleRoom, isInitialExample } from "../model/example";
@@ -50,12 +51,12 @@ export interface HomeRoomProps {
  * writes back to “My room”, so the tools open with the same dimensions.
  */
 export function HomeRoom({ hero, categoriesId, initialCards }: HomeRoomProps) {
-  const stored = useRoomStore((s) => s.room);
+  const stored = useActiveRoom();
   const country = useCountry();
   const [works, setWorks] = useState<string[]>(defaultWorks);
 
   useEffect(() => {
-    void hydrateRoom();
+    void hydrateEstimate();
   }, []);
 
   const room = useMemo(() => exampleRoom(stored), [stored]);
@@ -79,12 +80,12 @@ export function HomeRoom({ hero, categoriesId, initialCards }: HomeRoomProps) {
     if (value === null) return;
     const mm = Math.round(value * 1000);
     if (mm < LIMITS[part][0] || mm > LIMITS[part][1]) return;
-    useRoomStore.getState().updateRoom({ [part]: mm } satisfies RoomDraft);
+    useEstimateStore.getState().patchActiveRoom({ [part]: mm } satisfies RoomDraft);
   };
 
   /** Keeps the shown room (the example too) as “My room” and goes on to the categories. */
   const choose = () => {
-    useRoomStore.getState().updateRoom(room);
+    useEstimateStore.getState().patchActiveRoom(room);
     const target = document.getElementById(categoriesId);
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     target?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });

@@ -1,4 +1,4 @@
-import type { ToolId } from "@umnyaut/calc";
+import type { Surface, ToolId } from "@umnyaut/calc";
 import type { CategorySlug } from "../categories";
 
 /** Common to every input field. `name` is the key in the calc module's input. */
@@ -9,9 +9,16 @@ interface FieldBase {
   main?: boolean;
   /** Shown in the planner's short form. */
   planner?: boolean;
+  /** The form block it belongs to (`ToolDef.groups`): the main material, cutting, a related material. */
+  group?: string;
+  /** A whole row, so the next two fields pair up below it. */
+  wide?: boolean;
   hint?: string;
-  /** Shown only while other fields have these values, e.g. the cut-out only for `shape: "l"`. */
-  when?: Readonly<Record<string, string>>;
+  /**
+   * Shown only while other fields have these values, e.g. the cut-out only for `shape: "l"`, a class with a toggle
+   * on; a list — any of them (the wall height for «Стены» and «Пол и стены»).
+   */
+  when?: Readonly<Record<string, string | boolean | readonly string[]>>;
 }
 
 /** Parts of “My room” a field reads and writes. */
@@ -34,13 +41,18 @@ export type FieldDef =
   | (FieldBase & { kind: "number"; min: number; max: number; step?: number; unit?: string })
   | (FieldBase & {
       kind: "select";
-      options: readonly { value: string; label: string }[];
+      /** `fills` — other fields an option sets with it (a wallpaper type sets the paste coverage of its kind). */
+      options: readonly { value: string; label: string; fills?: Readonly<Record<string, unknown>> }[];
       /** `shape` reads and writes the room shape, `cutCorner` where its L-cut sits on the plan. */
       room?: "shape" | "cutCorner";
       /** Dropdown in half a row instead of a full-width segment (up to 4 options are a segment by default). */
       dropdown?: boolean;
+      /** After `options`, one option per wall of the room's plan («Стена 1…4», six for an L-shape); value = number. */
+      walls?: true;
     })
   | (FieldBase & { kind: "toggle" })
+  /** A short name the user types (their own grout colour). */
+  | (FieldBase & { kind: "text"; maxLength: number })
   | (FieldBase & { kind: "price" /** Purchase item key the pack price belongs to. */; item: string })
   /** Windows and doors list; always bound to the openings of “My room”. */
   | (FieldBase & { kind: "openings" })
@@ -58,8 +70,20 @@ export interface PresetDef {
 /** Display data for a purchase item key returned by `compute()`. */
 export interface ItemDef {
   title: string;
-  /** Material photo key in the image pipeline (`materialImages`); none → category icon. */
+  /** Material photo key in the image pipeline (`materialImages`); none → `icon`, else the category icon. */
   photo?: string;
+  /** A small item with no photo yet: its own icon instead of the category's (fasteners, a tube). */
+  icon?: "fastener" | "tube";
+  /**
+   * A consumable bought once for the whole renovation (adhesive, primer, grout, wallpaper paste): the estimate sums
+   * it across rooms and rounds to packs once. Without the flag the item is a room's own material.
+   */
+  shared?: true;
+  /**
+   * How the item's `variant` reads after its title: «Затирка белая», «Плиточный клей C1T». A variant not listed (a
+   * colour the user typed) is shown as it is.
+   */
+  variants?: Readonly<Record<string, string>>;
 }
 
 export interface ToolDef {
@@ -74,6 +98,16 @@ export interface ToolDef {
   status: "draft" | "live";
   fields: readonly FieldDef[];
   presets?: readonly PresetDef[];
+  /**
+   * Blocks of «Ещё параметры» in order, each with its heading: the main material with its price, then how it is cut,
+   * then each related material behind its own toggle. Fields without a group stand before them.
+   */
+  groups?: readonly {
+    id: string;
+    title: string;
+    /** A toggle field that switches the block on: it becomes the heading «☐ Холодная сварка швов», its fields show only when on. */
+    toggle?: string;
+  }[];
   /** «Дальше по ремонту»: tools that continue the work with the same room. */
   nextSteps?: readonly ToolId[];
   /** Safety disclaimer card (radiators, cable, screed). */
@@ -85,6 +119,22 @@ export interface ToolDef {
   summary?: Readonly<Record<string, string>>;
   /** Text per step code of “How calculated”, same placeholders. */
   steps?: Readonly<Record<string, string>>;
+  /**
+   * Fields that point at walls by number (the wallpaper start wall, bare zones). When the room's walls are numbered
+   * anew (shape or cut corner changed), the room editor resets them and names `note` (spec Р10).
+   */
+  wallBound?: { fields: readonly string[]; note: string };
+  /**
+   * The surface a calc of this tool covers in the room (spec «Несколько расчётов»): read from a select field (option
+   * value → surface) or always the same. Tools without it (plinth, area tools) cover no surface. Only a tool with a
+   * surface field has several calcs in a room, one per surface (owner, 2026-10-13); the rest have one.
+   */
+  surface?: { field: string; values: Readonly<Record<string, Surface>> } | { fixed: Surface };
+  /**
+   * The total per square metre of what is finished, after «Итого»: «{price} за 1 м² пола» — so it is never read as
+   * the price per m² of the material typed in the form.
+   */
+  costPerM2?: string;
   /** Norm ids this tool uses (see norms.ts); “How calculated” lists their sources. */
   norms?: readonly string[];
 }

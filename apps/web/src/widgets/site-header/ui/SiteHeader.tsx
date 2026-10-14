@@ -2,15 +2,16 @@ import { activeCategories, shell, toolPath, toolsIn } from "@umnyaut/catalog";
 import { categoryIcons, Logo, Mascot, PopoverMenu } from "@umnyaut/ui";
 import { ChevronDown, LayoutGrid } from "lucide-react";
 import Link from "next/link";
-import { CountryPicker } from "@/features/pick-country";
 import { mascotImages } from "@/shared/config";
+import { EstimateButton } from "./EstimateButton";
 import { MenuSheet } from "./MenuSheet";
 
 const iconOf = (slug: string) => categoryIcons[slug as keyof typeof categoryIcons] ?? LayoutGrid;
 
 /**
- * Sticky header (design spec §11): phone 56 px — logo, country chip, menu sheet; from 1024 px 72 px — mascot head
- * and logo, «Калькуляторы» panel, country. Planner and «Мои расчёты» join when their routes exist.
+ * Sticky header (design spec §11, spec «Шапка и футер»): phone 56 px — logo, the estimate with its sum, menu sheet;
+ * from 1024 px 72 px — mascot head and logo, «Калькуляторы» panel, «Методика», «Список покупок <sum>». The country switch
+ * lives in the footer.
  */
 export function SiteHeader() {
   const groups = activeCategories().map((category) => ({ category, tools: toolsIn(category.slug) }));
@@ -21,7 +22,7 @@ export function SiteHeader() {
           <Mascot image={mascotImages.head} size={40} alt="" className="hidden lg:inline-block" />
           <Logo label="" />
         </Link>
-        <nav aria-label={shell.header.calculators} className="hidden lg:block">
+        <nav aria-label={shell.header.calculators} className="hidden items-center gap-2 lg:flex">
           <PopoverMenu
             className="inline-flex h-12 items-center gap-1 rounded-md px-3 text-body-strong text-text hover:bg-surface-sunken"
             label={
@@ -59,9 +60,15 @@ export function SiteHeader() {
               );
             })}
           </PopoverMenu>
+          <Link
+            href="/metodika/"
+            className="inline-flex h-12 items-center rounded-md px-3 text-body-strong text-text hover:bg-surface-sunken"
+          >
+            {shell.header.methodology}
+          </Link>
         </nav>
-        <div className="ml-auto flex items-center">
-          <CountryPicker />
+        <div className="ml-auto flex items-center gap-1">
+          <EstimateButton />
           <MenuSheet groups={groups} />
         </div>
       </div>

@@ -603,7 +603,7 @@ describe("wallpaper v3", () => {
     const manual = oboi.compute({ ...defaults, startMode: "manual", startWall: 3, startLineMm: 1234 }, ctx);
     expect(manual.layout?.start).toMatchObject({ wall: 2, lineMm: 1234 });
     expect(manual.layout?.guide[0]?.code).toBe("start_manual");
-    const sym = oboi.compute({ ...defaults, repeatMm: 640, symmetric: true }, ctx);
+    const sym = oboi.compute({ ...defaults, pattern: true, repeatMm: 640, symmetric: true }, ctx);
     const line = sym.layout?.start?.lineMm ?? 0;
     // Main wall: wall 1 (opposite the door), 4,6 m.
     expect(sym.layout?.start?.wall).toBe(0);
@@ -670,7 +670,7 @@ describe("wallpaper v3", () => {
     expect(edge.layout?.guide.map((g) => g.code)).toContain("edge_cut");
     expect((edge.layout?.elevations ?? []).some((e) => (e.strips?.edgesMm?.length ?? 0) > 0)).toBe(true);
     // With a pattern pieces keep their place across the roll: strips stay whole, the user is told why.
-    const pattern = oboi.compute({ ...defaults, ...room, aroundOpenings: "edge", repeatMm: 640 }, ctx);
+    const pattern = oboi.compute({ ...defaults, ...room, aroundOpenings: "edge", pattern: true, repeatMm: 640 }, ctx);
     expect(cols(pattern).some((c) => c.kind === "edge")).toBe(false);
     expect(codes(pattern)).toContain("edge_pattern");
   });

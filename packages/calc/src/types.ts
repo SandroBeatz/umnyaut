@@ -76,8 +76,13 @@ export interface CalcContext {
 }
 
 export interface PurchaseItem {
-  /** 'laminate' | 'underlay' | 'plinth' — also the photo key and the merge key in the planner. */
+  /** 'laminate' | 'underlay' | 'plinth' — also the photo key; with `variant` and the pack, the product key. */
   key: string;
+  /**
+   * Kind of the same item that is a different product in the shop (adhesive type, grout colour, wallpaper type):
+   * white and graphite grout never merge in the estimate. No variant = the item's usual kind.
+   */
+  variant?: string;
   role: "main" | "related";
   need: Quantity;
   pack: Pack;
@@ -318,4 +323,14 @@ export interface ToolModule<I = unknown, R extends ToolResult = ToolResult> {
   defaults(ctx: CalcContext): I;
   /** Never throws on schema-valid input: doubtful input gives a warning. */
   compute(input: I, ctx: CalcContext): R;
+  /**
+   * How each `price_<item>` field is meant (set by `priced`): per pack bought, or per unit of the bought amount (m² of
+   * linoleum, litre of paint). The estimate needs it to price a line the way the calculator does.
+   */
+  priceBasis?: Readonly<Record<string, "pack" | "unit">>;
+  /**
+   * Stored input (links, saved calcs) from an older version, before defaults are merged in: fills a field that
+   * did not exist then from the ones that did.
+   */
+  upgrade?(raw: Readonly<Record<string, unknown>>): Record<string, unknown>;
 }

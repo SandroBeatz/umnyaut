@@ -1,4 +1,5 @@
 import type { ToolDef } from "./types";
+import { groutColors, options, variantTitles } from "./variants";
 
 const room = { kind: "length", unit: "m", min: 300, max: 100_000 } as const;
 const tile = { kind: "length", unit: "cm", min: 20, max: 3000 } as const;
@@ -22,9 +23,10 @@ export const zatirka: ToolDef = {
       options: [
         { value: "floor", label: "Пол" },
         { value: "walls", label: "Стены" },
+        { value: "both", label: "Пол и стены" },
       ],
     },
-    { kind: "preset", label: "Плитка", presets: ["t10", "t20", "t30", "t60"], main: true },
+    { kind: "preset", label: "Типовые размеры плитки", presets: ["t10", "t20", "t30", "t60"], main: true },
     {
       kind: "length",
       unit: "m",
@@ -33,7 +35,7 @@ export const zatirka: ToolDef = {
       name: "heightMm",
       label: "Высота стен",
       room: "height",
-      when: { surface: "walls" },
+      when: { surface: ["walls", "both"] },
     },
     {
       kind: "select",
@@ -67,8 +69,8 @@ export const zatirka: ToolDef = {
       when: { shape: "l" },
     },
     { kind: "openings", name: "openings", label: "Окна и двери", hint: "Вычитаются, если затираем стены" },
-    { ...tile, name: "tileLengthMm", label: "Длина плитки" },
-    { ...tile, name: "tileWidthMm", label: "Ширина плитки" },
+    { ...tile, name: "tileLengthMm", label: "Длина плитки", group: "tile" },
+    { ...tile, name: "tileWidthMm", label: "Ширина плитки", group: "tile" },
     {
       kind: "number",
       min: 0.5,
@@ -78,6 +80,7 @@ export const zatirka: ToolDef = {
       name: "jointMm",
       label: "Ширина шва",
       hint: "Стены 1,5–2 мм, пол 2–3 мм",
+      group: "tile",
     },
     {
       kind: "number",
@@ -87,11 +90,38 @@ export const zatirka: ToolDef = {
       unit: "мм",
       name: "depthMm",
       label: "Толщина плитки",
-      hint: "Глубина шва — толщина плитки. Керамогранит 60 × 60 — обычно 9–14 мм, смотрите на коробке",
+      hint: "Это глубина шва. Керамогранит 60 × 60 — обычно 9–14 мм",
+      group: "tile",
     },
-    { kind: "number", min: 0, max: 30, step: 1, unit: "%", name: "reservePct", label: "Запас" },
-    { kind: "number", min: 0.5, max: 25, step: 0.5, unit: "кг", name: "packKg", label: "Упаковка" },
-    { kind: "price", item: "grout", name: "price_grout", label: "Цена упаковки" },
+    {
+      kind: "select",
+      name: "groutColor",
+      label: "Цвет затирки",
+      dropdown: true,
+      options: options(groutColors),
+      group: "grout",
+    },
+    {
+      kind: "text",
+      maxLength: 30,
+      name: "groutColorName",
+      label: "Название цвета",
+      when: { groutColor: "custom" },
+      group: "grout",
+    },
+    { kind: "number", min: 0.5, max: 25, step: 0.5, unit: "кг", name: "packKg", label: "Упаковка", group: "grout" },
+    { kind: "price", item: "grout", name: "price_grout", label: "Цена упаковки", group: "grout" },
+    {
+      kind: "number",
+      min: 0,
+      max: 30,
+      step: 1,
+      unit: "%",
+      name: "reservePct",
+      label: "Запас",
+      hint: "На потери при затирке",
+      group: "grout",
+    },
   ],
   presets: [
     { id: "t10", label: "10 × 10", values: { tileLengthMm: 100, tileWidthMm: 100 } },
@@ -99,13 +129,19 @@ export const zatirka: ToolDef = {
     { id: "t30", label: "30 × 30", values: { tileLengthMm: 300, tileWidthMm: 300 } },
     { id: "t60", label: "60 × 60", values: { tileLengthMm: 600, tileWidthMm: 600 } },
   ],
+  groups: [
+    { id: "tile", title: "Плитка и шов" },
+    { id: "grout", title: "Затирка" },
+  ],
   nextSteps: ["klej", "plitka"],
-  items: { grout: { title: "Затирка", photo: "grout" } },
+  surface: { field: "surface", values: { floor: "floor", walls: "walls", both: "floor-walls" } },
+  items: { grout: { title: "Затирка", photo: "grout", shared: true, variants: variantTitles(groutColors) } },
   summary: { groutKg: "Затирки нужно", rate: "Расход на 1 м²", area: "Площадь облицовки" },
   steps: {
     floor: "Пол = {length} × {width} = {area} м²",
     floor_l: "Пол = {length} × {width} − вырез {cutLength} × {cutWidth} = {area} м²",
     walls: "Стены = {gross} − окна и двери {openings} = {area} м²",
+    both: "Пол и стены = {floor} + {walls} = {area} м²",
     rate: "Расход = ({a} + {b}) / ({a} × {b}) × шов {joint} × глубина {depth} × {density} = {rate} кг/м² (размеры в мм)",
     grout: "Затирка = {area} × {rate} + запас {reserve}% = {kg} кг → упаковок по {pack} кг: {packs}",
   },
@@ -115,5 +151,6 @@ export const zatirka: ToolDef = {
     joint_too_narrow: "Шов {joint} мм уже {min} мм — затирка рассчитана на шов от {min} мм. Уточните по паспорту",
     joint_too_wide: "Шов {joint} мм шире {max} мм — для такого шва нужна другая затирка. Уточните по паспорту",
   },
+  costPerM2: "{price} за 1 м² облицовки",
   norms: ["grout.density", "grout.reserve", "tile.joint.wall", "tile.joint.floor", "grout.pack", "grout.maxJoint"],
 };

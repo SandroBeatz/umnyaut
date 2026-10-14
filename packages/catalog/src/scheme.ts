@@ -93,6 +93,11 @@ export const schemeStrings = {
     legendWhole: "Целая — {count}",
     legendCut: "Подрезанная — {count}",
     legendAxis: "Оси разметки",
+    /** «Пол и стены» with one tile: the floor plan and the walls unfolded on one card. */
+    both: {
+      summary: "Плиток на полу и стенах: {pieces} · целых: {whole} · подрезанных: {cut}",
+      label: "Схема раскладки плитки на полу и стенах: целых {whole}, подрезанных {cut}",
+    },
     /** Wall tiling: every wall unfolded, seen from the room. */
     walls: {
       summary: "Плиток на стенах: {pieces} · целых: {whole} · подрезанных: {cut}",

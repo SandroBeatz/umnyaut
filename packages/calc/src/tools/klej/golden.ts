@@ -139,5 +139,42 @@ export const golden: GoldenFile<KlejInput> = {
       expected: { costTotal: 2750 },
       source: { kind: "manual", ref: "5 мешков × 550 = 2750 ₽" },
     },
+    {
+      name: "Floor and walls, bathroom 2.2 × 1.7 × 2.5 m, tile 20 × 20 (v2)",
+      input: {
+        surface: "both",
+        lengthMm: 2200,
+        widthMm: 1700,
+        heightMm: 2500,
+        openings: [{ type: "door", widthMm: 700, heightMm: 2000, count: 1 }],
+        tileLengthMm: 200,
+        tileWidthMm: 200,
+      },
+      expected: { items: { "tile-adhesive": { packs: 4, need: 78.624 } }, summary: { area: 21.84 } },
+      source: {
+        kind: "manual",
+        ref: "Пол 2,2 × 1,7 = 3,74 м² + стены 7,8 × 2,5 − дверь 0,7 × 2 = 18,1 м² = 21,84 м²; плитка до 25 см — зуб 8 мм, 3,6 кг/м² (Ceresit CM 11 PRO, https://ceresit.ru/ru/products/tiling/tile-adhesives/cm_11_pro/): 78,624 кг → 4 мешка по 25 кг (по отдельности 1 + 3 — тоже 4)",
+      },
+    },
+    {
+      name: "Floor and walls of the example room, tile 30 × 30 (v2)",
+      input: { surface: "both" },
+      expected: { items: { "tile-adhesive": { packs: 14, need: 348.624 } }, summary: { area: 64.56 } },
+      source: {
+        kind: "manual",
+        ref: "Пол 4,6 × 4,3 = 19,78 м² + стены 17,8 × 2,7 − дверь 1,6 − окно 1,68 = 44,78 м² = 64,56 м². Плитка 30 × 30: зуб 10 мм 4,2 кг/м² + 1 мм на плитку 1,2 = 5,4 кг/м² (Ceresit CM 11 PRO, комбинированный способ) → 348,624 кг → 14 мешков (по отдельности 5 + 10 = 15)",
+      },
+    },
+  ],
+  benchmarks: [
+    {
+      example: "Floor and walls, bathroom 2.2 × 1.7 × 2.5 m, tile 20 × 20 (v2)",
+      site: "Qalculator",
+      url: "https://qalculator.ru/scripts/calc/otdelka-plitka.js",
+      checkedAt: "2026-10-13",
+      observed: { items: { "tile-adhesive": { packs: 5, need: 109.2 } } },
+      explanation:
+        "Qalculator берёт расход по зубу гребёнки без формата плитки: 8 мм — 5 кг/м², 21,84 × 5 = 109,2 кг → 5 мешков. Мы — по таблице Ceresit CM 11 PRO, где зуб 8 мм для плитки до 25 см даёт 3,6 кг/м²: 78,6 кг → 4. Площадь (пол + стены − проёмы) одинаковая",
+    },
   ],
 };

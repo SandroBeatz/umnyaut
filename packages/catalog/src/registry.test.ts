@@ -8,11 +8,13 @@ import {
 } from "@umnyaut/calc";
 import { describe, expect, it } from "vitest";
 import { type CategoryDef, categories, reservedSegments } from "./categories";
+import { roomSuggestions, workOrder } from "./estimate";
 import { norms } from "./norms";
 import { toolPath } from "./paths";
-import { activeCategories, getTool, tools } from "./registry";
+import { activeCategories, getTool, sharedItems, tools } from "./registry";
 import { toolGuides } from "./scheme";
 import type { ToolDef } from "./tools/types";
+import { wallpaperKinds } from "./tools/variants";
 import { type RegistryInput, validateRegistry } from "./validate";
 
 const real: RegistryInput = { categories, reservedSegments, tools, modules: toolModules, norms };
@@ -20,6 +22,16 @@ const real: RegistryInput = { categories, reservedSegments, tools, modules: tool
 describe("registry", () => {
   it("passes every registry rule", () => {
     expect(validateRegistry(real)).toEqual([]);
+  });
+
+  it("shared consumables are adhesive, grout, primer and wallpaper paste — one flag per item everywhere", () => {
+    expect([...sharedItems].sort()).toEqual(["grout", "primer", "tile-adhesive", "wallpaper-glue"]);
+    const [kraska] = tools.filter((t) => t.id === "kraska");
+    const unflagged = { ...kraska, items: { ...kraska?.items, primer: { title: "Грунтовка" } } } as ToolDef;
+    const others = tools.filter((t) => t.id !== "kraska");
+    expect(validateRegistry({ ...real, tools: [...others, unflagged] })).toEqual([
+      "item primer: shared in some tools only",
+    ]);
   });
 
   it("tool URLs are unique", () => {
@@ -59,7 +71,7 @@ describe("registry", () => {
     expect(oboi.rollWidthMm / 1000).toBe(value("wallpaper.rollWidth"));
     expect(oboi.rollLengthMm / 1000).toBe(value("wallpaper.rollLength"));
     expect(oboi.trimMm / 10).toBe(value("wallpaper.trimAllowance"));
-    expect(oboi.pasteCoverageM2).toBe(value("wallpaperPaste.coverage"));
+    expect(oboi.pasteCoverageM2).toBe(value("wallpaperPaste.coverage.nonwoven"));
     const kraska = toolModules.kraska.defaults({ country: "RU" });
     expect(kraska.coverageM2PerL).toBe(value("paint.coverage"));
     expect(kraska.coats).toBe(value("paint.coats"));
@@ -165,5 +177,44 @@ describe("validateRegistry", () => {
       "norm x.y: checkedAt must be YYYY-MM-DD",
       "norm x.y: value is not a number",
     ]);
+  });
+});
+
+describe("estimate page data", () => {
+  it("orders every tool once", () => {
+    expect([...workOrder].sort()).toEqual(tools.map((t) => t.id).sort());
+  });
+
+  it("suggests live tools with purchase items, three per room type", () => {
+    for (const ids of Object.values(roomSuggestions)) {
+      expect(ids).toHaveLength(3);
+      for (const id of ids) expect(tools.find((t) => t.id === id && t.status === "live" && t.items)).toBeDefined();
+    }
+  });
+});
+
+describe("consumable variants (P17.4)", () => {
+  it("a wallpaper type fills the paste coverage of its norm; the default is non-woven", () => {
+    const norm = { nonwoven: "nonwoven", heavy: "heavy", paper: "paper" } as const;
+    for (const kind of wallpaperKinds)
+      expect(norms[`wallpaperPaste.coverage.${norm[kind.value]}`]?.value).toBe(kind.coverageM2);
+    const defaults = toolModules.oboi.defaults({ country: "RU" }) as { wallpaperType: string; pasteCoverageM2: number };
+    expect(defaults.wallpaperType).toBe("nonwoven");
+    expect(defaults.pasteCoverageM2).toBe(wallpaperKinds[0].coverageM2);
+  });
+
+  it("every select option the module accepts, and nothing more", () => {
+    for (const tool of tools) {
+      const defaults = toolModules[tool.id as keyof typeof toolModules].defaults({ country: "RU" }) as Record<
+        string,
+        unknown
+      >;
+      const module = toolModules[tool.id as keyof typeof toolModules];
+      for (const field of tool.fields) {
+        if (field.kind !== "select" || !["adhesiveClass", "groutColor", "wallpaperType"].includes(field.name)) continue;
+        for (const option of field.options)
+          expect(module.input.safeParse({ ...defaults, [field.name]: option.value }).success).toBe(true);
+      }
+    }
   });
 });

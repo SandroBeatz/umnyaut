@@ -83,6 +83,7 @@ const oboi: ToolArbitrary<OboiInput> = {
       ),
       rollWidthMm: f.integer({ min: 300, max: 1500 }),
       rollLengthMm: f.integer({ min: 5000, max: 50_000 }),
+      pattern: f.boolean(),
       repeatMm: f.integer({ min: 0, max: 1500 }),
       match: f.constantFrom("straight" as const, "offset" as const),
       trimMm: f.integer({ min: 0, max: 300 }),
@@ -141,7 +142,7 @@ const klej: ToolArbitrary<KlejInput> = {
   input: (f) =>
     f
       .record({
-        surface: f.constantFrom("floor" as const, "walls" as const),
+        surface: f.constantFrom("floor" as const, "walls" as const, "both" as const),
         shape: f.constantFrom("rect" as const, "l" as const),
         lengthMm: lengthMm(f),
         widthMm: lengthMm(f),
@@ -163,7 +164,7 @@ const zatirka: ToolArbitrary<ZatirkaInput> = {
   input: (f) =>
     f
       .record({
-        surface: f.constantFrom("floor" as const, "walls" as const),
+        surface: f.constantFrom("floor" as const, "walls" as const, "both" as const),
         shape: f.constantFrom("rect" as const, "l" as const),
         lengthMm: lengthMm(f),
         widthMm: lengthMm(f),
@@ -194,6 +195,7 @@ const linoleum: ToolArbitrary<LinoleumInput> = {
         rollWidthMm: f.oneof(f.constant(0), f.integer({ min: 500, max: 6000 })),
         overlapMm: f.integer({ min: 0, max: 300 }),
         allowanceMm: f.integer({ min: 0, max: 300 }),
+        pattern: f.boolean(),
         repeatMm: f.integer({ min: 0, max: 2000 }),
         cutStepMm: f.integer({ min: 10, max: 1000 }),
       })
@@ -232,7 +234,7 @@ const plitka: ToolArbitrary<PlitkaInput> = {
   input: (f) =>
     f
       .record({
-        surface: f.constantFrom("floor" as const, "walls" as const),
+        surface: f.constantFrom("floor" as const, "walls" as const, "both" as const),
         shape: f.constantFrom("rect" as const, "l" as const),
         lengthMm: f.integer({ min: 300, max: 20_000 }),
         widthMm: f.integer({ min: 300, max: 20_000 }),

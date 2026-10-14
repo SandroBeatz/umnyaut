@@ -57,6 +57,7 @@ export function priced<I>(module: ToolModule<I>, config: PriceConfig<I>): ToolMo
   return {
     ...module,
     input,
+    priceBasis: config.items,
     compute(i, ctx): ToolResult {
       const result = module.compute(i, ctx);
       const values = i as unknown as Record<string, number | undefined>;

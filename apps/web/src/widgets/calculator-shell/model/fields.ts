@@ -15,7 +15,9 @@ export const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.strin
 /** Fields hidden by `when` don't render and don't count. */
 export function isVisible(field: FieldDef, values: ToolValues): boolean {
   if (!("when" in field) || !field.when) return true;
-  return Object.entries(field.when).every(([key, value]) => values[key] === value);
+  return Object.entries(field.when).every(([key, value]) =>
+    Array.isArray(value) ? value.includes(values[key] as string) : values[key] === value,
+  );
 }
 
 /** Room shape and its L-cut: part of the room, so they stand right under its length and width. */
@@ -71,3 +73,11 @@ export function matchingPreset(presets: readonly PresetDef[], ids: readonly stri
 }
 
 export { applyRoom, roomBindings, roomPatch } from "@/entities/room";
+
+/**
+ * The form has lengths the м/см switch converts: the room's sizes (typed in the room row), a length in metres, or the
+ * doors and windows.
+ */
+export function hasRoomUnits(fields: readonly FieldDef[]): boolean {
+  return fields.some((field) => (field.kind === "length" && field.unit === "m") || field.kind === "openings");
+}

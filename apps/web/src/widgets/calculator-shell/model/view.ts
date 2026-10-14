@@ -1,5 +1,5 @@
 import type { Country, ToolResult } from "@umnyaut/calc";
-import { packNouns, shell, type ToolDef, unitLabels } from "@umnyaut/catalog";
+import { itemTitle, packNouns, shell, type ToolDef, unitLabels } from "@umnyaut/catalog";
 import { formatMoney, formatNumber, NBSP, plural } from "@umnyaut/ui/format";
 import { groupPurchases, purchaseTexts, runningLength, setText } from "@/entities/tool";
 import { fill } from "@/shared/lib";
@@ -16,6 +16,8 @@ export interface MainFigure {
   /** «22,1 м² · останется 2,3 м²». */
   caption?: string;
   photo?: string;
+  /** What this item costs at the typed price: «10 300 ₽». */
+  cost?: string;
 }
 
 export interface ResultView {
@@ -23,9 +25,18 @@ export interface ResultView {
   mode: "buy" | "measure";
   main?: MainFigure;
   /** `detail`: pack sizes of a volume/weight item («по 10 л», «1 × 10 л + 1 × 1 л»), small under the title. */
-  related: { key: string; title: string; quantity: string; detail?: string; photo?: string }[];
+  related: {
+    key: string;
+    title: string;
+    quantity: string;
+    detail?: string;
+    photo?: string;
+    icon?: "fastener" | "tube";
+    cost?: string;
+  }[];
   tiles: { key: string; label: string; value: string }[];
-  total?: { text: string; missing?: string };
+  /** `text` — one line for share and print; `amount` and `note` — the total bar: «12 460 ₽», «630 ₽ за м²». */
+  total?: { text: string; amount: string; note?: string; missing?: string };
   /** Sticky bar: «10 пачек · 12 460 ₽», «44,78 м²». */
   short: string;
   warnings: { code: string; text: string }[];
@@ -38,9 +49,23 @@ const texts = (values: Readonly<Record<string, number>> | undefined, format: (n:
   Object.fromEntries(Object.entries(values ?? {}).map(([k, v]) => [k, format(v)]));
 
 /** Turns codes and numbers from `compute()` into Russian text from the catalog. */
-export function describeResult(tool: ToolDef, result: ToolResult, country: Country): ResultView {
+export function describeResult(
+  tool: ToolDef,
+  result: ToolResult,
+  country: Country,
+  /** The module's price basis and the input: a main item priced per m² or litre shows «21,75 м² по 350 сом». */
+  pricing?: { basis?: Readonly<Record<string, "pack" | "unit">>; values: Readonly<Record<string, unknown>> },
+): ResultView {
   const quantity = (value: number, unit: keyof typeof unitLabels) => `${number(value)}${NBSP}${unitLabels[unit]}`;
   const groups = groupPurchases(result.items);
+  /** An item's cost at its typed price: packs × price, or bought amount × price for a price per m² or litre. */
+  const costOf = (group: (typeof groups)[number]): string | undefined => {
+    const price = pricing?.values[`price_${group.first.key}`];
+    if (typeof price !== "number") return undefined;
+    const amount =
+      pricing?.basis?.[group.first.key] === "unit" ? group.lines.reduce((n, l) => n + l.bought.value, 0) : group.packs;
+    return formatMoney(amount * price, country);
+  };
   const mainGroup = groups.find((g) => g.first.role === "main");
   const mainItem = mainGroup?.first;
   let main: MainFigure | undefined;
@@ -48,7 +73,7 @@ export function describeResult(tool: ToolDef, result: ToolResult, country: Count
   if (mainGroup && mainItem && length !== undefined && mainItem.pack.width) {
     main = {
       key: mainItem.key,
-      title: tool.items?.[mainItem.key]?.title ?? mainItem.key,
+      title: itemTitle(mainItem, tool.items?.[mainItem.key]),
       value: number(length),
       unit: unitLabels.m,
       caption: fill(shell.result.running, {
@@ -56,18 +81,20 @@ export function describeResult(tool: ToolDef, result: ToolResult, country: Count
         area: quantity(mainItem.bought.value, mainItem.bought.unit),
       }),
       photo: tool.items?.[mainItem.key]?.photo,
+      ...(costOf(mainGroup) ? { cost: costOf(mainGroup) as string } : {}),
     };
   } else if (mainGroup && mainItem) {
     const leftover = quantity(mainGroup.leftover, mainItem.leftover.unit);
     main = {
       key: mainItem.key,
-      title: tool.items?.[mainItem.key]?.title ?? mainItem.key,
+      title: itemTitle(mainItem, tool.items?.[mainItem.key]),
       value: formatNumber(mainGroup.packs),
       unit: plural(mainGroup.packs, forms(packNouns[mainItem.pack.kind])),
       caption: mainGroup.sized
         ? fill(shell.result.set, { set: setText(mainGroup.lines), leftover })
         : fill(shell.result.need, { need: quantity(mainGroup.need, mainItem.need.unit), leftover }),
       photo: tool.items?.[mainItem.key]?.photo,
+      ...(costOf(mainGroup) ? { cost: costOf(mainGroup) as string } : {}),
     };
   } else if (result.summary[0]) {
     const first = result.summary[0];
@@ -85,10 +112,12 @@ export function describeResult(tool: ToolDef, result: ToolResult, country: Count
       const { quantity, detail } = purchaseTexts(group);
       return {
         key: group.first.key,
-        title: tool.items?.[group.first.key]?.title ?? group.first.key,
+        title: itemTitle(group.first, tool.items?.[group.first.key]),
         quantity,
         ...(detail ? { detail } : {}),
         photo: tool.items?.[group.first.key]?.photo,
+        ...(tool.items?.[group.first.key]?.icon ? { icon: tool.items[group.first.key]?.icon } : {}),
+        ...(costOf(group) ? { cost: costOf(group) as string } : {}),
       };
     });
 
@@ -99,11 +128,23 @@ export function describeResult(tool: ToolDef, result: ToolResult, country: Count
   let total: ResultView["total"];
   if (result.cost && result.cost.missing.length < result.items.length) {
     const parts = [fill(shell.result.total, { total: formatMoney(result.cost.total, country) })];
-    if (result.cost.perM2 !== undefined)
-      parts.push(fill(shell.result.perM2, { price: formatMoney(result.cost.perM2, country) }));
+    const unitPrice = mainItem ? pricing?.values[`price_${mainItem.key}`] : undefined;
+    if (mainGroup && mainItem && pricing?.basis?.[mainItem.key] === "unit" && typeof unitPrice === "number") {
+      // Priced per m² or litre: where the total comes from, not a second «per m²» that reads like another price.
+      const bought = mainGroup.lines.reduce((n, l) => n + l.bought.value, 0);
+      parts.push(
+        fill(shell.result.unitPrice, {
+          amount: quantity(bought, mainItem.bought.unit),
+          price: formatMoney(unitPrice, country),
+        }),
+      );
+    } else if (result.cost.perM2 !== undefined)
+      parts.push(fill(tool.costPerM2 ?? shell.result.perM2, { price: formatMoney(result.cost.perM2, country) }));
     const count = result.cost.missing.length;
     total = {
       text: parts.join(" · "),
+      amount: formatMoney(result.cost.total, country),
+      ...(parts[1] ? { note: parts[1] } : {}),
       missing:
         count > 0 ? fill(shell.result.missing, { count, positions: plural(count, shell.result.positions) }) : undefined,
     };

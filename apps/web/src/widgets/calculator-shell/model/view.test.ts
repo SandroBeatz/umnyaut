@@ -6,6 +6,18 @@ import { describeResult, resultText } from "./view";
 const NBSP = " ";
 
 describe("describeResult", () => {
+  it("a price per m² shows where the total comes from, not another «per m²»", () => {
+    const tool = getTool("pol", "linoleum");
+    if (!tool) throw new Error("no tool");
+    const module = toolModules.linoleum;
+    const values = { ...module.defaults({ country: "RU" }), price_linoleum: 350 };
+    const view = describeResult(tool, module.compute(values, { country: "RU" }), "RU", {
+      ...(module.priceBasis ? { basis: module.priceBasis } : {}),
+      values,
+    });
+    expect(view.total?.text.replace(/\s/g, " ")).toMatch(/^Итого [\d ]+ ₽ · [\d,]+ м² по 350 ₽$/);
+  });
+
   it("wall area: main figure from the first summary entry, the rest as tiles, steps with numbers", () => {
     const tool = getTool("osnova", "ploshchad-sten");
     if (!tool) throw new Error("no tool");

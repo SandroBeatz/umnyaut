@@ -12,7 +12,7 @@ export interface RegistryInput {
   categories: readonly CategoryDef[];
   reservedSegments: readonly string[];
   tools: readonly ToolDef[];
-  modules: Readonly<Record<string, Pick<ToolModule, "id" | "version">>>;
+  modules: Readonly<Record<string, Pick<ToolModule, "id" | "version"> & Partial<Pick<ToolModule, "defaults">>>>;
   norms: Readonly<Record<string, Norm>>;
 }
 
@@ -67,8 +67,48 @@ export function validateRegistry({ categories, reservedSegments, tools, modules,
         if (!names.includes(key)) errors.push(`${at}: preset ${preset.id} sets unknown field ${key}`);
       }
     }
+    const groupIds = (tool.groups ?? []).map((g) => g.id);
+    for (const id of duplicates(groupIds)) errors.push(`${at}: duplicate group ${id}`);
+    for (const group of tool.groups ?? [])
+      if (group.toggle && !tool.fields.some((f) => f.kind === "toggle" && f.name === group.toggle))
+        errors.push(`${at}: group ${group.id} switched by unknown toggle ${group.toggle}`);
+    for (const field of tool.fields)
+      if ("group" in field && field.group && !groupIds.includes(field.group))
+        errors.push(`${at}: field ${field.name} in unknown group ${field.group}`);
+    for (const field of tool.fields) {
+      if (field.kind !== "select") continue;
+      for (const option of field.options)
+        for (const key of Object.keys(option.fills ?? {}))
+          if (!names.includes(key))
+            errors.push(`${at}: option ${field.name}=${option.value} fills unknown field ${key}`);
+    }
     for (const id of tool.norms ?? []) if (!norms[id]) errors.push(`${at}: unknown norm ${id}`);
+    const input = module?.defaults?.({ country: "RU" }) as Record<string, unknown> | undefined;
+    const surface = tool.surface && "field" in tool.surface ? tool.surface : undefined;
+    const select = surface && tool.fields.find((f) => f.kind === "select" && f.name === surface.field);
+    if (surface && select?.kind !== "select") errors.push(`${at}: surface field ${surface.field} is not a select`);
+    else if (surface && select?.kind === "select")
+      for (const option of select.options)
+        if (!(option.value in surface.values)) errors.push(`${at}: surface option ${option.value} has no surface`);
+    for (const name of tool.wallBound?.fields ?? [])
+      if (input && !(name in input)) errors.push(`${at}: wall-bound field ${name} is not in the tool's input`);
   }
+
+  // One item key is one product everywhere: shared in one tool and a room material in another would split it.
+  const sharedBy = new Map<string, Set<boolean>>();
+  for (const tool of tools) {
+    for (const [key, item] of Object.entries(tool.items ?? {})) {
+      sharedBy.set(key, (sharedBy.get(key) ?? new Set()).add(item.shared === true));
+    }
+  }
+  for (const [key, flags] of sharedBy) if (flags.size > 1) errors.push(`item ${key}: shared in some tools only`);
+  // …and reads the same in every tool: one set of variant titles per item key.
+  const variantsBy = new Map<string, Set<string>>();
+  for (const tool of tools)
+    for (const [key, item] of Object.entries(tool.items ?? {}))
+      variantsBy.set(key, (variantsBy.get(key) ?? new Set()).add(JSON.stringify(item.variants ?? null)));
+  for (const [key, sets] of variantsBy)
+    if (sets.size > 1) errors.push(`item ${key}: variant titles differ between tools`);
 
   for (const [id, norm] of Object.entries(norms)) {
     if (!norm.source.trim()) errors.push(`norm ${id}: missing source`);
