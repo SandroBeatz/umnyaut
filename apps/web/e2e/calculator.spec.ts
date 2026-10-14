@@ -22,9 +22,18 @@ async function type(page: Page, label: string, value: string) {
   await field.blur();
 }
 
-/** Opens the room editor (from the size fields or «Изменить»), fills its fields by label, saves. */
+/** Set on a page without rooms the room editor opens by itself (once a visit); tests open it themselves. */
+const ASKED = "umnyaut:room-asked:v1";
+/** Tests tagged so see the first visit. */
+const FIRST_VISIT = "@first-visit";
+test.beforeEach(async ({ page }, info) => {
+  if (info.tags.includes(FIRST_VISIT)) return;
+  await page.addInitScript((key) => sessionStorage.setItem(key, "1"), ASKED);
+});
+
+/** Opens the room editor («Указать размеры» or «Изменить»), fills its fields by label, saves. */
 async function editRoom(page: Page, sizes: Record<string, string>, more?: (editor: Locator) => Promise<void>) {
-  await page.getByRole("button", { name: /^(Изменить|Форма, окна и двери)$/ }).click();
+  await page.getByRole("button", { name: /^(Изменить|Указать размеры)$/ }).click();
   const editor = page.getByRole("dialog");
   for (const [label, value] of Object.entries(sizes)) {
     const field = editor.getByRole("textbox", { name: label, exact: true });
@@ -59,11 +68,23 @@ test("no tool scrolls sideways on a phone, with every section open", async ({ pa
   }
 });
 
-test("room area writes “My room”, wall area picks it up", async ({ page }) => {
+test("without rooms the editor opens first; its room reaches room area and wall area", { tag: FIRST_VISIT }, async ({
+  page,
+}) => {
   await page.goto(ROOM);
-  await expect(page.getByText("Это пример. Введите свои размеры")).toBeVisible();
-  await type(page, "Длина комнаты", "5");
-  await type(page, "Ширина комнаты", "4");
+  const editor = page.getByRole("dialog", { name: "Новая комната" });
+  await expect(editor).toBeVisible();
+  // The example's length and width are not offered as the user's.
+  await expect(editor.getByRole("textbox", { name: "Длина", exact: true })).toHaveValue("");
+  for (const [label, value] of [
+    ["Длина", "5"],
+    ["Ширина", "4"],
+  ] as const) {
+    await editor.getByRole("textbox", { name: label, exact: true }).fill(value);
+    await editor.getByRole("textbox", { name: label, exact: true }).blur();
+  }
+  await editor.getByRole("button", { name: "Сохранить комнату" }).click();
+  await expect(editor).toBeHidden();
   await expect(result(page)).toHaveText("20");
   await expect(page.getByText("Это пример. Введите свои размеры")).toBeHidden();
 
@@ -72,14 +93,30 @@ test("room area writes “My room”, wall area picks it up", async ({ page }) =
     .first()
     .click();
   await expect(page).toHaveURL(WALLS);
-  // The page opens with the room: its name and sizes instead of the fields.
+  // The page opens with the room: its name and sizes, no editor.
   await expect(page.locator("[data-room-dimensions]")).toHaveText(/^5\s×\s4\sм$/);
-  // 2 × (5 + 4) × 2,7 = 48,6 − door 1,6 − window 1,68 = 45,32
-  await expect(result(page)).toHaveText("45,32");
+  // The room was saved without doors and windows: 2 × (5 + 4) × 2,7 = 48,6.
+  await expect(result(page)).toHaveText("48,6");
 
-  await editRoom(page, { "Высота потолка": "3" });
+  await editRoom(page, { Высота: "3" });
   await page.goto(ROOM);
   await expect(page.locator("[data-room-dimensions]")).toHaveText(/^5\s×\s4\s×\s3\sм$/);
+});
+
+test("closed without a room: the example row, «Указать размеры», no editor on the next calculator", {
+  tag: FIRST_VISIT,
+}, async ({ page }) => {
+  await page.goto(LAMINATE);
+  const editor = page.getByRole("dialog", { name: "Новая комната" });
+  await expect(editor).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(editor).toBeHidden();
+  await expect(page.locator("[data-room-example]")).toHaveText(/^Пример: 4,6\s×\s4,3\sм$/);
+  await expect(result(page)).toHaveText("10");
+
+  await page.goto(WALLS);
+  await expect(page.getByRole("button", { name: "Указать размеры" })).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
 });
 
 test("a ?s= link reproduces the result and «Отправить» builds one", async ({ page, context }) => {
@@ -91,7 +128,9 @@ test("a ?s= link reproduces the result and «Отправить» builds one", a
   await expect(result(page)).toHaveText("42,26");
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/osnova\/ploshchad-sten\/$/);
 
-  await type(page, "Высота потолка", "3");
+  // No room yet: the row shows the link's sizes, the editor starts from them.
+  await expect(page.locator("[data-room-example]")).toHaveText(/^5\s×\s4\s×\s2,7\sм$/);
+  await editRoom(page, { Высота: "3" });
   await expect(result(page)).toHaveText("47,66");
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.evaluate(() => Object.defineProperty(navigator, "share", { value: undefined }));
@@ -110,7 +149,7 @@ test("a ?s= link reproduces the result and «Отправить» builds one", a
 
 test("a ?s= link keeps its sizes over a room saved on this phone", async ({ page }) => {
   await page.goto(WALLS);
-  await type(page, "Длина комнаты", "3");
+  await editRoom(page, { Длина: "3", Ширина: "4" });
   await page.waitForFunction(() => Object.values(localStorage).some((v) => v.includes('"lengthMm":3000')));
   const openings = [
     { type: "door", widthMm: 900, heightMm: 2050, count: 1 },
@@ -125,12 +164,9 @@ test("a ?s= link keeps its sizes over a room saved on this phone", async ({ page
 
 test("an L-shaped room shows the cut-out fields and subtracts the corner", async ({ page }) => {
   await page.goto(ROOM);
-  await type(page, "Длина комнаты", "6");
-  await type(page, "Ширина комнаты", "4");
-  // Shape and cut-out are the room's: the form has none of them, the editor starts from the sizes typed above.
+  // Shape and cut-out are the room's: the form has none of them.
   await expect(page.getByRole("textbox", { name: "Длина выреза" })).toHaveCount(0);
-  await editRoom(page, {}, async (editor) => {
-    await expect(editor.getByRole("textbox", { name: "Длина", exact: true })).toHaveValue("6");
+  await editRoom(page, { Длина: "6", Ширина: "4" }, async (editor) => {
     await editor.getByRole("radio", { name: "Г-образная" }).click();
     for (const [label, value] of [
       ["Вырез по длине", "2"],
@@ -144,11 +180,14 @@ test("an L-shaped room shows the cut-out fields and subtracts the corner", async
 });
 
 test("an invalid field keeps the last result and says so", async ({ page }) => {
-  await page.goto(WALLS);
-  await type(page, "Длина комнаты", "500");
-  await expect(page.getByRole("textbox", { name: "Длина комнаты" })).toHaveAttribute("aria-invalid", "true");
+  await page.goto(WALLPAPER);
+  await page.getByRole("button", { name: /Ещё параметры/ }).click();
+  await page.getByRole("checkbox", { name: "Рисунок нужно совмещать" }).check();
+  const before = await result(page).textContent();
+  await type(page, "Раппорт", "500");
+  await expect(page.getByRole("textbox", { name: "Раппорт" })).toHaveAttribute("aria-invalid", "true");
   await expect(page.getByText("По прошлым значениям")).toBeVisible();
-  await expect(result(page)).toHaveText("44,78");
+  await expect(result(page)).toHaveText(before ?? "");
 });
 
 test("the sticky bar shows the result once the panel scrolls away", async ({ page }) => {
@@ -258,8 +297,7 @@ test("the old «Моя комната» and room list move into the estimate onc
 
 test("rooms: a new room starts from the example, the picker brings the first one back", async ({ page }) => {
   await page.goto(LAMINATE);
-  await type(page, "Длина комнаты", "5");
-  // The fields stay while the user types; the next page opens with the room.
+  await editRoom(page, { Длина: "5", Ширина: "4,3" });
   await page.reload();
   await expect(page.getByRole("button", { name: /^Комната 1, 5\s×\s4,3\sм/ })).toBeVisible();
 
@@ -283,9 +321,15 @@ test("rooms: a new room starts from the example, the picker brings the first one
 
 test("room editor: name, type, an L-shape and a door on the plan reach the calculator; delete", async ({ page }) => {
   await page.goto(WALLS);
-  await type(page, "Длина комнаты", "5");
-  await page.getByRole("button", { name: "Форма, окна и двери" }).click();
-  const editor = page.getByRole("dialog", { name: "Комната" });
+  await page.getByRole("button", { name: "Указать размеры" }).click();
+  const editor = page.getByRole("dialog");
+  for (const [label, value] of [
+    ["Длина", "5"],
+    ["Ширина", "4,3"],
+  ] as const) {
+    await editor.getByRole("textbox", { name: label, exact: true }).fill(value);
+    await editor.getByRole("textbox", { name: label, exact: true }).blur();
+  }
   // The type names a room the user has not named.
   await editor.getByRole("button", { name: "Ванная", exact: true }).click();
   await expect(editor.getByRole("textbox", { name: "Название" })).toHaveValue("Ванная");
@@ -307,12 +351,12 @@ test("room editor: name, type, an L-shape and a door on the plan reach the calcu
   await page.getByRole("button", { name: "Изменить", exact: true }).click();
   await editor.getByRole("button", { name: "Удалить комнату" }).click();
   await expect(editor).toBeHidden();
-  await expect(page.getByRole("textbox", { name: "Длина комнаты" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Указать размеры" })).toBeVisible();
 });
 
 test("calcs in a room: chips, a label, «+ Ещё» on the next surface, remove and «Вернуть»", async ({ page }) => {
   await page.goto(TILE);
-  await type(page, "Длина комнаты", "3");
+  await editRoom(page, { Длина: "3", Ширина: "4,3" });
   // A material edit opens the room's first tile calc.
   await page.getByRole("radio", { name: "30 × 60" }).click();
   const chips = page.locator("[data-calc-chips]");
@@ -368,8 +412,7 @@ test("estimate in the calculator: only the button adds, edits wait for «Обн�
   const stored = () =>
     page.evaluate(() => JSON.parse(localStorage.getItem("umnyaut:estimate:v1") ?? "null")?.state.estimate);
   await page.goto(TILE);
-  await type(page, "Длина комнаты", "2,2");
-  await type(page, "Ширина комнаты", "1,7");
+  await editRoom(page, { Длина: "2,2", Ширина: "1,7" });
   await page.getByRole("button", { name: /Ещё параметры/ }).click();
   await type(page, "Цена коробки", "1650");
   // Changed fields and a price add nothing by themselves.

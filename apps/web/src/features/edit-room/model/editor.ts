@@ -34,14 +34,20 @@ const CUT = { cutLengthMm: 1500, cutWidthMm: 1200, cutCorner: "se" as CutCorner 
  * The editor's start: the room, and for what it does not know yet the calculator's `draft` — so the editor shows
  * the sizes, shape and doors the result is counted with.
  */
-export function formOf(room: EstimateRoom | null, name: string, draft: RoomGeometry = {}): RoomForm {
+export function formOf(
+  room: EstimateRoom | null,
+  name: string,
+  draft: RoomGeometry = {},
+  /** A new room's type («Спальня» when the flat already has a «Зал»). */
+  type: RoomType = "other",
+): RoomForm {
   const known: RoomGeometry = {
     ...draft,
     ...Object.fromEntries(Object.entries(room ?? {}).filter(([, v]) => v !== undefined)),
   };
   return {
     name: room?.name ?? name,
-    type: room?.type ?? "other",
+    type: room?.type ?? type,
     shape: known.shape ?? "rect",
     ...(known.lengthMm ? { lengthMm: known.lengthMm } : {}),
     ...(known.widthMm ? { widthMm: known.widthMm } : {}),

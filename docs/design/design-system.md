@@ -1,12 +1,12 @@
 ---
-version: 1.2
-date: 2026-10-10
+version: 1.3
+date: 2026-10-14
 category: design
 ---
 
 # Design System
 
-> Version 1.2 · 2026-10-10 · [Design](../design/)
+> Version 1.3 · 2026-10-14 · [Design](../design/)
 
 ## Overview
 
@@ -121,7 +121,7 @@ Ginger tabby in round glasses and navy overalls/apron with the “У” mark, ta
 | 3 | `warn` | Not used in hints (see the rule below); gallery only until another use is approved | 1 | `Friendly Orange Tabby Mascot with Raised Paw.png` (to confirm) |
 | 4 | `oops` | 404, save failure, offline | 1 | `Apologetic Tabby Cat Shrugging.png` |
 | 5 | `head` | **Every hint, warning and note (40 px)**, bot avatar, header ≥ 1024 | 1 | `Cute Orange Tabby Cat Avatar.png` |
-| 6 | `measure` | My room card, planner step 1 | 2 | `Orange Tabby Measuring Tape Mascot.png` |
+| 6 | `measure` | Home room block, planner step 1 | 2 | `Orange Tabby Measuring Tape Mascot.png` |
 | 7 | `point` | “How we calculate”, next steps | 2 | `Orange Tabby Mascot Pointing with Pencil.png` |
 | 8 | `empty` | Empty “My calculations” | 2 | `Curious Cat and Open Box.png` |
 | 9 | `think` | AI recognition wait | 3 | `Thoughtful Tabby Cat Planner.png` |

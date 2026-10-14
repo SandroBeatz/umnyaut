@@ -23,6 +23,7 @@ export function SheetContent({ title, description, className, children, ...props
           "fixed inset-x-0 bottom-0 z-[var(--z-overlay)] flex max-h-[90dvh] flex-col rounded-t-xl bg-surface pb-[env(safe-area-inset-bottom)] outline-none",
           className,
         )}
+        {...(description ? {} : { "aria-describedby": undefined })}
         {...props}
       >
         <div aria-hidden="true" className="mx-auto mt-2 mb-3 h-1 w-10 shrink-0 rounded-full bg-border" />

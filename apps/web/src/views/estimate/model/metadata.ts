@@ -8,3 +8,11 @@ export const estimateMetadata: Metadata = {
   alternates: { canonical: "/spisok/" },
   robots: { index: false, follow: true },
 };
+
+/** Someone's estimate by link: the snapshot is after `#`, nothing to index. */
+export const sharedEstimateMetadata: Metadata = {
+  title: estimatePage.byLink.title,
+  description: estimatePage.byLink.description,
+  alternates: { canonical: "/spisok/prosmotr/" },
+  robots: { index: false, follow: true },
+};

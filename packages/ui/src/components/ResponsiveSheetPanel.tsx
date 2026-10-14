@@ -13,6 +13,8 @@ export interface ResponsiveSheetPanelProps {
   closeLabel: string;
   /** Gets the focus back on close: the opener lives outside the dialog root. */
   returnFocus: RefObject<HTMLElement | null>;
+  wide?: boolean | undefined;
+  onClosed?: (() => boolean | undefined) | undefined;
   children: ReactNode;
 }
 
@@ -24,11 +26,14 @@ export default function ResponsiveSheetPanel({
   description,
   closeLabel,
   returnFocus,
+  wide,
+  onClosed,
   children,
 }: ResponsiveSheetPanelProps) {
   const desktop = useMediaQuery(DESKTOP_QUERY);
   const onCloseAutoFocus = (event: Event) => {
     event.preventDefault();
+    if (onClosed?.() === true) return;
     returnFocus.current?.focus();
   };
   if (desktop) {
@@ -38,7 +43,7 @@ export default function ResponsiveSheetPanel({
           title={title}
           description={description}
           closeLabel={closeLabel}
-          className="max-w-[480px]"
+          className={wide ? "max-w-[880px]" : "max-w-[480px]"}
           onCloseAutoFocus={onCloseAutoFocus}
         >
           {children}

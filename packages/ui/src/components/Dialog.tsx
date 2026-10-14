@@ -26,9 +26,11 @@ export function DialogContent({ title, description, closeLabel, className, child
           "fixed top-1/2 left-1/2 z-[var(--z-overlay)] max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl bg-surface p-6 shadow-lg data-[state=open]:animate-[fade-in_320ms_var(--ease-standard)]",
           className,
         )}
+        {...(description ? {} : { "aria-describedby": undefined })}
         {...props}
       >
-        <div className="mb-4 flex items-start justify-between gap-4">
+        {/* The title stays while a long dialog scrolls (`-top-6` cancels the content's padding). */}
+        <div className="sticky -top-6 z-10 -mx-6 -mt-6 mb-2 flex items-start justify-between gap-4 bg-surface px-6 pt-6 pb-2">
           <div>
             <Primitive.Title className="text-h3 text-text">{title}</Primitive.Title>
             {description ? (

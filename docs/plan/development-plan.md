@@ -1,12 +1,12 @@
 ---
-version: 2.10
-date: 2026-10-13
+version: 2.11
+date: 2026-10-14
 category: plan
 ---
 
 # Development Plan
 
-> Version 2.10 · 2026-10-13 · [Plan](../plan/)
+> Version 2.11 · 2026-10-14 · [Plan](../plan/)
 
 ## Overview
 
@@ -488,8 +488,8 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 *C — Calculator (`frontend-builder`, skill `ui-component`)*
 
-- [x] P17.7 Room row (mint): room dropdown (sheet on phone) with sizes and «плитка есть», «+ Новая комната»; no-room state with length / width (/ height) inline and a link to the editor; same height in both states (no CLS); room fields leave the tool form while a room is selected. → Done 2026-10-13: the fields stay in the row for the page view that created the room; room fields left the form for good (the row and the editor hold them).
-- [x] P17.8 Room editor (dialog ≥ 1024, sheet on phone): name, type, shape and sizes (m / cm), doors and windows with wall and offset (from `PlanEditor`), mini `FloorPlan` and totals; «Пересчитаем N расчётов: …» line that also names reset geometry-bound params (wallpaper start wall, layout corner); delete with confirmation. → Done 2026-10-13: 480 px dialog with the plan under the sizes (not the two-column mockup); `ToolDef.wallBound` + `saveRoom` reset.
+- [x] P17.7 Room row (mint): room dropdown (sheet on phone) with sizes and «плитка есть», «+ Новая комната»; no-room state: the editor opens by itself once a visit (owner, 2026-10-14), the row says «Пример: 4,6 × 4,3 м» with «Указать размеры»; same height in both states (no CLS); room fields leave the tool form while a room is selected. → Done 2026-10-13: the fields stay in the row for the page view that created the room; room fields left the form for good (the row and the editor hold them).
+- [x] P17.8 Room editor (dialog ≥ 1024, sheet on phone): name, type, shape and sizes (m / cm), doors and windows with wall and offset (from `PlanEditor`), mini `FloorPlan` and totals; «Пересчитаем N расчётов: …» line that also names reset geometry-bound params (wallpaper start wall, layout corner); delete with confirmation. → Done 2026-10-13: 480 px dialog with the plan under the sizes (not the two-column mockup); `ToolDef.wallBound` + `saveRoom` reset. 2026-10-14 (owner): 880 px two-column dialog from 1024 px (plan pinned right), parts under hairlines, pinned title and buttons.
 - [x] P17.9 Calcs in a room: chips row, «+ Ещё», last opened calc, «Метка» field, overlap warning and «Разделить», remove with undo toast; surfaces per tool as in the spec (wallpaper: one calc per room). → Done 2026-10-13: the overlap warning sits under the result (rule 8); the calculator's input lives in the calcs.
 - [ ] P17.10 Result: «Нужно купить · <room>», «Ещё понадобится · на всю смету» with the calc's share, savings `Hint` (cat head), grey «Клей и затирка · общие на смету» block with the estimate's product and «взять его?», «Добавить в смету» → «В смете ✓» by the threshold (≥ 2 fields changed, a price, or a result action), sticky «N коробок · К смете»; saving updates `totals`. Phone first screen ≤ 660 px with the chips row. → Part 1 done 2026-10-13 (result, shares, savings, threshold, totals, «К смете»); the grey block waits for P17.4.
 
@@ -497,11 +497,12 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 - [x] P17.11 `/spisok/` (thin route, `noindex`, out of sitemap), `views/estimate`: title, metrics, room cards (rows lead back to the calculator with that room and calc), shared consumables, empty rooms with suggestions by type, «+ Комната», total card; modules loaded on demand, recompute on open, rows ordered rough → finish (was P11.1); JS budget for the page added to `js:check`.
 - [x] P17.12 Export: copy as text, `navigator.share` with copy fallback, print / «PDF» via print styles with the date.
-- [x] P17.13 Link without a server: estimate snapshot after `#`, read-only view, «Забрать себе» with «Заменить» / «Добавить комнаты»; snapshots over 8 KB suggest print.
+- [x] P17.13 Link without a server: estimate snapshot after `#`, opened as a read-only document page `/spisok/prosmotr/` (logo, tables per room, shared consumables, total, «Как посчитано», «Перейти на главную»; no site header or footer; old `/spisok/#s=` links redirect); snapshots over 8 KB suggest print. «Забрать себе» removed (owner, 2026-10-14).
 
 *E — Header, footer, country*
 
-- [x] P17.14 Header: «Калькуляторы ▾» · «Методика» · list button: icon, «Список» from the desktop up and the sum (small client island reading `totals`; phone: icon and sum, icon only while empty; «Список покупок» for screen readers, teal on `/spisok/`); country switch and «Мои расчёты» leave the header, country switch in the footer, time-zone detection stays.
+- [x] P17.14 Header: «Калькуляторы ▾» · «Методика» · list button: no border, clipboard icon, «Список» from the desktop up and the number of added calcs in a mint circle (small client island reading the stored calcs; phone: icon and count, icon only while empty; «Список покупок» for screen readers, `aria-current` on `/spisok/`); country switch and «Мои расчёты» leave the header, country switch in the footer, time-zone detection stays.
+- [x] P17.19 Home room block (owner concept, 2026-10-14; [Home Room Block](../ui/home-room-block.md)): «Какую комнату считаем?» — type chips, scheme, sizes in metres, floor / walls / ceiling, «Посчитать материалы» → the type's usual calculators in a popup; «Ваш ремонт» once a calc is in the list — rooms with area, calcs and sum from `totals`, «Итого по списку», «Открыть список», «+ Добавить комнату». Work chips removed; the example strip follows the room type (`home.typeWorks`).
 
 *F — Verify and release*
 

@@ -9,6 +9,7 @@ import { encodeSnapshot, SNAPSHOT_MAX, SNAPSHOT_PREFIX } from "@/entities/estima
 import { fill } from "@/shared/lib";
 import type { EstimateBoard } from "../model/board";
 import { estimateText } from "../model/export";
+import { SHARED_ESTIMATE_PATH } from "../model/link";
 
 const t = estimatePage.export;
 
@@ -17,8 +18,6 @@ export interface ExportActionsProps {
   board: EstimateBoard;
   /** The currency the page shows; the link carries it, so the receiver sees the same sums. */
   country: Country;
-  /** «Ссылка» — only for one's own estimate. */
-  link: boolean;
 }
 
 async function copy(text: string, done: string) {
@@ -34,7 +33,7 @@ async function copy(text: string, done: string) {
 async function linkOf(estimate: Estimate, country: Country): Promise<string | undefined> {
   const snapshot = await encodeSnapshot({ ...estimate, country });
   if (snapshot.length > SNAPSHOT_MAX) return undefined;
-  return `${window.location.origin}${window.location.pathname}${SNAPSHOT_PREFIX}${snapshot}`;
+  return `${window.location.origin}${SHARED_ESTIMATE_PATH}${SNAPSHOT_PREFIX}${snapshot}`;
 }
 
 const print = () => window.print();
@@ -43,7 +42,7 @@ const print = () => window.print();
  * «Печать / PDF» (browser print, Р13), «Отправить» (share sheet with the text and the link, else both copied),
  * «Скопировать» (plain text), «Ссылка» (snapshot after `#`; too long → suggests PDF). Nothing goes to a server.
  */
-export function ExportActions({ estimate, board, country, link }: ExportActionsProps) {
+export function ExportActions({ estimate, board, country }: ExportActionsProps) {
   const text = () => estimateText(estimate.name, board, country);
 
   const send = async () => {
@@ -82,12 +81,10 @@ export function ExportActions({ estimate, board, country, link }: ExportActionsP
         <Copy aria-hidden="true" />
         {t.copy}
       </button>
-      {link ? (
-        <button type="button" className={ghost} onClick={() => void share()}>
-          <Link2 aria-hidden="true" />
-          {t.link}
-        </button>
-      ) : null}
+      <button type="button" className={ghost} onClick={() => void share()}>
+        <Link2 aria-hidden="true" />
+        {t.link}
+      </button>
     </div>
   );
 }

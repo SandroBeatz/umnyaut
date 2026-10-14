@@ -10,7 +10,15 @@ export const toDisplay = (mm: number, unit: keyof typeof FACTOR) => mm / FACTOR[
 /** Typed number → integer mm. */
 export const fromDisplay = (value: number, unit: keyof typeof FACTOR) => Math.round(value * FACTOR[unit]);
 
-export const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+/** Equal values; key order does not count (a parsed or room-applied input comes back in its own order). */
+export function same(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (typeof a !== "object" || typeof b !== "object" || a === null || b === null) return false;
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+  const left = Object.entries(a).filter(([, v]) => v !== undefined);
+  const right = new Map(Object.entries(b).filter(([, v]) => v !== undefined));
+  return left.length === right.size && left.every(([key, value]) => right.has(key) && same(value, right.get(key)));
+}
 
 /** Fields hidden by `when` don't render and don't count. */
 export function isVisible(field: FieldDef, values: ToolValues): boolean {

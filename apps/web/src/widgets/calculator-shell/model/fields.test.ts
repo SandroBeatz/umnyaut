@@ -1,6 +1,6 @@
 import { type FieldDef, getTool } from "@umnyaut/catalog";
 import { describe, expect, it } from "vitest";
-import { changedHidden, formSections, shapeAsDropdown } from "./fields";
+import { changedHidden, formSections, same, shapeAsDropdown } from "./fields";
 
 const fieldsOf = (category: string, id: string) => {
   const tool = getTool(category, id);
@@ -35,5 +35,15 @@ describe("shapeAsDropdown", () => {
     expect(shapeAsDropdown(sections("pol", "linoleum"))).toBe(true);
     expect(shapeAsDropdown(sections("osnova", "ploshchad-komnaty"))).toBe(false);
     expect(shapeAsDropdown(sections("pol", "plintus"))).toBe(false);
+  });
+});
+
+describe("same", () => {
+  it("ignores key order and undefined keys, not array order or values", () => {
+    expect(same({ a: 1, b: { c: [1, 2] } }, { b: { c: [1, 2] }, a: 1 })).toBe(true);
+    expect(same({ a: 1, b: undefined }, { a: 1 })).toBe(true);
+    expect(same({ c: [1, 2] }, { c: [2, 1] })).toBe(false);
+    expect(same({ a: 1 }, { a: 2 })).toBe(false);
+    expect(same([], {})).toBe(false);
   });
 });

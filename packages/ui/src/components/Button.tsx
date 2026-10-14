@@ -10,7 +10,7 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         primary: "bg-primary text-on-primary hover:bg-primary-hover",
-        /** Orange — only «Рассчитать ремонт», «Показать список покупок», «Посмотреть материал», «Сохранить комнату». */
+        /** Orange — only «Посчитать материалы», «Открыть список», «Показать список покупок», «Посмотреть материал», «Сохранить комнату». */
         accent: "bg-accent text-on-accent hover:bg-accent-hover",
         secondary: "border border-border-input bg-surface text-text hover:bg-surface-sunken",
         ghost: "text-primary hover:bg-primary-soft hover:text-primary-hover",

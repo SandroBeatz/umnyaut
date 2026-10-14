@@ -1,12 +1,12 @@
 ---
-version: 1.8
-date: 2026-10-13
+version: 1.9
+date: 2026-10-14
 category: plan
 ---
 
 # Progress Log
 
-> Version 1.8 · 2026-10-13 · [Plan](../plan/)
+> Version 1.9 · 2026-10-14 · [Plan](../plan/)
 
 ## Overview
 
@@ -41,6 +41,36 @@ Each entry:
 ## Log
 
 ### 2026-10-14
+
+- **— (pre-merge review)** `apps/web` declares `"sideEffects": ["*.css"]`, so barrels drop unused exports (`/spisok/` stopped shipping `RoomBar`): JS `/spisok/` 230.5 → 216.4 KB, home 218 → 214, tool 240 → 237 KB gzip. The server-HTML guard skips `/spisok/prosmotr` (filled from `#` in the browser, `noindex`).
+  - Where: `feature/p17-a-estimate-model`
+  - Open: dead code left by the list-by-link page — `adoptEstimate` / `mergeEstimate` / `replaceEstimate` (tested, no caller) and the `readOnly` path in `RoomCards`.
+
+- **— (owner's request)** Home «Ваш ремонт» → «+ Добавить комнату» opens the room editor («Новая комната», first type the flat lacks, the active room's ceiling); its button reads «Посчитать материалы» and the save opens «Что считаем: <room>». The in-card “add” mode and «Назад к комнатам» are gone. `RoomEditor` gains `newType`, `saveLabel`, `onSaved`; `ResponsiveSheet` an optional trigger with `returnFocus` and `onClosed`.
+  - Where: `feature/p17-a-estimate-model`
+
+- **— (owner's request)** Calculator «Скопировать» copies the result text without «Открыть расчёт: <link>», and the print sheet drops «Расчёт онлайн: <link>» (date and room stay). «Отправить» still shares the `?s=` link. New `e2e/share.spec.ts`.
+  - Where: `feature/p17-a-estimate-model`
+
+- **— (owner's request)** `/spisok/` without anything counted (rooms only, drafts not added) shows no «Итого по списку» card and no export; the rooms take the full width. Spec «Смета» updated; e2e «rooms with nothing counted».
+  - Where: `feature/p17-a-estimate-model` · PR #173
+
+- **— (owner's request)** The estimate link opens as a document of its own: `/spisok/prosmotr/#s=…` (static, noindex), without the site header and footer (`body:has([data-document])` in globals.css, in the server HTML — no flash). Logo and date, the name and a summary, a table per room (Материал · Количество · Сумма), rooms with nothing counted, shared consumables with the saving, the total, «Как посчитано», «Перейти на главную». View only: «Забрать себе» and the board's read-only mode removed, nothing written on the viewer's device; old `/spisok/#s=` links redirect. Room at the bottom so the cookie bar never covers the button. Specs «Экспорт» and the open questions updated.
+  - Where: `feature/p17-a-estimate-model` · PR #173
+
+- **— (owner's request)** Calculator without rooms asks for the room first: after mount the room editor opens by itself (length and width empty; the example's height, door and window stay as a start), not over a `?s=` link, once a visit (`sessionStorage` `umnyaut:room-asked:v1`). The inline size fields in the room row are gone; the no-room row says «Размеры комнаты · Пример: 4,6 × 4,3 м» and «Указать размеры». `same()` now ignores key order: laminate never showed «Это пример» because its loaded values came back in another key order. A room saved from the editor without doors and windows counts none (wall area 48,6 instead of the example's 45,32). Spec «Калькулятор» updated.
+  - Where: `feature/p17-a-estimate-model` · PR #173
+
+- **P17.19 (owner's request)** Home room block in two states: «Какую комнату считаем?» (type chips, scheme, sizes in metres, floor / walls / ceiling, «Посчитать материалы» → a popup with three usual calculators of the type and «Все расчёты») and «Ваш ремонт» (rooms with area, calcs and saved sum, «Итого по списку», «Открыть список», «+ Добавить комнату» → a new room starting with a type not yet in the estimate). The example strip follows the room type; `floorOf` / `areaText` moved to `entities/room`. Doc [Home Room Block](../ui/home-room-block.md); unit tests and three phone journeys in `e2e/home.spec.ts`.
+  - Where: `feature/p17-a-estimate-model`
+  - Then (owner): the m / cm toggle and the openings caption dropped; the suggestions open in a popup (`ResponsiveSheet`) instead of replacing the button. The note under «Посчитать материалы» dropped. Kitchen floor can be laminate: kitchen suggestions are laminate, tile, paint (linoleum left for «Все расчёты», three per type), the kitchen strip shows laminate, plinth, tile and ceiling paint. Row «Окна и двери: … · Изменить / Добавить» under the areas opens the room editor (saving the shown room first). Room editor (owner): 880 px dialog from 1024 px with the plan and areas pinned on the right, the name with small type chips under it (no headings), then «Размеры» (fields on a mint card, «Высота потолка» → «Высота») / «Окна и двери» under hairlines as in the calculator form, pinned footer (red ghost delete on the left, «Отмена» and «Сохранить комнату» at their own width on the right), «+ Дверь» / «+ Окно» small; every dialog's title stays pinned on scroll (`DialogContent`); the editor's description became a `Hint` above the fields, dialogs and sheets without a description set no `aria-describedby`.
+  - Deviation: the work chips of P8.1 are gone (owner's choice: the strip follows the type). The form's height is not reserved for «Ваш ремонт»: a returning user's card changes height after mount, mostly below the fold.
+
+- **— (owner's request)** Tool cards in a grid row are one height: `ToolCard` fills its cell (`h-full`); a two-line note no longer makes one card taller than its neighbours.
+  - Where: `feature/p17-a-estimate-model` · PR #173
+
+- **— (owner's request)** Header list button restyled: white, no border, the clipboard icon, «Список» from the desktop up and the number of calcs in the list (added ones; drafts not counted) in a mint circle instead of the sum. Phone: icon and count. Spec «Шапка и футер» updated.
+  - Where: `feature/p17-a-estimate-model` · PR #173
 
 - **— (owner's request)** Header list button: from the desktop up (`lg`) the icon, «Список» and the sum in its white chip; the phone keeps the icon and the sum (icon alone while empty). Spec «Шапка и футер» updated.
   - Where: `feature/p17-a-estimate-model` · PR #173

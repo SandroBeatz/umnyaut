@@ -1,5 +1,10 @@
 import { expect, test } from "@playwright/test";
 
+/** The room editor opens by itself on a calculator without rooms (once a visit); not what these tests check. */
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem("umnyaut:room-asked:v1", "1"));
+});
+
 const WALLS = "/osnova/ploshchad-sten/";
 /** Design spec §11: the banner is a narrow bar, not higher than 96 px on a phone. */
 const MAX_HEIGHT = 96;

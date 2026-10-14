@@ -16,7 +16,7 @@ export function ToolCard({ tool, note }: ToolCardProps) {
   return (
     <Link
       href={toolPath(tool)}
-      className="group flex min-h-20 items-center gap-3 rounded-lg border border-border bg-surface p-4 shadow-sm transition-colors hover:border-border-input"
+      className="group flex h-full min-h-20 items-center gap-3 rounded-lg border border-border bg-surface p-4 shadow-sm transition-colors hover:border-border-input"
     >
       <IconCircle>
         <Icon />
