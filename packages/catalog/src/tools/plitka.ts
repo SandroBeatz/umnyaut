@@ -93,17 +93,6 @@ export const plitka: ToolDef = {
     { ...tile, name: "tileWidthMm", label: "Ширина плитки", group: "tile" },
     {
       kind: "number",
-      min: 3,
-      max: 30,
-      step: 0.5,
-      unit: "мм",
-      name: "tileThicknessMm",
-      label: "Толщина плитки",
-      hint: "Для затирки: глубина шва",
-      group: "tile",
-    },
-    {
-      kind: "number",
       min: 1,
       max: 200,
       step: 1,
@@ -117,7 +106,7 @@ export const plitka: ToolDef = {
     {
       kind: "select",
       name: "start",
-      label: "Раскладка",
+      label: "Начинаем",
       options: [
         { value: "corner", label: "От угла" },
         { value: "center", label: "От центра" },
@@ -127,7 +116,7 @@ export const plitka: ToolDef = {
     {
       kind: "select",
       name: "layout",
-      label: "Укладка",
+      label: "Рисунок",
       options: [
         { value: "straight", label: "Прямая" },
         { value: "diagonal", label: "Диагональ" },
@@ -165,10 +154,23 @@ export const plitka: ToolDef = {
       dropdown: true,
       options: options(adhesiveClasses),
       when: { adhesive: true },
+      wide: true,
       group: "adhesive",
     },
-    { kind: "price", item: "tile-adhesive", name: "price_tile-adhesive", label: "Цена мешка клея", group: "adhesive" },
+    { kind: "price", item: "tile-adhesive", name: "price_tile-adhesive", label: "Цена мешка", group: "adhesive" },
     { kind: "toggle", name: "grout", label: "Затирка", group: "grout" },
+    {
+      kind: "number",
+      min: 3,
+      max: 30,
+      step: 0.5,
+      unit: "мм",
+      name: "tileThicknessMm",
+      label: "Толщина плитки",
+      hint: "Это глубина шва; смотрите на коробке",
+      when: { grout: true },
+      group: "grout",
+    },
     {
       kind: "select",
       name: "groutColor",
@@ -186,7 +188,7 @@ export const plitka: ToolDef = {
       when: { grout: true, groutColor: "custom" },
       group: "grout",
     },
-    { kind: "price", item: "grout", name: "price_grout", label: "Цена упаковки затирки", group: "grout" },
+    { kind: "price", item: "grout", name: "price_grout", label: "Цена упаковки", group: "grout" },
     { kind: "toggle", name: "primer", label: "Грунтовать основание", group: "primer" },
     {
       kind: "number",
@@ -211,7 +213,7 @@ export const plitka: ToolDef = {
       when: { primer: true },
       group: "primer",
     },
-    { kind: "price", item: "primer", name: "price_primer", label: "Цена канистры грунтовки", group: "primer" },
+    { kind: "price", item: "primer", name: "price_primer", label: "Цена канистры", group: "primer" },
   ],
   presets: [
     { id: "t20", label: "20 × 20", values: { tileLengthMm: 200, tileWidthMm: 200, tilesPerBox: 25 } },
@@ -221,7 +223,7 @@ export const plitka: ToolDef = {
   ],
   groups: [
     { id: "tile", title: "Плитка" },
-    { id: "laying", title: "Раскладка" },
+    { id: "laying", title: "Укладка" },
     { id: "adhesive", title: "Плиточный клей", toggle: "adhesive" },
     { id: "grout", title: "Затирка", toggle: "grout" },
     { id: "primer", title: "Грунтовать основание", toggle: "primer" },

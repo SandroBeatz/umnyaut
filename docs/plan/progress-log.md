@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-14
 
+- **— (owner's request)** Tile, adhesive and grout forms in blocks. Tile: «Плитка» (length | width, per box | box price), «Укладка» («Начинаем» from corner / centre, «Рисунок» straight / diagonal, joint | reserve), «☐ Плиточный клей» (class on a full row, bag price), «☐ Затирка» (tile thickness — the joint depth — moved here | colour, own name | pack price), «☐ Грунтовать основание». Adhesive: «Плитка», «Расход» (method, layer | layer on the tile), «Клей» (class on a full row, bag | price). Grout: «Плитка и шов» (length | width, joint | thickness), «Затирка» (colour | own name, pack | price, reserve). Labels only; formulas unchanged.
+  - Where: `feature/p17-a-estimate-model` · PR #173
+
 - **— (owner's decision, spec Р20)** «Смета» is «Список покупок» in the interface: «Добавить в список» / «В списке» / «Обновить в списке», «Итого по списку», «Ещё понадобится · на весь список», «К списку», the page «Список покупок» at `/spisok/` with a 308 from `/smeta/` (catalog `redirects`; the `#` snapshot rides along). Code names (`estimate`), the storage key and the masters' «смета» on «Партнёрам» stay. «Смета» returns with the masters' mode (works and rates).
   - Where: `feature/p17-a-estimate-model` · PR #173
 
