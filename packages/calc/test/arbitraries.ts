@@ -83,6 +83,7 @@ const oboi: ToolArbitrary<OboiInput> = {
       ),
       rollWidthMm: f.integer({ min: 300, max: 1500 }),
       rollLengthMm: f.integer({ min: 5000, max: 50_000 }),
+      pattern: f.boolean(),
       repeatMm: f.integer({ min: 0, max: 1500 }),
       match: f.constantFrom("straight" as const, "offset" as const),
       trimMm: f.integer({ min: 0, max: 300 }),

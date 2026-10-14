@@ -168,7 +168,7 @@ export const golden: GoldenFile<OboiInput> = {
     },
     {
       name: "Straight match, repeat 64 cm: the start puts two strips on the window",
-      input: { repeatMm: 640 },
+      input: { pattern: true, repeatMm: 640 },
       expected: {
         items: { wallpaper: { packs: 11, need: 109.319, leftover: 1.231 } },
         summary: { strips: 32, stripLength: 3.2, perRoll: 3, pieces: 5, blanks: 31 },
@@ -181,7 +181,7 @@ export const golden: GoldenFile<OboiInput> = {
     },
     {
       name: "Offset match, repeat 64 cm: the short pieces fit the tails",
-      input: { repeatMm: 640, match: "offset" },
+      input: { pattern: true, repeatMm: 640, match: "offset" },
       expected: {
         items: { wallpaper: { packs: 11, need: 109.299, leftover: 1.251 } },
         summary: { strips: 33, perRoll: 3, pieces: 3 },
@@ -308,7 +308,7 @@ export const golden: GoldenFile<OboiInput> = {
     },
     {
       name: "Height 3 m with a 64 cm repeat: the worst roll start leaves 2 strips per roll",
-      input: { heightMm: 3000, repeatMm: 640 },
+      input: { heightMm: 3000, pattern: true, repeatMm: 640 },
       expected: {
         items: { wallpaper: { packs: 16, need: 157.689, leftover: 3.111 } },
         summary: { strips: 33, stripLength: 3.2, perRoll: 2, pieces: 3 },
@@ -321,7 +321,7 @@ export const golden: GoldenFile<OboiInput> = {
     },
     {
       name: "Offset match, repeat 50 cm, height 2.8 m: every roll gives 3 strips",
-      input: { heightMm: 2800, repeatMm: 500, match: "offset" },
+      input: { heightMm: 2800, pattern: true, repeatMm: 500, match: "offset" },
       expected: {
         items: { wallpaper: { packs: 11, need: 110.099, leftover: 0.451 } },
         summary: { strips: 33, perRoll: 3, pieces: 3 },
@@ -333,7 +333,7 @@ export const golden: GoldenFile<OboiInput> = {
     },
     {
       name: "Straight match 64 cm, height 2.9 m: strips use the roll almost to the end",
-      input: { heightMm: 2900, repeatMm: 640 },
+      input: { heightMm: 2900, pattern: true, repeatMm: 640 },
       expected: {
         items: { wallpaper: { packs: 11, need: 110.159, leftover: 0.391 } },
         summary: { perRoll: 3 },
@@ -366,6 +366,7 @@ export const golden: GoldenFile<OboiInput> = {
       name: "Pattern 70 cm: the piece under the window starts where the pattern is at its height (review)",
       input: {
         heightMm: 2500,
+        pattern: true,
         repeatMm: 700,
         openings: [
           { type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 2, offsetMm: 530 }] },
@@ -595,7 +596,7 @@ export const golden: GoldenFile<OboiInput> = {
     },
     {
       name: "Symmetric main wall with a 64 cm pattern: a joint in the middle of wall 1",
-      input: { repeatMm: 640, symmetric: true },
+      input: { pattern: true, repeatMm: 640, symmetric: true },
       expected: {
         items: { wallpaper: { packs: 12, need: 111.689 } },
         summary: { strips: 33, pieces: 3 },

@@ -83,6 +83,8 @@ const input = z.object({
   rollWidthMm: z.int().check(z.minimum(300), z.maximum(1500)),
   rollLengthMm: z.int().check(z.minimum(5000), z.maximum(50_000)),
   /** Pattern repeat (раппорт); 0 = plain or free match. */
+  /** The wallpaper has a pattern to match: only then the repeat and its match count. */
+  pattern: z.boolean(),
   repeatMm: z.int().check(z.minimum(0), z.maximum(1500)),
   match: z.enum(["straight", "offset"]),
   /** Trim allowance per strip, top and bottom together (norm `wallpaper.trimAllowance`). */
@@ -661,7 +663,8 @@ export const oboi: ToolModule<OboiInput> = {
   //    may be cut at the edges of openings (`aroundOpenings: "edge"`).
   // 5: the paste by wallpaper type (Metylan datasheets): 42 m² per 300 g for non-woven, 36 for heavy, 35 per
   //    250 g of a paper paste — was 30 m² per 250 g, unconfirmed.
-  version: 5,
+  // 6: the repeat counts only with «Рисунок нужно совмещать» on (owner, 2026-10-14).
+  version: 6,
   input,
   defaults: () => ({
     lengthMm: 4600,
@@ -687,6 +690,7 @@ export const oboi: ToolModule<OboiInput> = {
     spareRolls: 0,
     rollWidthMm: 530,
     rollLengthMm: 10_050,
+    pattern: false,
     repeatMm: 0,
     match: "straight",
     trimMm: 100,
@@ -697,6 +701,7 @@ export const oboi: ToolModule<OboiInput> = {
     primerPackL: 10,
   }),
   compute(i): ToolResult {
+    i = { ...i, repeatMm: i.pattern ? i.repeatMm : 0 };
     const warnings: Warning[] = [];
     const openings = i.openings.filter((o) => o.count > 0);
     const lShape = i.shape === "l" && i.cutLengthMm > 0 && i.cutWidthMm > 0;
