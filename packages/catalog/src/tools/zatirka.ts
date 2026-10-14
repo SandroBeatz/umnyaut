@@ -127,5 +127,6 @@ export const zatirka: ToolDef = {
     joint_too_narrow: "Шов {joint} мм уже {min} мм — затирка рассчитана на шов от {min} мм. Уточните по паспорту",
     joint_too_wide: "Шов {joint} мм шире {max} мм — для такого шва нужна другая затирка. Уточните по паспорту",
   },
+  costPerM2: "{price} за 1 м² облицовки",
   norms: ["grout.density", "grout.reserve", "tile.joint.wall", "tile.joint.floor", "grout.pack", "grout.maxJoint"],
 };

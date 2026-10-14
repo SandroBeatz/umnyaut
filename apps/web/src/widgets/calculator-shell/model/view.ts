@@ -100,7 +100,7 @@ export function describeResult(tool: ToolDef, result: ToolResult, country: Count
   if (result.cost && result.cost.missing.length < result.items.length) {
     const parts = [fill(shell.result.total, { total: formatMoney(result.cost.total, country) })];
     if (result.cost.perM2 !== undefined)
-      parts.push(fill(shell.result.perM2, { price: formatMoney(result.cost.perM2, country) }));
+      parts.push(fill(tool.costPerM2 ?? shell.result.perM2, { price: formatMoney(result.cost.perM2, country) }));
     const count = result.cost.missing.length;
     total = {
       text: parts.join(" · "),

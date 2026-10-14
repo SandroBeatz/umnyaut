@@ -41,8 +41,10 @@ export interface EstimateCalcItems {
   roomId: string;
   surface?: Surface;
   items: readonly PurchaseItem[];
-  /** Main-material pack price by item key. */
+  /** Main-material price by item key: per pack, or per unit bought where `priceBasis` says so. */
   prices?: Readonly<Record<string, number>>;
+  /** «unit» — the price is per m² or litre bought (linoleum, paint): a line costs bought amount × price. */
+  priceBasis?: Readonly<Record<string, "pack" | "unit">>;
 }
 
 export interface AggregateInput {
@@ -174,7 +176,16 @@ export function aggregateEstimate({ roomIds, calcs, shared, prices }: AggregateI
       .flatMap((calc) =>
         (kept.get(calc.id) ?? [])
           .filter((item) => !shared.has(item.key))
-          .map((item): EstimateLine => ({ calcId: calc.id, item, ...priced(item.packs, calc.prices?.[item.key]) })),
+          .map(
+            (item): EstimateLine => ({
+              calcId: calc.id,
+              item,
+              ...priced(
+                calc.priceBasis?.[item.key] === "unit" ? item.bought.value : item.packs,
+                calc.prices?.[item.key],
+              ),
+            }),
+          ),
       );
     return {
       roomId,

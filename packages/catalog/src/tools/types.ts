@@ -112,6 +112,11 @@ export interface ToolDef {
    * surface field has several calcs in a room, one per surface (owner, 2026-10-13); the rest have one.
    */
   surface?: { field: string; values: Readonly<Record<string, Surface>> } | { fixed: Surface };
+  /**
+   * The total per square metre of what is finished, after «Итого»: «{price} за 1 м² пола» — so it is never read as
+   * the price per m² of the material typed in the form.
+   */
+  costPerM2?: string;
   /** Norm ids this tool uses (see norms.ts); “How calculated” lists their sources. */
   norms?: readonly string[];
 }

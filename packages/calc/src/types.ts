@@ -323,4 +323,9 @@ export interface ToolModule<I = unknown, R extends ToolResult = ToolResult> {
   defaults(ctx: CalcContext): I;
   /** Never throws on schema-valid input: doubtful input gives a warning. */
   compute(input: I, ctx: CalcContext): R;
+  /**
+   * How each `price_<item>` field is meant (set by `priced`): per pack bought, or per unit of the bought amount (m² of
+   * linoleum, litre of paint). The estimate needs it to price a line the way the calculator does.
+   */
+  priceBasis?: Readonly<Record<string, "pack" | "unit">>;
 }

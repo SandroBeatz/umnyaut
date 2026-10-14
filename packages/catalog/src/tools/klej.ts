@@ -149,6 +149,7 @@ export const klej: ToolDef = {
     layer_too_thick:
       "Слой {layer} мм толще допустимого {max} мм. Выровняйте основание или выберите клей для толстого слоя",
   },
+  costPerM2: "{price} за 1 м² облицовки",
   norms: [
     "tileAdhesive.notch3",
     "tileAdhesive.notch8",

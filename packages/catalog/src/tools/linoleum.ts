@@ -147,5 +147,6 @@ export const linoleum: ToolDef = {
       "Стыков полотен: {seams}. Их сваривают холодной сваркой — включите «Холодная сварка швов», чтобы добавить её в покупки",
     opening_off_wall: "Проёмов не помещается на своей стене: {count}. Проверьте отступ от угла на плане",
   },
+  costPerM2: "{price} за 1 м² пола",
   norms: ["linoleum.weldPerTube", "linoleum.seamOverlap", "linoleum.rollWidthMin", "linoleum.rollWidthMax"],
 };

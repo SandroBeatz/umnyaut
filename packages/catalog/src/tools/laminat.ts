@@ -159,6 +159,7 @@ export const laminat: ToolDef = {
     waste_unconfirmed: "Запас {pct}% на диагональ и ёлочку — по опыту укладчиков, ждёт проверки мастером",
     opening_off_wall: "Проёмов не помещается на своей стене: {count}. Проверьте отступ от угла на плане",
   },
+  costPerM2: "{price} за 1 м² пола",
   norms: [
     "laminate.minOffset",
     "laminate.minLastRow",

@@ -25,7 +25,13 @@ export function calcItems(
   estimate: Estimate,
   calc: EstimateCalc,
   moduleOf: ModuleOf,
-): { items: readonly PurchaseItem[]; prices: Record<string, number> } | undefined {
+):
+  | {
+      items: readonly PurchaseItem[];
+      prices: Record<string, number>;
+      priceBasis?: Readonly<Record<string, "pack" | "unit">>;
+    }
+  | undefined {
   const tool = tools.find((t) => t.id === calc.tool);
   const module = moduleOf(calc.tool as ToolId);
   if (!tool || !module) return undefined;
@@ -40,7 +46,11 @@ export function calcItems(
       return f.kind === "price" && typeof price === "number" && price > 0 ? [[f.item, price]] : [];
     }),
   );
-  return { items: module.compute(values, ctx).items, prices };
+  return {
+    items: module.compute(values, ctx).items,
+    prices,
+    ...(module.priceBasis ? { priceBasis: module.priceBasis } : {}),
+  };
 }
 
 /**
@@ -67,6 +77,7 @@ export function computeEstimate(
         ...(calc.surface ? { surface: calc.surface } : {}),
         items: counted.items,
         prices: { ...counted.prices, ...calc.prices },
+        ...(counted.priceBasis ? { priceBasis: counted.priceBasis } : {}),
       },
     ];
   });

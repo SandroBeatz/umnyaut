@@ -78,4 +78,33 @@ describe("estimate totals", () => {
       saving: "Плиточный клей на всю смету: 7\u00a0мешков вместо 9\u00a0мешков — общий с «Кухня»",
     });
   });
+
+  it("prices a line the way the calculator does: linoleum per m², paint per litre", () => {
+    const priced = (tool: string, input: Record<string, unknown>) => {
+      const one: Estimate = {
+        ...estimate,
+        rooms: [{ id: "r1", name: "Зал", type: "living", lengthMm: 4600, widthMm: 4300, heightMm: 2800 }],
+        calcs: [{ id: "c1", roomId: "r1", tool, toolVersion: 1, input, openedAt: 1, addedAt: 1 }],
+      };
+      const module = getToolModule(tool as never);
+      const own = module.compute(
+        module.input.parse({
+          ...module.defaults({ country: "RU" }),
+          lengthMm: 4600,
+          widthMm: 4300,
+          heightMm: 2800,
+          ...input,
+        }),
+        { country: "RU" },
+      );
+      return { estimate: computeEstimate(one, moduleOf, () => true).totals.byRoom.r1, calculator: own.cost?.total };
+    };
+    // m² bought × 350, not 0,1 m cut steps × 350 (ten times more).
+    const linoleum = priced("linoleum", { price_linoleum: 350 });
+    expect(linoleum.estimate).toBeGreaterThan(7000);
+    expect(linoleum.estimate).toBeCloseTo(linoleum.calculator ?? 0, 6);
+    // A can set (9 l + 2,7 l …): litres bought × 630, line by line.
+    const paint = priced("kraska", { price_paint: 630 });
+    expect(paint.estimate).toBeCloseTo(paint.calculator ?? 0, 6);
+  });
 });

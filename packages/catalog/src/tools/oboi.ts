@@ -297,6 +297,7 @@ export const oboi: ToolDef = {
     roll_tight:
       "Полосы занимают рулон почти целиком: остаётся {slack} м. Рулон может быть короче на 1,5% — возьмите один про запас",
   },
+  costPerM2: "{price} за 1 м² стен",
   norms: [
     "wallpaper.rollWidth",
     "wallpaper.trimAllowance",

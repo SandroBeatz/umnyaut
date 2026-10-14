@@ -247,6 +247,7 @@ export const plitka: ToolDef = {
     window_above_ceiling:
       "Окон выше потолка: {count} — высота от пола плюс высота окна больше высоты стен. Считаем окно под самым потолком; проверьте высоты на плане",
   },
+  costPerM2: "{price} за 1 м² облицовки",
   norms: [
     "tile.reserve",
     "tile.reserve.diagonal",

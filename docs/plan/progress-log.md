@@ -40,6 +40,11 @@ Each entry:
 
 ## Log
 
+### 2026-10-14
+
+- **— (owner's feedback)** The estimate priced linoleum and paint wrong: their price is per m² / per litre, the estimate multiplied it by packs (linoleum «packs» are 10 cm cut steps — 30 450 instead of 7 613 for 8,7 m × 2,5 m at 350). `priced` now tells its `priceBasis`, the estimate prices a «unit» line as bought amount × price, line by line (a paint can set too); a test checks the estimate equals the calculator for both. «Итого … · 385 за м²» read like the typed price — each tool now says what the m² is (`costPerM2`: «за 1 м² пола / облицовки / окраски / стен»). The tile primer's price field had no effect (`primer` missing in the tile's price config) — fixed.
+  - Where: `feature/p17-a-estimate-model` · PR #173
+
 ### 2026-10-13
 
 - **— (owner's feedback)** The estimate changes only on request (spec Р4 rewritten): no threshold — changed fields, a price or a result action no longer add a calc; «Добавить в смету» is the only way in. Edits of a calc in the estimate go to its `draft` (schema 2: optional `draft` on a calc) — the estimate, the totals and the header keep counting `input` until «Обновить в смете» (`commitDraft`); the same values again clear the draft. The calculator's own share of shared consumables follows the draft. Linoleum: the seam hint said the cold welding is «already in the list» with welding off — now «включите «Холодная сварка швов»» then (`seams_no_weld`, golden added; numbers were right: 2 sheets × 4,35 м = 8,7 м). From the `formula-reviewer` report on stage B: an adhesive or grout calc replaces tile's own only when it covers the tile's whole surface (adhesive on «Пол» kept tile «Пол и стены»'s 241,8 kg for the walls out — test added); «Пол и стены» with openings larger than the walls says walls 0 м² in the steps. All goldens of stage B re-derived by the reviewer, Qalculator benchmarks reproduced, sources confirmed.
