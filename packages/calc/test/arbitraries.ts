@@ -194,6 +194,7 @@ const linoleum: ToolArbitrary<LinoleumInput> = {
         rollWidthMm: f.oneof(f.constant(0), f.integer({ min: 500, max: 6000 })),
         overlapMm: f.integer({ min: 0, max: 300 }),
         allowanceMm: f.integer({ min: 0, max: 300 }),
+        pattern: f.boolean(),
         repeatMm: f.integer({ min: 0, max: 2000 }),
         cutStepMm: f.integer({ min: 10, max: 1000 }),
       })

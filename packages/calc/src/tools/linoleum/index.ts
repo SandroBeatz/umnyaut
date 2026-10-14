@@ -33,6 +33,8 @@ const input = z.object({
   overlapMm: z.int().check(z.minimum(0), z.maximum(300)),
   /** Extra on each room dimension for uneven walls; 0 — the room's largest length and width (Tarkett). */
   allowanceMm: z.int().check(z.minimum(0), z.maximum(300)),
+  /** The linoleum has a pattern to match: only then the repeat counts. */
+  pattern: z.boolean(),
   /** Pattern repeat: each sheet after the first is cut up to one repeat longer to match the pattern. */
   repeatMm: z.int().check(z.minimum(0), z.maximum(2000)),
   /** Seam welding: metres of seam one tube closes (norm `linoleum.weldPerTube`, unconfirmed). */
@@ -221,7 +223,8 @@ function scheme(i: LinoleumInput, best: Variant, variants: readonly Variant[], w
 export const linoleum: ToolModule<LinoleumInput> = {
   id: "linoleum",
   // 2: a sheet is short only when its seam lies in the L-shape's narrow part (allowance shift counted).
-  version: 2,
+  // 3: the repeat counts only with «Рисунок» on (owner, 2026-10-14) — a repeat left in a hidden field adds nothing.
+  version: 3,
   input,
   defaults: () => ({
     shape: "rect",
@@ -238,12 +241,14 @@ export const linoleum: ToolModule<LinoleumInput> = {
     rollWidthMm: 0,
     overlapMm: 50,
     allowanceMm: 0,
+    pattern: false,
     repeatMm: 0,
     weld: true,
     weldPerTubeM: 20,
     cutStepMm: 100,
   }),
   compute(i): ToolResult {
+    i = { ...i, repeatMm: i.pattern ? i.repeatMm : 0 };
     const widths = i.rollWidthMm > 0 ? [i.rollWidthMm] : [...LINOLEUM_WIDTHS_MM];
     const variants = widths
       .flatMap((w) => [variant(w, true, i), variant(w, false, i)])

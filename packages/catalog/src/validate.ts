@@ -67,6 +67,14 @@ export function validateRegistry({ categories, reservedSegments, tools, modules,
         if (!names.includes(key)) errors.push(`${at}: preset ${preset.id} sets unknown field ${key}`);
       }
     }
+    const groupIds = (tool.groups ?? []).map((g) => g.id);
+    for (const id of duplicates(groupIds)) errors.push(`${at}: duplicate group ${id}`);
+    for (const group of tool.groups ?? [])
+      if (group.toggle && !tool.fields.some((f) => f.kind === "toggle" && f.name === group.toggle))
+        errors.push(`${at}: group ${group.id} switched by unknown toggle ${group.toggle}`);
+    for (const field of tool.fields)
+      if ("group" in field && field.group && !groupIds.includes(field.group))
+        errors.push(`${at}: field ${field.name} in unknown group ${field.group}`);
     for (const field of tool.fields) {
       if (field.kind !== "select") continue;
       for (const option of field.options)

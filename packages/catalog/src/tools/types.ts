@@ -9,6 +9,8 @@ interface FieldBase {
   main?: boolean;
   /** Shown in the planner's short form. */
   planner?: boolean;
+  /** The form block it belongs to (`ToolDef.groups`): the main material, cutting, a related material. */
+  group?: string;
   hint?: string;
   /**
    * Shown only while other fields have these values, e.g. the cut-out only for `shape: "l"`, a class with a toggle
@@ -90,6 +92,16 @@ export interface ToolDef {
   status: "draft" | "live";
   fields: readonly FieldDef[];
   presets?: readonly PresetDef[];
+  /**
+   * Blocks of «Ещё параметры» in order, each with its heading: the main material with its price, then how it is cut,
+   * then each related material behind its own toggle. Fields without a group stand before them.
+   */
+  groups?: readonly {
+    id: string;
+    title: string;
+    /** A toggle field that switches the block on: it becomes the heading «☐ Холодная сварка швов», its fields show only when on. */
+    toggle?: string;
+  }[];
   /** «Дальше по ремонту»: tools that continue the work with the same room. */
   nextSteps?: readonly ToolId[];
   /** Safety disclaimer card (radiators, cable, screed). */

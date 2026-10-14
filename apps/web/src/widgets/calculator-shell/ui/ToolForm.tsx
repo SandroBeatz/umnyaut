@@ -299,7 +299,40 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra }:
           id={moreId}
           className={open ? "grid grid-cols-2 gap-x-3 gap-y-4" : "hidden grid-cols-2 gap-x-3 gap-y-4 lg:grid"}
         >
-          {more.map(render)}
+          {more.filter((field) => !("group" in field && field.group)).map(render)}
+          {(tool.groups ?? []).map((group) => {
+            const inGroup = more.filter(
+              (field) =>
+                "group" in field && field.group === group.id && !("name" in field && field.name === group.toggle),
+            );
+            const on = group.toggle ? values[group.toggle] === true : true;
+            if (!group.toggle && inGroup.length === 0) return null;
+            // A block per material: its heading (or the toggle that switches it on), then its fields.
+            return (
+              <fieldset
+                key={group.id}
+                className="col-span-2 grid grid-cols-2 gap-x-3 gap-y-4 border-border border-t pt-3"
+                data-field-group={group.id}
+              >
+                <legend className="float-left col-span-2">
+                  {group.toggle ? (
+                    <label className="flex min-h-12 items-center gap-3 text-body-strong text-text">
+                      <input
+                        type="checkbox"
+                        className="size-5 accent-[var(--color-primary)]"
+                        checked={on}
+                        onChange={(e) => onChange({ [group.toggle as string]: e.target.checked })}
+                      />
+                      {group.title}
+                    </label>
+                  ) : (
+                    <span className="text-body-strong text-text">{group.title}</span>
+                  )}
+                </legend>
+                {on ? inGroup.map(render) : null}
+              </fieldset>
+            );
+          })}
           {extra ? <div className="col-span-2">{extra}</div> : null}
         </div>
       ) : null}

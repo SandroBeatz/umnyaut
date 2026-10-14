@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-14
 
+- **— (owner's request)** Linoleum form split into the main material and its related materials: «Ширина рулона | Цена за м²» in the first row; «Ещё параметры» as blocks — «☐ Рисунок нужно совмещать» (the repeat with a hint, only when on), «Раскрой» (allowance, overlap, cut step), «☐ Холодная сварка швов» (metres per tube and the tube price, only when on). Catalog: `FieldDef.group`, `ToolDef.groups` with an optional heading toggle, validated. Linoleum **v3**: a new `pattern` input — the repeat counts only with it on (golden added; two goldens with a repeat set it).
+  - Where: `feature/p17-a-estimate-model` · PR #173
+  - Notes: the other tools to follow the same layout after the owner checks linoleum.
+
 - **— (owner's feedback)** «Итого 7 613 сом · 385 сом за 1 м² пола» still read like a second price next to «Цена за м² 350». A main item priced per m² or litre now shows where the total comes from: «Итого 7 613 сом · 21,75 м² по 350 сом» (paint: «9,9 л по 630 сом»); pack-priced tools keep «за 1 м² пола / облицовки / стен».
   - Where: `feature/p17-a-estimate-model` · PR #173
 
