@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-14
 
+- **— (owner's request)** The result card's cat sits in a mint circle at the card's top-right corner, larger (72 px phone, 112 px from 1024 px) and over the card's edge on desktop; absolute, so the number does not move (rule 8). The sticky result column starts 40 px lower so the cat is not cut by the header.
+  - Where: `feature/p17-a-estimate-model` · PR #173
+
 - **— (owner's request)** Result card after the owner's reference: muted «Нужно купить · <room>» with the cat on the right of the heading row; the main line — photo, big number, «Ламинат · 20,97 м² · останется …» and the main item's cost (right from 640 px, under the caption on a phone); «ЕЩЁ ПОНАДОБИТСЯ» in small caps with each item's quantity and cost (stacked on a phone); «Итого» as a mint bar — the note on the left, the total large on the right (`data-result-total`). Per-item costs in the view model (`costOf`: packs × price, or amount × price for a per-m² / per-litre price).
   - Where: `feature/p17-a-estimate-model` · PR #173
 

@@ -37,14 +37,21 @@ export function ResultPanel({ tool, view, example, stale, room, shared, ref }: R
       ref={ref}
       id="result"
       aria-label={r.region}
-      className="scroll-mt-20 rounded-lg border border-border bg-surface px-4 pt-3 pb-4 shadow-md lg:p-6"
+      className="relative scroll-mt-20 rounded-lg border border-border bg-surface px-4 pt-3 pb-4 shadow-md lg:p-6"
     >
-      {/* Heading on the left, the cat on the right: no extra height above the number (rule 8). */}
-      <header className="-mt-1 flex min-h-12 items-center justify-between gap-3">
+      {/* The cat in a mint circle at the card's corner; from 1024 px it stands out over the edge. Absolute, so the
+          number stays where it was (rule 8). */}
+      <span
+        aria-hidden="true"
+        className="absolute top-2 right-3 flex size-[72px] items-end justify-center overflow-hidden rounded-full bg-surface-mint lg:-top-10 lg:right-6 lg:size-28"
+      >
+        <Mascot image={mascotImages.done} size={64} sizeLg={96} alt="" />
+      </span>
+      {/* The heading keeps clear of the cat in the corner. */}
+      <header className="-mt-1 flex min-h-12 items-center pr-20 lg:pr-32">
         <p className="min-w-0 text-body-strong text-text-muted">
           {example ? r.example : view.mode === "buy" ? (room ? fill(r.buyIn, { buy: r.buy, room }) : r.buy) : r.measure}
         </p>
-        <Mascot image={mascotImages.done} size={56} alt="" spot className="-my-2 shrink-0" />
       </header>
 
       {main ? (

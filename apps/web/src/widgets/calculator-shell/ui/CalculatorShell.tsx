@@ -151,7 +151,7 @@ export function CalculatorShell({ tool, next, checkedAt, sources, module }: Calc
               extra={tool.items ? <CalcLabel value={current?.label ?? ""} onChange={calc.setLabel} /> : undefined}
             />
           </div>
-          <div className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-[88px] lg:col-span-7">
+          <div className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-[128px] lg:col-span-7">
             <ResultPanel
               ref={panel}
               tool={tool}
