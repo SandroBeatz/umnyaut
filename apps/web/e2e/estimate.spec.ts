@@ -187,7 +187,9 @@ test("a broken link says so and shows this device's estimate", async ({ page }) 
   await expect(page.locator("[data-estimate-empty]")).toBeVisible();
 });
 
-test("header: «Смета» everywhere, its sum once the estimate has one, teal on the estimate page", async ({ page }) => {
+test("header: the estimate icon everywhere, its sum once the estimate has one, current on the estimate page", async ({
+  page,
+}) => {
   await page.goto("/pol/laminat/");
   const button = page.locator("[data-estimate-button]");
   await expect(button).toHaveText("Смета");

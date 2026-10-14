@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-14
 
+- **— (owner's request)** Header estimate button has one look everywhere — mint, the sum in a white chip (no teal on `/smeta/`, `aria-current` stays). No sum: the icon alone; the word «Смета» only from 1024 px beside a sum (always for screen readers); phone: icon + sum.
+  - Where: `feature/p17-a-estimate-model` · PR #173
+  - Deviation: spec «Шапка и футер» said teal on the estimate page and «Смета» without a sum — owner's change.
+
 - **— (owner's request)** Estimate title pencil: a 32 px button with its own hover, 48 px tap area, like the room cards.
   - Where: `feature/p17-a-estimate-model` · PR #173
   - Notes: e2e «an L-shaped room shows the cut-out fields…» failed once under a slow full run (11,5 s) and passed 3/3 alone and in the next full run — watch it for flakiness.
