@@ -81,7 +81,7 @@ export const plintus: ToolDef = {
     "plinth-corner-out": { title: "Наружный угол", photo: "plinth-fittings" },
     "plinth-cap": { title: "Заглушка", photo: "plinth-fittings" },
     "plinth-joiner": { title: "Соединитель", photo: "plinth-fittings" },
-    "plinth-fastener": { title: "Дюбель-саморез" },
+    "plinth-fastener": { title: "Дюбель-саморез", icon: "fastener" },
   },
   summary: { run: "Длина плинтуса", perimeter: "Периметр" },
   steps: {

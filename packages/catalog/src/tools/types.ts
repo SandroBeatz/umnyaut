@@ -70,8 +70,10 @@ export interface PresetDef {
 /** Display data for a purchase item key returned by `compute()`. */
 export interface ItemDef {
   title: string;
-  /** Material photo key in the image pipeline (`materialImages`); none → category icon. */
+  /** Material photo key in the image pipeline (`materialImages`); none → `icon`, else the category icon. */
   photo?: string;
+  /** A small item with no photo yet: its own icon instead of the category's (fasteners, a tube). */
+  icon?: "fastener" | "tube";
   /**
    * A consumable bought once for the whole renovation (adhesive, primer, grout, wallpaper paste): the estimate sums
    * it across rooms and rounds to packs once. Without the flag the item is a room's own material.

@@ -2,7 +2,7 @@
 
 import type { EstimateRoom } from "@umnyaut/calc";
 import { estimatePage, shell, toolPath } from "@umnyaut/catalog";
-import { Button, categoryIcons, Popover, PopoverClose, PopoverContent, PopoverTrigger, toast } from "@umnyaut/ui";
+import { Button, categoryIcons, toast } from "@umnyaut/ui";
 import { type Country, formatMoney } from "@umnyaut/ui/format";
 import { Calculator, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
@@ -30,38 +30,6 @@ const removeCalc = (id: string) => {
   useEstimateStore.getState().removeCalc(id);
   toast(t.removed, { action: { label: shell.calcs.undo, onClick: () => useEstimateStore.getState().undoRemove() } });
 };
-
-/** The row's red trash; removing asks first («Убрать «Краска» из сметы?»), then «Вернуть» in a toast. */
-function RemoveRow({ title, onRemove }: { title: string; onRemove(): void }) {
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          className="flex size-12 shrink-0 items-center justify-center rounded-md text-danger transition-colors hover:bg-danger-soft print:hidden"
-          aria-label={fill(t.remove, { calc: title })}
-        >
-          <Trash2 aria-hidden="true" className="size-5" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="flex w-64 flex-col gap-3 p-3">
-        <p className="text-body-strong">{fill(t.removeConfirm, { calc: title })}</p>
-        <div className="flex gap-2">
-          <PopoverClose asChild>
-            <Button variant="danger" size="sm" className="flex-1" onClick={onRemove}>
-              {t.removeYes}
-            </Button>
-          </PopoverClose>
-          <PopoverClose asChild>
-            <Button variant="secondary" size="sm" className="flex-1">
-              {t.removeNo}
-            </Button>
-          </PopoverClose>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
 
 /** The room editor behind a trigger; `room: null` adds a room. */
 function EditRoom({ room, trigger }: { room: EstimateRoom | null; trigger: ReactNode }) {
@@ -93,6 +61,53 @@ function RoomTitle({ room, size, readOnly }: { room: EstimateRoom; size?: string
       </span>
       {size ? <span className="text-small text-text-muted tabular-nums">{size}</span> : null}
     </span>
+  );
+}
+
+/**
+ * One calc row: the link into its calculator and a red trash. The trash asks in the row itself — «Убрать «Краска» из
+ * сметы?» with «Убрать» and «Отмена» — then «Вернуть» in a toast.
+ */
+function CalcRowItem({ row, content, readOnly }: { row: CalcRow; content: ReactNode; readOnly?: boolean | undefined }) {
+  const [asking, setAsking] = useState(false);
+  if (asking) {
+    return (
+      <li
+        className="flex min-h-[72px] flex-wrap items-center gap-x-3 gap-y-2 border-border border-t py-2"
+        data-calc-row
+      >
+        <p className="min-w-0 flex-1 text-body-strong">{fill(t.removeConfirm, { calc: row.title })}</p>
+        <div className="flex gap-2">
+          <Button variant="danger" size="sm" onClick={() => removeCalc(row.id)}>
+            {t.removeYes}
+          </Button>
+          <Button variant="secondary" size="sm" onClick={() => setAsking(false)}>
+            {t.removeNo}
+          </Button>
+        </div>
+      </li>
+    );
+  }
+  return (
+    <li className="flex items-center border-border border-t" data-calc-row>
+      {readOnly ? (
+        <div className={rowClass}>{content}</div>
+      ) : (
+        <Link href={toolPath(row.tool)} onClick={() => openCalc(row)} className={rowClass}>
+          {content}
+        </Link>
+      )}
+      {readOnly ? null : (
+        <button
+          type="button"
+          className="flex size-12 shrink-0 items-center justify-center rounded-md text-danger transition-colors hover:bg-danger-soft print:hidden"
+          aria-label={fill(t.remove, { calc: row.title })}
+          onClick={() => setAsking(true)}
+        >
+          <Trash2 aria-hidden="true" className="size-5" />
+        </button>
+      )}
+    </li>
   );
 }
 
@@ -140,18 +155,7 @@ export function RoomCardView({ card, country, readOnly }: { card: RoomCard; coun
               )}
             </>
           );
-          return (
-            <li key={row.id} className="flex items-center border-border border-t" data-calc-row>
-              {readOnly ? (
-                <div className={rowClass}>{content}</div>
-              ) : (
-                <Link href={toolPath(row.tool)} onClick={() => openCalc(row)} className={rowClass}>
-                  {content}
-                </Link>
-              )}
-              {readOnly ? null : <RemoveRow title={row.title} onRemove={() => removeCalc(row.id)} />}
-            </li>
-          );
+          return <CalcRowItem key={row.id} row={row} content={content} readOnly={readOnly} />;
         })}
       </ul>
     </section>

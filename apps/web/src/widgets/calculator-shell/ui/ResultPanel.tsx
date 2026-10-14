@@ -1,6 +1,6 @@
 import { shell, type ToolDef } from "@umnyaut/catalog";
 import { categoryIcons, cn, Mascot, MaterialThumb } from "@umnyaut/ui";
-import { Calculator, Info } from "lucide-react";
+import { Bolt, Calculator, Info, TubeLotion } from "lucide-react";
 import type { Ref } from "react";
 import type { SharedItemView } from "@/features/estimate-totals";
 import { mascotImages, materialImages } from "@/shared/config";
@@ -113,7 +113,14 @@ export function ResultPanel({ tool, view, example, stale, room, shared, ref }: R
               const detail = merged?.share ?? item.detail;
               return (
                 <li key={item.key} className="flex items-center gap-3 py-2.5">
-                  <MaterialThumb image={photoOf(item.photo)} fallbackIcon={<CategoryIcon />} alt="" size={56} />
+                  <MaterialThumb
+                    image={photoOf(item.photo)}
+                    fallbackIcon={
+                      item.icon === "fastener" ? <Bolt /> : item.icon === "tube" ? <TubeLotion /> : <CategoryIcon />
+                    }
+                    alt=""
+                    size={56}
+                  />
                   <span className="flex min-w-0 flex-1 flex-col">
                     <span className="text-body-strong">{item.title}</span>
                     {detail ? <span className="text-small text-text-muted tabular-nums">{detail}</span> : null}

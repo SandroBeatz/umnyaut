@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-14
 
+- **— (owner's requests)** Estimate rows: a red trash that asks in the row itself — «Убрать «Краска» из сметы?» with «Убрать» / «Отмена» — then «Вернуть» in a toast (a Popover first, but it pulled Radix into `/smeta/`: 247,4 KB over the 230 budget; the in-row confirm keeps it at 224,5). Items without a photo get their own icon instead of the category's (`ItemDef.icon`): the dowel-screw a bolt, the cold welding a tube. Saving hint names after the first in lower case.
+  - Where: `feature/p17-a-estimate-model` · PR #173
+
 - **— (owner's request)** Header estimate button has one look everywhere — mint, the sum in a white chip (no teal on `/smeta/`, `aria-current` stays). No sum: the icon alone; the word «Смета» only from 1024 px beside a sum (always for screen readers); phone: icon + sum.
   - Where: `feature/p17-a-estimate-model` · PR #173
   - Deviation: spec «Шапка и футер» said teal on the estimate page and «Смета» without a sum — owner's change.

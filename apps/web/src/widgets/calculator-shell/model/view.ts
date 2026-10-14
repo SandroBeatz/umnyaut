@@ -25,7 +25,15 @@ export interface ResultView {
   mode: "buy" | "measure";
   main?: MainFigure;
   /** `detail`: pack sizes of a volume/weight item («по 10 л», «1 × 10 л + 1 × 1 л»), small under the title. */
-  related: { key: string; title: string; quantity: string; detail?: string; photo?: string; cost?: string }[];
+  related: {
+    key: string;
+    title: string;
+    quantity: string;
+    detail?: string;
+    photo?: string;
+    icon?: "fastener" | "tube";
+    cost?: string;
+  }[];
   tiles: { key: string; label: string; value: string }[];
   /** `text` — one line for share and print; `amount` and `note` — the total bar: «12 460 ₽», «630 ₽ за м²». */
   total?: { text: string; amount: string; note?: string; missing?: string };
@@ -108,6 +116,7 @@ export function describeResult(
         quantity,
         ...(detail ? { detail } : {}),
         photo: tool.items?.[group.first.key]?.photo,
+        ...(tool.items?.[group.first.key]?.icon ? { icon: tool.items[group.first.key]?.icon } : {}),
         ...(costOf(group) ? { cost: costOf(group) as string } : {}),
       };
     });

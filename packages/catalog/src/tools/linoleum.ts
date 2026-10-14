@@ -150,7 +150,10 @@ export const linoleum: ToolDef = {
   ],
   nextSteps: ["plintus", "ploshchad-komnaty"],
   surface: { fixed: "floor" },
-  items: { linoleum: { title: "Линолеум", photo: "linoleum" }, "seam-weld": { title: "Холодная сварка" } },
+  items: {
+    linoleum: { title: "Линолеум", photo: "linoleum" },
+    "seam-weld": { title: "Холодная сварка", icon: "tube" },
+  },
   summary: {
     length: "Длина отреза",
     width: "Ширина рулона",
