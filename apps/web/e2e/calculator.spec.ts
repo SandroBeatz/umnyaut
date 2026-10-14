@@ -1,4 +1,4 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, type Locator, type Page, test } from "@playwright/test";
 
 const ROOM = "/osnova/ploshchad-komnaty/";
 const WALLS = "/osnova/ploshchad-sten/";
@@ -20,6 +20,20 @@ async function type(page: Page, label: string, value: string) {
   const field = page.getByRole("textbox", { name: label });
   await field.fill(value);
   await field.blur();
+}
+
+/** Opens the room editor (from the size fields or «Изменить»), fills its fields by label, saves. */
+async function editRoom(page: Page, sizes: Record<string, string>, more?: (editor: Locator) => Promise<void>) {
+  await page.getByRole("button", { name: /^(Изменить|Форма, окна и двери)$/ }).click();
+  const editor = page.getByRole("dialog");
+  for (const [label, value] of Object.entries(sizes)) {
+    const field = editor.getByRole("textbox", { name: label, exact: true });
+    await field.fill(value);
+    await field.blur();
+  }
+  await more?.(editor);
+  await editor.getByRole("button", { name: "Сохранить комнату" }).click();
+  await expect(editor).toBeHidden();
 }
 
 test("the result number is on the first phone screen of every tool", async ({ page }) => {
@@ -58,15 +72,14 @@ test("room area writes “My room”, wall area picks it up", async ({ page }) =
     .first()
     .click();
   await expect(page).toHaveURL(WALLS);
-  await expect(page.getByRole("textbox", { name: "Длина комнаты" })).toHaveValue("5");
-  await expect(page.getByRole("textbox", { name: "Ширина комнаты" })).toHaveValue("4");
-  await expect(page.getByText(/Моя комната: 5\s×\s4\sм/)).toBeVisible();
+  // The page opens with the room: its name and sizes instead of the fields.
+  await expect(page.locator("[data-room-dimensions]")).toHaveText(/^5\s×\s4\sм$/);
   // 2 × (5 + 4) × 2,7 = 48,6 − door 1,6 − window 1,68 = 45,32
   await expect(result(page)).toHaveText("45,32");
 
-  await type(page, "Высота потолка", "3");
+  await editRoom(page, { "Высота потолка": "3" });
   await page.goto(ROOM);
-  await expect(page.getByText(/Моя комната: 5\s×\s4\s×\s3\sм/)).toBeVisible();
+  await expect(page.locator("[data-room-dimensions]")).toHaveText(/^5\s×\s4\s×\s3\sм$/);
 });
 
 test("a ?s= link reproduces the result and «Отправить» builds one", async ({ page, context }) => {
@@ -95,23 +108,45 @@ test("a ?s= link reproduces the result and «Отправить» builds one", a
   await fresh?.close();
 });
 
+test("a ?s= link keeps its sizes over a room saved on this phone", async ({ page }) => {
+  await page.goto(WALLS);
+  await type(page, "Длина комнаты", "3");
+  await page.waitForFunction(() => Object.values(localStorage).some((v) => v.includes('"lengthMm":3000')));
+  const openings = [
+    { type: "door", widthMm: 900, heightMm: 2050, count: 1 },
+    { type: "window", widthMm: 1500, heightMm: 1500, count: 2 },
+  ];
+  await page.goto(`${WALLS}?s=${s({ lengthMm: 5000, widthMm: 4000, openings })}`);
+  await expect(result(page)).toHaveText("42,26");
+  // The stored room loads after the link; the result stays the link's.
+  await page.waitForTimeout(500);
+  await expect(result(page)).toHaveText("42,26");
+});
+
 test("an L-shaped room shows the cut-out fields and subtracts the corner", async ({ page }) => {
   await page.goto(ROOM);
   await type(page, "Длина комнаты", "6");
   await type(page, "Ширина комнаты", "4");
+  // Shape and cut-out are the room's: the form has none of them, the editor starts from the sizes typed above.
   await expect(page.getByRole("textbox", { name: "Длина выреза" })).toHaveCount(0);
-  // The shape stands right under the room size, not behind «Ещё параметры».
-  await page.getByRole("radio", { name: "Г-образная" }).click();
-  await type(page, "Длина выреза", "2");
-  await type(page, "Ширина выреза", "1,5");
+  await editRoom(page, {}, async (editor) => {
+    await expect(editor.getByRole("textbox", { name: "Длина", exact: true })).toHaveValue("6");
+    await editor.getByRole("radio", { name: "Г-образная" }).click();
+    for (const [label, value] of [
+      ["Вырез по длине", "2"],
+      ["Вырез по ширине", "1,5"],
+    ] as const) {
+      await editor.getByRole("textbox", { name: label }).fill(value);
+      await editor.getByRole("textbox", { name: label }).blur();
+    }
+  });
   await expect(result(page)).toHaveText("21");
-  await expect(page.getByRole("button", { name: "Ещё параметры", exact: true })).toBeVisible();
 });
 
 test("an invalid field keeps the last result and says so", async ({ page }) => {
   await page.goto(WALLS);
   await type(page, "Длина комнаты", "500");
-  await expect(page.getByText("От 0,3 до 100 м")).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Длина комнаты" })).toHaveAttribute("aria-invalid", "true");
   await expect(page.getByText("По прошлым значениям")).toBeVisible();
   await expect(result(page)).toHaveText("44,78");
 });
@@ -148,6 +183,7 @@ test("wallpaper: rolls by strips, roll preset and pattern repeat change the coun
 
   await page.getByText("0,53 × 10 м").click();
   await page.getByRole("button", { name: /Ещё параметры/ }).click();
+  await page.getByRole("checkbox", { name: "Рисунок нужно совмещать" }).check();
   await type(page, "Раппорт", "64");
   // Each strip takes 3,2 m of the roll after the worst pattern start; the start puts two strips on the window
   // and pairs the closing strips, so the pieces fit the 11th roll (golden «Straight match, repeat 64 cm»).
@@ -158,7 +194,7 @@ test("paint: a can set with sizes, ceiling switch, primer canister", async ({ pa
   await page.goto(PAINT);
   // Walls 44,78 m² × 2 / 10 = 8,956 l → one 9 l can; primer 6,7 l → one 10 l canister.
   await expect(result(page)).toHaveText("1");
-  await expect(page.getByText(/1\s×\s9\sл · останется/)).toBeVisible();
+  await expect(page.getByText(/1\s×\s9\sл\s·\sостанется/)).toBeVisible();
   await expect(page.getByText(/^1\sканистра$/)).toBeVisible();
   await expect(page.getByText(/^по 10\sл$/)).toBeVisible();
 
@@ -169,32 +205,217 @@ test("paint: a can set with sizes, ceiling switch, primer canister", async ({ pa
   await expect(page.getByText(/1\s×\s9\sл \+ 1\s×\s2,7\sл \+ 2\s×\s0,9\sл/)).toBeVisible();
 });
 
-test("room list: wallpaper on the walls and paint on the ceiling share one primer canister", async ({ page }) => {
+test("estimate: wallpaper on the walls and paint on the ceiling share one primer canister", async ({ page }) => {
   await page.goto(WALLPAPER);
   await expect(result(page)).toHaveText("11");
-  await page.getByRole("button", { name: "В список" }).click();
+  await page.getByRole("button", { name: "Добавить в список" }).click();
   await expect(page.getByRole("button", { name: "В списке" })).toBeDisabled();
-  const list = page.locator("[data-room-list]");
-  await expect(list.getByRole("heading", { name: "Список для комнаты" })).toBeVisible();
+  // Wallpaper is one calc per room: no chips row to choose from.
+  await expect(page.locator("[data-calc-chips]")).toHaveCount(0);
 
-  await list.getByRole("link", { name: /Краска/ }).click();
-  await expect(page).toHaveURL(PAINT);
+  await page.goto(PAINT);
   await page.getByRole("button", { name: "Что красим" }).click();
   await page.getByRole("radio", { name: "Потолок", exact: true }).click();
-  await page.getByRole("button", { name: "В список" }).click();
+  await page.getByRole("button", { name: "Добавить в список" }).click();
 
   // Walls 44,78 × 0,15 + ceiling 19,78 × 0,15 = 9,68 л → one canister for both works.
-  const rows = list.locator("li", { has: page.locator("[data-list-quantity]") });
-  await expect(rows).toHaveCount(4);
-  await expect(rows.filter({ hasText: "Грунтовка" }).locator("[data-list-quantity]")).toHaveText(/^1\sканистра$/);
-  await expect(rows.filter({ hasText: "Обои" }).first().locator("[data-list-quantity]")).toHaveText(/^11\sрулонов$/);
+  await page.goto("/spisok/");
+  const primer = page.locator("[data-shared-row]", { hasText: "Грунтовка" });
+  await expect(primer).toContainText(/1\sканистра/);
+  const wallpaper = page.locator("[data-calc-row]", { hasText: "Обои" });
+  await expect(wallpaper).toContainText(/11\sрулонов/);
 
-  // The list follows “My room”: a longer room needs more wallpaper.
-  await type(page, "Длина комнаты", "6");
-  await expect(rows.filter({ hasText: "Обои" }).first().locator("[data-list-quantity]")).not.toHaveText(/^11\s/);
+  // The estimate follows the room: a longer room needs more wallpaper.
+  await page.goto(WALLPAPER);
+  await editRoom(page, { Длина: "6" });
+  await page.goto("/spisok/");
+  await expect(wallpaper).not.toContainText(/11\sрулонов/);
+});
 
-  await list.getByRole("button", { name: "Убрать «Обои» из списка" }).click();
-  await expect(rows.filter({ hasText: "Обои" })).toHaveCount(0);
+test("the old «Моя комната» and room list move into the estimate once", async ({ page }) => {
+  await page.goto(LAMINATE);
+  // What the builds before the estimate stored (zustand persist, version 1).
+  await page.evaluate(() => {
+    const old = (state: object) => JSON.stringify({ state, version: 1 });
+    localStorage.setItem("umnyaut:room:v1", old({ room: { lengthMm: 3000, widthMm: 2500, heightMm: 2600 } }));
+    localStorage.setItem("umnyaut:list:v1", old({ entries: [{ tool: "laminat", input: {} }] }));
+  });
+  await page.reload();
+  await expect(page.locator("[data-room-dimensions]")).toHaveText(/^3\s×\s2,5\s×\s2,6\sм$/);
+  await expect(page.getByRole("button", { name: "В списке" })).toBeDisabled();
+  const stored = await page.evaluate(() => ({
+    room: localStorage.getItem("umnyaut:room:v1"),
+    list: localStorage.getItem("umnyaut:list:v1"),
+    estimate: JSON.parse(localStorage.getItem("umnyaut:estimate:v1") ?? "null")?.state.estimate,
+  }));
+  expect(stored.room).toBeNull();
+  expect(stored.list).toBeNull();
+  expect(stored.estimate.rooms).toEqual([
+    { id: "r1", name: "Комната 1", type: "other", lengthMm: 3000, widthMm: 2500, heightMm: 2600 },
+  ]);
+  expect(stored.estimate.calcs.map((c: { tool: string }) => c.tool)).toEqual(["laminat"]);
+});
+
+test("rooms: a new room starts from the example, the picker brings the first one back", async ({ page }) => {
+  await page.goto(LAMINATE);
+  await type(page, "Длина комнаты", "5");
+  // The fields stay while the user types; the next page opens with the room.
+  await page.reload();
+  await expect(page.getByRole("button", { name: /^Комната 1, 5\s×\s4,3\sм/ })).toBeVisible();
+
+  await page.getByRole("button", { name: /^Комната 1,/ }).click();
+  await page.getByRole("button", { name: "Новая комната" }).click();
+  const editor = page.getByRole("dialog", { name: "Новая комната" });
+  await expect(editor.getByRole("textbox", { name: "Название" })).toHaveValue("Комната 2");
+  await editor.getByRole("button", { name: "Сохранить комнату" }).click();
+  await expect(page.getByRole("button", { name: /^Комната 2, Размеры не заданы/ })).toBeVisible();
+  // 4,6 × 4,3 м of the example: 10 packs.
+  await expect(result(page)).toHaveText("10");
+  await editRoom(page, { Длина: "3", Ширина: "2,5" });
+  await expect(page.locator("[data-room-dimensions]")).toHaveText(/^3\s×\s2,5\sм$/);
+
+  await page.getByRole("button", { name: /^Комната 2,/ }).click();
+  const first = page.getByRole("button", { name: /^Комната 1\s*5\s×\s4,3\sм/ });
+  await expect(first).toBeVisible();
+  await first.click();
+  await expect(page.locator("[data-room-dimensions]")).toHaveText(/^5\s×\s4,3\sм$/);
+});
+
+test("room editor: name, type, an L-shape and a door on the plan reach the calculator; delete", async ({ page }) => {
+  await page.goto(WALLS);
+  await type(page, "Длина комнаты", "5");
+  await page.getByRole("button", { name: "Форма, окна и двери" }).click();
+  const editor = page.getByRole("dialog", { name: "Комната" });
+  // The type names a room the user has not named.
+  await editor.getByRole("button", { name: "Ванная", exact: true }).click();
+  await expect(editor.getByRole("textbox", { name: "Название" })).toHaveValue("Ванная");
+  await expect(editor.getByRole("button", { name: "Ванная", exact: true })).toHaveAttribute("aria-pressed", "true");
+  // 5 × 4,3 = 21,5 м², perimeter 18,6 м, walls 18,6 × 2,7 − 1,6 − 1,68 = 46,94 м².
+  await expect(editor.getByText(/^21,5\sм²$/).first()).toBeVisible();
+  await editor.getByRole("radio", { name: "Г-образная" }).click();
+  // 21,5 − 1,5 × 1,2 = 19,7 м².
+  await expect(editor.getByText(/^19,7\sм²$/).first()).toBeVisible();
+  await editor.getByRole("button", { name: "Дверь", exact: true }).click();
+  await editor.getByRole("button", { name: "Сохранить комнату" }).click();
+  await expect(editor).toBeHidden();
+
+  await expect(page.getByRole("button", { name: /^Ванная, 5\s×\s4,3\s×\s2,7\sм/ })).toBeVisible();
+  // The editor started from the door and window the result was counted with, one more door added:
+  // walls 2 × (5 + 4,3) × 2,7 = 50,22 − 1,6 − 1,68 − 1,6 = 45,34.
+  await expect(result(page)).toHaveText("45,34");
+
+  await page.getByRole("button", { name: "Изменить", exact: true }).click();
+  await editor.getByRole("button", { name: "Удалить комнату" }).click();
+  await expect(editor).toBeHidden();
+  await expect(page.getByRole("textbox", { name: "Длина комнаты" })).toBeVisible();
+});
+
+test("calcs in a room: chips, a label, «+ Ещё» on the next surface, remove and «Вернуть»", async ({ page }) => {
+  await page.goto(TILE);
+  await type(page, "Длина комнаты", "3");
+  // A material edit opens the room's first tile calc.
+  await page.getByRole("radio", { name: "30 × 60" }).click();
+  const chips = page.locator("[data-calc-chips]");
+  await expect(chips.getByRole("button", { name: "Открыть расчёт «Пол»" })).toHaveAttribute("aria-pressed", "true");
+
+  await page.getByRole("button", { name: /Ещё параметры/ }).click();
+  await page.getByRole("textbox", { name: "Метка" }).fill("графит");
+  await expect(chips.getByRole("button", { name: "Открыть расчёт «Пол · графит»" })).toBeVisible();
+
+  await chips.getByRole("button", { name: "Ещё расчёт: Плитка" }).click();
+  await expect(chips.getByRole("button", { name: "Открыть расчёт «Стены»" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "Что облицовываем" })).toHaveText(/Стены/);
+  await expect(page.getByRole("radio", { name: "30 × 60" })).not.toBeChecked();
+
+  await chips.getByRole("button", { name: "Открыть расчёт «Пол · графит»" }).click();
+  await expect(page.getByRole("button", { name: "Что облицовываем" })).toHaveText(/Пол/);
+  await expect(page.getByRole("radio", { name: "30 × 60" })).toBeChecked();
+
+  await chips.getByRole("button", { name: "Убрать расчёт «Стены»" }).click();
+  await expect(chips.getByRole("button", { name: "Открыть расчёт «Стены»" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Вернуть", exact: true }).click();
+  await expect(chips.getByRole("button", { name: "Открыть расчёт «Стены»" })).toBeVisible();
+  // The chips scroll inside their row; the page never scrolls sideways.
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBe(
+    0,
+  );
+
+  // The next visit opens the calc opened last.
+  await page.reload();
+  await expect(chips.getByRole("button", { name: "Открыть расчёт «Пол · графит»" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+});
+
+test("calcs: «+ Ещё» while a surface is free; a calc on both overlaps — «Разделить»", async ({ page }) => {
+  await page.goto(PAINT);
+  await page.getByRole("button", { name: "Что красим" }).click();
+  await page.getByRole("radio", { name: "Потолок", exact: true }).click();
+  const chips = page.locator("[data-calc-chips]");
+  await chips.getByRole("button", { name: "Ещё расчёт: Краска" }).click();
+  await expect(chips.getByRole("button", { name: "Открыть расчёт «Стены»" })).toHaveAttribute("aria-pressed", "true");
+  // Walls and ceiling are both counted: no more «+ Ещё».
+  await expect(chips.getByRole("button", { name: "Ещё расчёт: Краска" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Что красим" }).click();
+  await page.getByRole("radio", { name: "Стены и потолок" }).click();
+  await expect(page.getByText("Потолок уже в расчёте «Краска: Потолок». Разделить на два расчёта?")).toBeVisible();
+  await page.getByRole("button", { name: "Разделить", exact: true }).click();
+  await expect(chips.getByRole("button", { name: /^Открыть расчёт/ })).toHaveText(["Потолок", "Стены", "Потолок"]);
+});
+
+test("estimate in the calculator: only the button adds, edits wait for «Обновить в списке»", async ({ page }) => {
+  const stored = () =>
+    page.evaluate(() => JSON.parse(localStorage.getItem("umnyaut:estimate:v1") ?? "null")?.state.estimate);
+  await page.goto(TILE);
+  await type(page, "Длина комнаты", "2,2");
+  await type(page, "Ширина комнаты", "1,7");
+  await page.getByRole("button", { name: /Ещё параметры/ }).click();
+  await type(page, "Цена коробки", "1650");
+  // Changed fields and a price add nothing by themselves.
+  await expect(page.getByRole("button", { name: "Добавить в список" })).toBeVisible();
+  expect((await stored())?.calcs.every((c: { addedAt?: number }) => c.addedAt === undefined)).toBe(true);
+  await page.getByRole("button", { name: "Добавить в список" }).click();
+  await expect(page.getByRole("button", { name: "В списке" })).toBeDisabled();
+  await expect(page.locator("#result").getByText("Нужно купить · Комната 1")).toBeVisible();
+
+  // A change after that waits: the estimate keeps what was added until «Обновить в списке».
+  await type(page, "Цена коробки", "2000");
+  await expect(page.getByRole("button", { name: "Обновить в списке" })).toBeVisible();
+  expect((await stored())?.calcs[0].input.price_tile).toBe(1650);
+  await page.getByRole("button", { name: "Обновить в списке" }).click();
+  await expect(page.getByRole("button", { name: "В списке" })).toBeDisabled();
+  expect((await stored())?.calcs[0].input.price_tile).toBe(2000);
+  // Back to the saved value: nothing to update.
+  await type(page, "Цена коробки", "1650");
+  await type(page, "Цена коробки", "2000");
+  await expect(page.getByRole("button", { name: "В списке" })).toBeDisabled();
+
+  // A second room with tile: the adhesive line shows this room's share and the estimate's bags.
+  await page.reload();
+  await page.getByRole("button", { name: /^Комната 1,/ }).click();
+  await page.getByRole("button", { name: "Новая комната" }).click();
+  const editor = page.getByRole("dialog", { name: "Новая комната" });
+  await editor.getByRole("button", { name: "Кухня", exact: true }).click();
+  for (const [label, value] of [
+    ["Длина", "3"],
+    ["Ширина", "2,8"],
+  ] as const) {
+    await editor.getByRole("textbox", { name: label, exact: true }).fill(value);
+    await editor.getByRole("textbox", { name: label, exact: true }).blur();
+  }
+  await editor.getByRole("button", { name: "Сохранить комнату" }).click();
+  await page.getByRole("radio", { name: "30 × 60" }).click();
+  await page.getByRole("button", { name: "Добавить в список" }).click();
+  await expect(page.getByRole("button", { name: "В списке" })).toBeDisabled();
+  const result = page.locator("#result");
+  await expect(result.getByText("Нужно купить · Кухня")).toBeVisible();
+  await expect(result.getByText("Ещё понадобится · на весь список")).toBeVisible();
+  await expect(result.getByText(/^Кухня: [\d,]+\sкг$/).first()).toBeVisible();
+
+  // The header's total is saved in the estimate (Р3): the bathroom's tile is priced, the kitchen's is not.
+  await expect.poll(async () => (await stored())?.totals?.byRoom?.r1).toBeGreaterThan(0);
+  expect((await stored())?.totals?.byRoom?.r2).toBe(0);
 });
 
 test("plinth: planks and fittings, an L-shaped room adds corners", async ({ page }) => {
@@ -203,7 +424,7 @@ test("plinth: planks and fittings, an L-shaped room adds corners", async ({ page
   await expect(result(page)).toHaveText("7");
   await expect(page.getByText(/^4\sштуки$/)).toBeVisible();
 
-  await page.getByRole("radio", { name: "Г-образная" }).click();
+  await editRoom(page, {}, (editor) => editor.getByRole("radio", { name: "Г-образная" }).click());
   await expect(page.locator("#result").getByText("Наружный угол")).toBeVisible();
 });
 
@@ -224,11 +445,11 @@ test("linoleum: the best width and the cut length, a pinned width", async ({ pag
   await page.goto(LINOLEUM);
   // 4,6 × 4,3: no roll covers it; 2,5 м across, 2 × 4,3 = 8,6 м, 21,5 м².
   await expect(result(page)).toHaveText("8,6");
-  await expect(page.getByText(/ширина 2,5\sм · 21,5\sм²/)).toBeVisible();
+  await expect(page.getByText(/ширина 2,5\sм\s·\s21,5\sм²/)).toBeVisible();
 
   await page.getByRole("button", { name: "Ширина рулона" }).click();
   await page.getByRole("radio", { name: "4 м" }).click();
-  await expect(page.getByText(/ширина 4\sм · 34,4\sм²/)).toBeVisible();
+  await expect(page.getByText(/ширина 4\sм\s·\s34,4\sм²/)).toBeVisible();
 });
 
 test("laminate: the mockup room — 10 packs (85 boards), 9 across; diagonal adds 15 %", async ({ page }) => {
@@ -354,6 +575,21 @@ test("pack price gives a total and «без N позиций» for items without
   await page.getByRole("button", { name: /Ещё параметры/ }).click();
   await type(page, "Цена пачки", "1800");
   // 10 пачек × 1800; подложка без цены.
-  await expect(page.locator("#result").getByText(/Итого 18\s000/)).toBeVisible();
-  await expect(page.locator("#result").getByText(/без 1 позиции/)).toBeVisible();
+  const total = page.locator("#result [data-result-total]");
+  await expect(total).toContainText("Итого");
+  await expect(total).toContainText(/18\s000/);
+  await expect(total).toContainText(/без 1 позиции/);
+});
+
+test("tile on «Пол и стены»: one calc for both, one box count, the estimate says so", async ({ page }) => {
+  await page.goto(TILE);
+  await page.getByRole("button", { name: "Что облицовываем" }).click();
+  await page.getByRole("radio", { name: "Пол и стены" }).click();
+  // Floor 240 + walls 534 pieces × 1,1 = 852 tiles → 71 boxes of 12.
+  await expect(result(page)).toHaveText("71");
+  await page.getByRole("button", { name: "Добавить в список" }).click();
+  // Both surfaces are taken: nothing left for «+ Ещё».
+  await expect(page.getByRole("button", { name: /^Ещё расчёт/ })).toHaveCount(0);
+  await page.goto("/spisok/");
+  await expect(page.locator("[data-calc-row]", { hasText: "Плитка" })).toContainText("пол и стены");
 });

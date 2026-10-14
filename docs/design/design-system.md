@@ -32,7 +32,7 @@ Key decisions:
 1. The purchase number is the largest thing on screen (“10 пачек” > page title).
 2. Phone first screen = fields + result. Mascot, photos, ads, banners get no space if they push the number below 660 px.
 3. One orange element in view.
-4. Finger in a store: tap ≥ 48 px, input value 18 px, text contrast ≥ 4.5.
+4. Finger in a store: tap ≥ 48 px, input value 16 px (owner, 2026-10-14; was 18 — not below 16, iOS zooms into smaller inputs), text contrast ≥ 4.5.
 5. The mascot explains, never decorates.
 6. Photos show the material, not a product (no brands, prices, discounts).
 

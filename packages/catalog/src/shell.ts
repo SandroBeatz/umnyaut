@@ -9,6 +9,11 @@ export const shell = {
     menuTitle: "Разделы",
     calculators: "Калькуляторы",
     country: "Страна и валюта",
+    /** The estimate button (spec «Шапка и футер»); the sum is added after mount. */
+    estimate: "Список покупок",
+    /** The word on the button from the desktop up; the phone shows the icon and the sum. */
+    estimateShort: "Список",
+    methodology: "Методика",
   },
   close: "Закрыть",
   breadcrumbs: { label: "Навигация", home: "Главная", back: "Назад" },
@@ -32,18 +37,30 @@ export const shell = {
     description: "От страны зависят валюта и типовые цены",
   },
   roomBar: {
-    label: "Моя комната",
-    empty: "Ввести размеры один раз",
     edit: "Изменить",
-    sheetTitle: "Моя комната",
-    sheetDescription: "Размеры подставятся во все калькуляторы на этом устройстве",
-    length: "Длина",
-    width: "Ширина",
-    height: "Высота потолка",
-    save: "Сохранить комнату",
-    clear: "Другая комната",
+    /** Sizes typed right in the row while the page has no room yet (spec «Калькулятор»). */
+    sizes: {
+      lengthMm: { label: "Длина комнаты", caption: "Длина, {unit}" },
+      widthMm: { label: "Ширина комнаты", caption: "Ширина, {unit}" },
+      heightMm: { label: "Высота потолка", caption: "Высота, {unit}" },
+    },
+    /** Opens the room editor from the size fields. */
+    editor: "Форма, окна и двери",
+    /** Room picker: the estimate's rooms (spec «Калькулятор», P17.7). */
+    noSizes: "Размеры не заданы",
+    pickTitle: "Комнаты",
+    pickDescription: "Калькулятор считает одну комнату. Размеры подставятся сами",
+    pickLabel: "{room}, {dimensions}. Выбрать другую комнату",
+    newRoom: "Новая комната",
+    /** The tool is already counted in that room: «плитка есть». */
+    counted: "{tool} есть",
   },
   form: {
+    /** The form card's heading (with the м/см switch beside it). */
+    title: "Размеры и материал",
+    titleSizes: "Размеры",
+    /** A wall picked by its number on the room plan. */
+    wall: "Стена {n}",
     units: "Единицы",
     unitLabels: { m: "м", cm: "см" },
     more: "Ещё параметры",
@@ -90,30 +107,99 @@ export const shell = {
     running: "ширина {width} · {area}",
     width: "ширина {size}",
     total: "Итого {total}",
+    totalLabel: "Итого",
     perM2: "{price} за м²",
+    /** A main item priced per m² or litre: «21,75 м² по 350 сом». */
+    unitPrice: "{amount} по {price}",
     missing: "без {count} {positions}",
     positions: { one: "позиции", few: "позиций", many: "позиций" },
     related: "Ещё понадобится",
+    /** Shared consumables with the estimate (spec «Калькулятор»): quantities for the whole estimate. */
+    relatedEstimate: "Ещё понадобится · на весь список",
+    /** «Нужно купить · Ванная». */
+    buyIn: "{buy} · {room}",
+    /** This calc's share of a shared consumable: «Ванная: 104,6 кг». */
+    share: "{room}: {need}",
+    saving: "{item} на весь список: {total} вместо {instead}",
+    savingWith: "{item} на весь список: {total} вместо {instead} — общий с «{rooms}»",
   },
-  /** Local list of works for one room (P6.11); the full planner is /remont/ in Phase 11. */
-  roomList: {
-    title: "Список для комнаты",
-    lead: "Одинаковые материалы сложены и округлены до упаковок один раз. Размеры — из «Моей комнаты».",
-    add: "В список",
-    added: "В списке",
-    update: "Обновить в списке",
-    addedToast: "Добавлено в список для комнаты",
-    works: "Расчёты",
-    remove: "Убрать «{tool}» из списка",
-    buy: "Купить",
-    next: "Добавьте в список",
-    copy: "Скопировать список",
-    copied: "Список скопирован",
-    clear: "Очистить список",
-    /** Conflicts between works of the list, by code. */
-    conflicts: {
-      walls_twice: "Стены и в обоях, и в краске. Если красите только потолок, выберите в краске «Потолок»",
+  /** Names the estimate gives itself and its rooms until the user renames them (spec «Комнаты и смета»). */
+  estimate: {
+    name: "Ремонт квартиры",
+    room: "Комната {n}",
+  },
+  /** Room editor (spec «Редактор комнаты», P17.8): popup from 1024 px, bottom sheet on the phone. */
+  roomEditor: {
+    title: "Комната",
+    newTitle: "Новая комната",
+    description: "Размеры, окна и двери вводятся один раз для всех расчётов этой комнаты",
+    name: "Название",
+    type: "Тип — подскажет нужные расчёты",
+    types: {
+      living: "Зал",
+      bedroom: "Спальня",
+      kitchen: "Кухня",
+      bathroom: "Ванная",
+      hall: "Прихожая",
+      other: "Другое",
     },
+    sizes: "Форма и размеры",
+    shape: "Форма комнаты",
+    shapes: { rect: "Прямоугольная", l: "Г-образная" },
+    length: "Длина",
+    width: "Ширина",
+    height: "Высота потолка",
+    cutLength: "Вырез по длине",
+    cutWidth: "Вырез по ширине",
+    cutCorner: "Где вырез на плане",
+    corners: { ne: "Справа вверху", se: "Справа внизу", sw: "Слева внизу", nw: "Слева вверху" },
+    openings: "Окна и двери",
+    /** Closed card summary: «80 × 200 см · стена 1, от угла 30 см». */
+    openingAt: "{size} · {place}",
+    plan: "План комнаты",
+    needSizes: "Введите длину и ширину — появится план",
+    floor: "Пол",
+    perimeter: "Периметр",
+    walls: "Стены без проёмов",
+    ceiling: "Потолок",
+    recalc: "Пересчитаем расчёты этой комнаты: {tools}",
+    /** A wall-bound parameter reset because the walls are numbered anew (Р10). */
+    reset: "{tool}: сбросим {what}",
+    cancel: "Отмена",
+    save: "Сохранить комнату",
+    remove: "Удалить комнату",
+    removeConfirm: "Удалить комнату вместе с расчётами: {tools}?",
+    removeYes: "Да, удалить комнату",
+  },
+  /** Calcs of one tool in a room (spec «Несколько расчётов», P17.9). */
+  calcs: {
+    /** Row label: «Плитка в комнате:». */
+    title: "{tool}:",
+    /** A chip without a label or a surface: «Расчёт 2». */
+    unnamed: "Расчёт {n}",
+    more: "Ещё",
+    moreLabel: "Ещё расчёт: {tool}",
+    open: "Открыть расчёт «{calc}»",
+    remove: "Убрать расчёт «{calc}»",
+    removed: "Расчёт убран",
+    undo: "Вернуть",
+    label: "Метка",
+    labelHint: "Например, «белая глянцевая» — видна в списке",
+    parts: { floor: "Пол", walls: "Стены", ceiling: "Потолок" },
+    /** Joins the last of a list: «пол и стены», «Ванная, Кухня и Зал». */
+    and: " и ",
+    /** «Пол уже в расчёте «Плитка: Пол и стены».» */
+    overlap: "{parts} уже в расчёте «{calc}».",
+    split: "Разделить на два расчёта?",
+    splitButton: "Разделить",
+  },
+  /** «Добавить в список» → «В списке»; after edits «Обновить в списке» (spec Р4: only by the button). */
+  toEstimate: {
+    add: "Добавить в список",
+    added: "В списке",
+    addedToast: "Добавлено в список",
+    update: "Обновить в списке",
+    updatedToast: "Список обновлён",
   },
   /** Room plan editor (popup): doors and windows on walls, docs/ui/room-plan-and-layout-guides.md. */
   plan: {
@@ -183,7 +269,7 @@ export const shell = {
     send: "Отправить",
     soon: "Отправка заработает в ближайшем обновлении. Спасибо, что заметили",
   },
-  sticky: { toResult: "К результату" },
+  sticky: { toResult: "К результату", toEstimate: "К списку" },
   print: {
     heading: "Список покупок",
     item: "Позиция",

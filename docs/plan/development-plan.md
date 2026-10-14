@@ -1,12 +1,12 @@
 ---
-version: 2.9
+version: 2.10
 date: 2026-10-13
 category: plan
 ---
 
 # Development Plan
 
-> Version 2.9 · 2026-10-13 · [Plan](../plan/)
+> Version 2.10 · 2026-10-13 · [Plan](../plan/)
 
 ## Overview
 
@@ -476,36 +476,36 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 *A — Model and storage*
 
-- [ ] P17.1 `ProjectData` schema 2 = the estimate: rooms with name and type, calcs with `id`, room, surface, label, own input and main-material prices; shared-consumable prices by product key; cached `totals`; limits 20 rooms / 60 calcs; `migrateProject` v1 → v2 with tests.
-- [ ] P17.2 `PurchaseItem.variant`, catalog item flag `shared`, `productKey()` (item | variant | pack kind | pack size); `mergeItems` by product key; pure `aggregateEstimate()` in `calc/project`: lines per room, shared block with each calc's share, savings in packs and money, surface overlaps per room, adhesive/grout replacement scoped to room + surface. Unit tests + fast-check (merged ≥ need, merged packs ≤ sum of separate packs).
-- [ ] P17.3 `entities/estimate`: Zustand persist `umnyaut:estimate:v1` (`skipHydration`), actions for rooms, calcs (add / update / remove / undo / split), prices, totals; one-time migration from `umnyaut:room:v1` + `umnyaut:list:v1`, old keys removed after a successful write; the room and list stores give way to it.
+- [x] P17.1 `ProjectData` schema 2 = the estimate: rooms with name and type, calcs with `id`, room, surface, label, own input and main-material prices; shared-consumable prices by product key; cached `totals`; limits 20 rooms / 60 calcs; `migrateProject` v1 → v2 with tests.
+- [x] P17.2 `PurchaseItem.variant`, catalog item flag `shared`, `productKey()` (item | variant | pack kind | pack size); `mergeItems` by product key; pure `aggregateEstimate()` in `calc/project`: lines per room, shared block with each calc's share, savings in packs and money, surface overlaps per room, adhesive/grout replacement scoped to room + surface. Unit tests + fast-check (merged ≥ need, merged packs ≤ sum of separate packs).
+- [x] P17.3 `entities/estimate`: Zustand persist `umnyaut:estimate:v1` (`skipHydration`), actions for rooms, calcs (add / update / remove / undo / split), prices, totals; one-time migration from `umnyaut:room:v1` + `umnyaut:list:v1`, old keys removed after a successful write; the room and list stores give way to it. → Done 2026-10-13 (stage A): schema 2, `productKey`, `aggregateEstimate`, `entities/estimate` with the one-time move; the room list keeps its v1 behaviour on the estimate until stage C.
 
 *B — Calc changes (`calc-engineer`, every change reviewed by `formula-reviewer`)*
 
-- [ ] P17.4 Consumable variants without formula change: adhesive type (tile, adhesive), grout colour (tile, grout), wallpaper type (wallpaper) → `variant`. Goldens unchanged, no version bump.
-- [ ] P17.5 Surface `both` («Пол и стены» with one tile) for tile, adhesive and grout: version +1, ≥ 2 new goldens per tool, Qalculator comparison (rule 12).
-- [ ] P17.6 Primer as a related item of tile (floor and walls, toggle), norm with source in catalog: version +1, goldens. Release check for tile, adhesive, grout, wallpaper passes.
+- [x] P17.4 Consumable variants without formula change: adhesive type (tile, adhesive), grout colour (tile, grout), wallpaper type (wallpaper) → `variant`. Goldens unchanged, no version bump.
+- [x] P17.5 Surface `both` («Пол и стены» with one tile) for tile, adhesive and grout: version +1, ≥ 2 new goldens per tool, Qalculator comparison (rule 12).
+- [x] P17.6 Primer as a related item of tile (floor and walls, toggle), norm with source in catalog: version +1, goldens. Release check for tile, adhesive, grout, wallpaper passes.
 
 *C — Calculator (`frontend-builder`, skill `ui-component`)*
 
-- [ ] P17.7 Room row (mint): room dropdown (sheet on phone) with sizes and «плитка есть», «+ Новая комната»; no-room state with length / width (/ height) inline and a link to the editor; same height in both states (no CLS); room fields leave the tool form while a room is selected.
-- [ ] P17.8 Room editor (dialog ≥ 1024, sheet on phone): name, type, shape and sizes (m / cm), doors and windows with wall and offset (from `PlanEditor`), mini `FloorPlan` and totals; «Пересчитаем N расчётов: …» line that also names reset geometry-bound params (wallpaper start wall, layout corner); delete with confirmation.
-- [ ] P17.9 Calcs in a room: chips row, «+ Ещё», last opened calc, «Метка» field, overlap warning and «Разделить», remove with undo toast; surfaces per tool as in the spec (wallpaper: one calc per room).
-- [ ] P17.10 Result: «Нужно купить · <room>», «Ещё понадобится · на всю смету» with the calc's share, savings `Hint` (cat head), grey «Клей и затирка · общие на смету» block with the estimate's product and «взять его?», «Добавить в смету» → «В смете ✓» by the threshold (≥ 2 fields changed, a price, or a result action), sticky «N коробок · К смете»; saving updates `totals`. Phone first screen ≤ 660 px with the chips row.
+- [x] P17.7 Room row (mint): room dropdown (sheet on phone) with sizes and «плитка есть», «+ Новая комната»; no-room state with length / width (/ height) inline and a link to the editor; same height in both states (no CLS); room fields leave the tool form while a room is selected. → Done 2026-10-13: the fields stay in the row for the page view that created the room; room fields left the form for good (the row and the editor hold them).
+- [x] P17.8 Room editor (dialog ≥ 1024, sheet on phone): name, type, shape and sizes (m / cm), doors and windows with wall and offset (from `PlanEditor`), mini `FloorPlan` and totals; «Пересчитаем N расчётов: …» line that also names reset geometry-bound params (wallpaper start wall, layout corner); delete with confirmation. → Done 2026-10-13: 480 px dialog with the plan under the sizes (not the two-column mockup); `ToolDef.wallBound` + `saveRoom` reset.
+- [x] P17.9 Calcs in a room: chips row, «+ Ещё», last opened calc, «Метка» field, overlap warning and «Разделить», remove with undo toast; surfaces per tool as in the spec (wallpaper: one calc per room). → Done 2026-10-13: the overlap warning sits under the result (rule 8); the calculator's input lives in the calcs.
+- [ ] P17.10 Result: «Нужно купить · <room>», «Ещё понадобится · на всю смету» with the calc's share, savings `Hint` (cat head), grey «Клей и затирка · общие на смету» block with the estimate's product and «взять его?», «Добавить в смету» → «В смете ✓» by the threshold (≥ 2 fields changed, a price, or a result action), sticky «N коробок · К смете»; saving updates `totals`. Phone first screen ≤ 660 px with the chips row. → Part 1 done 2026-10-13 (result, shares, savings, threshold, totals, «К смете»); the grey block waits for P17.4.
 
 *D — Estimate page*
 
-- [ ] P17.11 `/smeta/` (thin route, `noindex`, out of sitemap), `views/estimate`: title, metrics, room cards (rows lead back to the calculator with that room and calc), shared consumables, empty rooms with suggestions by type, «+ Комната», total card; modules loaded on demand, recompute on open, rows ordered rough → finish (was P11.1); JS budget for the page added to `js:check`.
-- [ ] P17.12 Export: copy as text, `navigator.share` with copy fallback, print / «PDF» via print styles with the date.
-- [ ] P17.13 Link without a server: estimate snapshot after `#`, read-only view, «Забрать себе» with «Заменить» / «Добавить комнаты»; snapshots over 8 KB suggest print.
+- [x] P17.11 `/spisok/` (thin route, `noindex`, out of sitemap), `views/estimate`: title, metrics, room cards (rows lead back to the calculator with that room and calc), shared consumables, empty rooms with suggestions by type, «+ Комната», total card; modules loaded on demand, recompute on open, rows ordered rough → finish (was P11.1); JS budget for the page added to `js:check`.
+- [x] P17.12 Export: copy as text, `navigator.share` with copy fallback, print / «PDF» via print styles with the date.
+- [x] P17.13 Link without a server: estimate snapshot after `#`, read-only view, «Забрать себе» with «Заменить» / «Добавить комнаты»; snapshots over 8 KB suggest print.
 
 *E — Header, footer, country*
 
-- [ ] P17.14 Header: «Калькуляторы ▾» · «Методика» · «Смета <sum>» (small client island reading `totals`, reserved width, teal on `/smeta/`), phone: estimate icon with sum; country switch and «Мои расчёты» leave the header, country switch in the footer, time-zone detection stays.
+- [x] P17.14 Header: «Калькуляторы ▾» · «Методика» · list button: icon, «Список» from the desktop up and the sum (small client island reading `totals`; phone: icon and sum, icon only while empty; «Список покупок» for screen readers, teal on `/spisok/`); country switch and «Мои расчёты» leave the header, country switch in the footer, time-zone detection stays.
 
 *F — Verify and release*
 
-- [ ] P17.15 Playwright (phone): scenarios 1–7 incl. migration of old storage; Lighthouse on a tool page with a seeded estimate (CLS ≤ 0.05, JS ≤ 250 KB, a11y ≥ 0.95) and on `/smeta/`; server-HTML guard unchanged.
+- [ ] P17.15 Playwright (phone): scenarios 1–7 incl. migration of old storage; Lighthouse on a tool page with a seeded estimate (CLS ≤ 0.05, JS ≤ 250 KB, a11y ≥ 0.95) and on `/spisok/`; server-HTML guard unchanged.
 - [ ] P17.16 Docs: `docs/ui/rooms-and-estimate.md` digest via `/docs`; architecture (state), calc engine (variants, `aggregateEstimate`), calculator shell updated; RU tech and business spec sections on the planner and «Мои расчёты» point to the new spec. PR → `develop` → staging → `main` with owner approval.
 
 *G — After Supabase and the bot*

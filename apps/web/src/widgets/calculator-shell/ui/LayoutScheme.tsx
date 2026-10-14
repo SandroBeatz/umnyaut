@@ -100,7 +100,8 @@ function texts(layout: Layout) {
       line: t.legendSeam,
     };
   }
-  if (layout.kind === "grid" && layout.elevations) {
+  // Walls only; «Пол и стены» has floor pieces too and its own summary below.
+  if (layout.kind === "grid" && layout.elevations && layout.pieces.length === 0) {
     const counts = { pieces: whole + cut, whole, cut };
     const w = g.walls;
     return {
@@ -115,10 +116,11 @@ function texts(layout: Layout) {
   }
   if (layout.kind === "grid") {
     const counts = { pieces: whole + cut, whole, cut };
+    const text = layout.elevations ? g.both : g;
     return {
       ...card,
-      summary: fill(g.summary, counts),
-      label: fill(g.label, counts),
+      summary: fill(text.summary, counts),
+      label: fill(text.label, counts),
       whole: fill(g.legendWhole, { count: whole }),
       cut: fill(g.legendCut, { count: cut }),
       reused: "",
@@ -152,6 +154,14 @@ function texts(layout: Layout) {
 
 /** The plan with every piece: whole outlined, cut hatched teal, reused with the orange dot (design spec §11). */
 function SchemePicture({ layout, className, wide }: { layout: Layout; className?: string; wide?: boolean }) {
+  // «Пол и стены» with one tile: the floor plan, then the walls unfolded.
+  if (layout.elevations && layout.pieces.length > 0)
+    return (
+      <div className="flex flex-col gap-4">
+        <FloorScheme layout={layout} className={className} />
+        <WallElevations layout={layout} columns={wide ? "responsive" : "two"} />
+      </div>
+    );
   if (layout.elevations) return <WallElevations layout={layout} columns={wide ? "responsive" : "two"} />;
   return <FloorScheme layout={layout} className={className} />;
 }

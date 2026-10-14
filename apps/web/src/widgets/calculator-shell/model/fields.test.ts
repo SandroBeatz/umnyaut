@@ -12,7 +12,7 @@ const names = (fields: readonly FieldDef[]) => fields.map((f) => ("name" in f ? 
 describe("formSections", () => {
   it("puts the room shape right after the room width, before laying and presets", () => {
     const { main, more } = formSections(fieldsOf("pol", "laminat"), { shape: "rect", method: "straight" });
-    expect(names(main)).toEqual(["lengthMm", "widthMm", "shape", "method", "preset:Доска"]);
+    expect(names(main)).toEqual(["lengthMm", "widthMm", "shape", "method", "preset:Типовые доски"]);
     expect(names(more)).not.toContain("shape");
   });
 

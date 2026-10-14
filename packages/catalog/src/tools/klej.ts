@@ -1,4 +1,5 @@
 import type { ToolDef } from "./types";
+import { adhesiveClasses, options, variantTitles } from "./variants";
 
 const room = { kind: "length", unit: "m", min: 300, max: 100_000 } as const;
 const tile = { kind: "length", unit: "cm", min: 20, max: 3000 } as const;
@@ -22,9 +23,10 @@ export const klej: ToolDef = {
       options: [
         { value: "floor", label: "Пол" },
         { value: "walls", label: "Стены" },
+        { value: "both", label: "Пол и стены" },
       ],
     },
-    { kind: "preset", label: "Плитка", presets: ["t10", "t20", "t30", "t60"], main: true },
+    { kind: "preset", label: "Типовые размеры плитки", presets: ["t10", "t20", "t30", "t60"], main: true },
     {
       kind: "length",
       unit: "m",
@@ -33,7 +35,7 @@ export const klej: ToolDef = {
       name: "heightMm",
       label: "Высота стен",
       room: "height",
-      when: { surface: "walls" },
+      when: { surface: ["walls", "both"] },
     },
     {
       kind: "select",
@@ -67,8 +69,8 @@ export const klej: ToolDef = {
       when: { shape: "l" },
     },
     { kind: "openings", name: "openings", label: "Окна и двери", hint: "Вычитаются, если облицовываем стены" },
-    { ...tile, name: "tileLengthMm", label: "Длина плитки" },
-    { ...tile, name: "tileWidthMm", label: "Ширина плитки" },
+    { ...tile, name: "tileLengthMm", label: "Длина плитки", group: "tile" },
+    { ...tile, name: "tileWidthMm", label: "Ширина плитки", group: "tile" },
     {
       kind: "select",
       name: "method",
@@ -77,6 +79,7 @@ export const klej: ToolDef = {
         { value: "notch", label: "По зубу шпателя" },
         { value: "layer", label: "По толщине слоя" },
       ],
+      group: "rate",
     },
     {
       kind: "number",
@@ -88,8 +91,8 @@ export const klej: ToolDef = {
       label: "Толщина слоя",
       hint: "Для неровного основания — больше",
       when: { method: "layer" },
+      group: "rate",
     },
-    { kind: "number", min: 1, max: 50, step: 1, unit: "кг", name: "bagKg", label: "Мешок" },
     {
       kind: "number",
       min: 0,
@@ -99,8 +102,20 @@ export const klej: ToolDef = {
       name: "backButterMm",
       label: "Слой на плитку",
       hint: "Для плитки от 30 × 30 см; производитель толщину не указывает",
+      group: "rate",
     },
-    { kind: "price", item: "tile-adhesive", name: "price_tile-adhesive", label: "Цена мешка" },
+    {
+      kind: "select",
+      name: "adhesiveClass",
+      label: "Класс клея",
+      hint: "На мешке; на расход не влияет — его задаёт зуб шпателя",
+      dropdown: true,
+      options: options(adhesiveClasses),
+      wide: true,
+      group: "adhesive",
+    },
+    { kind: "number", min: 1, max: 50, step: 1, unit: "кг", name: "bagKg", label: "Мешок", group: "adhesive" },
+    { kind: "price", item: "tile-adhesive", name: "price_tile-adhesive", label: "Цена мешка", group: "adhesive" },
   ],
   presets: [
     { id: "t10", label: "10 × 10", values: { tileLengthMm: 100, tileWidthMm: 100 } },
@@ -108,13 +123,27 @@ export const klej: ToolDef = {
     { id: "t30", label: "30 × 30", values: { tileLengthMm: 300, tileWidthMm: 300 } },
     { id: "t60", label: "60 × 60", values: { tileLengthMm: 600, tileWidthMm: 600 } },
   ],
+  groups: [
+    { id: "tile", title: "Плитка" },
+    { id: "rate", title: "Расход" },
+    { id: "adhesive", title: "Клей" },
+  ],
   nextSteps: ["zatirka", "plitka"],
-  items: { "tile-adhesive": { title: "Плиточный клей", photo: "tile-adhesive" } },
+  surface: { field: "surface", values: { floor: "floor", walls: "walls", both: "floor-walls" } },
+  items: {
+    "tile-adhesive": {
+      title: "Плиточный клей",
+      photo: "tile-adhesive",
+      shared: true,
+      variants: variantTitles(adhesiveClasses),
+    },
+  },
   summary: { adhesiveKg: "Клея нужно", area: "Площадь облицовки", notch: "Зуб шпателя" },
   steps: {
     floor: "Пол = {length} × {width} = {area} м²",
     floor_l: "Пол = {length} × {width} − вырез {cutLength} × {cutWidth} = {area} м²",
     walls: "Стены = {gross} − окна и двери {openings} = {area} м²",
+    both: "Пол и стены = {floor} + {walls} = {area} м²",
     rate_notch: "Плитка до {side} см — шпатель {notch} мм, расход от {rate} кг/м²",
     rate_layer: "Расход = {perMm} кг/м² на 1 мм × {layer} мм = {rate} кг/м²",
     back_butter: "Слой на плитку {layer} мм × {perMm} = {extra} кг/м²; всего {rate} кг/м²",
@@ -130,6 +159,7 @@ export const klej: ToolDef = {
     layer_too_thick:
       "Слой {layer} мм толще допустимого {max} мм. Выровняйте основание или выберите клей для толстого слоя",
   },
+  costPerM2: "{price} за 1 м² облицовки",
   norms: [
     "tileAdhesive.notch3",
     "tileAdhesive.notch8",

@@ -1,5 +1,5 @@
 import type { FieldDef, RoomBinding } from "@umnyaut/catalog";
-import type { RoomDraft } from "./store";
+import type { RoomDraft } from "./draft";
 
 /** Tool input: field name → value (same shape as `ToolValues` in entities/tool). */
 type Values = Readonly<Record<string, unknown>>;

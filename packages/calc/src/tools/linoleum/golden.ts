@@ -99,7 +99,7 @@ export const golden: GoldenFile<LinoleumInput> = {
     },
     {
       name: "Patterned linoleum, repeat 50 cm: the second sheet is cut longer",
-      input: { repeatMm: 500 },
+      input: { pattern: true, repeatMm: 500 },
       expected: {
         items: { linoleum: { packs: 91 } },
         summary: { width: 2.5, length: 9.1, seams: 1, boughtArea: 22.75 },
@@ -128,6 +128,7 @@ export const golden: GoldenFile<LinoleumInput> = {
         cutWidthMm: 1050,
         rollWidthMm: 2000,
         allowanceMm: 100,
+        pattern: true,
         repeatMm: 300,
       },
       expected: { items: { linoleum: { packs: 125 } }, summary: { sheets: 2, seams: 1, length: 12.5, boughtArea: 25 } },
@@ -195,6 +196,24 @@ export const golden: GoldenFile<LinoleumInput> = {
       input: { price_linoleum: 800 } as Partial<LinoleumInput>,
       expected: { costTotal: 17200 },
       source: { kind: "manual", ref: "21,5 м² × 800 ₽/м² = 17 200 ₽ (8,6 м × 2,5 м)" },
+    },
+    {
+      name: "Welding switched off: the seam hint asks to switch it on, nothing to weld bought",
+      input: { weld: false },
+      expected: { absentItems: ["seam-weld"], warnings: ["seams_no_weld"] },
+      source: {
+        kind: "manual",
+        ref: "Пример комнаты кладут в 2 полотна — 1 стык; «Холодная сварка швов» выключена: сварку не берём и не пишем, что она в покупках",
+      },
+    },
+    {
+      name: "A repeat left with «Рисунок» off counts nothing (v3)",
+      input: { pattern: false, repeatMm: 500 },
+      expected: { summary: { length: 8.6 } },
+      source: {
+        kind: "manual",
+        ref: "Как пример по умолчанию (припуск 0): 2 полотна по 4,3 м → 8,6 м, без раппорта; раппорт 50 см учитывается только с включённым «Рисунок нужно совмещать»",
+      },
     },
   ],
 };

@@ -75,4 +75,4 @@ export const categories = [
 export type CategorySlug = (typeof categories)[number]["slug"];
 
 /** First-level URL segments owned by other routes; never a category slug. */
-export const reservedSegments = ["remont", "spravochnik", "p", "embed", "tg", "api", "dev"] as const;
+export const reservedSegments = ["remont", "smeta", "spisok", "spravochnik", "p", "embed", "tg", "api", "dev"] as const;

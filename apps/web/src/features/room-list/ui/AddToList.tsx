@@ -1,32 +1,38 @@
 "use client";
 
-import { shell, type ToolDef } from "@umnyaut/catalog";
+import { shell } from "@umnyaut/catalog";
 import { Button, toast } from "@umnyaut/ui";
 import { Check, ListPlus, RefreshCw } from "lucide-react";
-import { useEffect } from "react";
-import type { ToolValues } from "@/entities/tool";
-import { ownInput } from "../model/input";
-import { hydrateList, useListStore } from "../model/store";
 
-const t = shell.roomList;
+const t = shell.toEstimate;
 
 export interface AddToListProps {
-  tool: ToolDef;
-  values: ToolValues;
-  defaults: ToolValues;
+  /** Not in the estimate; in it with unsaved edits; in it as shown. */
+  state: "add" | "update" | "added";
+  onAdd(): void;
+  onUpdate(): void;
   className?: string;
 }
 
-/** «В список» → «В списке» once added; «Обновить в списке» when the tool's own input changed since. */
-export function AddToList({ tool, values, defaults, className }: AddToListProps) {
-  useEffect(() => {
-    void hydrateList();
-  }, []);
-  const entry = useListStore((s) => s.entries.find((e) => e.tool === tool.id));
-  const put = useListStore((s) => s.put);
-  const input = ownInput(tool, values, defaults);
-  const state = !entry ? "add" : JSON.stringify(entry.input) === JSON.stringify(input) ? "added" : "update";
-
+/**
+ * «Добавить в список» → «В списке»; after a change «Обновить в списке» (spec Р4, owner 2026-10-13): the estimate takes
+ * a calc and its edits only by this button.
+ */
+export function AddToList({ state, onAdd, onUpdate, className }: AddToListProps) {
+  if (state === "update") {
+    return (
+      <Button
+        className={className}
+        onClick={() => {
+          onUpdate();
+          toast(t.updatedToast);
+        }}
+      >
+        <RefreshCw aria-hidden="true" />
+        {t.update}
+      </Button>
+    );
+  }
   if (state === "added") {
     return (
       <Button variant="secondary" className={className} disabled>
@@ -39,12 +45,12 @@ export function AddToList({ tool, values, defaults, className }: AddToListProps)
     <Button
       className={className}
       onClick={() => {
-        put({ tool: tool.id, input });
-        if (state === "add") toast(t.addedToast);
+        onAdd();
+        toast(t.addedToast);
       }}
     >
-      {state === "add" ? <ListPlus aria-hidden="true" /> : <RefreshCw aria-hidden="true" />}
-      {state === "add" ? t.add : t.update}
+      <ListPlus aria-hidden="true" />
+      {t.add}
     </Button>
   );
 }

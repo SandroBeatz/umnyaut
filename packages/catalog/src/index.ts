@@ -11,7 +11,9 @@ export const site = {
 export { type CategoryDef, type CategorySlug, categories, reservedSegments, type WorkStep } from "./categories";
 export { type CountryConfig, countries, DEFAULT_COUNTRY, getCountry } from "./countries";
 export { devUi } from "./dev-ui";
+export { estimatePage, roomSuggestions, workOrder } from "./estimate";
 export { type ExampleItem, type HomeWork, home, type MethodIcon } from "./home";
+export { itemTitle } from "./items";
 export { normTitles } from "./norm-titles";
 export { getNorm, type Norm, norms } from "./norms";
 export { toolPath } from "./paths";
@@ -20,7 +22,9 @@ export {
   activeCategories,
   getCategory,
   getTool,
+  itemDef,
   popularTools,
+  sharedItems,
   strings,
   tools,
   toolsIn,

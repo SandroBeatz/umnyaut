@@ -57,6 +57,13 @@ export function MenuSheet({ groups }: MenuSheetProps) {
             );
           })}
         </ul>
+        <Link
+          href="/metodika/"
+          onClick={close}
+          className="mt-4 flex min-h-12 items-center border-border border-t pt-2 text-body-strong"
+        >
+          {shell.header.methodology}
+        </Link>
       </nav>
     </ResponsiveSheet>
   );

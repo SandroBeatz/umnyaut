@@ -188,5 +188,44 @@ export const golden: GoldenFile<ZatirkaInput> = {
       expected: { costTotal: 1350 },
       source: { kind: "manual", ref: "3 упаковки × 450 = 1350 ₽" },
     },
+    {
+      name: "Floor and walls, bathroom 2.2 × 1.7 × 2.5 m, tile 20 × 20, joint 2, depth 7 (v2)",
+      input: {
+        surface: "both",
+        lengthMm: 2200,
+        widthMm: 1700,
+        heightMm: 2500,
+        openings: [{ type: "door", widthMm: 700, heightMm: 2000, count: 1 }],
+        tileLengthMm: 200,
+        tileWidthMm: 200,
+        jointMm: 2,
+        depthMm: 7,
+      },
+      expected: { items: { grout: { packs: 3, need: 5.381376 } }, summary: { area: 21.84, rate: 0.224 } },
+      source: {
+        kind: "manual",
+        ref: "Ceresit: (200 + 200) / (200 × 200) × 2 × 7 × 1,6 = 0,224 кг/м² (https://ceresit.ru/ru/blog/plitochnaya-oblicovka/raschet-zatirki-dlya-plitki/); пол 3,74 + стены 18,1 = 21,84 м² × 0,224 × 1,1 = 5,381 кг → 3 упаковки по 2 кг (по отдельности 1 + 3 = 4)",
+      },
+    },
+    {
+      name: "Floor and walls of the example room (v2)",
+      input: { surface: "both" },
+      expected: { items: { grout: { packs: 10, need: 18.180096 } }, summary: { area: 64.56 } },
+      source: {
+        kind: "manual",
+        ref: "(300 + 300) / (300 × 300) × 3 × 8 × 1,6 = 0,256 кг/м²; пол 19,78 + стены 44,78 = 64,56 м² × 0,256 × 1,1 = 18,18 кг → 10 упаковок по 2 кг (по отдельности 3 + 7 = 10)",
+      },
+    },
+  ],
+  benchmarks: [
+    {
+      example: "Floor and walls, bathroom 2.2 × 1.7 × 2.5 m, tile 20 × 20, joint 2, depth 7 (v2)",
+      site: "Qalculator",
+      url: "https://qalculator.ru/scripts/calc/otdelka-zatirka.js",
+      checkedAt: "2026-10-13",
+      observed: { items: { grout: { packs: 3, need: 5.381376 } } },
+      explanation:
+        "Та же формула Ceresit, K 1,6 (CE 40), запас 10 %, упаковка 2 кг; площадь 21,84 м² вводится вручную — совпадает",
+    },
   ],
 };

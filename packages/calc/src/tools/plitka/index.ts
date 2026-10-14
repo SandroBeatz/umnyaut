@@ -36,7 +36,8 @@ const length = z.int().check(z.minimum(300), z.maximum(100_000));
 const opening = openingInputSchema;
 
 const input = z.object({
-  surface: z.enum(["floor", "walls"]),
+  /** `both` — «Пол и стены» with one tile: the floor and the walls counted each as alone, summed (P17.5). */
+  surface: z.enum(["floor", "walls", "both"]),
   shape: z.enum(["rect", "l"]),
   lengthMm: length,
   widthMm: length,
@@ -60,6 +61,14 @@ const input = z.object({
   /** Related: tile adhesive and grout, counted by the adhesive and grout tools with this tile and joint. */
   adhesive: z.boolean(),
   grout: z.boolean(),
+  /** Product variants of the related adhesive and grout (see those tools). */
+  adhesiveClass: z.enum(["C1", "C1T", "C2TE", "C2TE-S1", "C2-S2"]),
+  groutColor: z.enum(["white", "light-grey", "grey", "graphite", "anthracite", "beige", "brown", "black", "custom"]),
+  groutColorName: z.string().check(z.maxLength(30)),
+  /** Primer under the tile, one coat over the tiled area (norm `primer.consumption`), as in wallpaper and paint. */
+  primer: z.boolean(),
+  primerRateLPerM2: z.number().check(z.minimum(0.05), z.maximum(1)),
+  primerPackL: z.number().check(z.minimum(0.5), z.maximum(50)),
   /** Grout depth = tile thickness. */
   tileThicknessMm: z.number().check(z.minimum(3), z.maximum(30)),
 });
@@ -294,13 +303,19 @@ function wallsScheme(
  * Tile by piece count (Kerama Marazzi): a grid from a corner or from the centre over the floor or each wall;
  * every cut piece takes a tile; whole tiles inside doors and windows are left out (cut tiles around them are
  * kept — safe side). Tiles × (1 + reserve), rounded up to whole tiles; boxes via `ceilPacks`. Diagonal: area /
- * tile area × 1,15. Rectangular room.
+ * tile area × 1,15. Rectangular room. Adhesive, grout and primer over the same area come along.
  */
+/** Warnings of the adhesive and grout tools about the tile and the joint; the room ones the tile calc has itself. */
+const FROM_ADHESIVE: readonly string[] = ["large_format"];
+const FROM_GROUT: readonly string[] = ["joint_too_narrow", "joint_too_wide"];
+
 export const plitka: ToolModule<PlitkaInput> = {
   id: "plitka",
   // 2: from a corner, a rest no wider than a joint is a gap at the wall, not a cut tile.
   // 3: walls with every door and window placed are counted tile by tile around them.
-  version: 3,
+  // 4: primer under the tile, one coat over the tiled area (Ceresit CT 17: 0,1–0,2 л/м², norm 0,15).
+  // 5: «Пол и стены» with one tile: floor and walls counted each as alone, one reserve and one box count.
+  version: 5,
   input,
   defaults: () => ({
     surface: "floor",
@@ -325,6 +340,12 @@ export const plitka: ToolModule<PlitkaInput> = {
     tilesPerBox: 12,
     adhesive: true,
     grout: true,
+    adhesiveClass: "C1T",
+    groutColor: "white",
+    groutColorName: "",
+    primer: true,
+    primerRateLPerM2: 0.15,
+    primerPackL: 10,
     tileThicknessMm: 8,
   }),
   compute(i): ToolResult {
@@ -336,18 +357,21 @@ export const plitka: ToolModule<PlitkaInput> = {
     let whole = 0;
     let cut = 0;
     let narrowest = Number.POSITIVE_INFINITY;
-    let areaM2: number;
+    let areaM2 = 0;
     let layout: Layout | undefined;
+    const both = i.surface === "both";
 
-    if (i.surface === "floor") {
+    let floorM2 = 0;
+    if (i.surface !== "walls") {
       const l = i.shape === "l" && i.cutLengthMm > 0 && i.cutWidthMm > 0;
       const real = l && i.cutLengthMm < i.lengthMm && i.cutWidthMm < i.widthMm;
       if (l && !real) warnings.push({ code: "cut_too_large", level: "warning" });
-      areaM2 = mm2ToM2(i.lengthMm * i.widthMm - (real ? i.cutLengthMm * i.cutWidthMm : 0));
+      floorM2 = mm2ToM2(i.lengthMm * i.widthMm - (real ? i.cutLengthMm * i.cutWidthMm : 0));
+      areaM2 += floorM2;
       if (i.layout === "straight") {
         const g = gridArea(i.lengthMm, i.widthMm, i.tileLengthMm, i.tileWidthMm, i.jointMm, i.start);
-        whole = g.whole;
-        cut = g.cut;
+        whole += g.whole;
+        cut += g.cut;
         if (g.cut > 0) narrowest = g.narrowestMm;
         if (real) {
           // Whole tiles surely inside the cut-out are not needed; tiles along its inner edges stay (now cut).
@@ -359,49 +383,81 @@ export const plitka: ToolModule<PlitkaInput> = {
         }
         layout = floorScheme(i, real, warnings);
       }
-    } else {
+    }
+    if (i.surface !== "floor") {
       const openings = i.openings.filter((o) => o.count > 0);
       const room: Room = { shape: "rect", lengthMm: i.lengthMm, widthMm: i.widthMm, heightMm: i.heightMm, openings };
       const walls = wallAreaM2(room);
-      areaM2 = walls.areaM2;
-      if (walls.openingsExceedWalls || !(areaM2 > 0)) {
+      if (walls.openingsExceedWalls || !(walls.areaM2 > 0)) {
         warnings.push({ code: "openings_exceed_walls", level: "warning" });
-        return { items: [], summary: [], warnings, steps };
-      }
-      if (i.layout === "straight") {
-        const scheme = wallsScheme(i, openings, warnings);
-        layout = scheme.layout;
-        if (scheme.exact) {
-          // Every door and window is placed: the tiles are the scheme's, wall by wall.
-          whole = scheme.exact.whole;
-          cut = scheme.exact.cut;
-          if (Number.isFinite(scheme.narrowestMm)) narrowest = scheme.narrowestMm;
-          steps.push({ code: "openings_placed", values: { tiles: scheme.exact.dropped, around: scheme.exact.around } });
-        } else {
-          for (const wall of [i.lengthMm, i.widthMm, i.lengthMm, i.widthMm]) {
-            const g = gridArea(wall, i.heightMm, i.tileLengthMm, i.tileWidthMm, i.jointMm, i.start);
-            whole += g.whole;
-            cut += g.cut;
-            if (g.cut > 0) narrowest = Math.min(narrowest, g.narrowestMm);
+        // «Пол и стены» keeps the floor; walls alone have nothing to tile.
+        if (!both) return { items: [], summary: [], warnings, steps };
+        steps.push({ code: "both", values: { floor: floorM2, walls: 0, area: areaM2 } });
+      } else {
+        areaM2 += walls.areaM2;
+        if (both) {
+          steps.push({ code: "both", values: { floor: floorM2, walls: walls.areaM2, area: areaM2 } });
+        }
+        if (i.layout === "straight") {
+          let wallsWhole = 0;
+          let wallsCut = 0;
+          const scheme = wallsScheme(i, openings, warnings);
+          // Floor and walls on one scheme card: the floor plan, then the walls unfolded (the floor's guide first).
+          layout =
+            both && layout
+              ? {
+                  ...layout,
+                  elevations: scheme.layout.elevations ?? [],
+                  // Advice both schemes give (the joint, «try from the centre») once.
+                  guide: [...(layout.guide ?? []), ...(scheme.layout.guide ?? [])].filter(
+                    (step, k, all) => all.findIndex((o) => o.code === step.code) === k,
+                  ),
+                  stats: {
+                    whole: layout.stats.whole + scheme.layout.stats.whole,
+                    cut: layout.stats.cut + scheme.layout.stats.cut,
+                    reused: 0,
+                    wasteM2: 0,
+                  },
+                }
+              : scheme.layout;
+          if (scheme.exact) {
+            // Every door and window is placed: the tiles are the scheme's, wall by wall.
+            wallsWhole = scheme.exact.whole;
+            wallsCut = scheme.exact.cut;
+            if (Number.isFinite(scheme.narrowestMm)) narrowest = Math.min(narrowest, scheme.narrowestMm);
+            steps.push({
+              code: "openings_placed",
+              values: { tiles: scheme.exact.dropped, around: scheme.exact.around },
+            });
+          } else {
+            for (const wall of [i.lengthMm, i.widthMm, i.lengthMm, i.widthMm]) {
+              const g = gridArea(wall, i.heightMm, i.tileLengthMm, i.tileWidthMm, i.jointMm, i.start);
+              wallsWhole += g.whole;
+              wallsCut += g.cut;
+              if (g.cut > 0) narrowest = Math.min(narrowest, g.narrowestMm);
+            }
+            // Whole tiles surely inside an opening wherever it sits: ⌊(size − tile) / pitch⌋ per side. A door
+            // stands on the floor, so from a corner its height lines up with the rows: ⌊(h + joint) / pitch⌋.
+            const inside = (size: number, tileMm: number, pitch: number) =>
+              Math.max(Math.floor((size - tileMm) / pitch), 0);
+            const covered = openings.reduce((n, o) => {
+              const h = Math.min(o.heightMm, i.heightMm);
+              const across = inside(o.widthMm, i.tileLengthMm, pitchX);
+              const up =
+                o.type === "door" && i.start === "corner"
+                  ? Math.floor((h + i.jointMm) / pitchY)
+                  : inside(h, i.tileWidthMm, pitchY);
+              return n + across * up * o.count;
+            }, 0);
+            wallsWhole = Math.max(wallsWhole - covered, 0);
+            steps.push({ code: "openings", values: { tiles: covered } });
           }
-          // Whole tiles surely inside an opening wherever it sits: ⌊(size − tile) / pitch⌋ per side. A door
-          // stands on the floor, so from a corner its height lines up with the rows: ⌊(h + joint) / pitch⌋.
-          const inside = (size: number, tileMm: number, pitch: number) =>
-            Math.max(Math.floor((size - tileMm) / pitch), 0);
-          const covered = openings.reduce((n, o) => {
-            const h = Math.min(o.heightMm, i.heightMm);
-            const across = inside(o.widthMm, i.tileLengthMm, pitchX);
-            const up =
-              o.type === "door" && i.start === "corner"
-                ? Math.floor((h + i.jointMm) / pitchY)
-                : inside(h, i.tileWidthMm, pitchY);
-            return n + across * up * o.count;
-          }, 0);
-          whole = Math.max(whole - covered, 0);
-          steps.push({ code: "openings", values: { tiles: covered } });
+          whole += wallsWhole;
+          cut += wallsCut;
         }
       }
     }
+    if (!(areaM2 > 0)) return { items: [], summary: [], warnings, steps };
 
     let tiles: number;
     if (i.layout === "diagonal") {
@@ -446,19 +502,50 @@ export const plitka: ToolModule<PlitkaInput> = {
       tileWidthMm: i.tileWidthMm,
     };
     if (i.adhesive) {
-      const glue = klej.compute({ ...klej.defaults({ country: "RU" }), ...surface }, { country: "RU" });
+      const glue = klej.compute(
+        { ...klej.defaults({ country: "RU" }), ...surface, adhesiveClass: i.adhesiveClass },
+        { country: "RU" },
+      );
       related.push(...glue.items.map((it) => ({ ...it, role: "related" as const })));
+      // What the adhesive tool would say about this tile size, the tile calc says too.
+      warnings.push(...glue.warnings.filter((w) => FROM_ADHESIVE.includes(w.code)));
       const kg = glue.items.reduce((n, it) => n + it.need.value, 0);
       steps.push({ code: "adhesive", values: { kg, bags: glue.items.reduce((n, it) => n + it.packs, 0) } });
     }
     if (i.grout && i.jointMm > 0) {
       const fill = zatirka.compute(
-        { ...zatirka.defaults({ country: "RU" }), ...surface, jointMm: i.jointMm, depthMm: i.tileThicknessMm },
+        {
+          ...zatirka.defaults({ country: "RU" }),
+          ...surface,
+          jointMm: i.jointMm,
+          depthMm: i.tileThicknessMm,
+          groutColor: i.groutColor,
+          groutColorName: i.groutColorName,
+        },
         { country: "RU" },
       );
       related.push(...fill.items.map((it) => ({ ...it, role: "related" as const })));
+      warnings.push(...fill.warnings.filter((w) => FROM_GROUT.includes(w.code)));
       const kg = fill.items.reduce((n, it) => n + it.need.value, 0);
       steps.push({ code: "grout", values: { kg, packs: fill.items.reduce((n, it) => n + it.packs, 0) } });
+    }
+
+    if (i.primer) {
+      const litres = areaM2 * i.primerRateLPerM2;
+      const primer = purchase(
+        "primer",
+        "related",
+        { value: litres, unit: "l" },
+        { kind: "canister", size: { value: i.primerPackL, unit: "l" } },
+      );
+      related.push(primer);
+      if (primer.leftover.value > 4 * litres) {
+        warnings.push({ code: "primer_small_need", level: "info", values: { need: litres, size: i.primerPackL } });
+      }
+      steps.push({
+        code: "primer",
+        values: { area: areaM2, rate: i.primerRateLPerM2, litres, packs: primer.packs, size: i.primerPackL },
+      });
     }
 
     return {
@@ -474,7 +561,8 @@ export const plitka: ToolModule<PlitkaInput> = {
         { key: "area", value: areaM2, unit: "m2" },
         { key: "tileArea", value: mmToM(i.tileLengthMm) * mmToM(i.tileWidthMm), unit: "m2" },
       ],
-      warnings,
+      // «Пол и стены» places the openings on both schemes: one warning of a kind is enough.
+      warnings: warnings.filter((w, k) => warnings.findIndex((o) => o.code === w.code) === k),
       steps,
       ...(layout ? { layout } : {}),
     };

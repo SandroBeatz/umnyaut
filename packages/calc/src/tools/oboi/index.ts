@@ -33,6 +33,7 @@ import type {
   ToolResult,
   Warning,
 } from "../../types";
+import { patternFromRepeat } from "../pattern";
 
 const length = z.int().check(z.minimum(300), z.maximum(100_000));
 
@@ -83,12 +84,16 @@ const input = z.object({
   rollWidthMm: z.int().check(z.minimum(300), z.maximum(1500)),
   rollLengthMm: z.int().check(z.minimum(5000), z.maximum(50_000)),
   /** Pattern repeat (раппорт); 0 = plain or free match. */
+  /** The wallpaper has a pattern to match: only then the repeat and its match count. */
+  pattern: z.boolean(),
   repeatMm: z.int().check(z.minimum(0), z.maximum(1500)),
   match: z.enum(["straight", "offset"]),
   /** Trim allowance per strip, top and bottom together (norm `wallpaper.trimAllowance`). */
   trimMm: z.int().check(z.minimum(0), z.maximum(300)),
-  /** Wall area one pack of paste covers, from the pack (norm `wallpaperPaste.coverage`). */
+  /** Wall area one pack of paste covers, from the pack (norms `wallpaperPaste.coverage.*` by wallpaper type). */
   pasteCoverageM2: z.number().check(z.minimum(1), z.maximum(200)),
+  /** Sets the paste (another product for paper) and, in the form, its coverage (norms `wallpaperPaste.coverage.*`). */
+  wallpaperType: z.enum(["nonwoven", "heavy", "paper"]),
   /** Primer under the wallpaper, one coat (norm `primer.consumption`), one canister size as in paint. */
   primer: z.boolean(),
   primerRateLPerM2: z.number().check(z.minimum(0.05), z.maximum(1)),
@@ -461,7 +466,7 @@ function chooseStart(i: OboiInput, rw: RoomWalls, stripMm: number, edge = i.arou
 }
 
 /** The scheme: every wall unfolded with its strips and pieces, the roll cut map and the guide. */
-function wallpaperLayout(i: OboiInput, rw: RoomWalls, start: ReturnType<typeof chooseStart>, stripMm: number): Layout {
+function wallpaperLayout(i: OboiInput, rw: RoomWalls, start: ReturnType<typeof chooseStart>): Layout {
   const { outline } = rw;
   const { chosen } = start;
   const hang = chosen.hang;
@@ -657,8 +662,12 @@ export const oboi: ToolModule<OboiInput> = {
   //    rests of other strips (a cutting plan), bare zones, L-shaped rooms with outer corners, spare rolls.
   // 4: a door beside a window is one opening, what is trimmed off over openings is a rest for pieces, and strips
   //    may be cut at the edges of openings (`aroundOpenings: "edge"`).
-  version: 4,
+  // 5: the paste by wallpaper type (Metylan datasheets): 42 m² per 300 g for non-woven, 36 for heavy, 35 per
+  //    250 g of a paper paste — was 30 m² per 250 g, unconfirmed.
+  // 6: the repeat counts only with «Рисунок нужно совмещать» on (owner, 2026-10-14).
+  version: 6,
   input,
+  upgrade: patternFromRepeat,
   defaults: () => ({
     lengthMm: 4600,
     widthMm: 4300,
@@ -683,15 +692,18 @@ export const oboi: ToolModule<OboiInput> = {
     spareRolls: 0,
     rollWidthMm: 530,
     rollLengthMm: 10_050,
+    pattern: false,
     repeatMm: 0,
     match: "straight",
     trimMm: 100,
-    pasteCoverageM2: 30,
+    pasteCoverageM2: 42,
+    wallpaperType: "nonwoven",
     primer: true,
     primerRateLPerM2: 0.15,
     primerPackL: 10,
   }),
   compute(i): ToolResult {
+    i = { ...i, repeatMm: i.pattern ? i.repeatMm : 0 };
     const warnings: Warning[] = [];
     const openings = i.openings.filter((o) => o.count > 0);
     const lShape = i.shape === "l" && i.cutLengthMm > 0 && i.cutWidthMm > 0;
@@ -764,7 +776,7 @@ export const oboi: ToolModule<OboiInput> = {
       strips = hang.blanks.length;
       pieces = hang.pieces.length;
       parts = hang.walls.reduce((n, w) => n + w.columns.filter((c) => c.kind !== "pieces").length, 0) + pieces;
-      layout = wallpaperLayout(i, rw, start, stripMm);
+      layout = wallpaperLayout(i, rw, start);
       steps.push({
         code: "hang",
         values: {
@@ -926,6 +938,7 @@ export const oboi: ToolModule<OboiInput> = {
       "related",
       { value: areaM2, unit: "m2" },
       { kind: "pack", size: { value: i.pasteCoverageM2, unit: "m2" } },
+      { variant: i.wallpaperType },
     );
     items.push(paste);
     steps.push(

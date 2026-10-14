@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import type { ComponentType } from "react";
 import { CalculatorShell, type CalculatorShellProps } from "./CalculatorShell";
 
-export type ToolCalculatorProps = Omit<CalculatorShellProps, "module"> & { toolId: ToolId };
+export type ToolCalculatorProps = Omit<CalculatorShellProps, "module">;
 type Props = Omit<CalculatorShellProps, "module">;
 
 /** The shell bound to one calc module. */
@@ -31,7 +31,7 @@ const shells: Record<ToolId, ComponentType<Props>> = {
   plitka: dynamic(() => import("@umnyaut/calc/modules/plitka").then(bind)),
 };
 
-export function ToolCalculator({ toolId, ...props }: ToolCalculatorProps) {
-  const Shell = shells[toolId];
-  return <Shell toolId={toolId} {...props} />;
+export function ToolCalculator(props: ToolCalculatorProps) {
+  const Shell = shells[props.tool.id];
+  return <Shell {...props} />;
 }

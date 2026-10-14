@@ -1,7 +1,7 @@
 "use client";
 
 import type { PurchaseItem } from "@umnyaut/calc";
-import { packNouns, shell, type ToolDef, unitLabels } from "@umnyaut/catalog";
+import { itemTitle, packNouns, shell, type ToolDef, unitLabels } from "@umnyaut/catalog";
 import { Logo } from "@umnyaut/ui";
 import { formatNumber, NBSP } from "@umnyaut/ui/format";
 import { useEffect, useState } from "react";
@@ -62,7 +62,7 @@ export function PrintSheet({ tool, view, items, room, getUrl }: PrintSheetProps)
               {items.map((item) => (
                 <tr key={item.key}>
                   <td className={cell}>☐</td>
-                  <td className={cell}>{tool.items?.[item.key]?.title ?? item.key}</td>
+                  <td className={cell}>{itemTitle(item, tool.items?.[item.key])}</td>
                   <td className={cell}>{packText(item)}</td>
                   <td className={cell}>{formatNumber(item.packs)}</td>
                   <td className={cell} />
