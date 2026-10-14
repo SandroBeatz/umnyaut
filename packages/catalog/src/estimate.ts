@@ -44,9 +44,8 @@ export const estimatePage = {
     rooms: "Комнат",
     floor: "Площадь пола",
     calcs: "Расчётов",
-    saved: "Сэкономили на расходниках",
-    /** The phone's narrow tile. */
-    savedShort: "Экономия",
+    /** Saved by buying shared consumables once (one line on any screen). */
+    saved: "Экономия",
     none: "Пока нет",
   },
   /** «4,6 × 4,3 × 2,7 м · 19,8 м²». */

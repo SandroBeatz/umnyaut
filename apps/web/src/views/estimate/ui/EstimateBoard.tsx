@@ -72,7 +72,7 @@ export function EstimateBoard() {
 
   const board = estimateBoard(estimate, aggregate, country);
   const readOnly = viewing !== null;
-  const metrics: { icon: ReactNode; label: string; short?: string; value: string; accent?: boolean }[] = [
+  const metrics: { icon: ReactNode; label: string; value: string; accent?: boolean }[] = [
     { icon: <DoorOpen />, label: t.metrics.rooms, value: String(board.metrics.rooms) },
     {
       icon: <SquareDashed />,
@@ -83,7 +83,6 @@ export function EstimateBoard() {
     {
       icon: <PiggyBank />,
       label: t.metrics.saved,
-      short: t.metrics.savedShort,
       value: board.metrics.saved ?? t.metrics.none,
       accent: true,
     },
@@ -120,14 +119,7 @@ export function EstimateBoard() {
               {m.icon}
             </span>
             <span className="flex min-w-0 flex-col">
-              {m.short ? (
-                <>
-                  <span className="text-small text-text-muted sm:hidden">{m.short}</span>
-                  <span className="hidden text-small text-text-muted sm:inline">{m.label}</span>
-                </>
-              ) : (
-                <span className="text-small text-text-muted">{m.label}</span>
-              )}
+              <span className="text-small text-text-muted">{m.label}</span>
               <span className="text-body-strong tabular-nums">{m.value}</span>
             </span>
           </li>
