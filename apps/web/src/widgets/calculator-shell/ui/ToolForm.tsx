@@ -151,6 +151,16 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra, u
         );
       }
       case "select": {
+        // A wall picker lists the walls of the room's plan: four, six for an L-shape.
+        const options = field.walls
+          ? [
+              ...field.options,
+              ...Array.from({ length: values.shape === "l" ? 6 : 4 }, (_, k) => ({
+                value: String(k + 1),
+                label: fill(f.wall, { n: k + 1 }),
+              })),
+            ]
+          : field.options;
         // Options are strings; a numeric input (linoleum roll width) gets its number back.
         // An option may set other fields with it: a wallpaper type fills the paste coverage of its kind.
         const pick = (v: string) =>
@@ -165,27 +175,22 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra, u
               key={field.name}
               className="col-span-2"
               label={field.label}
-              options={field.options}
+              options={options}
               value={String(values[field.name])}
               onValueChange={pick}
             />
           );
         }
-        return field.options.length <= 4 && !field.dropdown && field.room !== "shape" ? (
+        return options.length <= 4 && !field.dropdown && field.room !== "shape" ? (
           <div key={field.name} className="col-span-2 flex flex-col gap-1.5">
             <span className="text-small font-medium text-text">{label(field)}</span>
-            <Segment
-              label={field.label}
-              options={field.options}
-              value={String(values[field.name])}
-              onValueChange={pick}
-            />
+            <Segment label={field.label} options={options} value={String(values[field.name])} onValueChange={pick} />
           </div>
         ) : (
           <Select
             key={field.name}
             label={label(field)}
-            options={field.options}
+            options={options}
             value={String(values[field.name])}
             onValueChange={pick}
           />

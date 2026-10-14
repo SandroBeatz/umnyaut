@@ -279,7 +279,7 @@ export function WallElevations({ layout, columns }: WallElevationsProps) {
           width: formatNumber(layout.heightMm / 1000),
           unit: lengthUnitLabels.m,
         })}
-        className="mx-auto max-h-40 w-full"
+        className="mx-auto max-h-64 w-full sm:max-h-80"
       />
       <span className="text-left text-small text-text-muted">{w.view}</span>
       <span className={columns === "two" ? "grid grid-cols-2 gap-3" : "grid gap-4 sm:grid-cols-2"}>

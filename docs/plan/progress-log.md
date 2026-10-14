@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-14
 
+- **— (owner's requests)** Wallpaper: «Главная стена» and «Стена старта» are pickers of the room's walls («Авто», «Стена 1…4», six for an L-shape; select option `walls`) instead of numbers with «0 — напротив двери»; clearer hints for the corner wrap and the trim. «Обои» block starts «Тип обоев | Цена рулона», then roll width and length, then spare rolls. The key plan above the wall elevations is larger (up to 320 px). Field values 16 px / 500 instead of 18 px / 600 — design spec updated (owner's decision; 16 px is iOS's no-zoom minimum).
+  - Where: `feature/p17-a-estimate-model` · PR #173
+
 - **— (owner's request)** Calculator form heading «Размеры и материал» («Размеры» for area tools) with the м/см switch on the same row: units first, then fields; the switch now also converts the room row's sizes («Длина, см» → 460). Preset chips get a visible name: «Типовые доски», «Типовые размеры плитки», «Типовые рулоны», «Типовая длина планки» (rooms and wall height kept theirs). The «Ещё параметры» row is phone-only. The link e2e waits for the copy toast (was racy).
   - Where: `feature/p17-a-estimate-model` · PR #173
 

@@ -57,6 +57,8 @@ export const shell = {
     /** The form card's heading (with the м/см switch beside it). */
     title: "Размеры и материал",
     titleSizes: "Размеры",
+    /** A wall picked by its number on the room plan. */
+    wall: "Стена {n}",
     units: "Единицы",
     unitLabels: { m: "м", cm: "см" },
     more: "Ещё параметры",

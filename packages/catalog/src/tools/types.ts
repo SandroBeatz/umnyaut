@@ -45,6 +45,8 @@ export type FieldDef =
       room?: "shape" | "cutCorner";
       /** Dropdown in half a row instead of a full-width segment (up to 4 options are a segment by default). */
       dropdown?: boolean;
+      /** After `options`, one option per wall of the room's plan («Стена 1…4», six for an L-shape); value = number. */
+      walls?: true;
     })
   | (FieldBase & { kind: "toggle" })
   /** A short name the user types (their own grout colour). */
