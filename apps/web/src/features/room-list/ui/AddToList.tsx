@@ -15,7 +15,7 @@ export interface AddToListProps {
 }
 
 /**
- * «Добавить в смету» → «В смете»; after a change «Обновить в смете» (spec Р4, owner 2026-10-13): the estimate takes
+ * «Добавить в список» → «В списке»; after a change «Обновить в списке» (spec Р4, owner 2026-10-13): the estimate takes
  * a calc and its edits only by this button.
  */
 export function AddToList({ state, onAdd, onUpdate, className }: AddToListProps) {

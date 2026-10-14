@@ -8,7 +8,7 @@ import type { EstimateBoard } from "../model/board";
 
 const t = estimatePage.total;
 
-/** «Итого по смете» (spec «Смета»): the sum, a line per room and the shared consumables; on the phone at the end. */
+/** «Итого по списку» (spec «Смета»): the sum, a line per room and the shared consumables; on the phone at the end. */
 export function TotalCard({
   board,
   country,

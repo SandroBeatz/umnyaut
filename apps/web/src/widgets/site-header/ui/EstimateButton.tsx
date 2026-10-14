@@ -40,7 +40,7 @@ function subscribe(listener: () => void) {
 }
 
 /**
- * «Смета <sum>» (spec «Шапка и футер»): the server and the first render say «Смета»; the saved sum (Р3) fills the
+ * «Список покупок <sum>» (spec «Шапка и футер»): the server and the first render say «Список покупок»; the saved sum (Р3) fills the
  * reserved width after mount. Teal on the estimate page.
  */
 export function EstimateButton() {

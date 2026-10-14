@@ -75,7 +75,7 @@ describe("estimate totals", () => {
     expect(sharedOf(aggregate, estimate, "c1")["tile-adhesive"]).toEqual({
       total: "7\u00a0мешков",
       share: "Ванная: 114,6\u00a0кг",
-      saving: "Плиточный клей на всю смету: 7\u00a0мешков вместо 9\u00a0мешков — общий с «Кухня»",
+      saving: "Плиточный клей на весь список: 7\u00a0мешков вместо 9\u00a0мешков — общий с «Кухня»",
     });
   });
 

@@ -101,7 +101,7 @@ export interface SharedItemView {
   total: string;
   /** «Ванная: 104,6 кг» — what this calc needs. */
   share: string;
-  /** «Плиточный клей на всю смету: 7 мешков вместо 8 — общий с «Кухня»», when merging saved packs. */
+  /** «Плиточный клей на весь список: 7 мешков вместо 8 — общий с «Кухня»», when merging saved packs. */
   saving?: string;
 }
 

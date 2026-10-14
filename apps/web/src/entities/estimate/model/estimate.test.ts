@@ -190,7 +190,7 @@ describe("estimate steps", () => {
   });
 });
 
-describe("edits of a calc in the estimate wait for «Обновить в смете»", () => {
+describe("edits of a calc in the estimate wait for «Обновить в списке»", () => {
   it("a draft holds the edits; the same input again clears it; commit saves it with the surface", () => {
     let e = ops.patchActiveRoom(null, { lengthMm: 4600 }, 1, id);
     e = ops.addCalc(e, { roomId: "r1", tool: "plitka", toolVersion: 4, surface: "floor", input: {} }, 2).estimate;

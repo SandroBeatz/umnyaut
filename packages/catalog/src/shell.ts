@@ -10,7 +10,7 @@ export const shell = {
     calculators: "Калькуляторы",
     country: "Страна и валюта",
     /** The estimate button (spec «Шапка и футер»); the sum is added after mount. */
-    estimate: "Смета",
+    estimate: "Список покупок",
     methodology: "Методика",
   },
   close: "Закрыть",
@@ -113,13 +113,13 @@ export const shell = {
     positions: { one: "позиции", few: "позиций", many: "позиций" },
     related: "Ещё понадобится",
     /** Shared consumables with the estimate (spec «Калькулятор»): quantities for the whole estimate. */
-    relatedEstimate: "Ещё понадобится · на всю смету",
+    relatedEstimate: "Ещё понадобится · на весь список",
     /** «Нужно купить · Ванная». */
     buyIn: "{buy} · {room}",
     /** This calc's share of a shared consumable: «Ванная: 104,6 кг». */
     share: "{room}: {need}",
-    saving: "{item} на всю смету: {total} вместо {instead}",
-    savingWith: "{item} на всю смету: {total} вместо {instead} — общий с «{rooms}»",
+    saving: "{item} на весь список: {total} вместо {instead}",
+    savingWith: "{item} на весь список: {total} вместо {instead} — общий с «{rooms}»",
   },
   /** Names the estimate gives itself and its rooms until the user renames them (spec «Комнаты и смета»). */
   estimate: {
@@ -182,20 +182,20 @@ export const shell = {
     removed: "Расчёт убран",
     undo: "Вернуть",
     label: "Метка",
-    labelHint: "Например, «белая глянцевая» — видна в смете",
+    labelHint: "Например, «белая глянцевая» — видна в списке",
     parts: { floor: "Пол", walls: "Стены", ceiling: "Потолок" },
     /** «Пол уже в расчёте «Плитка: Пол и стены».» */
     overlap: "{parts} уже в расчёте «{calc}».",
     split: "Разделить на два расчёта?",
     splitButton: "Разделить",
   },
-  /** «Добавить в смету» → «В смете»; after edits «Обновить в смете» (spec Р4: only by the button). */
+  /** «Добавить в список» → «В списке»; after edits «Обновить в списке» (spec Р4: only by the button). */
   toEstimate: {
-    add: "Добавить в смету",
-    added: "В смете",
-    addedToast: "Добавлено в смету",
-    update: "Обновить в смете",
-    updatedToast: "Смета обновлена",
+    add: "Добавить в список",
+    added: "В списке",
+    addedToast: "Добавлено в список",
+    update: "Обновить в списке",
+    updatedToast: "Список обновлён",
   },
   /** Room plan editor (popup): doors and windows on walls, docs/ui/room-plan-and-layout-guides.md. */
   plan: {
@@ -265,7 +265,7 @@ export const shell = {
     send: "Отправить",
     soon: "Отправка заработает в ближайшем обновлении. Спасибо, что заметили",
   },
-  sticky: { toResult: "К результату", toEstimate: "К смете" },
+  sticky: { toResult: "К результату", toEstimate: "К списку" },
   print: {
     heading: "Список покупок",
     item: "Позиция",

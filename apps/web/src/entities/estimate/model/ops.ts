@@ -236,7 +236,7 @@ export function setDraft(
   return { ...estimate, calcs: estimate.calcs.map((c) => (c.id === id ? next : c)), updatedAt: now };
 }
 
-/** «Обновить в смете»: the draft becomes the calc's input, with the surface and formula version it was made with. */
+/** «Обновить в списке»: the draft becomes the calc's input, with the surface and formula version it was made with. */
 export function commitDraft(
   estimate: Estimate,
   id: string,

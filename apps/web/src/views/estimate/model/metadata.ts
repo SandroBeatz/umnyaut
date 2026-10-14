@@ -5,6 +5,6 @@ import type { Metadata } from "next";
 export const estimateMetadata: Metadata = {
   title: estimatePage.title,
   description: estimatePage.description,
-  alternates: { canonical: "/smeta/" },
+  alternates: { canonical: "/spisok/" },
   robots: { index: false, follow: true },
 };

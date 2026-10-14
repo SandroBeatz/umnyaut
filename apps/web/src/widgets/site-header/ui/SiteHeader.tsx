@@ -10,7 +10,7 @@ const iconOf = (slug: string) => categoryIcons[slug as keyof typeof categoryIcon
 
 /**
  * Sticky header (design spec §11, spec «Шапка и футер»): phone 56 px — logo, the estimate with its sum, menu sheet;
- * from 1024 px 72 px — mascot head and logo, «Калькуляторы» panel, «Методика», «Смета <sum>». The country switch
+ * from 1024 px 72 px — mascot head and logo, «Калькуляторы» panel, «Методика», «Список покупок <sum>». The country switch
  * lives in the footer.
  */
 export function SiteHeader() {

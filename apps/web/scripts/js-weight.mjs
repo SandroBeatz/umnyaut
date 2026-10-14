@@ -22,7 +22,7 @@ const BUDGET_KB = { text: 165, category: 195, home: 220, tool: 250, estimate: 23
 const kindOf = (route) =>
   route === "/"
     ? "home"
-    : route === "/smeta/"
+    : route === "/spisok/"
       ? "estimate"
       : TEXT.has(route)
         ? "text"

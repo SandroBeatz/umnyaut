@@ -3,7 +3,7 @@ import { Breadcrumbs } from "@/shared/ui";
 import { EstimateBoard } from "./EstimateBoard";
 
 /**
- * `/smeta/` (spec «Смета», P17.11): a static frame; the estimate lives in the browser, so everything below the
+ * `/spisok/` (spec «Смета», P17.11): a static frame; the estimate lives in the browser, so everything below the
  * breadcrumbs appears after mount.
  */
 export function EstimatePage() {

@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 
-const ESTIMATE = "/smeta/";
+const ESTIMATE = "/spisok/";
 const KEY = "umnyaut:estimate:v1";
 
 /** Two rooms with calcs in the estimate, a bedroom with a draft only (spec «Смета», scenario 4). */
@@ -67,7 +67,7 @@ const stored = (page: Page) =>
 
 test("an empty device gets the empty estimate with calculators to start from", async ({ page }) => {
   await page.goto(ESTIMATE);
-  await expect(page.getByRole("heading", { level: 1, name: "Смета пока пустая" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Список пока пустой" })).toBeVisible();
   await expect(page.locator("[data-estimate-empty] a").first()).toBeVisible();
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
 });
@@ -97,28 +97,28 @@ test("a row opens its calculator with that room and calc", async ({ page }) => {
   await expect(page.locator("[data-room-dimensions]")).toBeVisible();
   await expect(page.getByRole("button", { name: /^Зал,/ })).toBeVisible();
   expect((await stored(page))?.activeRoomId).toBe("r1");
-  // Below the result the sticky bar leads back to the estimate: «10 пачек · К смете».
+  // Below the result the sticky bar leads back to the estimate: «10 пачек · К списку».
   await page.mouse.wheel(0, 2500);
-  await page.getByRole("link", { name: "К смете" }).click();
-  await expect(page).toHaveURL(/\/smeta\/$/);
+  await page.getByRole("link", { name: "К списку" }).click();
+  await expect(page).toHaveURL(/\/spisok\/$/);
 });
 
 test("a row is removed with «Вернуть», the estimate renamed", async ({ page }) => {
   await open(page);
   const rows = page.locator('[data-room-card="Зал"] [data-calc-row]');
-  await page.getByRole("button", { name: "Убрать «Плинтус» из сметы" }).click();
+  await page.getByRole("button", { name: "Убрать «Плинтус» из списка" }).click();
   // Asks first; «Отмена» keeps the row.
   await page.getByRole("button", { name: "Отмена" }).click();
   await expect(rows).toHaveCount(2);
-  await page.getByRole("button", { name: "Убрать «Плинтус» из сметы" }).click();
-  await expect(page.getByText("Убрать «Плинтус» из сметы?")).toBeVisible();
+  await page.getByRole("button", { name: "Убрать «Плинтус» из списка" }).click();
+  await expect(page.getByText("Убрать «Плинтус» из списка?")).toBeVisible();
   await page.getByRole("button", { name: "Убрать", exact: true }).click();
   await expect(rows).toHaveCount(1);
   await page.getByRole("button", { name: "Вернуть", exact: true }).click();
   await expect(rows).toHaveCount(2);
 
-  await page.getByRole("button", { name: "Переименовать смету" }).click();
-  await page.getByRole("textbox", { name: "Название сметы" }).fill("Дача");
+  await page.getByRole("button", { name: "Переименовать список" }).click();
+  await page.getByRole("textbox", { name: "Название списка" }).fill("Дача");
   await page.getByRole("button", { name: "Сохранить" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Дача" })).toBeVisible();
   expect((await stored(page))?.name).toBe("Дача");
@@ -138,7 +138,7 @@ test("«Скопировать» gives the estimate as text for a messenger", as
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await open(page);
   await page.getByRole("button", { name: "Скопировать" }).click();
-  await expect(page.getByText("Смета скопирована")).toBeVisible();
+  await expect(page.getByText("Список скопирован")).toBeVisible();
   const text = (await page.evaluate(() => navigator.clipboard.readText())).replace(/\s/g, " ");
   expect(text).toMatch(/^Ремонт квартиры {2}Зал Ламинат — \d+ пачек — [\d ]+ ₽/);
   expect(text).toContain("Общие расходники");
@@ -155,12 +155,12 @@ test("a link carries the estimate: view only, «Забрать себе» on an 
   await page.getByRole("button", { name: "Ссылка" }).click();
   await expect(page.getByText(/Ссылка скопирована/)).toBeVisible();
   const url = await page.evaluate(() => navigator.clipboard.readText());
-  expect(url).toMatch(/\/smeta\/#s=[\w-]+$/);
+  expect(url).toMatch(/\/spisok\/#s=[\w-]+$/);
 
   const other = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await other.goto(url);
   await expect(other.locator('[data-estimate="link"]')).toBeVisible();
-  await expect(other.getByText("Смета по ссылке")).toBeVisible();
+  await expect(other.getByText("Список по ссылке")).toBeVisible();
   await expect(other.locator('[data-room-card="Зал"] [data-calc-row]')).toHaveCount(2);
   await expect(other.locator("[data-calc-row] a")).toHaveCount(0);
   await expect(other.getByRole("button", { name: /^Убрать/ })).toHaveCount(0);
@@ -189,7 +189,7 @@ test("with an estimate of one's own, «Забрать себе» asks and can ad
 
 test("a broken link says so and shows this device's estimate", async ({ page }) => {
   await page.goto(`${ESTIMATE}#s=broken`);
-  await expect(page.getByText(/Ссылка на смету повреждена/)).toBeVisible();
+  await expect(page.getByText(/Ссылка на список повреждена/)).toBeVisible();
   await expect(page.locator("[data-estimate-empty]")).toBeVisible();
 });
 
@@ -198,7 +198,7 @@ test("header: the estimate icon everywhere, its sum once the estimate has one, c
 }) => {
   await page.goto("/pol/laminat/");
   const button = page.locator("[data-estimate-button]");
-  await expect(button).toHaveText("Смета");
+  await expect(button).toHaveText("Список покупок");
   await expect(button.locator("[data-header-sum]")).toHaveCount(0);
 
   await open(page);

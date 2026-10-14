@@ -2,7 +2,7 @@ import { type Estimate, migrateProject } from "@umnyaut/calc";
 
 /** A longer link breaks in messengers; past it the page suggests print / PDF (spec «Экспорт», Р14). */
 export const SNAPSHOT_MAX = 8 * 1024;
-/** `/smeta/#s=<snapshot>`. */
+/** `/spisok/#s=<snapshot>`. */
 export const SNAPSHOT_PREFIX = "#s=";
 
 async function pipe(

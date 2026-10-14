@@ -28,18 +28,18 @@ export const roomSuggestions: Readonly<Record<RoomType, readonly ToolId[]>> = {
 };
 
 /**
- * `/smeta/` (spec «Смета», P17.11): rooms with their calcs, shared consumables, the total. Apart from `shell`, so
+ * `/spisok/` (spec «Смета» — in the UI «Список покупок» since 2026-10-14, P17.11): rooms with their calcs, shared consumables, the total. Apart from `shell`, so
  * calculator pages do not carry the estimate page's strings.
  */
 export const estimatePage = {
-  title: "Смета ремонта",
+  title: "Список покупок",
   description: "Все расчёты по комнатам в одном списке: что, сколько и почём.",
-  crumb: "Смета",
+  crumb: "Список покупок",
   lead: "Все расчёты по комнатам в одном списке. Хранится на этом устройстве",
-  rename: "Переименовать смету",
-  nameLabel: "Название сметы",
+  rename: "Переименовать список",
+  nameLabel: "Название списка",
   save: "Сохранить",
-  loading: "Загружаем смету",
+  loading: "Загружаем список",
   metrics: {
     rooms: "Комнат",
     floor: "Площадь пола",
@@ -55,10 +55,10 @@ export const estimatePage = {
   withItem: "+ {item} {quantity}",
   /** A calc whose whole purchase is a shared consumable (the «Плиточный клей» tool). */
   inShared: "в общих расходниках",
-  remove: "Убрать «{calc}» из сметы",
-  removed: "Расчёт убран из сметы",
+  remove: "Убрать «{calc}» из списка",
+  removed: "Расчёт убран из списка",
   /** The row's trash asks first. */
-  removeConfirm: "Убрать «{calc}» из сметы?",
+  removeConfirm: "Убрать «{calc}» из списка?",
   removeYes: "Убрать",
   removeNo: "Отмена",
   shared: {
@@ -76,7 +76,7 @@ export const estimatePage = {
   suggestLabel: "Посчитать {tool} для комнаты «{room}»",
   addRoom: "Комната",
   total: {
-    title: "Итого по смете",
+    title: "Итого по списку",
     shared: "Общие расходники",
     /** No price typed anywhere yet. */
     noPrices: "Цены вводятся в калькуляторах — тогда появится сумма",
@@ -88,34 +88,34 @@ export const estimatePage = {
     send: "Отправить",
     copy: "Скопировать",
     link: "Ссылка",
-    copied: "Смета скопирована",
-    linkCopied: "Ссылка скопирована — по ней смету откроют на любом устройстве",
-    linkTooLong: "Смета слишком большая для ссылки — сохраните PDF",
+    copied: "Список скопирован",
+    linkCopied: "Ссылка скопирована — по ней список откроют на любом устройстве",
+    linkTooLong: "Список слишком большой для ссылки — сохраните PDF",
     copyFailed: "Не получилось скопировать",
     /** Text for messengers: «Ламинат — 10 пачек — 11 200 ₽ (пол · + подложка 2 рулона)». */
     line: "{title} — {quantity}",
     lineSum: " — {sum}",
     total: "Итого: {sum}",
-    open: "Открыть смету: {url}",
-    /** Print header: «Смета от 13 октября 2026 · umnyaut.com». */
-    printed: "Смета от {date} · {site}",
+    open: "Открыть список: {url}",
+    /** Print header: «Список покупок от 13 октября 2026 · umnyaut.com». */
+    printed: "Список покупок от {date} · {site}",
   },
   /** Someone else's estimate opened by link: view only until «Забрать себе». */
   byLink: {
-    title: "Смета по ссылке",
-    lead: "Только просмотр. Заберите её себе, чтобы менять и считать дальше",
+    title: "Список по ссылке",
+    lead: "Только просмотр. Заберите его себе, чтобы менять и считать дальше",
     adopt: "Забрать себе",
-    question: "У вас уже есть своя смета",
-    questionLead: "Заменить её этой или добавить комнаты из этой сметы к своим?",
+    question: "У вас уже есть свой список",
+    questionLead: "Заменить его этим или добавить комнаты из этого списка к своим?",
     replace: "Заменить мою",
     add: "Добавить комнаты в мою",
     cancel: "Отмена",
-    adopted: "Смета теперь ваша",
+    adopted: "Список теперь ваш",
     added: "Добавлено комнат: {count}",
-    broken: "Ссылка на смету повреждена — откройте её заново из сообщения",
+    broken: "Ссылка на список повреждена — откройте её заново из сообщения",
   },
   empty: {
-    title: "Смета пока пустая",
+    title: "Список пока пустой",
     lead: "Посчитайте материал в любом калькуляторе — расчёт сам появится здесь, по комнатам.",
   },
 } as const;

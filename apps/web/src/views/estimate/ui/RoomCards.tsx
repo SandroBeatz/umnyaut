@@ -66,7 +66,7 @@ function RoomTitle({ room, size, readOnly }: { room: EstimateRoom; size?: string
 
 /**
  * One calc row: the link into its calculator and a red trash. The trash asks in the row itself — «Убрать «Краска» из
- * сметы?» with «Убрать» and «Отмена» — then «Вернуть» in a toast.
+ * списка?» with «Убрать» and «Отмена» — then «Вернуть» in a toast.
  */
 function CalcRowItem({ row, content, readOnly }: { row: CalcRow; content: ReactNode; readOnly?: boolean | undefined }) {
   const [asking, setAsking] = useState(false);

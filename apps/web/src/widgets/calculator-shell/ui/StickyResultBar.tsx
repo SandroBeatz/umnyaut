@@ -6,7 +6,7 @@ import Link from "next/link";
 export interface StickyResultBarProps {
   text: string;
   visible: boolean;
-  /** The calc is in the estimate: the bar leads to it, «10 пачек · К смете» (spec «Калькулятор»). */
+  /** The calc is in the estimate: the bar leads to it, «10 пачек · К списку» (spec «Калькулятор»). */
   inEstimate?: boolean;
 }
 
@@ -35,7 +35,7 @@ export function StickyResultBar({ text, visible, inEstimate }: StickyResultBarPr
         </a>
         {inEstimate ? (
           <Link
-            href="/smeta/"
+            href="/spisok/"
             tabIndex={visible ? 0 : -1}
             className="inline-flex h-full shrink-0 items-center gap-1 text-small font-semibold text-primary"
           >

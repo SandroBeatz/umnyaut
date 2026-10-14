@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-14
 
+- **— (owner's decision, spec Р20)** «Смета» is «Список покупок» in the interface: «Добавить в список» / «В списке» / «Обновить в списке», «Итого по списку», «Ещё понадобится · на весь список», «К списку», the page «Список покупок» at `/spisok/` with a 308 from `/smeta/` (catalog `redirects`; the `#` snapshot rides along). Code names (`estimate`), the storage key and the masters' «смета» on «Партнёрам» stay. «Смета» returns with the masters' mode (works and rates).
+  - Where: `feature/p17-a-estimate-model` · PR #173
+
 - **— (owner's request)** Laminate form in blocks: «Доска» (length | width, per pack | pack price), «Укладка» (straight: row direction, wall gap | joint offset; diagonal and herringbone: only the waste % — as the formula uses them), «☐ Подложка» (m² per roll | roll price, only when on).
   - Where: `feature/p17-a-estimate-model` · PR #173
 

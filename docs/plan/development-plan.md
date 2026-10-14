@@ -495,17 +495,17 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 *D — Estimate page*
 
-- [x] P17.11 `/smeta/` (thin route, `noindex`, out of sitemap), `views/estimate`: title, metrics, room cards (rows lead back to the calculator with that room and calc), shared consumables, empty rooms with suggestions by type, «+ Комната», total card; modules loaded on demand, recompute on open, rows ordered rough → finish (was P11.1); JS budget for the page added to `js:check`.
+- [x] P17.11 `/spisok/` (thin route, `noindex`, out of sitemap), `views/estimate`: title, metrics, room cards (rows lead back to the calculator with that room and calc), shared consumables, empty rooms with suggestions by type, «+ Комната», total card; modules loaded on demand, recompute on open, rows ordered rough → finish (was P11.1); JS budget for the page added to `js:check`.
 - [x] P17.12 Export: copy as text, `navigator.share` with copy fallback, print / «PDF» via print styles with the date.
 - [x] P17.13 Link without a server: estimate snapshot after `#`, read-only view, «Забрать себе» with «Заменить» / «Добавить комнаты»; snapshots over 8 KB suggest print.
 
 *E — Header, footer, country*
 
-- [x] P17.14 Header: «Калькуляторы ▾» · «Методика» · «Смета <sum>» (small client island reading `totals`, reserved width, teal on `/smeta/`), phone: estimate icon with sum; country switch and «Мои расчёты» leave the header, country switch in the footer, time-zone detection stays.
+- [x] P17.14 Header: «Калькуляторы ▾» · «Методика» · «Смета <sum>» (small client island reading `totals`, reserved width, teal on `/spisok/`), phone: estimate icon with sum; country switch and «Мои расчёты» leave the header, country switch in the footer, time-zone detection stays.
 
 *F — Verify and release*
 
-- [ ] P17.15 Playwright (phone): scenarios 1–7 incl. migration of old storage; Lighthouse on a tool page with a seeded estimate (CLS ≤ 0.05, JS ≤ 250 KB, a11y ≥ 0.95) and on `/smeta/`; server-HTML guard unchanged.
+- [ ] P17.15 Playwright (phone): scenarios 1–7 incl. migration of old storage; Lighthouse on a tool page with a seeded estimate (CLS ≤ 0.05, JS ≤ 250 KB, a11y ≥ 0.95) and on `/spisok/`; server-HTML guard unchanged.
 - [ ] P17.16 Docs: `docs/ui/rooms-and-estimate.md` digest via `/docs`; architecture (state), calc engine (variants, `aggregateEstimate`), calculator shell updated; RU tech and business spec sections on the planner and «Мои расчёты» point to the new spec. PR → `develop` → staging → `main` with owner approval.
 
 *G — After Supabase and the bot*

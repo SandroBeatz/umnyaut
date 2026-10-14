@@ -150,7 +150,7 @@ function leaveLink() {
   window.history.replaceState(window.history.state, "", window.location.pathname);
 }
 
-/** «Смета по ссылке · Забрать себе»: with an estimate of one's own, asks whether to replace it or add the rooms. */
+/** «Список по ссылке · Забрать себе»: with an estimate of one's own, asks whether to replace it or add the rooms. */
 function SharedBanner({ theirs, onAdopted }: { theirs: Estimate; onAdopted(): void }) {
   const [asking, setAsking] = useState(false);
   const adopt = (mode: "replace" | "add") => {

@@ -3,7 +3,7 @@ import { cn } from "@umnyaut/ui";
 import { ClipboardList } from "lucide-react";
 import Link from "next/link";
 
-export const ESTIMATE_PATH = "/smeta/";
+export const ESTIMATE_PATH = "/spisok/";
 
 export interface EstimateLinkProps {
   /** On the estimate page: teal. */
@@ -14,7 +14,7 @@ export interface EstimateLinkProps {
 
 /**
  * The header's estimate button, one look everywhere (owner, 2026-10-14): mint with the sum in a white chip. No sum
- * yet — the icon alone; the word «Смета» only from 1024 px and only beside a sum; screen readers always hear it.
+ * yet — the icon alone; the word «Список покупок» only from 1024 px and only beside a sum; screen readers always hear it.
  */
 export function EstimateLink({ here, sum }: EstimateLinkProps) {
   return (

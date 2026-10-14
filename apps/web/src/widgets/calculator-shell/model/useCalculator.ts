@@ -34,9 +34,9 @@ export interface Calculator {
   seedRoom(): void;
   /** The calc for the current values, created in the active room when there is none; its id. */
   ensureCalc(): string | undefined;
-  /** «Добавить в смету» — the only way a calc joins the estimate (owner, 2026-10-13). */
+  /** «Добавить в список» — the only way a calc joins the estimate (owner, 2026-10-13). */
   addToEstimate(): void;
-  /** «Обновить в смете»: the edits made since the calc joined the estimate replace what it counts. */
+  /** «Обновить в списке»: the edits made since the calc joined the estimate replace what it counts. */
   updateEstimate(): void;
   /** Shows another calc of this tool in the room (a chip). */
   openCalc(id: string): void;
@@ -63,7 +63,7 @@ function seen(tool: ToolDef, values: ToolValues) {
  * State of one calculator (tech spec §6, spec «Несколько расчётов»). Render 1 = server render: defaults, RU. After
  * mount the input comes from `?s=` if present, otherwise from the last opened calc of this tool in the active room
  * over the room's sizes. Own edits are written to that calc (created on the first one; once it is in the estimate,
- * to its draft until «Обновить в смете»); room edits go to the room,
+ * to its draft until «Обновить в списке»); room edits go to the room,
  * and room edits made elsewhere (the room row, the editor, another room chosen) flow into the fields.
  */
 export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Calculator {
@@ -175,7 +175,7 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
       const id = current.current;
       const calc = store.estimate?.calcs.find((c) => c.id === id);
       if (id && calc?.addedAt !== undefined) {
-        // In the estimate: the edits wait in the draft for «Обновить в смете»; back to what is saved — no draft.
+        // In the estimate: the edits wait in the draft for «Обновить в списке»; back to what is saved — no draft.
         store.setDraft(id, same(fields.input, calc.input) ? undefined : fields.input);
         return id;
       }
@@ -209,7 +209,7 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
         // The first edit creates the room from what the form shows, not from one field.
         store.patchActiveRoom({ ...(selectActiveRoom(store) === null ? seen(tool, next) : {}), ...room });
       }
-      // An own field changed: it belongs to the calc. Nothing joins the estimate without «Добавить в смету».
+      // An own field changed: it belongs to the calc. Nothing joins the estimate without «Добавить в список».
       if (Object.keys(patch).length > Object.keys(room).length) writeCalc(next, true);
     },
     [parse, tool, writeCalc],
