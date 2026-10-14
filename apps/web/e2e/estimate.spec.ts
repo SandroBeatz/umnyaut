@@ -107,6 +107,12 @@ test("a row is removed with «Вернуть», the estimate renamed", async ({ 
   await open(page);
   const rows = page.locator('[data-room-card="Зал"] [data-calc-row]');
   await page.getByRole("button", { name: "Убрать «Плинтус» из сметы" }).click();
+  // Asks first; «Отмена» keeps the row.
+  await page.getByRole("button", { name: "Отмена" }).click();
+  await expect(rows).toHaveCount(2);
+  await page.getByRole("button", { name: "Убрать «Плинтус» из сметы" }).click();
+  await expect(page.getByText("Убрать «Плинтус» из сметы?")).toBeVisible();
+  await page.getByRole("button", { name: "Убрать", exact: true }).click();
   await expect(rows).toHaveCount(1);
   await page.getByRole("button", { name: "Вернуть", exact: true }).click();
   await expect(rows).toHaveCount(2);

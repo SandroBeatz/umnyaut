@@ -57,6 +57,10 @@ export const estimatePage = {
   inShared: "в общих расходниках",
   remove: "Убрать «{calc}» из сметы",
   removed: "Расчёт убран из сметы",
+  /** The row's trash asks first. */
+  removeConfirm: "Убрать «{calc}» из сметы?",
+  removeYes: "Убрать",
+  removeNo: "Отмена",
   shared: {
     title: "Общие расходники",
     lead: "на все комнаты сразу",

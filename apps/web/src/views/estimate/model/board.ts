@@ -196,7 +196,8 @@ export function estimateBoard(estimate: Estimate, aggregate: EstimateAggregate, 
   const savers = [
     ...new Set(aggregate.shared.filter((l) => l.savedPacks > 0).map((l) => itemTitle(l.item, itemDef(l.item.key)))),
   ];
-  const items = listText(savers);
+  // «Грунтовка и затирка белая»: names after the first in lower case, inside a sentence.
+  const items = listText(savers.map((name, k) => (k === 0 ? name : name.charAt(0).toLowerCase() + name.slice(1))));
   const savedText =
     saved > 0
       ? formatMoney(saved, country)

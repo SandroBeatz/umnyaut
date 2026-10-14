@@ -2,9 +2,9 @@
 
 import type { EstimateRoom } from "@umnyaut/calc";
 import { estimatePage, shell, toolPath } from "@umnyaut/catalog";
-import { Button, categoryIcons, toast } from "@umnyaut/ui";
+import { Button, categoryIcons, Popover, PopoverClose, PopoverContent, PopoverTrigger, toast } from "@umnyaut/ui";
 import { type Country, formatMoney } from "@umnyaut/ui/format";
-import { Calculator, ChevronRight, Pencil, Plus, X } from "lucide-react";
+import { Calculator, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { type ReactNode, useState } from "react";
 import { freeRoomName, useEstimateStore } from "@/entities/estimate";
@@ -30,6 +30,38 @@ const removeCalc = (id: string) => {
   useEstimateStore.getState().removeCalc(id);
   toast(t.removed, { action: { label: shell.calcs.undo, onClick: () => useEstimateStore.getState().undoRemove() } });
 };
+
+/** The row's red trash; removing asks first («Убрать «Краска» из сметы?»), then «Вернуть» in a toast. */
+function RemoveRow({ title, onRemove }: { title: string; onRemove(): void }) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="flex size-12 shrink-0 items-center justify-center rounded-md text-danger transition-colors hover:bg-danger-soft print:hidden"
+          aria-label={fill(t.remove, { calc: title })}
+        >
+          <Trash2 aria-hidden="true" className="size-5" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="flex w-64 flex-col gap-3 p-3">
+        <p className="text-body-strong">{fill(t.removeConfirm, { calc: title })}</p>
+        <div className="flex gap-2">
+          <PopoverClose asChild>
+            <Button variant="danger" size="sm" className="flex-1" onClick={onRemove}>
+              {t.removeYes}
+            </Button>
+          </PopoverClose>
+          <PopoverClose asChild>
+            <Button variant="secondary" size="sm" className="flex-1">
+              {t.removeNo}
+            </Button>
+          </PopoverClose>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 /** The room editor behind a trigger; `room: null` adds a room. */
 function EditRoom({ room, trigger }: { room: EstimateRoom | null; trigger: ReactNode }) {
@@ -117,16 +149,7 @@ export function RoomCardView({ card, country, readOnly }: { card: RoomCard; coun
                   {content}
                 </Link>
               )}
-              {readOnly ? null : (
-                <button
-                  type="button"
-                  className="flex size-12 shrink-0 items-center justify-center rounded-md text-text-muted hover:text-danger print:hidden"
-                  aria-label={fill(t.remove, { calc: row.title })}
-                  onClick={() => removeCalc(row.id)}
-                >
-                  <X aria-hidden="true" className="size-5" />
-                </button>
-              )}
+              {readOnly ? null : <RemoveRow title={row.title} onRemove={() => removeCalc(row.id)} />}
             </li>
           );
         })}
