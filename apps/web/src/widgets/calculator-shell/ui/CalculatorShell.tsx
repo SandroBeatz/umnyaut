@@ -68,7 +68,10 @@ export function CalculatorShell({ tool, next, checkedAt, sources, module }: Calc
     store.removeCalc(id);
     toast(shell.calcs.removed, { action: { label: shell.calcs.undo, onClick: () => store.undoRemove() } });
   };
-  const view = describeResult(tool, calc.result, country);
+  const view = describeResult(tool, calc.result, country, {
+    ...(module.priceBasis ? { basis: module.priceBasis } : {}),
+    values: calc.values,
+  });
 
   const panel = useRef<HTMLElement>(null);
   const [panelVisible, setPanelVisible] = useState(true);

@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-14
 
+- **— (owner's feedback)** «Итого 7 613 сом · 385 сом за 1 м² пола» still read like a second price next to «Цена за м² 350». A main item priced per m² or litre now shows where the total comes from: «Итого 7 613 сом · 21,75 м² по 350 сом» (paint: «9,9 л по 630 сом»); pack-priced tools keep «за 1 м² пола / облицовки / стен».
+  - Where: `feature/p17-a-estimate-model` · PR #173
+
 - **— (owner's feedback)** The estimate priced linoleum and paint wrong: their price is per m² / per litre, the estimate multiplied it by packs (linoleum «packs» are 10 cm cut steps — 30 450 instead of 7 613 for 8,7 m × 2,5 m at 350). `priced` now tells its `priceBasis`, the estimate prices a «unit» line as bought amount × price, line by line (a paint can set too); a test checks the estimate equals the calculator for both. «Итого … · 385 за м²» read like the typed price — each tool now says what the m² is (`costPerM2`: «за 1 м² пола / облицовки / окраски / стен»). The tile primer's price field had no effect (`primer` missing in the tile's price config) — fixed.
   - Where: `feature/p17-a-estimate-model` · PR #173
 

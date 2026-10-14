@@ -97,6 +97,5 @@ export const kraska: ToolDef = {
     primer_small_need:
       "Грунтовки нужно всего {need} л, а канистра {size} л. Посмотрите упаковку 1 л — поле «Объём канистры»",
   },
-  costPerM2: "{price} за 1 м² окраски",
   norms: ["paint.coverage", "paint.coats", "primer.consumption"],
 };

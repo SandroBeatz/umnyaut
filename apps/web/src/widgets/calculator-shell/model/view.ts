@@ -38,7 +38,13 @@ const texts = (values: Readonly<Record<string, number>> | undefined, format: (n:
   Object.fromEntries(Object.entries(values ?? {}).map(([k, v]) => [k, format(v)]));
 
 /** Turns codes and numbers from `compute()` into Russian text from the catalog. */
-export function describeResult(tool: ToolDef, result: ToolResult, country: Country): ResultView {
+export function describeResult(
+  tool: ToolDef,
+  result: ToolResult,
+  country: Country,
+  /** The module's price basis and the input: a main item priced per m² or litre shows «21,75 м² по 350 сом». */
+  pricing?: { basis?: Readonly<Record<string, "pack" | "unit">>; values: Readonly<Record<string, unknown>> },
+): ResultView {
   const quantity = (value: number, unit: keyof typeof unitLabels) => `${number(value)}${NBSP}${unitLabels[unit]}`;
   const groups = groupPurchases(result.items);
   const mainGroup = groups.find((g) => g.first.role === "main");
@@ -99,7 +105,17 @@ export function describeResult(tool: ToolDef, result: ToolResult, country: Count
   let total: ResultView["total"];
   if (result.cost && result.cost.missing.length < result.items.length) {
     const parts = [fill(shell.result.total, { total: formatMoney(result.cost.total, country) })];
-    if (result.cost.perM2 !== undefined)
+    const unitPrice = mainItem ? pricing?.values[`price_${mainItem.key}`] : undefined;
+    if (mainGroup && mainItem && pricing?.basis?.[mainItem.key] === "unit" && typeof unitPrice === "number") {
+      // Priced per m² or litre: where the total comes from, not a second «per m²» that reads like another price.
+      const bought = mainGroup.lines.reduce((n, l) => n + l.bought.value, 0);
+      parts.push(
+        fill(shell.result.unitPrice, {
+          amount: quantity(bought, mainItem.bought.unit),
+          price: formatMoney(unitPrice, country),
+        }),
+      );
+    } else if (result.cost.perM2 !== undefined)
       parts.push(fill(tool.costPerM2 ?? shell.result.perM2, { price: formatMoney(result.cost.perM2, country) }));
     const count = result.cost.missing.length;
     total = {
