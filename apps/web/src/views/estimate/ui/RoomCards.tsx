@@ -41,20 +41,20 @@ function EditRoom({ room, trigger }: { room: EstimateRoom | null; trigger: React
 function RoomTitle({ room, size, readOnly }: { room: EstimateRoom; size?: string; readOnly?: boolean }) {
   return (
     <span className="flex min-w-0 flex-1 flex-col">
-      <span className="flex items-center gap-1">
+      <span className="flex items-center gap-2">
         <h2 className="min-w-0 truncate text-h3">{room.name}</h2>
         {readOnly ? null : (
           <EditRoom
             room={room}
             trigger={
-              <Button
-                variant="ghost"
-                size="icon"
-                className="-my-2 -ml-2 text-text-muted print:hidden [&_svg]:size-4"
+              // A 32 px button beside the name; the tap area is 48 px all the same (`after:` widens it unseen).
+              <button
+                type="button"
+                className="relative inline-flex size-8 shrink-0 items-center justify-center rounded-md text-text-muted transition-colors after:absolute after:-inset-2 hover:bg-primary-soft hover:text-primary-hover print:hidden"
                 aria-label={fill(t.editRoom, { room: room.name })}
               >
-                <Pencil aria-hidden="true" />
-              </Button>
+                <Pencil aria-hidden="true" className="size-4" />
+              </button>
             }
           />
         )}
