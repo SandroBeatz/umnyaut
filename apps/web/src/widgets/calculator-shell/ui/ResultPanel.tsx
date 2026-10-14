@@ -43,9 +43,10 @@ export function ResultPanel({ tool, view, example, stale, room, shared, ref }: R
           number stays where it was (rule 8). */}
       <span
         aria-hidden="true"
-        className="absolute top-2 right-3 flex size-[72px] items-end justify-center overflow-hidden rounded-full bg-surface-mint lg:-top-10 lg:right-6 lg:size-28"
+        className="absolute top-2 right-3 flex size-[72px] items-center justify-center rounded-full bg-surface-mint lg:-top-10 lg:right-6 lg:size-28"
       >
-        <Mascot image={mascotImages.done} size={64} sizeLg={96} alt="" />
+        {/* The cat is taller than wide: it fits the circle whole, ears to paws. */}
+        <Mascot image={mascotImages.done} size={54} sizeLg={84} alt="" />
       </span>
       {/* The heading keeps clear of the cat in the corner. */}
       <header className="-mt-1 flex min-h-12 items-center pr-20 lg:pr-32">
