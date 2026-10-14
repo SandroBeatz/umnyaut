@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-14
 
+- **— (owner's request)** Paint form in blocks: «Краска» (price per litre on a whole row, then coats | coverage) and «☐ Грунтовать перед покраской» with rate, canister and price only when on.
+  - Where: `feature/p17-a-estimate-model` · PR #173
+
 - **— (owner's request)** The result card's cat sits in a mint circle at the card's top-right corner, larger (72 px phone, 112 px from 1024 px) and over the card's edge on desktop; absolute, so the number does not move (rule 8). The sticky result column starts 40 px lower so the cat is not cut by the header.
   - Where: `feature/p17-a-estimate-model` · PR #173
 
