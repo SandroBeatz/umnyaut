@@ -102,4 +102,4 @@ export function overlapOf(
 
 /** «Пол», «Пол и стены». */
 export const partsLabel = (parts: readonly SurfacePart[]) =>
-  parts.map((p, i) => (i === 0 ? t.parts[p] : t.parts[p].toLowerCase())).join(" и ");
+  parts.map((p, i) => (i === 0 ? t.parts[p] : t.parts[p].toLowerCase())).join(t.and);

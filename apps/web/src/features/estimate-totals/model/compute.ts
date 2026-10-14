@@ -8,6 +8,7 @@ import {
   productKey,
   type ToolId,
   type ToolModule,
+  upgradeInput,
 } from "@umnyaut/calc";
 import { itemDef, itemTitle, packNouns, sharedItems, shell, tools } from "@umnyaut/catalog";
 import { plural } from "@umnyaut/ui/format";
@@ -37,7 +38,9 @@ export function calcItems(
   if (!tool || !module) return undefined;
   const room = estimate.rooms.find((r) => r.id === calc.roomId) ?? null;
   const ctx = { country: estimate.country };
-  const parsed = module.input.safeParse(applyRoom({ ...module.defaults(ctx), ...calc.input }, room, tool.fields));
+  const parsed = module.input.safeParse(
+    applyRoom({ ...module.defaults(ctx), ...upgradeInput(module, calc.input) }, room, tool.fields),
+  );
   if (!parsed.success) return undefined;
   const values = parsed.data as ToolValues;
   const prices = Object.fromEntries(

@@ -108,7 +108,7 @@ describe("aggregateEstimate", () => {
     expect(result.overlaps).toEqual([]);
   });
 
-  it("an adhesive calc on «Пол и стены» replaces both tile calcs; one without a surface replaces any", () => {
+  it("an adhesive calc on «Пол и стены» replaces both tile calcs; one without a surface (old planner) replaces none", () => {
     const tiles = [
       calc("tileFloor", "bath", [tile(60), glue(30)], { surface: "floor" }),
       calc("tileWalls", "bath", [tile(140), glue(40)], { surface: "walls" }),
@@ -126,7 +126,26 @@ describe("aggregateEstimate", () => {
       shared,
       prices: {},
     });
-    expect(any.replaced.map((r) => r.calcId)).toEqual(["tileFloor", "tileWalls"]);
+    expect(any.replaced).toEqual([]);
+  });
+
+  it("adhesive calcs on «Пол» and on «Стены» together replace tile on «Пол и стены»: no adhesive bought twice", () => {
+    const result = aggregateEstimate({
+      roomIds: ["bath"],
+      calcs: [
+        calc("tile", "bath", [tile(200), glue(167.4)], { surface: "floor-walls" }),
+        calc("glueFloor", "bath", [glue(32.4, "main")], { surface: "floor" }),
+        calc("glueWalls", "bath", [glue(135, "main")], { surface: "walls" }),
+      ],
+      shared,
+      prices: {},
+    });
+    expect(result.replaced).toEqual([{ calcId: "tile", by: "glueFloor", key: "tile-adhesive" }]);
+    // 32,4 + 135 = 167,4 kg → 7 bags of 25 kg, not 14.
+    expect(result.shared[0]?.shares.map((s) => [s.calcId, s.need])).toEqual([
+      ["glueFloor", 32.4],
+      ["glueWalls", 135],
+    ]);
   });
 
   it("an adhesive calc covering only part of a tile calc replaces nothing: the walls' share is not lost", () => {

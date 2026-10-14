@@ -79,11 +79,11 @@ const surfaceText = (calc: Estimate["calcs"][number]) =>
   calc.surface
     ? surfaceParts(calc.surface)
         .map((p) => shell.calcs.parts[p].toLowerCase())
-        .join(" и ")
+        .join(shell.calcs.and)
     : undefined;
 /** «Ванная, Кухня и Зал». */
 const listText = (names: readonly string[]) =>
-  names.length < 2 ? (names[0] ?? "") : `${names.slice(0, -1).join(", ")} и ${names.at(-1)}`;
+  names.length < 2 ? (names[0] ?? "") : `${names.slice(0, -1).join(", ")}${shell.calcs.and}${names.at(-1)}`;
 
 /** A room's floor, as the room area tool counts it; none without length and width. */
 export function floorOf(room: EstimateRoom): number | undefined {

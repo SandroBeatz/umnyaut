@@ -33,6 +33,7 @@ import type {
   ToolResult,
   Warning,
 } from "../../types";
+import { patternFromRepeat } from "../pattern";
 
 const length = z.int().check(z.minimum(300), z.maximum(100_000));
 
@@ -465,7 +466,7 @@ function chooseStart(i: OboiInput, rw: RoomWalls, stripMm: number, edge = i.arou
 }
 
 /** The scheme: every wall unfolded with its strips and pieces, the roll cut map and the guide. */
-function wallpaperLayout(i: OboiInput, rw: RoomWalls, start: ReturnType<typeof chooseStart>, stripMm: number): Layout {
+function wallpaperLayout(i: OboiInput, rw: RoomWalls, start: ReturnType<typeof chooseStart>): Layout {
   const { outline } = rw;
   const { chosen } = start;
   const hang = chosen.hang;
@@ -666,6 +667,7 @@ export const oboi: ToolModule<OboiInput> = {
   // 6: the repeat counts only with «Рисунок нужно совмещать» on (owner, 2026-10-14).
   version: 6,
   input,
+  upgrade: patternFromRepeat,
   defaults: () => ({
     lengthMm: 4600,
     widthMm: 4300,
@@ -774,7 +776,7 @@ export const oboi: ToolModule<OboiInput> = {
       strips = hang.blanks.length;
       pieces = hang.pieces.length;
       parts = hang.walls.reduce((n, w) => n + w.columns.filter((c) => c.kind !== "pieces").length, 0) + pieces;
-      layout = wallpaperLayout(i, rw, start, stripMm);
+      layout = wallpaperLayout(i, rw, start);
       steps.push({
         code: "hang",
         values: {

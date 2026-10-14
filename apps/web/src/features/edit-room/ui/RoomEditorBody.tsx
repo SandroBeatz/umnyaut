@@ -159,7 +159,7 @@ export default function RoomEditorBody({ room, draft, newName, onDone }: RoomEdi
               type="button"
               aria-pressed={form.type === type}
               onClick={() => patch({ type, name: nameForType(type, form.name, newName, others) })}
-              className="h-11 rounded-full border border-border px-4 text-small font-medium text-text aria-pressed:border-transparent aria-pressed:bg-primary-soft aria-pressed:font-semibold aria-pressed:text-primary-hover"
+              className="h-12 rounded-full border border-border px-4 text-small font-medium text-text aria-pressed:border-transparent aria-pressed:bg-primary-soft aria-pressed:font-semibold aria-pressed:text-primary-hover"
             >
               {t.types[type]}
             </button>

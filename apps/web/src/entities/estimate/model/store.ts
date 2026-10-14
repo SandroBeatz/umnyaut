@@ -135,12 +135,29 @@ export const useEstimateStore = create<EstimateState>()(
       // `window.` throws on the server, so no storage is created there (Node 24 has its own `localStorage`).
       // Every write also tells this tab (the header's sum); other tabs hear the `storage` event.
       storage: createJSONStorage(() => ({
-        getItem: (key) => window.localStorage.getItem(key),
+        // A full or blocked storage keeps the estimate in memory for this visit instead of breaking the edit.
+        getItem: (key) => {
+          try {
+            return window.localStorage.getItem(key);
+          } catch {
+            return null;
+          }
+        },
         setItem: (key, value) => {
-          window.localStorage.setItem(key, value);
+          try {
+            window.localStorage.setItem(key, value);
+          } catch {
+            return;
+          }
           window.dispatchEvent(new Event(ESTIMATE_EVENT));
         },
-        removeItem: (key) => window.localStorage.removeItem(key),
+        removeItem: (key) => {
+          try {
+            window.localStorage.removeItem(key);
+          } catch {
+            // Nothing to remove from a storage we cannot reach.
+          }
+        },
       })),
       partialize: ({ estimate }) => ({ estimate }),
       migrate: migrateEstimate,

@@ -501,7 +501,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 *E — Header, footer, country*
 
-- [x] P17.14 Header: «Калькуляторы ▾» · «Методика» · «Смета <sum>» (small client island reading `totals`, reserved width, teal on `/spisok/`), phone: estimate icon with sum; country switch and «Мои расчёты» leave the header, country switch in the footer, time-zone detection stays.
+- [x] P17.14 Header: «Калькуляторы ▾» · «Методика» · list button: icon and sum on every screen (small client island reading `totals`, icon only while empty, «Список покупок» for screen readers, teal on `/spisok/`); country switch and «Мои расчёты» leave the header, country switch in the footer, time-zone detection stays.
 
 *F — Verify and release*
 

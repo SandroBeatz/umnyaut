@@ -328,4 +328,9 @@ export interface ToolModule<I = unknown, R extends ToolResult = ToolResult> {
    * linoleum, litre of paint). The estimate needs it to price a line the way the calculator does.
    */
   priceBasis?: Readonly<Record<string, "pack" | "unit">>;
+  /**
+   * Stored input (links, saved calcs) from an older version, before defaults are merged in: fills a field that
+   * did not exist then from the ones that did.
+   */
+  upgrade?(raw: Readonly<Record<string, unknown>>): Record<string, unknown>;
 }

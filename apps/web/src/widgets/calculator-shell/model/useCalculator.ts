@@ -1,6 +1,13 @@
 "use client";
 
-import type { EstimateCalc, Surface, ToolId, ToolModule, ToolResult } from "@umnyaut/calc";
+import {
+  type EstimateCalc,
+  type Surface,
+  type ToolId,
+  type ToolModule,
+  type ToolResult,
+  upgradeInput,
+} from "@umnyaut/calc";
 import { DEFAULT_COUNTRY, type ToolDef } from "@umnyaut/catalog";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCountry } from "@/entities/country";
@@ -99,20 +106,22 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
   const valuesOf = useCallback(
     (calc: EstimateCalc | undefined, base: ToolValues = defaults) => {
       // A calc in the estimate shows its unsaved edits, if any.
-      const own = parse({ ...base, ...(calc?.draft ?? calc?.input) }) ?? base;
+      const own = parse({ ...base, ...upgradeInput(module, calc?.draft ?? calc?.input ?? {}) }) ?? base;
       return parse(applyRoom(own, selectActiveRoom(useEstimateStore.getState()), tool.fields)) ?? own;
     },
-    [defaults, parse, tool],
+    [defaults, module, parse, tool],
   );
 
   // Initial input after mount, by priority.
   useEffect(() => {
     const shared = decodeShare(new URLSearchParams(window.location.search).get("s"));
-    const fromLink = shared && parse({ ...defaults, ...shared });
+    const fromLink = shared && parse({ ...defaults, ...upgradeInput(module, shared) });
     if (fromLink) {
       setAll(fromLink);
-      loaded.current = true;
-      void hydrateEstimate();
+      // The link wins over a stored room: its rehydrate must not pour the room into the link's sizes.
+      void hydrateEstimate().then(() => {
+        loaded.current = true;
+      });
       return;
     }
     void hydrateEstimate().then(() => {
@@ -120,13 +129,13 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
       const calc = keepsCalcs ? lastOpened(state.estimate, state.estimate?.activeRoomId, tool.id) : undefined;
       // No calc yet: what the tool kept before calcs existed (or an area tool's own values) is the start.
       const saved = calc ? undefined : readJson<ToolValues>(toolKey(tool.id));
-      const base = (saved && parse({ ...defaults, ...saved })) ?? defaults;
+      const base = (saved && parse({ ...defaults, ...upgradeInput(module, saved) })) ?? defaults;
       setAll(valuesOf(calc, base));
       setCalcId(calc?.id);
       if (calc) state.openCalc(calc.id);
       loaded.current = true;
     });
-  }, [defaults, parse, tool, keepsCalcs, valuesOf, setCalcId]);
+  }, [defaults, module, parse, tool, keepsCalcs, valuesOf, setCalcId]);
 
   // The estimate changed elsewhere: another room, the room's sizes, this calc removed, split or restored.
   useEffect(

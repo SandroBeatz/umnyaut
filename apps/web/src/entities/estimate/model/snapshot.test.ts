@@ -53,6 +53,20 @@ describe("estimate snapshot (link without a server)", () => {
     expect((await encodeSnapshot(estimate("e1", 6, 3))).length).toBeLessThan(SNAPSHOT_MAX);
     expect(await decodeSnapshot("not*base64")).toBeNull();
     expect(await decodeSnapshot("AAAA")).toBeNull();
+    expect(await decodeSnapshot("A".repeat(SNAPSHOT_MAX + 1))).toBeNull();
+  });
+
+  it("a short link that unpacks to megabytes is dropped before it is read", async () => {
+    // 4 MB of spaces deflate to a few kilobytes: it fits the link, not the unpack limit.
+    const zeros = new Blob([new Uint8Array(4 * 1024 * 1024).fill(32)]).stream();
+    const packed = new Uint8Array(
+      await new Response(zeros.pipeThrough(new CompressionStream("deflate-raw"))).arrayBuffer(),
+    );
+    let text = "";
+    for (const byte of packed) text += String.fromCharCode(byte);
+    const link = btoa(text).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    expect(link.length).toBeLessThan(SNAPSHOT_MAX);
+    expect(await decodeSnapshot(link)).toBeNull();
   });
 });
 

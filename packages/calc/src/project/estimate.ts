@@ -26,13 +26,14 @@ function sharedParts(a?: Surface, b?: Surface): SurfacePart[] {
 }
 
 /**
- * `by` covers every part of `of`: an adhesive on «Пол» does not cover tile on «Пол и стены» — dropping that tile's
- * adhesive would lose the walls' share. A calc without a surface covers anything.
+ * Together the `by` surfaces cover every part of `of`: an adhesive on «Пол» alone does not cover tile on «Пол и
+ * стены» — dropping that tile's adhesive would lose the walls' share; adhesives on «Пол» and on «Стены» do. A calc
+ * without a surface (moved from the old planner) covers nothing: a little extra rather than a share lost.
  */
-function covers(by?: Surface, of?: Surface): boolean {
-  if (!by) return true;
+function covers(by: readonly (Surface | undefined)[], of?: Surface): boolean {
   if (!of) return false;
-  return PARTS[of].every((p) => PARTS[by].includes(p));
+  const parts = new Set(by.flatMap((s) => (s ? PARTS[s] : [])));
+  return PARTS[of].every((p) => parts.has(p));
 }
 
 /** One calc already computed by the browser: its items for the room as it is now. */
@@ -148,13 +149,16 @@ export function aggregateEstimate({ roomIds, calcs, shared, prices }: AggregateI
     for (const calc of inRoom) {
       const items = calc.items.filter((item) => {
         if (item.role === "main") return true;
-        const by = inRoom.find(
-          (o) =>
-            o !== calc &&
-            o.items.some((i) => i.role === "main" && i.key === item.key) &&
-            covers(o.surface, calc.surface),
-        );
-        if (!by) return true;
+        const own = inRoom.filter((o) => o !== calc && o.items.some((i) => i.role === "main" && i.key === item.key));
+        const by = own[0];
+        if (
+          !by ||
+          !covers(
+            own.map((o) => o.surface),
+            calc.surface,
+          )
+        )
+          return true;
         if (!replaced.some((r) => r.calcId === calc.id && r.key === item.key))
           replaced.push({ calcId: calc.id, by: by.id, key: item.key });
         return false;

@@ -13,6 +13,7 @@ import {
   sheetsLayout,
 } from "../../blocks";
 import type { Layout, LayoutMark, Step, ToolModule, ToolResult, Warning } from "../../types";
+import { patternFromRepeat } from "../pattern";
 
 const length = z.int().check(z.minimum(300), z.maximum(100_000));
 
@@ -226,6 +227,7 @@ export const linoleum: ToolModule<LinoleumInput> = {
   // 3: the repeat counts only with «Рисунок» on (owner, 2026-10-14) — a repeat left in a hidden field adds nothing.
   version: 3,
   input,
+  upgrade: patternFromRepeat,
   defaults: () => ({
     shape: "rect",
     lengthMm: 4600,

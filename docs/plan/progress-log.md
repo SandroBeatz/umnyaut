@@ -42,6 +42,17 @@ Each entry:
 
 ### 2026-10-14
 
+- **— (pre-merge review: code-reviewer + formula-reviewer)** Fixes before merging PR #173.
+  - Old input keeps its pattern: links and saved calcs of wallpaper and linoleum from before the «Рисунок» toggle had a repeat and no `pattern`; defaults turned the toggle off and dropped the repeat (fewer rolls, no warning). `ToolModule.upgrade` + `upgradeInput()` fill `pattern = repeatMm > 0` wherever stored input is read (link, saved values, estimate calcs, estimate totals).
+  - Adhesive/grout replacement (Р11): calcs on «Пол» and «Стены» together now replace tile on «Пол и стены» (was bought twice); a calc without a surface (moved from the old planner) replaces nothing (was dropping the walls' share). Spec Р11 updated.
+  - The tile calc shows the adhesive's `large_format` and the grout's `joint_too_narrow` / `joint_too_wide` warnings.
+  - `#s=` snapshot: longer than 8 KB is not ours; unpacking stops at 256 KB (a deflate bomb no longer freezes the tab).
+  - A `?s=` link wins over a stored room regardless of effect order; the size fields stay when typed before the stored room loads (CI flake in two room e2e).
+  - 48 px: header list button and room-type chips. Estimate storage survives a full or blocked `localStorage`. «и» joiner in the catalog.
+  - Catch-up: commits 56a6717, 889285a, a5a8f65, 68a1271, 8b18347, a5dd053, f10daac went in without their own entries; their changes are covered by the entries of 2026-10-14 above and below.
+  - Known, not fixed: an adhesive calc of another class replaces the tile's adhesive silently.
+  - Where: `feature/p17-a-estimate-model` · PR #173
+
 - **— (owner's request)** Tile, adhesive and grout forms in blocks. Tile: «Плитка» (length | width, per box | box price), «Укладка» («Начинаем» from corner / centre, «Рисунок» straight / diagonal, joint | reserve), «☐ Плиточный клей» (class on a full row, bag price), «☐ Затирка» (tile thickness — the joint depth — moved here | colour, own name | pack price), «☐ Грунтовать основание». Adhesive: «Плитка», «Расход» (method, layer | layer on the tile), «Клей» (class on a full row, bag | price). Grout: «Плитка и шов» (length | width, joint | thickness), «Затирка» (colour | own name, pack | price, reserve). Labels only; formulas unchanged.
   - Where: `feature/p17-a-estimate-model` · PR #173
 

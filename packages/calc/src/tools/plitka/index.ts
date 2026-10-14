@@ -305,6 +305,10 @@ function wallsScheme(
  * kept — safe side). Tiles × (1 + reserve), rounded up to whole tiles; boxes via `ceilPacks`. Diagonal: area /
  * tile area × 1,15. Rectangular room. Adhesive, grout and primer over the same area come along.
  */
+/** Warnings of the adhesive and grout tools about the tile and the joint; the room ones the tile calc has itself. */
+const FROM_ADHESIVE: readonly string[] = ["large_format"];
+const FROM_GROUT: readonly string[] = ["joint_too_narrow", "joint_too_wide"];
+
 export const plitka: ToolModule<PlitkaInput> = {
   id: "plitka",
   // 2: from a corner, a rest no wider than a joint is a gap at the wall, not a cut tile.
@@ -503,6 +507,8 @@ export const plitka: ToolModule<PlitkaInput> = {
         { country: "RU" },
       );
       related.push(...glue.items.map((it) => ({ ...it, role: "related" as const })));
+      // What the adhesive tool would say about this tile size, the tile calc says too.
+      warnings.push(...glue.warnings.filter((w) => FROM_ADHESIVE.includes(w.code)));
       const kg = glue.items.reduce((n, it) => n + it.need.value, 0);
       steps.push({ code: "adhesive", values: { kg, bags: glue.items.reduce((n, it) => n + it.packs, 0) } });
     }
@@ -519,6 +525,7 @@ export const plitka: ToolModule<PlitkaInput> = {
         { country: "RU" },
       );
       related.push(...fill.items.map((it) => ({ ...it, role: "related" as const })));
+      warnings.push(...fill.warnings.filter((w) => FROM_GROUT.includes(w.code)));
       const kg = fill.items.reduce((n, it) => n + it.need.value, 0);
       steps.push({ code: "grout", values: { kg, packs: fill.items.reduce((n, it) => n + it.packs, 0) } });
     }

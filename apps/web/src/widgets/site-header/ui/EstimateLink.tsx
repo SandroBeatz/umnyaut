@@ -22,7 +22,7 @@ export function EstimateLink({ here, sum }: EstimateLinkProps) {
       href={ESTIMATE_PATH}
       aria-current={here ? "page" : undefined}
       className={cn(
-        "inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-md bg-primary-soft text-body-strong text-primary-hover transition-colors hover:bg-surface-mint",
+        "inline-flex h-12 min-w-12 items-center justify-center gap-2 rounded-md bg-primary-soft text-body-strong text-primary-hover transition-colors hover:bg-surface-mint",
         sum ? "px-2.5" : "px-0",
       )}
       data-estimate-button

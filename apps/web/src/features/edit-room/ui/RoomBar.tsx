@@ -5,7 +5,7 @@ import { shell, unitLabels } from "@umnyaut/catalog";
 import { Button, NumberField, ResponsiveSheet } from "@umnyaut/ui";
 import { formatNumber } from "@umnyaut/ui/format";
 import { Check, ChevronDown, PencilRuler, Plus, Ruler } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   freeRoomName,
   hydrateEstimate,
@@ -70,14 +70,20 @@ export function RoomBar({
   /** The server knows no room: fields first; a stored room replaces them after mount. */
   const [fields, setFields] = useState(true);
   const [invalid, setInvalid] = useState<ReadonlySet<SizePart>>(() => new Set());
+  /** Typed before the store loaded: the fields stay under the finger instead of turning into the room row. */
+  const typed = useRef(false);
 
   useEffect(() => {
     void hydrateEstimate().then(() => {
-      if (selectActiveRoom(useEstimateStore.getState())) setFields(false);
+      if (!typed.current && selectActiveRoom(useEstimateStore.getState())) setFields(false);
     });
   }, []);
 
-  const write = onSizes ?? ((patch: RoomGeometry) => useEstimateStore.getState().patchActiveRoom(patch));
+  const save = onSizes ?? ((patch: RoomGeometry) => useEstimateStore.getState().patchActiveRoom(patch));
+  const write = (patch: RoomGeometry) => {
+    typed.current = true;
+    save(patch);
+  };
   const dimensions = roomDimensions(room, m);
   const showFields = fields || !room;
 

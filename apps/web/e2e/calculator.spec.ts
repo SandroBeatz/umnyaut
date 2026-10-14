@@ -108,6 +108,21 @@ test("a ?s= link reproduces the result and «Отправить» builds one", a
   await fresh?.close();
 });
 
+test("a ?s= link keeps its sizes over a room saved on this phone", async ({ page }) => {
+  await page.goto(WALLS);
+  await type(page, "Длина комнаты", "3");
+  await page.waitForFunction(() => Object.values(localStorage).some((v) => v.includes('"lengthMm":3000')));
+  const openings = [
+    { type: "door", widthMm: 900, heightMm: 2050, count: 1 },
+    { type: "window", widthMm: 1500, heightMm: 1500, count: 2 },
+  ];
+  await page.goto(`${WALLS}?s=${s({ lengthMm: 5000, widthMm: 4000, openings })}`);
+  await expect(result(page)).toHaveText("42,26");
+  // The stored room loads after the link; the result stays the link's.
+  await page.waitForTimeout(500);
+  await expect(result(page)).toHaveText("42,26");
+});
+
 test("an L-shaped room shows the cut-out fields and subtracts the corner", async ({ page }) => {
   await page.goto(ROOM);
   await type(page, "Длина комнаты", "6");
