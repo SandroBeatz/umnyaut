@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-14
 
+- **— (owner's request)** Laminate form in blocks: «Доска» (length | width, per pack | pack price), «Укладка» (straight: row direction, wall gap | joint offset; diagonal and herringbone: only the waste % — as the formula uses them), «☐ Подложка» (m² per roll | roll price, only when on).
+  - Where: `feature/p17-a-estimate-model` · PR #173
+
 - **— (owner's request)** Plinth form in blocks: «Плинтус» (plank length | plank price), «Углы, заглушки, соединители · цена за штуку» (inner | outer corner, cap | joiner), «☐ Крепить на дюбели» (spacing | dowel price, only when on). A toggle heading shows its toggle's hint under it («На клей или скотч — выключите»).
   - Where: `feature/p17-a-estimate-model` · PR #173
 
