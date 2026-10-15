@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-15
 
+- **P2.7 (prod)** Supabase `umnyaut` (ref `rbawzripucjvdxmyrctn`, Free) live: `SUPABASE_URL` / `SUPABASE_SECRET_KEY` in the server's `web.env` (old file kept as `web.env.bak`), `SUPABASE_DB_URL` (session pooler) and `BACKUP_PASSPHRASE` in `prod-vps`, `BACKUP_ENABLED=true`. Manual backup run green (the direct host failed first: IPv6 only). Deploy of `a2cf60d` applied `0001_init`; `/api/health/` reports `db: ok`.
+  - Where: PR #177 → `develop` → `main` · prod
+  - Open: the local Docker stack (`db:start`, `apps/web/.env.local`) — deferred by the owner; needed before P7.1, so migrations are tried locally before they reach prod.
+
 - **P2.7 (part)** Prod migrations run `supabase db push --db-url` with the session-pooler string (`SUPABASE_DB_URL`, also used by the backup) instead of `supabase link` with a personal access token: the token could manage the whole project, the string reaches only the database. Repo variable `SUPABASE_PROJECT_REF` set (owner); Supabase project `umnyaut` created.
   - Where: `feature/p2-7-supabase-db-url`
   - Open: secret `SUPABASE_DB_URL` in `prod-vps`, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` in the server's `web.env`, the local Docker stack.
