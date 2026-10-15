@@ -55,7 +55,8 @@ const popularTools: readonly { id: ToolId; note: string }[] = [
 
 /** Home page (design spec §13 «Главная», room block — `docs/ui/home-room-block.md`). */
 export const home = {
-  badge: "Ремонт начинается с правильного расчёта",
+  /** Part of the H1: the key phrase of the home page. */
+  badge: "Калькулятор материалов для ремонта",
   titleLead: "Одна комната —",
   titleAccent: "весь список покупок",
   lead: "Введите размеры один раз — получите проверенный список покупок для всего ремонта: в пачках, рулонах и мешках.",

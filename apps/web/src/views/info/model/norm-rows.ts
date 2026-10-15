@@ -1,24 +1,17 @@
 import { type Norm, norms, normTitles, type ToolDef, tools } from "@umnyaut/catalog";
+import { type SourceLink, splitSources } from "@/shared/lib";
 
 export interface NormRow {
   id: string;
   title: string;
   norm: Norm;
   /** «Ceresit CM 11 PRO» + its URL, one per source of the norm. */
-  sources: { label: string; url?: string }[];
+  sources: SourceLink[];
 }
 
 export interface NormGroup {
   tool?: ToolDef;
   rows: NormRow[];
-}
-
-/** «Name, https://…» → label and link; plain text («по опыту укладчиков») stays a label. */
-export function splitSources(source: string): NormRow["sources"] {
-  return source.split("; ").map((part) => {
-    const match = /^(.*?),?\s*(https?:\/\/\S+)$/.exec(part.trim());
-    return match ? { label: match[1] || match[2] || part, url: match[2] } : { label: part.trim() };
-  });
 }
 
 /** Norms grouped by the first live tool that uses them, in catalog order; unused norms go last. */

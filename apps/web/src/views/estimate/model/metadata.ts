@@ -1,11 +1,13 @@
 import { estimatePage } from "@umnyaut/catalog";
 import type { Metadata } from "next";
+import { openGraph } from "@/shared/lib";
 
 /** The estimate is personal and lives in the browser: not indexed, not in the sitemap. */
 export const estimateMetadata: Metadata = {
   title: estimatePage.title,
   description: estimatePage.description,
   alternates: { canonical: "/spisok/" },
+  openGraph: openGraph(estimatePage.title, estimatePage.description, "/spisok/"),
   robots: { index: false, follow: true },
 };
 
@@ -14,5 +16,6 @@ export const sharedEstimateMetadata: Metadata = {
   title: estimatePage.byLink.title,
   description: estimatePage.byLink.description,
   alternates: { canonical: "/spisok/prosmotr/" },
+  openGraph: openGraph(estimatePage.byLink.title, estimatePage.byLink.description, "/spisok/prosmotr/"),
   robots: { index: false, follow: true },
 };
