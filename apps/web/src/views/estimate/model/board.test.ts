@@ -1,8 +1,9 @@
 import { aggregateEstimate, type Estimate, purchase } from "@umnyaut/calc";
 import { describe, expect, it } from "vitest";
+import { floorOf } from "@/entities/room";
 import { getToolModule } from "@/entities/tool";
 import { computeEstimate } from "@/features/estimate-totals";
-import { estimateBoard, floorOf } from "./board";
+import { estimateBoard } from "./board";
 import { estimateText } from "./export";
 
 const estimate: Estimate = {
@@ -109,9 +110,6 @@ describe("estimate board", () => {
   it("floor of an L-shaped room leaves out the cut", () => {
     expect(
       floorOf({
-        id: "r",
-        name: "Г",
-        type: "other",
         shape: "l",
         lengthMm: 4000,
         widthMm: 3000,

@@ -3,7 +3,6 @@ import {
   type EstimateAggregate,
   type EstimateLine,
   type EstimateRoom,
-  floorAreaM2,
   surfaceParts,
 } from "@umnyaut/calc";
 import {
@@ -17,8 +16,8 @@ import {
   unitLabels,
   workOrder,
 } from "@umnyaut/catalog";
-import { type Country, formatMoney, formatNumber, NBSP, plural } from "@umnyaut/ui/format";
-import { roomDimensions } from "@/entities/room";
+import { type Country, formatMoney, NBSP, plural } from "@umnyaut/ui/format";
+import { areaText, floorOf, roomDimensions } from "@/entities/room";
 import { groupPurchases, purchaseTexts } from "@/entities/tool";
 import { fill } from "@/shared/lib";
 
@@ -84,23 +83,6 @@ const surfaceText = (calc: Estimate["calcs"][number]) =>
 /** «Ванная, Кухня и Зал». */
 const listText = (names: readonly string[]) =>
   names.length < 2 ? (names[0] ?? "") : `${names.slice(0, -1).join(", ")}${shell.calcs.and}${names.at(-1)}`;
-
-/** A room's floor, as the room area tool counts it; none without length and width. */
-export function floorOf(room: EstimateRoom): number | undefined {
-  if (!room.lengthMm || !room.widthMm) return undefined;
-  const cut = room.shape === "l" && room.cutLengthMm && room.cutWidthMm;
-  return floorAreaM2({
-    shape: cut ? "l" : "rect",
-    lengthMm: room.lengthMm,
-    widthMm: room.widthMm,
-    heightMm: room.heightMm ?? 0,
-    ...(cut ? { cut: { lengthMm: room.cutLengthMm ?? 0, widthMm: room.cutWidthMm ?? 0 } } : {}),
-    openings: [],
-  });
-}
-
-/** «19,8 м²». */
-export const areaText = (m2: number) => `${formatNumber(m2, { maxFraction: 1 })}${NBSP}${unitLabels.m2}`;
 
 function rowOf(calc: Estimate["calcs"][number], lines: readonly EstimateLine[], counted: boolean): CalcRow | undefined {
   const tool = toolOf(calc.tool);

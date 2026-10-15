@@ -15,7 +15,6 @@ export interface PrintSheetProps {
   view: ResultView;
   items: readonly PurchaseItem[];
   room?: string;
-  getUrl(): string;
 }
 
 const packText = (item: PurchaseItem) =>
@@ -23,16 +22,16 @@ const packText = (item: PurchaseItem) =>
 
 /**
  * A4 black-and-white list (design spec §14): logo and date, a table with an empty box per row to tick with a pen,
- * room size, date and link at the bottom. Hidden on screen. Date and link are filled in the browser.
+ * room size and date at the bottom, no link (owner, 2026-10-14). Hidden on screen. The date is filled in the browser.
  */
-export function PrintSheet({ tool, view, items, room, getUrl }: PrintSheetProps) {
-  const [stamp, setStamp] = useState<{ date: string; url: string }>();
+export function PrintSheet({ tool, view, items, room }: PrintSheetProps) {
+  const [stamp, setStamp] = useState<{ date: string }>();
   useEffect(() => {
-    const update = () => setStamp({ date: dateFormat.format(new Date()), url: getUrl() });
+    const update = () => setStamp({ date: dateFormat.format(new Date()) });
     update();
     window.addEventListener("beforeprint", update);
     return () => window.removeEventListener("beforeprint", update);
-  }, [getUrl]);
+  }, []);
 
   const cell = "border border-black px-2 py-1 text-left align-top";
   return (
@@ -92,11 +91,6 @@ export function PrintSheet({ tool, view, items, room, getUrl }: PrintSheetProps)
         {room ? `${p.room}: ${room}. ` : ""}
         {stamp ? `${p.date}: ${stamp.date}` : ""}
       </p>
-      {stamp ? (
-        <p className="break-all">
-          {p.link}: {stamp.url}
-        </p>
-      ) : null}
     </div>
   );
 }

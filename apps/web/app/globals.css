@@ -18,6 +18,12 @@
   }
 }
 
+/* A document page (the estimate by link) stands alone: no site header or footer. In the server HTML, so no flash. */
+body:has([data-document]) > header,
+body:has([data-document]) > footer {
+  display: none;
+}
+
 /* Tool text from Markdown (sanitised HTML, no classes of its own). */
 @layer components {
   .prose-umnyaut {

@@ -21,7 +21,7 @@ export const workOrder: readonly ToolId[] = [
 export const roomSuggestions: Readonly<Record<RoomType, readonly ToolId[]>> = {
   living: ["laminat", "oboi", "plintus"],
   bedroom: ["laminat", "oboi", "plintus"],
-  kitchen: ["plitka", "kraska", "linoleum"],
+  kitchen: ["laminat", "plitka", "kraska"],
   bathroom: ["plitka", "zatirka", "kraska"],
   hall: ["linoleum", "oboi", "plintus"],
   other: ["laminat", "oboi", "kraska"],
@@ -100,19 +100,36 @@ export const estimatePage = {
     /** Print header: «Список покупок от 13 октября 2026 · umnyaut.com». */
     printed: "Список покупок от {date} · {site}",
   },
-  /** Someone else's estimate opened by link: view only until «Забрать себе». */
+  /** Someone's estimate opened by link (Р14): a page of its own, like a document, for viewing only (owner, 2026-10-14). */
   byLink: {
-    title: "Список по ссылке",
-    lead: "Только просмотр. Заберите его себе, чтобы менять и считать дальше",
-    adopt: "Забрать себе",
-    question: "У вас уже есть свой список",
-    questionLead: "Заменить его этим или добавить комнаты из этого списка к своим?",
-    replace: "Заменить мою",
-    add: "Добавить комнаты в мою",
-    cancel: "Отмена",
-    adopted: "Список теперь ваш",
-    added: "Добавлено комнат: {count}",
+    title: "Список покупок по ссылке",
+    description: "Список материалов для ремонта, который вам прислали по ссылке",
+    kicker: "Список покупок",
+    /** «Составлен 14 октября 2026». */
+    made: "Составлен {date}",
+    lead: "Прислали по ссылке — только для просмотра",
+    /** «3 комнаты · пол 45 м² · 7 расчётов». */
+    rooms: { one: "комната", few: "комнаты", many: "комнат" },
+    calcs: { one: "расчёт", few: "расчёта", many: "расчётов" },
+    floor: "пол {area}",
+    columns: { material: "Материал", quantity: "Количество", sum: "Сумма" },
+    roomTotal: "Итого по комнате",
+    /** A room with nothing in the list yet. */
+    nothing: "Здесь пока ничего не посчитано",
+    sharedTotal: "Итого по расходникам",
+    total: "Итого",
+    about: {
+      title: "Как посчитано",
+      points: [
+        "Количество посчитано в Умняут по размерам каждой комнаты, с запасом на подрезку и округлено до целых упаковок.",
+        "Общие расходники — клей, грунтовка, затирка — посчитаны одной партией на все комнаты.",
+        "Цены вписал автор списка. Позиции без цены в итог не вошли.",
+      ],
+    },
+    home: "Перейти на главную",
+    homeLead: "Посчитайте свой ремонт так же — бесплатно, без регистрации",
     broken: "Ссылка на список повреждена — откройте её заново из сообщения",
+    loading: "Открываем список",
   },
   empty: {
     title: "Список пока пустой",

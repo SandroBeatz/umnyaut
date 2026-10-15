@@ -2,11 +2,11 @@ import type { Country } from "@umnyaut/calc";
 import { DEFAULT_COUNTRY, home, packNouns, toolPath, tools } from "@umnyaut/catalog";
 import { applyRoom, type RoomDraft } from "@/entities/room";
 import { getToolModule, groupPurchases, purchaseTexts, quantityText } from "@/entities/tool";
-import { defaultWorks, type ExampleCard, type ExampleRoom, exampleRoom } from "./example";
+import { DEFAULT_TYPE, type ExampleCard, type ExampleRoom, exampleRoom, worksOf } from "./example";
 
 /*
  * Kept apart from `example.ts`: it pulls in every calculator. The server computes the first state; the browser
- * loads this only when “My room”, the works or the country differ from it.
+ * loads this only when the room, its type or the country differ from it.
  */
 
 /**
@@ -46,7 +46,7 @@ export function exampleCards(room: ExampleRoom, works: readonly string[], countr
     });
 }
 
-/** The page's first state — the example room, default works, the default country — computed on the server. */
+/** The page's first state — the example room, its type's works, the default country — computed on the server. */
 export function initialExample(): ExampleCard[] {
-  return exampleCards(exampleRoom(null), defaultWorks(), DEFAULT_COUNTRY);
+  return exampleCards(exampleRoom(null), worksOf(DEFAULT_TYPE), DEFAULT_COUNTRY);
 }

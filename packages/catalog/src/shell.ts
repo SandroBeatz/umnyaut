@@ -38,14 +38,10 @@ export const shell = {
   },
   roomBar: {
     edit: "Изменить",
-    /** Sizes typed right in the row while the page has no room yet (spec «Калькулятор»). */
-    sizes: {
-      lengthMm: { label: "Длина комнаты", caption: "Длина, {unit}" },
-      widthMm: { label: "Ширина комнаты", caption: "Ширина, {unit}" },
-      heightMm: { label: "Высота потолка", caption: "Высота, {unit}" },
-    },
-    /** Opens the room editor from the size fields. */
-    editor: "Форма, окна и двери",
+    /** The row while the page has no room (spec «Калькулятор»): what is counted and the way into the editor. */
+    noRoom: "Размеры комнаты",
+    example: "Пример: {dimensions}",
+    add: "Указать размеры",
     /** Room picker: the estimate's rooms (spec «Калькулятор», P17.7). */
     noSizes: "Размеры не заданы",
     pickTitle: "Комнаты",
@@ -134,6 +130,7 @@ export const shell = {
     newTitle: "Новая комната",
     description: "Размеры, окна и двери вводятся один раз для всех расчётов этой комнаты",
     name: "Название",
+    /** Names the type chips for screen readers; they sit under the name without a visible label. */
     type: "Тип — подскажет нужные расчёты",
     types: {
       living: "Зал",
@@ -143,12 +140,12 @@ export const shell = {
       hall: "Прихожая",
       other: "Другое",
     },
-    sizes: "Форма и размеры",
+    sizes: "Размеры",
     shape: "Форма комнаты",
     shapes: { rect: "Прямоугольная", l: "Г-образная" },
     length: "Длина",
     width: "Ширина",
-    height: "Высота потолка",
+    height: "Высота",
     cutLength: "Вырез по длине",
     cutWidth: "Вырез по ширине",
     cutCorner: "Где вырез на плане",
@@ -255,7 +252,6 @@ export const shell = {
   },
   share: {
     title: "{tool} — расчёт",
-    link: "Открыть расчёт: {url}",
   },
   nextSteps: {
     title: "Дальше по ремонту",
@@ -279,7 +275,6 @@ export const shell = {
     sum: "Сумма",
     room: "Комната",
     date: "Дата расчёта",
-    link: "Расчёт онлайн",
   },
   category: {
     tools: "Калькуляторы раздела",

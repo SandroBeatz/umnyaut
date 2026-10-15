@@ -72,6 +72,28 @@ test("an empty device gets the empty estimate with calculators to start from", a
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
 });
 
+test("rooms with nothing counted: no total, nothing to export", async ({ page }) => {
+  const draftOnly = {
+    ...seed,
+    state: {
+      estimate: {
+        ...seed.state.estimate,
+        rooms: seed.state.estimate.rooms.filter((r) => r.id === "r3"),
+        calcs: seed.state.estimate.calcs.filter((c) => c.id === "c4"),
+        activeRoomId: "r3",
+      },
+    },
+  };
+  await page.addInitScript(
+    ([key, value]) => localStorage.setItem(key as string, value as string),
+    [KEY, JSON.stringify(draftOnly)],
+  );
+  await page.goto(ESTIMATE);
+  await expect(page.locator('[data-empty-room="Спальня"]')).toBeVisible();
+  await expect(page.locator("[data-estimate-total]")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Ссылка" })).toHaveCount(0);
+});
+
 test("rooms, rows in the order of works, shared consumables and the total", async ({ page }) => {
   await open(page);
   await expect(page.getByRole("heading", { level: 1, name: "Ремонт квартиры" })).toBeVisible();
@@ -145,7 +167,7 @@ test("«Скопировать» gives the estimate as text for a messenger", as
   expect(text).toMatch(/Итого: [\d ]+ ₽/);
 });
 
-test("a link carries the estimate: view only, «Забрать себе» on an empty device", async ({
+test("a link opens the estimate as a document of its own: tables, no editing, the way home", async ({
   page,
   context,
   browser,
@@ -153,47 +175,47 @@ test("a link carries the estimate: view only, «Забрать себе» on an 
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await open(page);
   await page.getByRole("button", { name: "Ссылка" }).click();
+  // The link is packed asynchronously: read the clipboard once it is written.
   await expect(page.getByText(/Ссылка скопирована/)).toBeVisible();
   const url = await page.evaluate(() => navigator.clipboard.readText());
-  expect(url).toMatch(/\/spisok\/#s=[\w-]+$/);
+  expect(url).toMatch(/\/spisok\/prosmotr\/#s=[\w-]+$/);
 
   const other = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await other.goto(url);
   await expect(other.locator('[data-estimate="link"]')).toBeVisible();
-  await expect(other.getByText("Список по ссылке")).toBeVisible();
+  // A document: the logo instead of the site header, no footer.
+  await expect(other.locator("body > header")).toBeHidden();
+  await expect(other.locator("body > footer")).toBeHidden();
+  await expect(other.getByRole("link", { name: "Умняут" })).toBeVisible();
+  await expect(other.getByRole("heading", { level: 1 })).toHaveText("Ремонт квартиры");
   await expect(other.locator('[data-room-card="Зал"] [data-calc-row]')).toHaveCount(2);
-  await expect(other.locator("[data-calc-row] a")).toHaveCount(0);
-  await expect(other.getByRole("button", { name: /^Убрать/ })).toHaveCount(0);
-  await other.getByRole("button", { name: "Забрать себе" }).click();
-  await expect(other.locator('[data-estimate="own"]')).toBeVisible();
-  expect(new URL(other.url()).hash).toBe("");
-  const mine = await stored(other);
-  expect(mine?.rooms.map((r: { name: string }) => r.name)).toEqual(["Зал", "Ванная", "Спальня"]);
+  await expect(other.getByRole("heading", { name: "Как посчитано" })).toBeVisible();
+  // Nothing to change: no buttons, no links but the logo and the way home; nothing written on this device.
+  await expect(other.locator("main button")).toHaveCount(0);
+  await expect(other.locator("main a")).toHaveCount(2);
+  expect(await stored(other)).toBeUndefined();
+  expect(await other.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBe(
+    0,
+  );
+
+  await other.getByRole("link", { name: "Перейти на главную" }).click();
+  await expect(other).toHaveURL(/\/$/);
+  await expect(other.locator("body > header")).toBeVisible();
   await other.close();
 });
 
-test("with an estimate of one's own, «Забрать себе» asks and can add the rooms", async ({ page, context }) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await open(page);
-  await page.getByRole("button", { name: "Ссылка" }).click();
-  // The link is packed asynchronously: read the clipboard once it is written.
-  await expect(page.getByText(/Ссылка скопирована/)).toBeVisible();
-  const url = await page.evaluate(() => navigator.clipboard.readText());
-  await page.goto(url);
-  await expect(page.locator('[data-estimate="link"]')).toBeVisible();
-  await page.getByRole("button", { name: "Забрать себе" }).click();
-  await page.getByRole("button", { name: "Добавить комнаты в мою" }).click();
-  await expect(page.getByText("Добавлено комнат: 3")).toBeVisible();
-  expect((await stored(page))?.rooms).toHaveLength(6);
+test("an old /spisok/#s= link goes on to the document page", async ({ page }) => {
+  await page.goto(`${ESTIMATE}#s=old`);
+  await expect(page).toHaveURL(/\/spisok\/prosmotr\/#s=old$/);
 });
 
-test("a broken link says so and shows this device's estimate", async ({ page }) => {
-  await page.goto(`${ESTIMATE}#s=broken`);
+test("a broken link says so and still leads home", async ({ page }) => {
+  await page.goto("/spisok/prosmotr/#s=broken");
   await expect(page.getByText(/Ссылка на список повреждена/)).toBeVisible();
-  await expect(page.locator("[data-estimate-empty]")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Перейти на главную" })).toBeVisible();
 });
 
-test("header: the estimate icon everywhere, its sum once the estimate has one, current on the estimate page", async ({
+test("header: the list icon everywhere, its count once the list has calcs, current on the estimate page", async ({
   page,
 }) => {
   await page.goto("/pol/laminat/");
@@ -201,12 +223,12 @@ test("header: the estimate icon everywhere, its sum once the estimate has one, c
   // The phone shows no word; screen readers hear the full name.
   await expect(button).toHaveAccessibleName("Список покупок");
   await expect(button.getByText("Список", { exact: true })).toBeHidden();
-  await expect(button.locator("[data-header-sum]")).toHaveCount(0);
+  await expect(button.locator("[data-header-count]")).toHaveCount(0);
 
   await open(page);
   await expect(button).toHaveAttribute("aria-current", "page");
-  await expect(button.locator("[data-header-sum]")).toHaveText(/^[\d\s]+₽$/);
+  await expect(button.locator("[data-header-count]")).toHaveText(/^\d+$/);
   await page.locator('[data-room-card="Зал"] [data-calc-row] a').first().click();
   await expect(button).not.toHaveAttribute("aria-current", "page");
-  await expect(button.locator("[data-header-sum]")).toBeVisible();
+  await expect(button.locator("[data-header-count]")).toBeVisible();
 });

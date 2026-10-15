@@ -6,6 +6,7 @@ import { join, relative, sep } from "node:path";
 
 const root = join(import.meta.dirname, "../.next/server/app");
 const SKIP = /^(_not-found|_global-error)\.html$/;
+const CLIENT_ONLY = new Set(["/spisok/prosmotr"]);
 
 function pages(dir) {
   return readdirSync(dir).flatMap((name) => {
@@ -24,6 +25,7 @@ try {
 }
 
 const errors = [];
+let skipped = 0;
 for (const file of files) {
   const route = `/${relative(root, file)
     .split(sep)
@@ -31,6 +33,11 @@ for (const file of files) {
     .replace(/(index)?\.html$/, "")}`;
   const html = readFileSync(file, "utf8");
   const fail = (message) => errors.push(`${route}: ${message}`);
+  // A list by link is filled from the address after `#` in the browser (`noindex`): nothing to check in its HTML.
+  if (CLIENT_ONLY.has(route)) {
+    skipped++;
+    continue;
+  }
 
   const title = html.match(/<title>([^<]*)<\/title>/)?.[1]?.trim();
   if (!title) fail("no <title>");
@@ -49,4 +56,4 @@ if (errors.length) {
   console.error(`Server-HTML check failed:\n${errors.map((e) => `  - ${e}`).join("\n")}`);
   process.exit(1);
 }
-console.log(`Server-HTML check passed: ${files.length} pages.`);
+console.log(`Server-HTML check passed: ${files.length - skipped} pages (${skipped} client-only skipped).`);

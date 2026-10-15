@@ -18,7 +18,6 @@ import { AdSlot } from "@/shared/ui";
 import { manyCalcs, nextSurface } from "../model/calcs";
 import { hasRoomUnits, type LengthUnit } from "../model/fields";
 import { planRoomOf } from "../model/plan";
-import { fieldsOf, sizeParts } from "../model/room";
 import { useCalcEvents } from "../model/useCalcEvents";
 import { useCalculator } from "../model/useCalculator";
 import { describeResult, resultText } from "../model/view";
@@ -118,16 +117,7 @@ export function CalculatorShell({ tool, next, checkedAt, sources, module }: Calc
                 />
               ) : null}
             </div>
-            <RoomBar
-              unit={unit}
-              tool={tool}
-              draft={roomPatch(values, tool.fields)}
-              parts={sizeParts(tool.fields, values)}
-              onSizes={(patch) => calc.setValues(fieldsOf(patch, tool.fields))}
-              onInvalid={(part, bad) => {
-                for (const name of Object.keys(fieldsOf({ [part]: 0 }, tool.fields))) calc.setInvalid(name, bad);
-              }}
-            />
+            <RoomBar tool={tool} draft={roomPatch(values, tool.fields)} example={calc.example} />
             {/* Only when there is a choice: two calcs, or one and a free surface for «+ Ещё». */}
             {tool.items &&
             manyCalcs(tool) &&
@@ -201,13 +191,7 @@ export function CalculatorShell({ tool, next, checkedAt, sources, module }: Calc
         <NextSteps tool={tool} next={next} />
         <HowCalculated tool={tool} steps={view.steps} checkedAt={checkedAt} sources={sources} />
       </div>
-      <PrintSheet
-        tool={tool}
-        view={view}
-        items={calc.result.items}
-        room={roomDimensions(room, unitLabels.m)}
-        getUrl={getUrl}
-      />
+      <PrintSheet tool={tool} view={view} items={calc.result.items} room={roomDimensions(room, unitLabels.m)} />
       <StickyResultBar text={view.short} visible={!panelVisible} inEstimate={current?.addedAt !== undefined} />
     </>
   );
