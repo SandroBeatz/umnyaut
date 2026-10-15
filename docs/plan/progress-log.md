@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-15
 
+- **— (owner's SEO review)** Query fixes from the Wordstat export. Tile hub `/plitka/` no longer competes with `/plitka/plitka/`: title «Плитка: расчёт коробок, клея и затирки для пола и стен», H1 «Плитка, клей и затирка», the body links «Калькулятор плитки» to `/plitka/plitka/`. Tile tool title «Калькулятор плитки: сколько нужно плитки на пол и стены» (≈ 18k/month «сколько нужно плитки»), question and first paragraph use the phrase. Room area: «Калькулятор квадратных метров» (≈ 25k/month) in the first paragraph. Home: the categories H2 is «Строительный калькулятор: что рассчитать» (≈ 12.6k/month). `updatedAt` bumped on the three texts.
+  - Where: `feature/seo-queries-fixes`
+  - Deviation: sitemap left as is — `/spisok/` is `noindex` by design (personal, empty for a crawler) and `/o-proekte/`, `/kontakty/` are `draft: true` until the owner approves them (C15–C17) and `hello@` exists (P0.3); they join the sitemap with `lastmod` automatically once `draft` is removed.
+
 - **— (owner's decision)** The «Метка» field is gone from every calculator form (`CalcLabel`, `setLabel`, the form's `extra` slot and its strings removed). A calc reads by its surface; `label` stays in estimate schema 2, so a label saved before still shows in the chips, the list and print. Spec «Комнаты и смета» updated.
   - Where: `feature/p17-10-shared-block`
 

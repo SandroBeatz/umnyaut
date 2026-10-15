@@ -31,7 +31,7 @@ test("home: the room block recomputes the example and carries over to a tool", a
   await expect(popup.getByRole("link", { name: /^Посчитать плитка/ })).toBeVisible();
   await popup.getByRole("button", { name: "Все расчёты" }).click();
   await expect(popup).toBeHidden();
-  await expect(page.getByRole("heading", { name: "Выберите, что нужно рассчитать" })).toBeFocused();
+  await expect(page.getByRole("heading", { name: "Строительный калькулятор: что рассчитать" })).toBeFocused();
 
   await page.getByRole("link", { name: /^Пол/ }).first().click();
   await expect(page).toHaveURL("/pol/");
