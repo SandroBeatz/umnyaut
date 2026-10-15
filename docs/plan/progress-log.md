@@ -42,6 +42,11 @@ Each entry:
 
 ### 2026-10-15
 
+- **P8.6 (G06)** Category photos on the home cards: owner's four 1536 × 1024 sources as `docs/details/materials/cat-{osnova,pol,steny,plitka}.png`; new `CATEGORIES` group in `apps/web/scripts/images.mjs` (opaque, frame kept, alpha dropped) → `public/img/c/`, `categoryImages` in `shared/config/categories.gen.ts`, AVIF/WebP at 120/144 (1×, 2×), every AVIF ≤ 8 KB. `CategoryDef.photo` set for the four categories; `CategoryPhoto` in `packages/ui` draws the photo under one brush-stroke SVG mask (`mask-image`); `CategoryCard` puts it bottom-right, a category without a photo keeps the icon blob. Checked at 390 px and desktop.
+  - Where: `feature/p8-6-category-photos`
+  - Notes: P8.6 is done but the optional desktop hero G07. Category page itself shows no photo yet (spec places it on the card only).
+  - Deviation: sources are PNG, not `cat-<slug>.jpg` from the brief, and 1536 × 1024 instead of 1600 × 1067 — still 3:2, the pipeline handles both.
+
 - **— (owner's SEO review)** Query fixes from the Wordstat export. Tile hub `/plitka/` no longer competes with `/plitka/plitka/`: title «Плитка: расчёт коробок, клея и затирки для пола и стен», H1 «Плитка, клей и затирка», the body links «Калькулятор плитки» to `/plitka/plitka/`. Tile tool title «Калькулятор плитки: сколько нужно плитки на пол и стены» (≈ 18k/month «сколько нужно плитки»), question and first paragraph use the phrase. Room area: «Калькулятор квадратных метров» (≈ 25k/month) in the first paragraph. Home: the categories H2 is «Строительный калькулятор: что рассчитать» (≈ 12.6k/month). `updatedAt` bumped on the three texts.
   - Where: `feature/seo-queries-fixes`
   - Deviation: sitemap left as is — `/spisok/` is `noindex` by design (personal, empty for a crawler) and `/o-proekte/`, `/kontakty/` are `draft: true` until the owner approves them (C15–C17) and `hello@` exists (P0.3); they join the sitemap with `lastmod` automatically once `draft` is removed.

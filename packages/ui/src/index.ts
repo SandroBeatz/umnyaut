@@ -25,6 +25,7 @@ export * from "./format";
 export { DESKTOP_QUERY, useMediaQuery } from "./hooks/useMediaQuery";
 export { categoryIcons, IconOsnova, IconPlitka, IconPol, IconSteny } from "./icons/category";
 export { cn } from "./lib/cn";
+export { CategoryPhoto, type CategoryPhotoProps } from "./media/CategoryPhoto";
 export { Mascot, type MascotProps } from "./media/Mascot";
 export { MaterialThumb, type MaterialThumbProps } from "./media/MaterialThumb";
 export type { ResponsiveImage } from "./media/types";
