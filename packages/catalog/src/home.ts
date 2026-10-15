@@ -124,7 +124,7 @@ export const home = {
   works,
   typeWorks,
   categories: {
-    title: "Выберите, что нужно рассчитать",
+    title: "Строительный калькулятор: что рассчитать",
     open: "Открыть раздел",
   },
   popular: {
