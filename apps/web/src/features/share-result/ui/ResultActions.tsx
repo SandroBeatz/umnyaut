@@ -16,7 +16,7 @@ export interface ResultActionsProps {
   getUrl(): string;
   /** Replaces the disabled «Сохранить» (purchase tools put «В список» here). */
   primary?: ReactNode;
-  /** For analytics: what was done (`link` — share sheet or copied link, `text` — text + link copied). */
+  /** For analytics: what was done (`link` — share sheet or copied link, `copy` — the text copied). */
   onAction?(action: "link" | "copy" | "print"): void;
 }
 
@@ -31,7 +31,7 @@ async function copy(text: string, done: string) {
 
 /**
  * «Сохранить» (disabled until projects exist, Phase 7), «Отправить» (system share sheet, or the link is copied),
- * «Скопировать» (text + link), «Печать». No request to the server.
+ * «Скопировать» (the text only, no link — owner, 2026-10-14), «Печать». No request to the server.
  */
 export function ResultActions({ title, getText, getUrl, primary, onAction }: ResultActionsProps) {
   const send = async () => {
@@ -67,7 +67,7 @@ export function ResultActions({ title, getText, getUrl, primary, onAction }: Res
         className={iconButton}
         onClick={() => {
           onAction?.("copy");
-          void copy(`${getText()}\n${fill(shell.share.link, { url: getUrl() })}`, t.copied);
+          void copy(getText(), t.copied);
         }}
       >
         <Copy aria-hidden="true" />
