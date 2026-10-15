@@ -153,3 +153,14 @@ export function sharedOf(
     }),
   );
 }
+
+/**
+ * Shared consumables the estimate buys, by item key, the product most calcs share first: what a calculator offers
+ * to take («В списке уже есть … — взять его?») and starts a new calc with.
+ */
+export function productsOf(aggregate: EstimateAggregate): Record<string, PurchaseItem[]> {
+  const lines = [...aggregate.shared].sort((a, b) => b.shares.length - a.shares.length);
+  const products: Record<string, PurchaseItem[]> = {};
+  for (const line of lines) products[line.item.key] = [...(products[line.item.key] ?? []), line.item];
+  return products;
+}

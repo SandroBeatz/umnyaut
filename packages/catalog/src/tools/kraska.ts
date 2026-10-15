@@ -88,11 +88,12 @@ export const kraska: ToolDef = {
     { id: "paint", title: "Краска" },
     { id: "primer", title: "Грунтовать перед покраской", toggle: "primer" },
   ],
+  sharedBlock: { title: "Грунтовка · общая на список", groups: ["primer"] },
   nextSteps: ["ploshchad-sten", "oboi"],
   surface: { field: "surface", values: { walls: "walls", ceiling: "ceiling", both: "walls-ceiling" } },
   items: {
     paint: { title: "Краска", photo: "paint" },
-    primer: { title: "Грунтовка", photo: "primer", shared: true },
+    primer: { title: "Грунтовка", photo: "primer", shared: true, product: { pack: "primerPackL" } },
   },
   summary: {
     paintLitres: "Краски нужно",

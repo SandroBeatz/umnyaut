@@ -343,7 +343,7 @@ test("room editor: name, type, an L-shape and a door on the plan reach the calcu
   await expect(page.getByRole("button", { name: "Указать размеры" })).toBeVisible();
 });
 
-test("calcs in a room: chips, a label, «+ Ещё» on the next surface, remove and «Вернуть»", async ({ page }) => {
+test("calcs in a room: chips, «+ Ещё» on the next surface, remove and «Вернуть»", async ({ page }) => {
   await page.goto(TILE);
   await editRoom(page, { Длина: "3", Ширина: "4,3" });
   // A material edit opens the room's first tile calc.
@@ -351,16 +351,12 @@ test("calcs in a room: chips, a label, «+ Ещё» on the next surface, remove 
   const chips = page.locator("[data-calc-chips]");
   await expect(chips.getByRole("button", { name: "Открыть расчёт «Пол»" })).toHaveAttribute("aria-pressed", "true");
 
-  await page.getByRole("button", { name: /Ещё параметры/ }).click();
-  await page.getByRole("textbox", { name: "Метка" }).fill("графит");
-  await expect(chips.getByRole("button", { name: "Открыть расчёт «Пол · графит»" })).toBeVisible();
-
   await chips.getByRole("button", { name: "Ещё расчёт: Плитка" }).click();
   await expect(chips.getByRole("button", { name: "Открыть расчёт «Стены»" })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: "Что облицовываем" })).toHaveText(/Стены/);
   await expect(page.getByRole("radio", { name: "30 × 60" })).not.toBeChecked();
 
-  await chips.getByRole("button", { name: "Открыть расчёт «Пол · графит»" }).click();
+  await chips.getByRole("button", { name: "Открыть расчёт «Пол»" }).click();
   await expect(page.getByRole("button", { name: "Что облицовываем" })).toHaveText(/Пол/);
   await expect(page.getByRole("radio", { name: "30 × 60" })).toBeChecked();
 
@@ -375,10 +371,7 @@ test("calcs in a room: chips, a label, «+ Ещё» on the next surface, remove 
 
   // The next visit opens the calc opened last.
   await page.reload();
-  await expect(chips.getByRole("button", { name: "Открыть расчёт «Пол · графит»" })).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
+  await expect(chips.getByRole("button", { name: "Открыть расчёт «Пол»" })).toHaveAttribute("aria-pressed", "true");
 });
 
 test("calcs: «+ Ещё» while a surface is free; a calc on both overlaps — «Разделить»", async ({ page }) => {
