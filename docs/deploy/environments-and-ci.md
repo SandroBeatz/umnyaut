@@ -1,12 +1,12 @@
 ---
-version: 1.5
-date: 2026-10-10
+version: 1.6
+date: 2026-10-15
 category: deploy
 ---
 
 # Environments and CI/CD
 
-> Version 1.5 · 2026-10-10 · [Deploy](../deploy/)
+> Version 1.6 · 2026-10-15 · [Deploy](../deploy/)
 
 ## Overview
 
@@ -77,11 +77,11 @@ Secrets: `APP_ENV`, `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `TELEGRAM_BOT_TOKEN`,
 | Variable | `SUPABASE_PROJECT_REF` | `deploy.yml` (migrate) |
 | Variable | `DEPLOY_HOST`, `PROD_URL` | `deploy.yml` (deploy, smoke test) |
 | Variable | `BACKUP_ENABLED` = `true` | `backup.yml` |
-| Secret | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD` | migrations |
 | Secret | `DEPLOY_SSH_KEY` (private key of the `deploy` user), `DEPLOY_KNOWN_HOSTS` (`ssh-keyscan <host>`) | `deploy.yml` |
-| Secret | `SUPABASE_DB_URL`, `BACKUP_PASSPHRASE` | `backup.yml` |
+| Secret | `SUPABASE_DB_URL` (Supabase → Connect → **Session pooler**, port 5432, password URL-encoded) | `deploy.yml` (migrate: `supabase db push --db-url`), `backup.yml` |
+| Secret | `BACKUP_PASSPHRASE` | `backup.yml` |
 
-GHCR uses the built-in `GITHUB_TOKEN`; the server logs in for the pull and logs out right after. The GitHub environment `prod-vps` holds the secrets and can require manual approval (not `Production`: that name belongs to the Vercel integration and GitHub environment names are case-insensitive).
+No Supabase access token in CI: a personal access token can manage the whole project (settings, keys), the connection string reaches only the database. The session pooler is IPv4 (the direct host is IPv6-only, which GitHub runners lack); the transaction pooler (6543) does not suit migrations. GHCR uses the built-in `GITHUB_TOKEN`; the server logs in for the pull and logs out right after. The GitHub environment `prod-vps` holds the secrets and can require manual approval (not `Production`: that name belongs to the Vercel integration and GitHub environment names are case-insensitive).
 - Repo: only `.env.example`. Zod validates env on startup.
 
 Plans: Vercel Hobby (non-commercial clause — staging has no ads/payments; fallback = second container on the VPS or Pro), Supabase Free × 1 project.

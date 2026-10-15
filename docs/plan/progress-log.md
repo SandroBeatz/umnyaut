@@ -42,6 +42,11 @@ Each entry:
 
 ### 2026-10-15
 
+- **P2.7 (part)** Prod migrations run `supabase db push --db-url` with the session-pooler string (`SUPABASE_DB_URL`, also used by the backup) instead of `supabase link` with a personal access token: the token could manage the whole project, the string reaches only the database. Repo variable `SUPABASE_PROJECT_REF` set (owner); Supabase project `umnyaut` created.
+  - Where: `feature/p2-7-supabase-db-url`
+  - Open: secret `SUPABASE_DB_URL` in `prod-vps`, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` in the server's `web.env`, the local Docker stack.
+  - Deviation: plan and env doc named `SUPABASE_ACCESS_TOKEN` + `SUPABASE_DB_PASSWORD`; env doc updated.
+
 - **— (CI: Lighthouse)** Tool pages failed Lighthouse: CLS 0.30 and LCP 5 s on `/pol/laminat/`. The room editor opened by itself on a first visit; its sheet grew from a 384 px placeholder once the body loaded (the shift), and its hint became the LCP element. Owner: the editor no longer opens by itself, only by «Указать размеры» (`umnyaut:room-asked:v1` and the e2e workaround removed). The editor's placeholder is full height, and its body is fetched together with the sheet. Specs «Калькулятор» and P17.7 updated.
   - Where: `feature/p17-a-estimate-model` · PR #175
 
