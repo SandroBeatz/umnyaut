@@ -84,6 +84,12 @@ export interface ItemDef {
    * colour the user typed) is shown as it is.
    */
   variants?: Readonly<Record<string, string>>;
+  /**
+   * The form fields that pick a shared consumable's product (spec «Калькулятор», P17.10): its variant (a select; a
+   * value not among its options goes to `customName` with the select on `custom`) and its pack size (a number in the
+   * pack's unit). They let the form take the product the list already has; without them the item is never offered.
+   */
+  product?: { variant?: string; customName?: string; pack?: string };
 }
 
 export interface ToolDef {
@@ -108,6 +114,11 @@ export interface ToolDef {
     /** A toggle field that switches the block on: it becomes the heading «☐ Холодная сварка швов», its fields show only when on. */
     toggle?: string;
   }[];
+  /**
+   * The grey block «Клей и затирка · общие на список» (spec «Калькулятор»): groups of shared consumables shown
+   * together under one heading, after the tool's own blocks.
+   */
+  sharedBlock?: { title: string; groups: readonly string[] };
   /** «Дальше по ремонту»: tools that continue the work with the same room. */
   nextSteps?: readonly ToolId[];
   /** Safety disclaimer card (radiators, cable, screed). */

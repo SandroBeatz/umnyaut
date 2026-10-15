@@ -254,6 +254,7 @@ export const oboi: ToolDef = {
     { id: "paste", title: "Обойный клей" },
     { id: "primer", title: "Грунтовать стены под обои", toggle: "primer" },
   ],
+  sharedBlock: { title: "Клей и грунтовка · общие на список", groups: ["paste", "primer"] },
   nextSteps: ["kraska", "ploshchad-sten"],
   surface: { fixed: "walls" },
   wallBound: {
@@ -268,7 +269,7 @@ export const oboi: ToolDef = {
       shared: true,
       variants: variantTitles(wallpaperKinds),
     },
-    primer: { title: "Грунтовка", photo: "primer", shared: true },
+    primer: { title: "Грунтовка", photo: "primer", shared: true, product: { pack: "primerPackL" } },
   },
   summary: {
     parts: "Монтажных деталей на стенах",
