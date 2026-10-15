@@ -4,7 +4,7 @@ import { ESTIMATE_LIMITS } from "@umnyaut/calc";
 import { shell, unitLabels } from "@umnyaut/catalog";
 import { Button, ResponsiveSheet } from "@umnyaut/ui";
 import { Check, ChevronDown, Plus, Ruler } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { freeRoomName, hydrateEstimate, type RoomGeometry, useActiveRoom, useEstimateStore } from "@/entities/estimate";
 import { roomDimensions } from "@/entities/room";
 import { fill } from "@/shared/lib";
@@ -14,25 +14,6 @@ const t = shell.roomBar;
 const m = unitLabels.m;
 /** «Плитка» → «плитка есть». */
 const counted = (title: string) => fill(t.counted, { tool: title.charAt(0).toLowerCase() + title.slice(1) });
-/** Closed once this visit: the editor does not open by itself on the next calculator. */
-const ASKED_KEY = "umnyaut:room-asked:v1";
-
-function asked(): boolean {
-  try {
-    return window.sessionStorage.getItem(ASKED_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function markAsked() {
-  try {
-    window.sessionStorage.setItem(ASKED_KEY, "1");
-  } catch {
-    // Blocked storage: the editor may open again on the next calculator.
-  }
-}
-
 function withoutFloor({ lengthMm: _, widthMm: __, ...rest }: RoomGeometry): RoomGeometry {
   return rest;
 }
@@ -42,15 +23,14 @@ export interface RoomBarProps {
   tool?: { id: string; title: string };
   /** What the calculator counts with now (sizes, shape, doors and windows): the row's sizes and the editor start here. */
   draft?: RoomGeometry;
-  /** The calculator counts the tool's example: a page without rooms asks for the room first. */
+  /** The calculator counts the tool's example: the row says so and the editor starts without its length and width. */
   example?: boolean;
 }
 
 /**
  * The mint room row (spec «Калькулятор», P17.7), 56 px in both states so nothing shifts after mount. Without a room
- * the row says what is counted («Пример: 4,6 × 4,3 м») and «Указать размеры» opens the room editor; a page that
- * counts the example and finds no room in the estimate opens the editor by itself after mount, once a visit (owner,
- * 2026-10-14). With a room: «[Ванная ▾] 2,2 × 1,7 × 2,5 м · Изменить», the name opens the estimate's rooms.
+ * the row says what is counted («Пример: 4,6 × 4,3 м») and «Указать размеры» opens the room editor — never by itself:
+ * an editor opening on load became the page's LCP (5 s) and its sheet a layout shift (owner, 2026-10-15). With a room: «[Ванная ▾] 2,2 × 1,7 × 2,5 м · Изменить», the name opens the estimate's rooms.
  */
 export function RoomBar({ tool, draft, example = false }: RoomBarProps) {
   const room = useActiveRoom();
@@ -59,19 +39,10 @@ export function RoomBar({ tool, draft, example = false }: RoomBarProps) {
   const [picking, setPicking] = useState(false);
   /** The editor is open on the active room, or on a new one («+ Новая комната»). */
   const [editing, setEditing] = useState<{ open: boolean; isNew: boolean }>({ open: false, isNew: false });
-  /** The store has loaded: only then is «no rooms» known (a link's sizes are in the values by that render). */
-  const [loaded, setLoaded] = useState(false);
-  const asking = useRef(false);
 
   useEffect(() => {
-    void hydrateEstimate().then(() => setLoaded(true));
+    void hydrateEstimate();
   }, []);
-
-  useEffect(() => {
-    if (!loaded || asking.current) return;
-    asking.current = true;
-    if (example && !rooms?.length && !asked()) setEditing({ open: true, isNew: false });
-  }, [loaded, example, rooms]);
 
   const dimensions = roomDimensions(room, m);
   /**
@@ -85,7 +56,6 @@ export function RoomBar({ tool, draft, example = false }: RoomBarProps) {
       open={editing.open}
       onOpenChange={(open) => {
         setEditing((e) => ({ open, isNew: open && e.isNew }));
-        if (!open) markAsked();
       }}
       room={editing.isNew ? null : room}
       {...start}

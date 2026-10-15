@@ -23,13 +23,6 @@ async function type(page: Page, label: string, value: string) {
 }
 
 /** Set on a page without rooms the room editor opens by itself (once a visit); tests open it themselves. */
-const ASKED = "umnyaut:room-asked:v1";
-/** Tests tagged so see the first visit. */
-const FIRST_VISIT = "@first-visit";
-test.beforeEach(async ({ page }, info) => {
-  if (info.tags.includes(FIRST_VISIT)) return;
-  await page.addInitScript((key) => sessionStorage.setItem(key, "1"), ASKED);
-});
 
 /** Opens the room editor («Указать размеры» or «Изменить»), fills its fields by label, saves. */
 async function editRoom(page: Page, sizes: Record<string, string>, more?: (editor: Locator) => Promise<void>) {
@@ -68,10 +61,12 @@ test("no tool scrolls sideways on a phone, with every section open", async ({ pa
   }
 });
 
-test("without rooms the editor opens first; its room reaches room area and wall area", { tag: FIRST_VISIT }, async ({
-  page,
-}) => {
+test("without rooms «Указать размеры» opens the editor; its room reaches room area and wall area", async ({ page }) => {
   await page.goto(ROOM);
+  // The editor never opens by itself (owner, 2026-10-15: it became the page's LCP).
+  await expect(result(page)).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByRole("button", { name: "Указать размеры" }).click();
   const editor = page.getByRole("dialog", { name: "Новая комната" });
   await expect(editor).toBeVisible();
   // The example's length and width are not offered as the user's.
@@ -103,14 +98,8 @@ test("without rooms the editor opens first; its room reaches room area and wall 
   await expect(page.locator("[data-room-dimensions]")).toHaveText(/^5\s×\s4\s×\s3\sм$/);
 });
 
-test("closed without a room: the example row, «Указать размеры», no editor on the next calculator", {
-  tag: FIRST_VISIT,
-}, async ({ page }) => {
+test("without a room: the example row and «Указать размеры», no editor on any calculator", async ({ page }) => {
   await page.goto(LAMINATE);
-  const editor = page.getByRole("dialog", { name: "Новая комната" });
-  await expect(editor).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(editor).toBeHidden();
   await expect(page.locator("[data-room-example]")).toHaveText(/^Пример: 4,6\s×\s4,3\sм$/);
   await expect(result(page)).toHaveText("10");
 

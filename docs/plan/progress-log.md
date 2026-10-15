@@ -40,6 +40,11 @@ Each entry:
 
 ## Log
 
+### 2026-10-15
+
+- **— (CI: Lighthouse)** Tool pages failed Lighthouse: CLS 0.30 and LCP 5 s on `/pol/laminat/`. The room editor opened by itself on a first visit; its sheet grew from a 384 px placeholder once the body loaded (the shift), and its hint became the LCP element. Owner: the editor no longer opens by itself, only by «Указать размеры» (`umnyaut:room-asked:v1` and the e2e workaround removed). The editor's placeholder is full height, and its body is fetched together with the sheet. Specs «Калькулятор» and P17.7 updated.
+  - Where: `feature/p17-a-estimate-model` · PR #175
+
 ### 2026-10-14
 
 - **— (pre-merge review)** `apps/web` declares `"sideEffects": ["*.css"]`, so barrels drop unused exports (`/spisok/` stopped shipping `RoomBar`): JS `/spisok/` 230.5 → 216.4 KB, home 218 → 214, tool 240 → 237 KB gzip. The server-HTML guard skips `/spisok/prosmotr` (filled from `#` in the browser, `noindex`).

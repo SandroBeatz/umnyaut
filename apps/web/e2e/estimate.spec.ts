@@ -1,10 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
 
-/** The room editor opens by itself on a calculator without rooms (once a visit); not what these tests check. */
-test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => sessionStorage.setItem("umnyaut:room-asked:v1", "1"));
-});
-
 const ESTIMATE = "/spisok/";
 const KEY = "umnyaut:estimate:v1";
 

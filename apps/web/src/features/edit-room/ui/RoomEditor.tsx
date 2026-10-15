@@ -3,12 +3,13 @@
 import type { EstimateRoom, RoomType } from "@umnyaut/calc";
 import { shell } from "@umnyaut/catalog";
 import { ResponsiveSheet } from "@umnyaut/ui";
-import { lazy, type ReactNode, Suspense } from "react";
+import { lazy, type ReactNode, Suspense, useEffect } from "react";
 import type { RoomGeometry } from "@/entities/estimate";
 
 const t = shell.roomEditor;
 /** The editor's fields, plan and totals load when it first opens, not with the page. */
-const Body = lazy(() => import("./RoomEditorBody"));
+const loadBody = () => import("./RoomEditorBody");
+const Body = lazy(loadBody);
 
 export interface RoomEditorProps {
   open: boolean;
@@ -40,6 +41,10 @@ export function RoomEditor({
   onSaved,
   trigger,
 }: RoomEditorProps) {
+  // Fetched with the sheet, not after it: the body would otherwise wait for the sheet's code to arrive first.
+  useEffect(() => {
+    if (open) void loadBody();
+  }, [open]);
   return (
     <ResponsiveSheet
       trigger={trigger}
@@ -49,8 +54,11 @@ export function RoomEditor({
       closeLabel={shell.close}
       wide
     >
+      {/* The editor is always taller than the sheet or dialog can be, so they open at their full height: a shorter
+          placeholder would let the sheet grow upward once the body loads — a layout shift (CLS 0.30 on a calculator
+          that opens the editor by itself). */}
       {open ? (
-        <Suspense fallback={<div className="h-96 lg:h-[560px]" />}>
+        <Suspense fallback={<div className="h-dvh" />}>
           <Body
             key={room?.id ?? "new"}
             room={room}
