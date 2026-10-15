@@ -185,8 +185,6 @@ export const shell = {
     remove: "Убрать расчёт «{calc}»",
     removed: "Расчёт убран",
     undo: "Вернуть",
-    label: "Метка",
-    labelHint: "Например, «белая глянцевая» — видна в списке",
     parts: { floor: "Пол", walls: "Стены", ceiling: "Потолок" },
     /** Joins the last of a list: «пол и стены», «Ванная, Кухня и Зал». */
     and: " и ",

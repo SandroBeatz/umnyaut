@@ -49,7 +49,6 @@ export interface Calculator {
   openCalc(id: string): void;
   /** «+ Ещё»: a new calc with default material on the first free surface. */
   addCalc(): void;
-  setLabel(label: string): void;
   /** «Разделить»: the calc over two surfaces becomes one per surface, same input. */
   splitCalc(id: string, surfaces: readonly [Surface, Surface]): void;
   /**
@@ -281,14 +280,6 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
     setAll(next);
   }, [seedRoom, tool, valuesOf, parse, defaults, module.version, setCalcId]);
 
-  const setLabel = useCallback(
-    (label: string) => {
-      const id = writeCalc(shown.current, true);
-      if (id) useEstimateStore.getState().updateCalc(id, { label: label.slice(0, 40) || undefined });
-    },
-    [writeCalc],
-  );
-
   const splitCalc = useCallback(
     (id: string, surfaces: readonly [Surface, Surface]) => {
       const store = useEstimateStore.getState();
@@ -363,7 +354,6 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
     updateEstimate,
     openCalc,
     addCalc,
-    setLabel,
     splitCalc,
     startFromList,
   };

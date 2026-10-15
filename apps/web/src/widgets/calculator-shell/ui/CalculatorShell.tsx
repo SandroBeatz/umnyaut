@@ -22,7 +22,6 @@ import { type ListProducts, listStart, takeOffers } from "../model/shared";
 import { useCalcEvents } from "../model/useCalcEvents";
 import { useCalculator } from "../model/useCalculator";
 import { describeResult, resultText } from "../model/view";
-import { CalcLabel } from "./CalcLabel";
 import { HowCalculated } from "./HowCalculated";
 import { NextSteps } from "./NextSteps";
 import { PrintSheet } from "./PrintSheet";
@@ -150,7 +149,6 @@ export function CalculatorShell({ tool, next, checkedAt, sources, module }: Calc
               onInvalid={calc.setInvalid}
               unit={unit}
               offers={offers}
-              extra={tool.items ? <CalcLabel value={current?.label ?? ""} onChange={calc.setLabel} /> : undefined}
             />
           </div>
           <div className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-[128px] lg:col-span-7">

@@ -33,8 +33,6 @@ export interface ToolFormProps {
   defaults: ToolValues;
   onChange(patch: ToolValues): void;
   onInvalid(name: string, invalid: boolean): void;
-  /** Last of «Ещё параметры»: the calc's «Метка». */
-  extra?: ReactNode;
   /** м or см for room-sized lengths; chosen in the form's heading row (`FormHeading`). */
   unit: LengthUnit;
   /** «В списке уже есть … — взять его?» by block id (`takeOffers`). */
@@ -53,7 +51,7 @@ const checkedFormat = new Intl.DateTimeFormat("ru-RU", {
  * Form from `FieldDef[]` (design spec §11–12): main fields two per row with the room shape right under the room
  * size, preset chips, then «Ещё параметры · N» with the m/cm switch. From 1024 px everything is open.
  */
-export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra, unit, offers }: ToolFormProps) {
+export function ToolForm({ tool, values, defaults, onChange, onInvalid, unit, offers }: ToolFormProps) {
   const [open, setOpen] = useState(false);
   const moreId = useId();
   const room = useActiveRoom();
@@ -77,7 +75,7 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra, u
   const { main, more } = formSections(fields, values);
   const shapeDropdown = shapeAsDropdown(main);
   const changed = changedHidden(fields, values, defaults);
-  const hasMore = more.length > 0 || Boolean(extra);
+  const hasMore = more.length > 0;
 
   const label = (field: FieldDef & { name: string }): ReactNode => {
     const key = bound.get(field.name);
@@ -376,7 +374,6 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra, u
               {sharedGroups}
             </div>
           ) : null}
-          {extra ? <div className="col-span-2">{extra}</div> : null}
         </div>
       ) : null}
     </form>
