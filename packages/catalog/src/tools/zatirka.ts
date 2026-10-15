@@ -135,7 +135,15 @@ export const zatirka: ToolDef = {
   ],
   nextSteps: ["klej", "plitka"],
   surface: { field: "surface", values: { floor: "floor", walls: "walls", both: "floor-walls" } },
-  items: { grout: { title: "Затирка", photo: "grout", shared: true, variants: variantTitles(groutColors) } },
+  items: {
+    grout: {
+      title: "Затирка",
+      photo: "grout",
+      shared: true,
+      variants: variantTitles(groutColors),
+      product: { variant: "groutColor", customName: "groutColorName", pack: "packKg" },
+    },
+  },
   summary: { groutKg: "Затирки нужно", rate: "Расход на 1 м²", area: "Площадь облицовки" },
   steps: {
     floor: "Пол = {length} × {width} = {area} м²",

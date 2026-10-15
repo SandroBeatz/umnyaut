@@ -4,7 +4,7 @@ import type { BareZone, Opening, ToolModule } from "@umnyaut/calc";
 import { shell, type ToolDef, unitLabels } from "@umnyaut/catalog";
 import { toast, UnitToggle } from "@umnyaut/ui";
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCountry } from "@/entities/country";
 import { useActiveRoom, useEstimateStore, useRoomCalcs, useToolCalcs } from "@/entities/estimate";
 import { roomDimensions, roomPatch } from "@/entities/room";
@@ -18,6 +18,7 @@ import { AdSlot } from "@/shared/ui";
 import { manyCalcs, nextSurface } from "../model/calcs";
 import { hasRoomUnits, type LengthUnit } from "../model/fields";
 import { planRoomOf } from "../model/plan";
+import { type ListProducts, listStart, takeOffers } from "../model/shared";
 import { useCalcEvents } from "../model/useCalcEvents";
 import { useCalculator } from "../model/useCalculator";
 import { describeResult, resultText } from "../model/view";
@@ -64,6 +65,7 @@ export function CalculatorShell({ tool, next, checkedAt, sources, module }: Calc
   const roomCalcs = useRoomCalcs();
   const current = toolCalcs.find((c) => c.id === calc.calcId);
   const [shared, setShared] = useState<Readonly<Record<string, SharedItemView>>>();
+  const [products, setProducts] = useState<ListProducts>({});
   const removeCalc = (id: string) => {
     const store = useEstimateStore.getState();
     store.removeCalc(id);
@@ -85,6 +87,15 @@ export function CalculatorShell({ tool, next, checkedAt, sources, module }: Calc
   }, []);
 
   const { values, defaults } = calc;
+  const items = calc.result.items;
+  const offers = useMemo(() => takeOffers(tool, values, items, products), [tool, values, items, products]);
+  // A calc not yet started takes the list's adhesive, grout and primer (spec «Калькулятор»).
+  const { startFromList, calcId } = calc;
+  useEffect(() => {
+    if (calcId) return;
+    const patch = listStart(tool, values, items, products);
+    if (Object.keys(patch).length > 0) startFromList(patch);
+  }, [tool, values, items, products, calcId, startFromList]);
   useCalcEvents({
     tool,
     country,
@@ -138,6 +149,7 @@ export function CalculatorShell({ tool, next, checkedAt, sources, module }: Calc
               onChange={calc.setValues}
               onInvalid={calc.setInvalid}
               unit={unit}
+              offers={offers}
               extra={tool.items ? <CalcLabel value={current?.label ?? ""} onChange={calc.setLabel} /> : undefined}
             />
           </div>
@@ -151,7 +163,7 @@ export function CalculatorShell({ tool, next, checkedAt, sources, module }: Calc
               room={room?.name}
               shared={shared}
             />
-            {tool.items ? <EstimateSync calcId={calc.calcId} onShared={setShared} /> : null}
+            {tool.items ? <EstimateSync calcId={calc.calcId} onShared={setShared} onProducts={setProducts} /> : null}
             <ResultActions
               title={tool.title}
               getText={getText}

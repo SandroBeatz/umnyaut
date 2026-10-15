@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-15
 
+- **P17.10** Shared consumables in the calculator form: the blocks of adhesive, grout and primer stand together in a grey «Клей, затирка и грунтовка · общие на список» (wallpaper «Клей и грунтовка», paint «Грунтовка · общая на список»). A calc not yet started (no calc, no own edit, not a `?s=` link) takes the list's product — adhesive class, grout colour (a typed name as «Свой цвет»), pack size where the form has it; a calc on another product gets a `Hint` «В списке уже есть «Плиточный клей C2TE, мешок 25 кг» — взять его?» with «Взять» in that block. Catalog: `ItemDef.product` (variant, custom name and pack fields), `ToolDef.sharedBlock`, validated; `EstimateSync` reports the list's products from the other calcs (`productsOf`). Unit tests and an e2e journey. JS tool page 237 → 238 KB.
+  - Where: `feature/p17-10-shared-block`
+  - Notes: the wallpaper paste is never offered — its variant is the wallpaper type, a main-material choice. On a phone the block sits under «Ещё параметры».
+
 - **P2.7 (part)** Prod migrations run `supabase db push --db-url` with the session-pooler string (`SUPABASE_DB_URL`, also used by the backup) instead of `supabase link` with a personal access token: the token could manage the whole project, the string reaches only the database. Repo variable `SUPABASE_PROJECT_REF` set (owner); Supabase project `umnyaut` created.
   - Where: `feature/p2-7-supabase-db-url`
   - Open: secret `SUPABASE_DB_URL` in `prod-vps`, `SUPABASE_URL` / `SUPABASE_SECRET_KEY` in the server's `web.env`, the local Docker stack.

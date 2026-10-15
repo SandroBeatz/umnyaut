@@ -72,6 +72,16 @@ export function validateRegistry({ categories, reservedSegments, tools, modules,
     for (const group of tool.groups ?? [])
       if (group.toggle && !tool.fields.some((f) => f.kind === "toggle" && f.name === group.toggle))
         errors.push(`${at}: group ${group.id} switched by unknown toggle ${group.toggle}`);
+    for (const id of tool.sharedBlock?.groups ?? [])
+      if (!groupIds.includes(id)) errors.push(`${at}: shared block names unknown group ${id}`);
+    for (const [key, item] of Object.entries(tool.items ?? {})) {
+      if (item.product && !item.shared) errors.push(`${at}: item ${key} picks a product but is not shared`);
+      for (const name of Object.values(item.product ?? {}))
+        if (!names.includes(name)) errors.push(`${at}: item ${key} product field ${name} unknown`);
+      const variant = item.product?.variant;
+      if (variant && tool.fields.find((f) => "name" in f && f.name === variant)?.kind !== "select")
+        errors.push(`${at}: item ${key} variant field ${variant} is not a select`);
+    }
     for (const field of tool.fields)
       if ("group" in field && field.group && !groupIds.includes(field.group))
         errors.push(`${at}: field ${field.name} in unknown group ${field.group}`);

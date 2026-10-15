@@ -68,6 +68,11 @@ export const shell = {
     typicalPrice: "Обычно около {price}, проверено {date}",
     decrement: "Меньше",
     increment: "Больше",
+    /** Under a shared consumable whose product differs from the one the list has (spec «Калькулятор»). */
+    takeOffer: "В списке уже есть «{product}» — взять его?",
+    take: "Взять",
+    /** «Плиточный клей C2TE, мешок 25 кг». */
+    product: "{title}, {pack} {size}",
   },
   openings: {
     door: "Дверь",

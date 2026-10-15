@@ -11,6 +11,7 @@ import { useActiveRoom } from "@/entities/estimate";
 import type { ToolValues } from "@/entities/tool";
 import { PlanEditor } from "@/features/edit-room-plan";
 import { fill } from "@/shared/lib";
+import { Hint } from "@/shared/ui";
 import {
   changedHidden,
   formSections,
@@ -22,6 +23,7 @@ import {
   toDisplay,
 } from "../model/fields";
 import { planRoomOf } from "../model/plan";
+import type { TakeOffer } from "../model/shared";
 import { OpeningsField } from "./OpeningsField";
 import { TextField } from "./TextField";
 
@@ -35,6 +37,8 @@ export interface ToolFormProps {
   extra?: ReactNode;
   /** м or см for room-sized lengths; chosen in the form's heading row (`FormHeading`). */
   unit: LengthUnit;
+  /** «В списке уже есть … — взять его?» by block id (`takeOffers`). */
+  offers?: Readonly<Record<string, TakeOffer>>;
 }
 
 const f = shell.form;
@@ -49,7 +53,7 @@ const checkedFormat = new Intl.DateTimeFormat("ru-RU", {
  * Form from `FieldDef[]` (design spec §11–12): main fields two per row with the room shape right under the room
  * size, preset chips, then «Ещё параметры · N» with the m/cm switch. From 1024 px everything is open.
  */
-export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra, unit }: ToolFormProps) {
+export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra, unit, offers }: ToolFormProps) {
   const [open, setOpen] = useState(false);
   const moreId = useId();
   const room = useActiveRoom();
@@ -282,6 +286,63 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra, u
       renderField(field)
     );
 
+  type Group = NonNullable<ToolDef["groups"]>[number];
+  const renderGroup = (group: Group): ReactNode => {
+    const inGroup = more.filter(
+      (field) => "group" in field && field.group === group.id && !("name" in field && field.name === group.toggle),
+    );
+    const on = group.toggle ? values[group.toggle] === true : true;
+    // The toggle's own hint («На клей или скотч — выключите») under the heading it became.
+    const toggleField = tool.fields.find((f) => "name" in f && f.name === group.toggle);
+    const toggleHint = toggleField && "hint" in toggleField ? toggleField.hint : undefined;
+    if (!group.toggle && inGroup.length === 0) return null;
+    // A block per material: its heading (or the toggle that switches it on), then its fields.
+    return (
+      <fieldset
+        key={group.id}
+        className="col-span-2 grid grid-cols-2 gap-x-3 gap-y-4 border-border border-t pt-3"
+        data-field-group={group.id}
+      >
+        <legend className="float-left col-span-2">
+          {group.toggle ? (
+            <label className="flex min-h-12 items-center gap-3 text-body-strong text-text">
+              <input
+                type="checkbox"
+                className="size-5 accent-[var(--color-primary)]"
+                checked={on}
+                onChange={(e) => onChange({ [group.toggle as string]: e.target.checked })}
+              />
+              {group.title}
+            </label>
+          ) : (
+            <span className="text-body-strong text-text">{group.title}</span>
+          )}
+          {toggleHint ? <span className="-mt-1 block pl-8 text-small text-text-muted">{toggleHint}</span> : null}
+        </legend>
+        {on ? inGroup.map(render) : null}
+        {on && offers?.[group.id] ? (
+          <Hint className="col-span-2">
+            <p>{offers[group.id]?.text}</p>
+            <Button
+              variant="secondary"
+              className="mt-2"
+              onClick={() => {
+                const offer = offers[group.id];
+                if (offer) onChange(offer.patch);
+              }}
+            >
+              {f.take}
+            </Button>
+          </Hint>
+        ) : null}
+      </fieldset>
+    );
+  };
+  // The shared consumables' blocks stand together in the grey «… · общие на список» after the tool's own.
+  const inShared = new Set(tool.sharedBlock?.groups ?? []);
+  const own = (tool.groups ?? []).filter((group) => !inShared.has(group.id));
+  const sharedGroups = (tool.groups ?? []).filter((group) => inShared.has(group.id)).map(renderGroup);
+
   return (
     <form className="flex flex-col gap-3" onSubmit={(e) => e.preventDefault()} noValidate>
       <div className="grid grid-cols-2 gap-x-3 gap-y-3">{main.map(render)}</div>
@@ -305,45 +366,16 @@ export function ToolForm({ tool, values, defaults, onChange, onInvalid, extra, u
           className={open ? "grid grid-cols-2 gap-x-3 gap-y-4" : "hidden grid-cols-2 gap-x-3 gap-y-4 lg:grid"}
         >
           {more.filter((field) => !("group" in field && field.group)).map(render)}
-          {(tool.groups ?? []).map((group) => {
-            const inGroup = more.filter(
-              (field) =>
-                "group" in field && field.group === group.id && !("name" in field && field.name === group.toggle),
-            );
-            const on = group.toggle ? values[group.toggle] === true : true;
-            // The toggle's own hint («На клей или скотч — выключите») under the heading it became.
-            const toggleField = tool.fields.find((f) => "name" in f && f.name === group.toggle);
-            const toggleHint = toggleField && "hint" in toggleField ? toggleField.hint : undefined;
-            if (!group.toggle && inGroup.length === 0) return null;
-            // A block per material: its heading (or the toggle that switches it on), then its fields.
-            return (
-              <fieldset
-                key={group.id}
-                className="col-span-2 grid grid-cols-2 gap-x-3 gap-y-4 border-border border-t pt-3"
-                data-field-group={group.id}
-              >
-                <legend className="float-left col-span-2">
-                  {group.toggle ? (
-                    <label className="flex min-h-12 items-center gap-3 text-body-strong text-text">
-                      <input
-                        type="checkbox"
-                        className="size-5 accent-[var(--color-primary)]"
-                        checked={on}
-                        onChange={(e) => onChange({ [group.toggle as string]: e.target.checked })}
-                      />
-                      {group.title}
-                    </label>
-                  ) : (
-                    <span className="text-body-strong text-text">{group.title}</span>
-                  )}
-                  {toggleHint ? (
-                    <span className="-mt-1 block pl-8 text-small text-text-muted">{toggleHint}</span>
-                  ) : null}
-                </legend>
-                {on ? inGroup.map(render) : null}
-              </fieldset>
-            );
-          })}
+          {own.map(renderGroup)}
+          {sharedGroups.some((group) => group !== null) ? (
+            <div
+              className="col-span-2 grid grid-cols-2 gap-x-3 gap-y-4 rounded-lg bg-surface-sunken p-4 [&>fieldset:first-of-type]:border-t-0 [&>fieldset:first-of-type]:pt-0"
+              data-shared-block
+            >
+              <p className="col-span-2 text-small font-medium text-text-muted">{tool.sharedBlock?.title}</p>
+              {sharedGroups}
+            </div>
+          ) : null}
           {extra ? <div className="col-span-2">{extra}</div> : null}
         </div>
       ) : null}

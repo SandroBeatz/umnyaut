@@ -52,6 +52,11 @@ export interface Calculator {
   setLabel(label: string): void;
   /** «Разделить»: the calc over two surfaces becomes one per surface, same input. */
   splitCalc(id: string, surfaces: readonly [Surface, Surface]): void;
+  /**
+   * A calc not yet started (no calc, no own edit, not opened by a link) takes the list's shared consumables (spec
+   * «Калькулятор»); not an edit, nothing is written.
+   */
+  startFromList(patch: ToolValues): void;
 }
 
 /**
@@ -91,6 +96,8 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
   const [fieldsChanged, setFieldsChanged] = useState(0);
   const country = useCountry();
   const loaded = useRef(false);
+  /** Opened by a `?s=` link: its values stay as sent. */
+  const linked = useRef(false);
   /** Tools with purchases keep their input in the estimate's calcs; area tools do not. */
   const keepsCalcs = Boolean(tool.items);
 
@@ -117,6 +124,7 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
     const shared = decodeShare(new URLSearchParams(window.location.search).get("s"));
     const fromLink = shared && parse({ ...defaults, ...upgradeInput(module, shared) });
     if (fromLink) {
+      linked.current = true;
       setAll(fromLink);
       // The link wins over a stored room: its rehydrate must not pour the room into the link's sizes.
       void hydrateEstimate().then(() => {
@@ -299,6 +307,14 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
     [tool, valuesOf],
   );
 
+  const startFromList = useCallback(
+    (patch: ToolValues) => {
+      if (!loaded.current || linked.current || current.current || changed.current.size > 0) return;
+      setAll((now) => parse({ ...now, ...patch }) ?? now);
+    },
+    [parse],
+  );
+
   // An area tool remembers its own (not room-bound) values that differ from defaults.
   useEffect(() => {
     if (edits === 0 || keepsCalcs) return;
@@ -349,5 +365,6 @@ export function useCalculator(tool: ToolDef, module: ToolModule<ToolValues>): Ca
     addCalc,
     setLabel,
     splitCalc,
+    startFromList,
   };
 }

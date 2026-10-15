@@ -136,6 +136,7 @@ export const klej: ToolDef = {
       photo: "tile-adhesive",
       shared: true,
       variants: variantTitles(adhesiveClasses),
+      product: { variant: "adhesiveClass", pack: "bagKg" },
     },
   },
   summary: { adhesiveKg: "Клея нужно", area: "Площадь облицовки", notch: "Зуб шпателя" },

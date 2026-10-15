@@ -228,6 +228,7 @@ export const plitka: ToolDef = {
     { id: "grout", title: "Затирка", toggle: "grout" },
     { id: "primer", title: "Грунтовать основание", toggle: "primer" },
   ],
+  sharedBlock: { title: "Клей, затирка и грунтовка · общие на список", groups: ["adhesive", "grout", "primer"] },
   nextSteps: ["klej", "zatirka"],
   surface: { field: "surface", values: { floor: "floor", walls: "walls", both: "floor-walls" } },
   items: {
@@ -237,9 +238,16 @@ export const plitka: ToolDef = {
       photo: "tile-adhesive",
       shared: true,
       variants: variantTitles(adhesiveClasses),
+      product: { variant: "adhesiveClass" },
     },
-    grout: { title: "Затирка", photo: "grout", shared: true, variants: variantTitles(groutColors) },
-    primer: { title: "Грунтовка", photo: "primer", shared: true },
+    grout: {
+      title: "Затирка",
+      photo: "grout",
+      shared: true,
+      variants: variantTitles(groutColors),
+      product: { variant: "groutColor", customName: "groutColorName" },
+    },
+    primer: { title: "Грунтовка", photo: "primer", shared: true, product: { pack: "primerPackL" } },
   },
   summary: {
     tiles: "Плиток с запасом",

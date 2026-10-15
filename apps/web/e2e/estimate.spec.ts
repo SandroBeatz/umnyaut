@@ -232,3 +232,54 @@ test("header: the list icon everywhere, its count once the list has calcs, curre
   await expect(button).not.toHaveAttribute("aria-current", "page");
   await expect(button.locator("[data-header-count]")).toBeVisible();
 });
+
+test("a new tile calc takes the list's adhesive; another class offers «взять его?»", async ({ page }) => {
+  const withAdhesive = {
+    ...seed,
+    state: {
+      estimate: {
+        ...seed.state.estimate,
+        rooms: [
+          { id: "r1", name: "Ванная", type: "bathroom", lengthMm: 2200, widthMm: 1700, heightMm: 2500, openings: [] },
+          { id: "r2", name: "Кухня", type: "kitchen", lengthMm: 3000, widthMm: 2800, heightMm: 2700, openings: [] },
+        ],
+        calcs: [
+          {
+            id: "c1",
+            roomId: "r1",
+            tool: "klej",
+            toolVersion: 2,
+            surface: "floor",
+            input: { adhesiveClass: "C2TE" },
+            openedAt: 1,
+            addedAt: 1,
+          },
+        ],
+        activeRoomId: "r2",
+      },
+    },
+  };
+  await page.addInitScript(
+    ([key, value]) => {
+      if (!sessionStorage.getItem("seeded")) {
+        localStorage.setItem(key as string, value as string);
+        sessionStorage.setItem("seeded", "1");
+      }
+    },
+    [KEY, JSON.stringify(withAdhesive)],
+  );
+  await page.goto("/plitka/plitka/");
+  await page.getByRole("button", { name: /Ещё параметры/ }).click();
+  const block = page.locator("[data-shared-block]");
+  await expect(block.getByText("Клей, затирка и грунтовка · общие на список")).toBeVisible();
+  const adhesiveClass = block.getByRole("button", { name: "Класс клея" });
+  // Not started yet: the list's product is the default.
+  await expect(adhesiveClass).toHaveAccessibleDescription(/C2TE/);
+  await adhesiveClass.click();
+  await page.getByRole("radio", { name: /^C1 —/ }).click();
+  const offer = block.getByText(/В списке уже есть «Плиточный клей C2TE, мешок 25\s?кг» — взять его\?/);
+  await expect(offer).toBeVisible();
+  await block.getByRole("button", { name: "Взять" }).click();
+  await expect(offer).toBeHidden();
+  await expect(adhesiveClass).toHaveAccessibleDescription(/C2TE/);
+});
