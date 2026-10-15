@@ -23,7 +23,7 @@ export interface CategoryDef {
 export const categories = [
   {
     slug: "osnova",
-    title: "Основа",
+    title: "Площади",
     icon: "osnova",
     note: "Площадь комнаты и стен",
     steps: [

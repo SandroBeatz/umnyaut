@@ -925,7 +925,7 @@ export const oboi: ToolModule<OboiInput> = {
           "wallpaper",
           "main",
           { value: mmToM(bought * R - tailMm), unit: "m" },
-          { kind: "roll", size: { value: mmToM(R), unit: "m" } },
+          { kind: "roll", size: { value: mmToM(R), unit: "m" }, width: { value: mmToM(i.rollWidthMm), unit: "m" } },
         ),
       );
       if (rw.all) steps.push({ code: "per_roll", values: { roll: mmToM(R), perRoll } });

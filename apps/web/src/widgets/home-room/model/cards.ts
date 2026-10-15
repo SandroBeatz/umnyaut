@@ -1,5 +1,6 @@
 import type { Country } from "@umnyaut/calc";
 import { DEFAULT_COUNTRY, home, packNouns, toolPath, tools } from "@umnyaut/catalog";
+import { formatNumber, NBSP } from "@umnyaut/ui/format";
 import { applyRoom, type RoomDraft } from "@/entities/room";
 import { getToolModule, groupPurchases, purchaseTexts, quantityText } from "@/entities/tool";
 import { DEFAULT_TYPE, type ExampleCard, type ExampleRoom, exampleRoom, worksOf } from "./example";
@@ -30,7 +31,12 @@ export function exampleCards(room: ExampleRoom, works: readonly string[], countr
       const group = groupPurchases(result.items).find((g) => g.first.key === example.item);
       if (!group) return [];
       const { quantity, detail } = purchaseTexts(group);
-      const { kind, size } = group.first.pack;
+      const { kind, size, width } = group.first.pack;
+      // A roll is named by width × length («рулон 0,53 × 10,05 м»): the length alone reads as any roll.
+      const packSize =
+        kind === "roll" && width && width.unit === size.unit
+          ? `${formatNumber(width.value, { maxFraction: 2 })}${NBSP}×${NBSP}${quantityText(size.value, size.unit)}`
+          : quantityText(size.value, size.unit);
       const item = tool.items?.[example.item];
       return [
         {
@@ -39,7 +45,7 @@ export function exampleCards(room: ExampleRoom, works: readonly string[], countr
           href: toolPath(tool),
           title: example.title ?? item?.title ?? tool.title,
           photo: item?.photo,
-          pack: detail ?? `${packNouns[kind][0]} ${quantityText(size.value, size.unit)}`,
+          pack: detail ?? `${packNouns[kind][0]} ${packSize}`,
           quantity,
         },
       ];

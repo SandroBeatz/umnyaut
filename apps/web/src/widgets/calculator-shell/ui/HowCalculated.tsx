@@ -1,8 +1,9 @@
 import { shell, type ToolDef } from "@umnyaut/catalog";
 import { Disclosure } from "@umnyaut/ui";
+import { Fragment } from "react";
 import { ReportError } from "@/features/report-error";
 import { track } from "@/shared/analytics";
-import { fill } from "@/shared/lib";
+import { fill, sourceLinks } from "@/shared/lib";
 
 const h = shell.howCalculated;
 const dateFormat = new Intl.DateTimeFormat("ru-RU", {
@@ -34,11 +35,26 @@ export function HowCalculated({ tool, steps, checkedAt, sources = [] }: HowCalcu
           <li key={step}>{step}</li>
         ))}
       </ol>
-      {/* Sources end in long URLs: without breaking anywhere they widen the phone page. */}
-      <div className="mt-4 flex flex-col gap-1 text-caption text-text-muted wrap-anywhere">
+      <div className="mt-4 flex flex-col gap-1 text-caption text-text-muted wrap-break-word">
         {sources.length > 0 ? (
           <p>
-            {h.sources}: {sources.join("; ")}
+            {h.sources}:{" "}
+            {sourceLinks(sources).map((source, index) => (
+              <Fragment key={source.label}>
+                {index > 0 ? "; " : null}
+                {source.url ? (
+                  <a
+                    href={source.url}
+                    rel="noopener noreferrer"
+                    className="text-primary underline underline-offset-2 hover:text-primary-hover"
+                  >
+                    {source.label}
+                  </a>
+                ) : (
+                  source.label
+                )}
+              </Fragment>
+            ))}
           </p>
         ) : (
           <p>{h.geometry}</p>

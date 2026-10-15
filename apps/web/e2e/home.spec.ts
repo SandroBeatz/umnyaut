@@ -10,7 +10,9 @@ const card = (page: Page, title: string) => page.getByRole("link", { name: new R
 
 test("home: the room block recomputes the example and carries over to a tool", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Одна комната — весь список покупок");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Калькулятор материалов для ремонта. Одна комната — весь список покупок",
+  );
   await expect(page.getByRole("heading", { name: "Какую комнату считаем?" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Для комнаты 12 м² нужно" })).toBeVisible();
   await expect(card(page, "Ламинат")).toContainText("6 пачек");
