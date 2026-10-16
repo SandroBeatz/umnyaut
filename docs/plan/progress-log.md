@@ -1,12 +1,12 @@
 ---
 version: 1.9
-date: 2026-10-14
+date: 2026-10-16
 category: plan
 ---
 
 # Progress Log
 
-> Version 1.9 · 2026-10-14 · [Plan](../plan/)
+> Version 1.9 · 2026-10-16 · [Plan](../plan/)
 
 ## Overview
 
@@ -39,6 +39,11 @@ Each entry:
 - **Where** — short commit SHA (7 chars), PR number, and the environment it reached (`staging`, `prod`, `Vercel`).
 
 ## Log
+
+### 2026-10-16
+
+- **— (decision)** Static export (`output: "export"`, like `nuxt generate`) researched and recorded as an idea, not adopted: prod stays on the Node server (Docker + Caddy). Blockers, fixes and the Phase 7 backend limitation in [Static Export (Idea, Not Adopted)](../deploy/static-export-idea.md).
+  - Where: `docs/static-export-idea` (docs only)
 
 ### 2026-10-15
 

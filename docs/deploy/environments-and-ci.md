@@ -1,12 +1,12 @@
 ---
-version: 1.6
-date: 2026-10-15
+version: 1.7
+date: 2026-10-16
 category: deploy
 ---
 
 # Environments and CI/CD
 
-> Version 1.6 · 2026-10-15 · [Deploy](../deploy/)
+> Version 1.7 · 2026-10-16 · [Deploy](../deploy/)
 
 ## Overview
 
@@ -104,6 +104,7 @@ If none passes everything: host the site where visitor reachability is best and 
 - [Prod Server Runbook](./prod-server-runbook.md) — step-by-step VPS bootstrap, secrets, first deploy, Vercel settings
 - [Architecture Overview](../architecture/overview.md) — platform layer, no Vercel-only APIs
 - [Server API and Data](../code/server-api-and-data.md) — migrations and backups
+- [Static Export (Idea, Not Adopted)](./static-export-idea.md) — why prod is not plain static hosting
 - [Engineering Practices](../practices/engineering-practices.md) — branch flow, checks
 - Skill spec: [preflight](../skills/preflight.md); agent spec: [platform-engineer](../agents/platform-engineer.md)
 

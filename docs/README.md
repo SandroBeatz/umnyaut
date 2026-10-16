@@ -48,6 +48,7 @@ UmnyAut («Умняут») — a connected renovation calculator: enter room dim
 | [AI Vision Features](./integrations/ai-vision.md) | 1.1 |
 | [Environments and CI/CD](./deploy/environments-and-ci.md) | 1.5 |
 | [Prod Server Runbook](./deploy/prod-server-runbook.md) | 1.1 |
+| [Static Export (Idea, Not Adopted)](./deploy/static-export-idea.md) | 1.0 |
 | [Engineering Practices](./practices/engineering-practices.md) | 1.1 |
 | [Development Plan](./plan/development-plan.md) | 2.11 |
 | [Accounts and Services](./plan/accounts-and-services.md) | 1.1 |
