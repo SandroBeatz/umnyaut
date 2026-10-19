@@ -1,12 +1,12 @@
 ---
-version: 1.11
+version: 1.12
 date: 2026-10-19
 category: plan
 ---
 
 # Progress Log
 
-> Version 1.11 · 2026-10-19 · [Plan](../plan/)
+> Version 1.12 · 2026-10-19 · [Plan](../plan/)
 
 ## Overview
 
@@ -49,6 +49,11 @@ Each entry:
 - **P9.2 (partly), P9.8 (partly)** Metrika and IndexNow set up on prod. Ten «Целевое событие» goals («Совпадает») created for the `EventMap` names — `calc_completed`, `calc_started`, `tool_view`, `project_shared`, `result_copied`, `next_tool_clicked`, `price_added`, `how_opened`, `calc_adjusted`, `js_error` (10 of 200). Owner linked the counter in Webmaster and turned on crawling by counter. `INDEXNOW_KEY` generated on the server into `/srv/umnyaut/web.env` (600; previous file kept as `web.env.bak-indexnow`), the active tag `437575223c53` redeployed (blue → green, blue kept for rollback); `/indexnow.txt` answers 200; all 16 sitemap URLs sent once by hand (`indexnow.mjs /dev/null …` → 202). On `/pol/laminat/` after consent `tag.js?id=113671906` loads and hits to `mc.yandex.ru` answer 200.
   - Where: prod (VPS), Metrika, Webmaster · no code change
   - Notes: first visits not yet in Metrika reports when checked (normal delay) — confirm events arrive (M1 gate). From now on the deploy workflow sends only new or changed URLs. P9.8 left: sitemap in Webmaster (tool read-only on Yandex's side) and Search Console. Delete `web.env.bak-indexnow` once prod is confirmed fine.
+
+### 2026-10-16
+
+- **— (decision)** Static export (`output: "export"`, like `nuxt generate`) researched and recorded as an idea, not adopted: prod stays on the Node server (Docker + Caddy). Blockers, fixes and the Phase 7 backend limitation in [Static Export (Idea, Not Adopted)](../deploy/static-export-idea.md).
+  - Where: `docs/static-export-idea` (docs only)
 
 ### 2026-10-15
 
