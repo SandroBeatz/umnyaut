@@ -1,12 +1,12 @@
 ---
-version: 1.9
-date: 2026-10-14
+version: 1.10
+date: 2026-10-19
 category: plan
 ---
 
 # Progress Log
 
-> Version 1.9 · 2026-10-14 · [Plan](../plan/)
+> Version 1.10 · 2026-10-19 · [Plan](../plan/)
 
 ## Overview
 
@@ -39,6 +39,13 @@ Each entry:
 - **Where** — short commit SHA (7 chars), PR number, and the environment it reached (`staging`, `prod`, `Vercel`).
 
 ## Log
+
+### 2026-10-19
+
+- **P0.4 (partly), P0.6 (partly), P9.2 (partly)** Yandex Webmaster rights confirmed (DNS TXT at Namecheap); Metrika counter `113671906` created by the owner and set in `shared/config/analytics.ts`; `tag.js` now loads with `?id=` as the current Metrika snippet does.
+  - Where: `feature/metrika-counter`
+  - Notes: Webmaster diagnostics «Ошибок не обнаружено»; Yandex robot gets `/pol/laminat/` with 200 in 25 ms (robot-fetch part of P0.6); robots.txt 0 errors; region left unset (four countries). Yandex has «Файлы Sitemap» and «Переобход страниц» read-only right now — submit the sitemap and the 16 URLs when they come back (P9.8). Owner: add the 10 `EventMap` names as «JavaScript-событие» goals, link the counter in Webmaster and turn on crawling by counter, set `INDEXNOW_KEY` on the VPS. P0.4 left: Wordstat. P9.2 left: own counter `/api/e` (Phase 7, needs Supabase).
+  - Deviation: the counter's own code snippet (`ssr`, `ecommerce: "dataLayer"`, noscript pixel) is not used — our loader runs only after consent and sends hits by hand.
 
 ### 2026-10-15
 

@@ -1,12 +1,12 @@
 ---
-version: 2.11
-date: 2026-10-14
+version: 2.12
+date: 2026-10-19
 category: plan
 ---
 
 # Development Plan
 
-> Version 2.11 · 2026-10-14 · [Plan](../plan/)
+> Version 2.12 · 2026-10-19 · [Plan](../plan/)
 
 ## Overview
 
@@ -67,7 +67,7 @@ Product sequencing is **depth before breadth**. Qalculator.ru is the mandatory b
 - [x] P0.1 Reset repo on `develop`, write docs, skill & agent specs; build skills and agents.
 - [ ] P0.2 Commit the reset; archive old remote branch as `legacy/develop`; push new `develop` (`--force-with-lease`, owner approval).
 - [ ] P0.3 Domain mailbox `hello@`, `dev@` (A02); password vault (A03); 2FA + branch protection (A04); `gh auth` (A05).
-- [ ] P0.4 Webmaster, Search Console, Metrika counter (not installed), Wordstat (A08–A11).
+- [ ] P0.4 Webmaster, Search Console, Metrika counter (not installed), Wordstat (A08–A11). Webmaster, Search Console and Metrika (`113671906`) done 2026-10-19; Wordstat left.
 - [ ] P0.5 Research per business spec §5: 60 candidates → demand → SERP → competitors → scoring → first 30 ranked. Qalculator is the primary benchmark: record catalog/SEO/UX/monetization baseline and per-wave overlap; choose the first complete wall chain before unrelated breadth (owner; agents help with SERP/competitor analysis).
 - [ ] P0.6 **VPS measurement** (A06, A07): rent 1–2 KZ/KG servers; deploy a throwaway tool-weight page with Docker + Caddy; measure from RU (4 mobile operators, 2–3 ISPs, ≥ 2 regions), KZ, BY, KG; robot fetch in Webmaster/Search Console; outbound test to Supabase, Gemini API, Telegram Bot API. Pass = < 5 s everywhere + all three outbound OK. Buy the winner.
 - [ ] P0.7 Norm sources + golden drafts for wave 1 (C01, C02): ≥ 3 shared Qalculator scenarios per overlapping tool, independently derived and with every result difference explained.
