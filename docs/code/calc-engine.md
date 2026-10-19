@@ -1,12 +1,12 @@
 ---
-version: 2.1
-date: 2026-10-12
+version: 2.2
+date: 2026-10-19
 category: code
 ---
 
 # Calculation Engine (`@umnyaut/calc`)
 
-> Version 2.1 · 2026-10-12 · [Code](../code/)
+> Version 2.2 · 2026-10-19 · [Code](../code/)
 
 ## Overview
 
@@ -14,7 +14,7 @@ category: code
 
 The package does not know about React, HTTP, or the database. Its only dependency is Zod. It is also the single biggest product risk (a wrong formula means a person buys the wrong amount), so it carries the strictest testing rules in the repo.
 
-> Status: core implemented (Phase 4): types, blocks `geometry`/`packs`/`waste`/`coverage`, golden harness, invariants, reviewer export, `ProjectData` v1 and a `mergeItems()` stub. Live tools (10): room area, wall area (Phase 5); wallpaper, paint, plinth, linoleum, laminate, tile, tile adhesive, grout (Phase 6) with the engines `strips` (`cutStrips`), `rows` (`layRows`), `grid` (`gridArea`) and can sets (`purchaseSet`); `frame` and `power` arrive with wave 2. The wall list (P6.11) merges works with `mergeItems()` — same key and pack summed, rounded once (walls primer + ceiling primer = one 10 л canister); can sets from different works are merged per size, not re-optimised (P11.1). A can set returns one line per size with the same key: golden expectations and the monotonic invariant compare the sum per key (total bought must not drop when the area grows).
+> Status: core implemented (Phase 4): types, blocks `geometry`/`packs`/`waste`/`coverage`, golden harness, invariants, reviewer export, project schema 2 (the estimate), `productKey()` / `mergeItems()` and `aggregateEstimate()` (Phase 17). Live tools (10): room area, wall area (Phase 5); wallpaper, paint, plinth, linoleum, laminate, tile, tile adhesive, grout (Phase 6) with the engines `strips` (`cutStrips`), `rows` (`layRows`), `grid` (`gridArea`) and can sets (`purchaseSet`); `frame` and `power` arrive with wave 2. The list of purchases merges calcs with `mergeItems()` by product key — same key and pack summed, rounded once (walls primer + ceiling primer = one 10 л canister); can sets from different works are merged per size, not re-optimised (P11.1). A can set returns one line per size with the same key: golden expectations and the monotonic invariant compare the sum per key (total bought must not drop when the area grows).
 
 ## Architecture
 
@@ -51,6 +51,7 @@ export interface PurchaseItem {
   packs: number;                       // packages to buy, integer
   bought: Quantity;                    // amount that will be bought
   leftover: Quantity;                  // leftover
+  variant?: string;                    // product kind: adhesive class, grout colour, wallpaper type (Р1)
   shopQuery?: string;                  // query for "View material" (stage 3)
   nextTool?: ToolId;                   // detailed calc for this item
 }
@@ -65,7 +66,7 @@ interface Step { code: string; values: Record<string, number> }   // text per co
 
 Numbers of a warning sit in `values` (`{ code: 'narrow_last_row', level: 'warning', values: { widthMm: 50 } }`) rather than flat on the object, so the type stays closed.
 
-This contract covers standard requirements 1, 2, 4, 5, 6, 7 and 15. The planner merges `items` from several tools via `mergeItems()` without recomputing anything itself.
+This contract covers standard requirements 1, 2, 4, 5, 6, 7 and 15. The estimate merges `items` from several calcs via `aggregateEstimate()` without recomputing anything itself (see Estimate aggregation below).
 
 ### Room model
 
@@ -99,6 +100,23 @@ interface Layout {
 ```
 
 Engines return `Layout` built from the very plan they counted the purchase on; a single `LayoutScheme` component draws it as SVG. Above 2,000 pieces the scheme simplifies to rows. Live for laminate (straight laying): `traceRows` + `rowsLayout` in `blocks/layout-rows.ts`. Room plan helpers (`roomOutline`, `placeOpenings`, `cornerFlips`, shared `openingInputSchema` with optional `places`) are in `blocks/plan.ts`; `Room` gains `cutCorner` and `Opening` gains `places` — positions never change a count. Full design and the per-tool plan: [Room Plan, Layout Schemes and Laying Guides](../ui/room-plan-and-layout-guides.md).
+
+### Estimate aggregation (Phase 17)
+
+`packages/calc/src/project` turns many computed calcs into one list of purchases. It is pure: the browser computes each calc with its tool module and passes the items.
+
+- **Product key (Р1)** — `productKey(item)` = `key | variant | pack.kind | pack.size.value | pack.size.unit`. `PurchaseItem.variant` carries the product kind (adhesive class C1T / C2TE, grout colour, wallpaper type for paste), so white and graphite grout never merge. Variants changed no formula and no golden number (P17.4). Shared-consumable prices are stored in the estimate under this key, so its spelling must never change.
+- **`mergeItems(items)`** — groups by product key, sums `need`, rounds up to packs once via `purchase()` (0.4 + 0.4 bag buys 1 bag); `main` wins over `related`; first-seen order.
+- **`aggregateEstimate({ roomIds, calcs, shared, prices })`** — `calcs` are `EstimateCalcItems` (`id`, `roomId`, `surface`, `items`, main-material `prices`, `priceBasis`); `shared` is the set of item keys the catalog flags `shared`. Returns:
+  - `rooms[]` — main-material lines per room with `cost` where priced, `sum`, `missing`;
+  - `shared[]` — one `SharedLine` per product key: the merged item, each calc's `SharedShare` (need and the packs it would buy alone), `separatePacks`, `savedPacks`, and `saved` money when priced;
+  - `overlaps[]` — two finish calcs of a room on the same surface part (`surfaceParts()`: `floor-walls` → floor + walls);
+  - `replaced[]` — Р11: a calc that counts a consumable itself (adhesive, grout) replaces the one another calc of the room brings along, only when it covers that calc's surface whole; a calc without a surface (moved from the old planner) replaces nothing;
+  - `totals` — `sum`, `byRoom`, `saved`, `savedPacks`, `missing`.
+- **Surfaces** — tile, adhesive and grout gained «Пол и стены» (`floor-walls`, one tile for both; formula versions bumped with new goldens, P17.5); tile gained primer as a related item (P17.6).
+- **Tests** — unit tests and fast-check properties in `project/estimate.test.ts`: merged bought ≥ need, merged packs ≤ the sum of separate packs.
+
+UI side, storage and scenarios: [Rooms and Estimate](../ui/rooms-and-estimate.md).
 
 ### Calculation rules
 
@@ -204,6 +222,7 @@ Performance target: `compute()` < 5 ms; tile/laminate layout goes through `useDe
 - [Product and Domain](../business/product-and-domain.md) — calculator standard and catalog waves
 - [Calculator Shell, Pages and Routing](../ui/calculator-shell-and-pages.md) — how the UI calls `defaults()`/`compute()`
 - [Server API and Data](../code/server-api-and-data.md) — `ProjectData` stores only input + `toolVersion`
+- [Rooms and Estimate](../ui/rooms-and-estimate.md) — how the browser feeds `aggregateEstimate()` and shows its result
 - [Engineering Practices](../practices/engineering-practices.md) — testing strategy
 - Skill specs: [new-calculator](../skills/new-calculator.md), [calculator-release-check](../skills/calculator-release-check.md)
 - Agent specs: [calc-engineer](../agents/calc-engineer.md), [formula-reviewer](../agents/formula-reviewer.md)
@@ -217,7 +236,9 @@ Performance target: `compute()` < 5 ms; tile/laminate layout goes through `useDe
 | `packages/calc/src/tools/<id>/index.ts` | One tool module |
 | `packages/calc/src/modules/<id>.ts` | One tool's module with its price mapping, alone (`@umnyaut/calc/modules/<id>`: a page loads only its own) |
 | `packages/calc/src/tools/<id>/golden.ts` | Golden examples for the tool |
-| `packages/calc/src/project/` | `ProjectData` v1 Zod schema (+ `roomSchema`), `migrateProject()`, `mergeItems()` (stub: sums same key + pack, first-seen order) |
+| `packages/calc/src/project/schema.ts` | Project schema 2 = the estimate (`Estimate`, `EstimateRoom`, `EstimateCalc`, `EstimateTotals`, `Surface`), `ESTIMATE_LIMITS`, `migrateProject()` v1 → v2, `nextId()` |
+| `packages/calc/src/project/merge.ts` | `productKey()`, `mergeItems()` by product key |
+| `packages/calc/src/project/estimate.ts` | `aggregateEstimate()`, `surfaceParts()` |
 | `packages/calc/src/golden.ts` | `GoldenFile` types, `matchExpectation()`, `validateGolden()` |
 | `packages/calc/src/invariants.ts` | `resultViolations()`, `growthViolations()` |
 | `packages/calc/test/golden.test.ts` | Runs all golden files, enforces ≥ 10 |
