@@ -3,8 +3,8 @@
  * only on the production host, so staging, previews and local runs never mix into the statistics.
  */
 export const metrika = {
-  /** Set when the owner creates the counter; until then nothing is loaded. */
-  id: undefined as number | undefined,
+  /** Counter «Умняут», created by the owner on 2026-10-19; `undefined` would switch Metrika off. */
+  id: 113671906 as number | undefined,
   host: "umnyaut.com",
   script: "https://mc.yandex.ru/metrika/tag.js",
 } as const;

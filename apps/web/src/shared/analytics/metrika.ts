@@ -38,7 +38,7 @@ export function loadMetrika(): void {
   window.ym = ym;
   const script = document.createElement("script");
   script.async = true;
-  script.src = metrika.script;
+  script.src = `${metrika.script}?id=${id}`;
   document.head.append(script);
   ym(id, "init", { defer: true, clickmap: true, trackLinks: true, accurateTrackBounce: true, webvisor: true });
 }
