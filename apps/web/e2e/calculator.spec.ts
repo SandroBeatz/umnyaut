@@ -581,7 +581,7 @@ test("wallpaper scheme: a chosen start line, a cutting map, whole strips or cut 
   await page.goto(`${WALLPAPER}?s=${s({ heightMm: 2800, rollWidthMm: 1060, rollLengthMm: 10_000 })}`);
   await expect(result(page)).toHaveText("6");
   await expect(page.getByText("Рулонов по карте раскроя")).toBeVisible();
-  await expect(page.getByText(/Если резать полосы по краю окон и дверей, хватит 5 рул\. вместо 6/)).toBeVisible();
+  await expect(page.getByText(/Если резать полосы по краю окон и дверей, нужно 5\s?рулонов вместо 6/)).toBeVisible();
   // Golden «… cut at the edges»: the same room the other way round the openings — 5 rolls and the joints warning.
   await page.goto(
     `${WALLPAPER}?s=${s({ heightMm: 2800, rollWidthMm: 1060, rollLengthMm: 10_000, aroundOpenings: "edge" })}`,

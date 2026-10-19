@@ -16,8 +16,9 @@ export interface Pack {
   kind: "pack" | "roll" | "bag" | "bucket" | "can" | "canister" | "box" | "piece" | "plank" | "running" | "tube";
   size: Quantity;
   /**
-   * Roll width of goods sold by the running metre (`kind: "running"`): `size` is then the area of one cut
-   * step (width × step), so needs of different widths stay comparable in m².
+   * Roll width. Goods sold by the running metre (`kind: "running"`): `size` is then the area of one cut
+   * step (width × step), so needs of different widths stay comparable in m². A wallpaper roll: `size` is its
+   * length, the width only names the roll («0,53 × 10,05 м»).
    */
   width?: Quantity;
 }

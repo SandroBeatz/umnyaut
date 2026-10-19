@@ -82,11 +82,15 @@ export function HomePage() {
 function Hero() {
   return (
     <div>
-      <p className="inline-flex rounded-full bg-primary-soft px-3 py-1.5 font-semibold text-caption text-primary-hover uppercase tracking-wide">
-        {home.badge}
-      </p>
-      <h1 className="mt-4 text-display">
-        {home.titleLead} <span className="text-primary">{home.titleAccent}</span>
+      {/* The badge is the H1's key phrase for search («Калькулятор материалов для ремонта»); it looks as before. */}
+      <h1>
+        <span className="inline-flex rounded-full bg-primary-soft px-3 py-1.5 font-semibold text-caption text-primary-hover uppercase tracking-wide">
+          {home.badge}
+        </span>
+        <span className="sr-only">. </span>
+        <span className="mt-4 block text-display">
+          {home.titleLead} <span className="text-primary">{home.titleAccent}</span>
+        </span>
       </h1>
       <p className="mt-4 max-w-[34rem] text-base text-text-muted leading-6 lg:text-lg lg:leading-7">{home.lead}</p>
       <figure className="mt-5 flex items-center gap-3">
