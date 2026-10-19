@@ -69,7 +69,7 @@ Product sequencing is **depth before breadth**. Qalculator.ru is the mandatory b
 - [ ] P0.3 Domain mailbox `hello@`, `dev@` (A02); password vault (A03); 2FA + branch protection (A04); `gh auth` (A05).
 - [ ] P0.4 Webmaster, Search Console, Metrika counter (not installed), Wordstat (A08–A11). Webmaster, Search Console and Metrika (`113671906`) done 2026-10-19; Wordstat left.
 - [ ] P0.5 Research per business spec §5: 60 candidates → demand → SERP → competitors → scoring → first 30 ranked. Qalculator is the primary benchmark: record catalog/SEO/UX/monetization baseline and per-wave overlap; choose the first complete wall chain before unrelated breadth (owner; agents help with SERP/competitor analysis).
-- [ ] P0.6 **VPS measurement** (A06, A07): rent 1–2 KZ/KG servers; deploy a throwaway tool-weight page with Docker + Caddy; measure from RU (4 mobile operators, 2–3 ISPs, ≥ 2 regions), KZ, BY, KG; robot fetch in Webmaster/Search Console; outbound test to Supabase, Gemini API, Telegram Bot API. Pass = < 5 s everywhere + all three outbound OK. Buy the winner.
+- [ ] P0.6 **VPS measurement** (A06, A07): rent 1–2 KZ/KG servers; deploy a throwaway tool-weight page with Docker + Caddy; measure from RU (4 mobile operators, 2–3 ISPs, ≥ 2 regions), KZ, BY, KG; robot fetch in Webmaster/Search Console (Webmaster done 2026-10-19: 200 in 25 ms); outbound test to Supabase, Gemini API, Telegram Bot API. Pass = < 5 s everywhere + all three outbound OK. Buy the winner.
 - [ ] P0.7 Norm sources + golden drafts for wave 1 (C01, C02): ≥ 3 shared Qalculator scenarios per overlapping tool, independently derived and with every result difference explained.
 - [ ] P0.8 Merge design-spec §18 amendments into the RU tech spec (`main` field flag, `question`, `photo`/`icon`, `sharp`, image budgets, one font, `via`, Telegram theme).
 - [ ] P0.9 Apply the decided home headline from C13; decide mascot pose candidates (G02) and confirm mp4 clips stay out of launch (G15). TypeScript 7 vs 5.x decided in P1.2.
@@ -300,13 +300,13 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 **Tasks**
 
 - [x] P9.1 Cookie banner (strict mode: Metrika not loaded before «Принять»; equal buttons; 6-month hide after refusal; footer “Настройки cookie”).
-- [ ] P9.2 `shared/analytics/track()` typed `EventMap`; adapters: own counter (`sendBeacon('/api/e')` → `events_daily`) always, Metrika after consent (URL without `s`); common params (country, source, category, variation); `calc_completed` logic (≥ 2 fields + 5 s visible, `via`); `js_error`.
+- [ ] P9.2 `shared/analytics/track()` typed `EventMap`; adapters: own counter (`sendBeacon('/api/e')` → `events_daily`) always, Metrika after consent (URL without `s`); common params (country, source, category, variation); `calc_completed` logic (≥ 2 fields + 5 s visible, `via`); `js_error`. Metrika part live on prod 2026-10-19 (counter `113671906`, 10 goals); own counter left.
 - [ ] P9.3 `POST /api/e` with limits.
 - [x] P9.4 `generateMetadata` from frontmatter; canonical everywhere; JSON-LD (`WebApplication`, `FAQPage`, `BreadcrumbList`, `Organization`, `WebSite`).
 - [x] P9.5 `sitemap.ts` (lastmod from text/formula change), `robots.txt` route (disallow `/api/`, Yandex `Clean-param: s`), `manifest.ts` (PWA icons G08), OG image G09, 301 map in catalog.
 - [x] P9.6 Security headers in Caddy/Next: CSP (self, Metrika, Telegram), HSTS, nosniff, Referrer-Policy, `frame-ancestors` per route table.
 - [x] P9.7 Lighthouse CI thresholds on home, a tool, (planner later): perf ≥ 90, SEO 100, a11y ≥ 95, LCP ≤ 2.0 s, CLS ≤ 0.05, JS ≤ 150 KB gz, CSS ≤ 15 KB.
-- [ ] P9.8 IndexNow step in deploy workflow (sitemap diff); submit sitemap in Webmaster + Search Console.
+- [ ] P9.8 IndexNow step in deploy workflow (sitemap diff); submit sitemap in Webmaster + Search Console. IndexNow live 2026-10-19 (key on the server, all 16 URLs accepted); sitemap submission left.
 - [ ] P9.9 Monitoring (A23, A24): 5-min checks from RU and KZ; disk/restart alerts; weekly `pg_dump` (A25).
 - [ ] P9.10 Playwright: full 5 scenarios from tech spec §15 green.
 - [x] P9.11 Performance pass to the P9.7 budget (measured 2026-10-11: 351 KB JS gzip on a tool page, LCP 2.7–3.5 s): `zod/mini` (or no zod) in the client bundle of `calc`, `Sheet`/`vaul` and `sonner` loaded on first use, Radix accordion → `details`; then the Lighthouse warnings in `apps/web/lighthouserc.cjs` become errors. Tool page 330 → 240 KB, text page 208 → 158 KB; the budget was re-set by the owner (open question 12) and every gate is an error in CI.
