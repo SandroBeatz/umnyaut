@@ -1,12 +1,12 @@
 ---
-version: 1.1
-date: 2026-10-08
+version: 1.2
+date: 2026-10-19
 category: plan
 ---
 
 # Accounts and Services Registry
 
-> Version 1.1 · 2026-10-08 · [Plan](../plan/)
+> Version 1.2 · 2026-10-19 · [Plan](../plan/)
 
 ## Overview
 
@@ -30,9 +30,9 @@ Rules:
 | A05 | `gh` CLI | `gh auth login` + `gh auth refresh -s project,write:packages` | Local CLI auth for roadmap script and registry | Keychain |
 | A06 | VPS provider(s) in KZ or KG (1–2 candidates, hourly/monthly billing) | Rent the cheapest plan for the measurement test (deploy-and-measure procedure); after the test keep the winner at 2 vCPU / 4 GB / 40 GB, Ubuntu LTS | Server IP, root SSH | Password manager |
 | A07 | Testers in RU / KZ / BY / KG | 5–6 people on different mobile operators and ISPs send a screenshot + load time | Measurement table | `docs/plan/` notes |
-| A08 | Yandex Webmaster | Add `umnyaut.com`, verify by DNS TXT; later submit sitemap | Site verification | DNS |
+| A08 | Yandex Webmaster | Add `umnyaut.com`, verify by DNS TXT; later submit sitemap. **Verified 2026-10-19**, counter linked; sitemap left | Site verification | DNS |
 | A09 | Google Search Console | Add a **Domain property**, verify by DNS TXT | Site verification | DNS |
-| A10 | Yandex Metrika | Create counter (Webvisor on, “accurate bounce”), **do not install yet** — strict consent mode | `METRIKA_ID` | Vercel/server env |
+| A10 | Yandex Metrika | Create counter (Webvisor on, “accurate bounce”), strict consent mode. **Done 2026-10-19**: counter `113671906`, 10 goals, loaded after consent | Counter id | Constant in `apps/web/src/shared/config/analytics.ts` (public) |
 | A11 | Yandex Wordstat (+ API if batch export needed) | Access with the Yandex account | Demand data for research | `docs/specs/` |
 
 ### Phase 1–2 — foundation and infrastructure (22–28 Oct)
@@ -59,7 +59,7 @@ Rules:
 
 | ID | Service | Action | Produces | Stored in |
 |---|---|---|---|---|
-| A22 | IndexNow | Generate key; host `/<key>.txt` | `INDEXNOW_KEY` | Server env, GitHub secret |
+| A22 | IndexNow | Generate key; host `/indexnow.txt`. **Done 2026-10-19** | `INDEXNOW_KEY` | Server env (`web.env`); the deploy step reads it from the site, no GitHub secret |
 | A23 | External uptime monitoring with nodes in RU and KZ | Checks every 5 min: `/api/health` + one tool page; alerts to Telegram | Alerts | — |
 | A24 | Telegram alert bot/chat | Create a private chat + simple bot for monitoring alerts | Chat ID, token | Monitoring service |
 | A25 | Private backup storage (any S3-compatible) | Bucket for weekly `pg_dump` from Actions | Access keys | GitHub secrets |
@@ -104,8 +104,8 @@ Environment variables by environment (filled from the rows above):
 | `APP_ENV` | `local` | `preview` / `staging` | `production` | — |
 | `SUPABASE_URL` | local Docker | — (no DB) | project URL | A12 |
 | `SUPABASE_SECRET_KEY` | local | — (no DB) | secret key | A12 |
-| `METRIKA_ID` | — | — (analytics off) | counter id | A10 |
-| `INDEXNOW_KEY` | — | — | key | A22 |
+| `METRIKA_ID` | — | — | unused: the id is a constant in code, Metrika runs only on `umnyaut.com` | A10 |
+| `INDEXNOW_KEY` | — | — | key (set) | A22 |
 | `TELEGRAM_BOT_TOKEN` | test | test | prod | A27/A28 |
 | `TELEGRAM_WEBHOOK_SECRET` | random | random | random | A29 |
 | `TELEGRAM_API_ROOT` | default | default | default or proxy | A27 |
