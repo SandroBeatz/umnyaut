@@ -25,6 +25,7 @@ export const categories = [
     slug: "osnova",
     title: "Площади",
     icon: "osnova",
+    photo: "cat-osnova",
     note: "Площадь комнаты и стен",
     steps: [
       { title: "Измерьте пол: площадь и периметр", tools: ["ploshchad-komnaty"] },
@@ -37,6 +38,7 @@ export const categories = [
     slug: "pol",
     title: "Пол",
     icon: "pol",
+    photo: "cat-pol",
     note: "Ламинат, линолеум, плинтус",
     steps: [
       { title: "Измерьте площадь и периметр пола", tools: ["ploshchad-komnaty"] },
@@ -48,6 +50,7 @@ export const categories = [
     slug: "steny",
     title: "Стены",
     icon: "steny",
+    photo: "cat-steny",
     note: "Обои, краска, грунтовка",
     steps: [
       { title: "Посчитайте площадь стен без окон и дверей", tools: ["ploshchad-sten"] },
@@ -58,6 +61,7 @@ export const categories = [
     slug: "plitka",
     title: "Плитка",
     icon: "plitka",
+    photo: "cat-plitka",
     note: "Плитка, клей, затирка",
     steps: [
       { title: "Посчитайте плитку в коробках", tools: ["plitka"] },

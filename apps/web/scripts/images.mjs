@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Image pipeline (design system: mascot and material photos; plan P3.7, P3.9).
-//   pnpm --filter web images        → rebuild public/img/{mascot,m} + src/shared/config/{mascot,materials}.gen.ts
+// Image pipeline (design system: mascot, material and category photos; plan P3.7, P3.9, P8.6).
+//   pnpm --filter web images        → rebuild public/img/{mascot,m,c} + src/shared/config/{mascot,materials,categories}.gen.ts
 //   pnpm --filter web images:check  → CI: sources unchanged since the last build, files exist, weight budgets hold
 // Outputs are committed: encoders differ slightly between platforms, so CI checks inputs and budgets, not bytes.
 import { createHash } from "node:crypto";
@@ -43,6 +43,14 @@ const MATERIALS = {
   grout: { source: "grout.png", widths: [64, 96], budgetKb: 5 },
 };
 
+/** Category photos (content plan: G06), keyed `cat-<slug>`; 3:2, opaque, render at 120 px (phone) and 144 px. */
+const CATEGORIES = {
+  "cat-osnova": { source: "cat-osnova.png", widths: [120, 144], budgetKb: 8 },
+  "cat-pol": { source: "cat-pol.png", widths: [120, 144], budgetKb: 8 },
+  "cat-steny": { source: "cat-steny.png", widths: [120, 144], budgetKb: 8 },
+  "cat-plitka": { source: "cat-plitka.png", widths: [120, 144], budgetKb: 8 },
+};
+
 const GROUPS = [
   { name: "mascotImages", file: "mascot.gen.ts", sources: "docs/details", out: "mascot", items: POSES },
   {
@@ -53,6 +61,14 @@ const GROUPS = [
     items: MATERIALS,
     square: true,
   },
+  {
+    name: "categoryImages",
+    file: "categories.gen.ts",
+    sources: "docs/details/materials",
+    out: "c",
+    items: CATEGORIES,
+    opaque: true,
+  },
 ];
 
 const sha = (buffer) => createHash("sha256").update(buffer).digest("hex");
@@ -60,8 +76,15 @@ const configHash = sha(Buffer.from(JSON.stringify({ GROUPS, ENCODER, ALPHA_FLOOR
 const outDir = (group) => join(web, "public/img", group.out);
 const manifestPath = (group) => join(web, "src/shared/config", group.file);
 
-/** Clears faint alpha and crops to the visible object; `square` pads it to a square with an even margin. */
-async function prepare(input, square) {
+/**
+ * Clears faint alpha and crops to the visible object; `square` pads it to a square with an even margin.
+ * `opaque` photos keep their frame and drop the alpha channel.
+ */
+async function prepare(input, { square, opaque }) {
+  if (opaque) {
+    const { data, info } = await sharp(input).removeAlpha().png().toBuffer({ resolveWithObject: true });
+    return { png: data, width: info.width, height: info.height };
+  }
   const { data, info } = await sharp(input).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   let [left, top, right, bottom] = [info.width, info.height, -1, -1];
   for (let y = 0; y < info.height; y++) {
@@ -99,7 +122,7 @@ async function buildGroup(group) {
   const manifest = {};
   for (const [key, { source, widths, avifQuality }] of Object.entries(group.items)) {
     const input = await readFile(join(root, group.sources, source));
-    const { png, width, height } = await prepare(input, group.square);
+    const { png, width, height } = await prepare(input, group);
     const sizes = [...new Set(widths.flatMap((w) => [w, w * 2]))].sort((a, b) => a - b);
     const entry = { width, height, sourceSha: sha(input).slice(0, 16), avif: [], webp: [] };
     for (const w of sizes) {
