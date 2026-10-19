@@ -1,12 +1,12 @@
 ---
-version: 1.9
-date: 2026-10-16
+version: 1.12
+date: 2026-10-19
 category: plan
 ---
 
 # Progress Log
 
-> Version 1.9 · 2026-10-16 · [Plan](../plan/)
+> Version 1.12 · 2026-10-19 · [Plan](../plan/)
 
 ## Overview
 
@@ -39,6 +39,16 @@ Each entry:
 - **Where** — short commit SHA (7 chars), PR number, and the environment it reached (`staging`, `prod`, `Vercel`).
 
 ## Log
+
+### 2026-10-19
+
+- **P0.4 (partly), P0.6 (partly), P9.2 (partly)** Yandex Webmaster rights confirmed (DNS TXT at Namecheap); Metrika counter `113671906` created by the owner and set in `shared/config/analytics.ts`; `tag.js` now loads with `?id=` as the current Metrika snippet does.
+  - Where: `feature/metrika-counter` · PR #187 → `develop` · PR #188 → `main` · prod `437575223c53`
+  - Notes: Webmaster diagnostics «Ошибок не обнаружено»; Yandex robot gets `/pol/laminat/` with 200 in 25 ms (robot-fetch part of P0.6); robots.txt 0 errors; region left unset (four countries). Yandex has «Файлы Sitemap» and «Переобход страниц» read-only right now — submit the sitemap and the 16 URLs when they come back (P9.8). Owner: add the 10 `EventMap` names as «JavaScript-событие» goals, link the counter in Webmaster and turn on crawling by counter, set `INDEXNOW_KEY` on the VPS. P0.4 left: Wordstat. P9.2 left: own counter `/api/e` (Phase 7, needs Supabase).
+  - Deviation: the counter's own code snippet (`ssr`, `ecommerce: "dataLayer"`, noscript pixel) is not used — our loader runs only after consent and sends hits by hand.
+- **P9.2 (partly), P9.8 (partly)** Metrika and IndexNow set up on prod. Ten «Целевое событие» goals («Совпадает») created for the `EventMap` names — `calc_completed`, `calc_started`, `tool_view`, `project_shared`, `result_copied`, `next_tool_clicked`, `price_added`, `how_opened`, `calc_adjusted`, `js_error` (10 of 200). Owner linked the counter in Webmaster and turned on crawling by counter. `INDEXNOW_KEY` generated on the server into `/srv/umnyaut/web.env` (600; previous file kept as `web.env.bak-indexnow`), the active tag `437575223c53` redeployed (blue → green, blue kept for rollback); `/indexnow.txt` answers 200; all 16 sitemap URLs sent once by hand (`indexnow.mjs /dev/null …` → 202). On `/pol/laminat/` after consent `tag.js?id=113671906` loads and hits to `mc.yandex.ru` answer 200.
+  - Where: prod (VPS), Metrika, Webmaster · no code change
+  - Notes: first visits not yet in Metrika reports when checked (normal delay) — confirm events arrive (M1 gate). From now on the deploy workflow sends only new or changed URLs. P9.8 left: sitemap in Webmaster (tool read-only on Yandex's side) and Search Console. Delete `web.env.bak-indexnow` once prod is confirmed fine.
 
 ### 2026-10-16
 
