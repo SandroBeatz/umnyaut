@@ -1,9 +1,9 @@
 import { activeCategories, type CategoryDef, home, type MethodIcon, popularTools } from "@umnyaut/catalog";
-import { Button, categoryIcons, IconCircle, Mascot } from "@umnyaut/ui";
+import { Button, CategoryPhoto, categoryIcons, IconCircle, Mascot } from "@umnyaut/ui";
 import { ArrowRight, Calculator, CalendarCheck, Check, type LucideIcon, Package } from "lucide-react";
 import Link from "next/link";
 import { ToolCard } from "@/entities/tool";
-import { mascotImages } from "@/shared/config";
+import { categoryImages, mascotImages } from "@/shared/config";
 import { ld } from "@/shared/lib";
 import { JsonLd } from "@/shared/ui";
 import { HomeRoom, initialExample } from "@/widgets/home-room";
@@ -82,11 +82,15 @@ export function HomePage() {
 function Hero() {
   return (
     <div>
-      <p className="inline-flex rounded-full bg-primary-soft px-3 py-1.5 font-semibold text-caption text-primary-hover uppercase tracking-wide">
-        {home.badge}
-      </p>
-      <h1 className="mt-4 text-display">
-        {home.titleLead} <span className="text-primary">{home.titleAccent}</span>
+      {/* The badge is the H1's key phrase for search («Калькулятор материалов для ремонта»); it looks as before. */}
+      <h1>
+        <span className="inline-flex rounded-full bg-primary-soft px-3 py-1.5 font-semibold text-caption text-primary-hover uppercase tracking-wide">
+          {home.badge}
+        </span>
+        <span className="sr-only">. </span>
+        <span className="mt-4 block text-display">
+          {home.titleLead} <span className="text-primary">{home.titleAccent}</span>
+        </span>
       </h1>
       <p className="mt-4 max-w-[34rem] text-base text-text-muted leading-6 lg:text-lg lg:leading-7">{home.lead}</p>
       <figure className="mt-5 flex items-center gap-3">
@@ -113,25 +117,32 @@ function Hero() {
 
 function CategoryCard({ category }: { category: CategoryDef }) {
   const Icon = categoryIcons[category.slug as keyof typeof categoryIcons] ?? Calculator;
+  const photo = category.photo ? categoryImages[category.photo as keyof typeof categoryImages] : undefined;
   return (
     <Link
       href={`/${category.slug}/`}
       className="group relative flex h-full min-h-40 flex-col overflow-hidden rounded-lg border border-border bg-surface p-4 shadow-sm transition-colors hover:border-border-input"
     >
-      <span className="text-body-strong text-text group-hover:text-primary-hover">{category.title}</span>
-      {category.note ? <span className="mt-0.5 pr-2 text-small text-text-muted">{category.note}</span> : null}
+      <span className="relative z-10 text-body-strong text-text group-hover:text-primary-hover">{category.title}</span>
+      {category.note ? (
+        <span className="relative z-10 mt-0.5 pr-2 text-small text-text-muted">{category.note}</span>
+      ) : null}
       <span
         aria-hidden="true"
-        className="mt-auto inline-flex size-10 items-center justify-center rounded-full border border-border text-primary"
+        className="relative z-10 mt-auto inline-flex size-10 items-center bg-surface justify-center rounded-full border border-border text-primary"
       >
         <ArrowRight className="size-5" />
       </span>
-      <span
-        aria-hidden="true"
-        className="absolute -right-3 -bottom-4 flex size-20 items-center justify-center sm:size-24 rounded-[46%_54%_48%_52%/52%_46%_54%_48%] bg-primary-soft pr-2 pb-3 text-primary-hover"
-      >
-        <Icon className="size-8 sm:size-9" />
-      </span>
+      {photo ? (
+        <CategoryPhoto image={photo} size={120} sizeLg={144} className="absolute right-0 bottom-0 w-30 lg:w-36" />
+      ) : (
+        <span
+          aria-hidden="true"
+          className="absolute -right-3 -bottom-4 flex size-20 items-center justify-center sm:size-24 rounded-[46%_54%_48%_52%/52%_46%_54%_48%] bg-primary-soft pr-2 pb-3 text-primary-hover"
+        >
+          <Icon className="size-8 sm:size-9" />
+        </span>
+      )}
     </Link>
   );
 }

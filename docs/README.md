@@ -31,29 +31,31 @@ UmnyAut («Умняут») — a connected renovation calculator: enter room dim
 
 | Doc | Version |
 |---|---|
-| [Architecture Overview](./architecture/overview.md) | 1.2 |
+| [Architecture Overview](./architecture/overview.md) | 1.3 |
 | [Product and Domain](./business/product-and-domain.md) | 2.0 |
 | [Competitive Benchmark](./business/competitive-benchmark.md) | 1.0 |
 | [SEO and Analytics](./business/seo-and-analytics.md) | 1.1 |
-| [Calculation Engine](./code/calc-engine.md) | 2.1 |
+| [Calculation Engine](./code/calc-engine.md) | 2.2 |
 | [Reviewer Handouts](./review/README.md) | 1.1 |
 | [Wave 1 — Release Check](./review/wave-1-release-check.md) | 1.3 |
 | [Norm Sources — Wave 1](./code/norm-sources-wave-1.md) | 1.8 |
 | [Server API and Data](./code/server-api-and-data.md) | 1.2 |
-| [Calculator Shell, Pages and Routing](./ui/calculator-shell-and-pages.md) | 1.7 |
+| [Calculator Shell, Pages and Routing](./ui/calculator-shell-and-pages.md) | 1.8 |
+| [Rooms and Estimate](./ui/rooms-and-estimate.md) | 1.0 |
 | [Room Plan, Layout Schemes and Laying Guides](./ui/room-plan-and-layout-guides.md) | 1.5 |
 | [Home Room Block](./ui/home-room-block.md) | 1.3 |
 | [Design System](./design/design-system.md) | 1.3 |
 | [Telegram Bot and Mini App](./integrations/telegram-bot.md) | 1.0 |
 | [AI Vision Features](./integrations/ai-vision.md) | 1.1 |
-| [Environments and CI/CD](./deploy/environments-and-ci.md) | 1.5 |
+| [Environments and CI/CD](./deploy/environments-and-ci.md) | 1.8 |
 | [Prod Server Runbook](./deploy/prod-server-runbook.md) | 1.1 |
+| [Static Export (Idea, Not Adopted)](./deploy/static-export-idea.md) | 1.0 |
 | [Engineering Practices](./practices/engineering-practices.md) | 1.1 |
-| [Development Plan](./plan/development-plan.md) | 2.11 |
+| [Development Plan](./plan/development-plan.md) | 2.12 |
 | [Accounts and Services](./plan/accounts-and-services.md) | 1.1 |
 | [Dependencies](./plan/dependencies.md) | 1.3 |
 | [Content and Assets Plan](./plan/content-plan.md) | 1.2 |
-| [Progress Log](./plan/progress-log.md) | 1.9 |
+| [Progress Log](./plan/progress-log.md) | 1.12 |
 
 ## Skill specifications
 

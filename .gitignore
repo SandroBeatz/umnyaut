@@ -28,3 +28,5 @@ test-results
 .DS_Store
 *.sw?
 .lighthouseci
+.lighthouseci-pages
+.lighthouseci-estimate

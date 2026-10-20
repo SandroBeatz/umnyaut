@@ -16,6 +16,7 @@
     "images:check": "node scripts/images.mjs --check",
     "brand-images": "node scripts/brand-images.mjs",
     "lighthouse": "lhci autorun",
+    "lighthouse:estimate": "lhci autorun --config=lighthouserc.estimate.cjs",
     "e2e": "playwright test",
     "html:check": "node scripts/check-html.mjs",
     "js:check": "node scripts/js-weight.mjs"

@@ -1,12 +1,12 @@
 ---
-version: 1.6
-date: 2026-10-15
+version: 1.8
+date: 2026-10-19
 category: deploy
 ---
 
 # Environments and CI/CD
 
-> Version 1.6 · 2026-10-15 · [Deploy](../deploy/)
+> Version 1.8 · 2026-10-19 · [Deploy](../deploy/)
 
 ## Overview
 
@@ -33,7 +33,7 @@ Non-prod (`APP_ENV != production`): `X-Robots-Tag: noindex` on all responses, Me
 
 ### Pipeline (GitHub Actions + GitHub Container Registry)
 
-1. **PR → `develop`**: pnpm install (cached) → Biome, Steiger, `tsc --noEmit` → tests → `next build` → server-HTML guard → Playwright on the CI build (phone viewport) → Docker image build + container smoke test → Lighthouse CI against the Vercel preview (Phase 9).
+1. **PR → `develop`**: pnpm install (cached) → Biome, Steiger, `tsc --noEmit` → tests → `next build` → server-HTML guard → Playwright on the CI build (phone viewport; the rooms-and-estimate scenarios also on desktop) → Docker image build + container smoke test → Lighthouse CI on `next start` of the CI build: the page budget (`lighthouserc.cjs`) and the tile page and `/spisok/` with a filled list (`lighthouserc.estimate.cjs`).
 2. **Merge → `develop`**: Vercel deploys staging (no DB, no migrations).
 3. **PR `develop` → `main`**: same checks + manual pass of staging on a real phone.
 4. **Merge → `main`**: image tagged with commit SHA pushed to GHCR → migrations applied to the Supabase project → server pulls the image over SSH and starts the new container next to the old → after `/api/health` passes, Caddy switches traffic → external smoke test → IndexNow submission.
@@ -104,6 +104,7 @@ If none passes everything: host the site where visitor reachability is best and 
 - [Prod Server Runbook](./prod-server-runbook.md) — step-by-step VPS bootstrap, secrets, first deploy, Vercel settings
 - [Architecture Overview](../architecture/overview.md) — platform layer, no Vercel-only APIs
 - [Server API and Data](../code/server-api-and-data.md) — migrations and backups
+- [Static Export (Idea, Not Adopted)](./static-export-idea.md) — why prod is not plain static hosting
 - [Engineering Practices](../practices/engineering-practices.md) — branch flow, checks
 - Skill spec: [preflight](../skills/preflight.md); agent spec: [platform-engineer](../agents/platform-engineer.md)
 
@@ -118,7 +119,7 @@ If none passes everything: host the site where visitor reachability is best and 
 | `infra/deploy.sh` | `deploy <tag>` / `rollback` / `status`: start idle slot → wait for Docker health → reload Caddy → stop old slot |
 | `infra/server.env.example` | Compose `.env` on the server (`DOMAIN`, `ACME_EMAIL`) |
 | `apps/web/Dockerfile` | Next standalone image (Node 24 alpine, non-root, `HEALTHCHECK` on `/api/health/`, `APP_VERSION` build arg) |
-| `.github/workflows/ci.yml` | PR checks: Biome, guard, Steiger, tsc, tests, build, server-HTML guard (`html:check`); Playwright phone journeys against `next start` of the CI build (job `e2e`); Docker image + smoke test; infra lint (shellcheck, compose, caddy validate); the reviewer export (`pnpm calc:export`, must write > 100 rows) runs in the main job since Phase 6 |
+| `.github/workflows/ci.yml` | PR checks: Biome, guard, Steiger, tsc, tests, build, server-HTML guard (`html:check`); Playwright phone journeys and the desktop run of `e2e/scenarios.spec.ts` against `next start` of the CI build (job `e2e`); Lighthouse (job `lighthouse`: `lighthouse` then `lighthouse:estimate`, reports in `.lighthouseci-pages` and `.lighthouseci-estimate`); Docker image + smoke test; infra lint (shellcheck, compose, caddy validate); the reviewer export (`pnpm calc:export`, must write > 100 rows) runs in the main job since Phase 6 |
 | `.github/workflows/deploy.yml` | `main` → GHCR → VPS |
 | `.github/workflows/backup.yml` | Weekly encrypted `pg_dump` of prod as an Actions artifact (35 days) |
 | `renovate.json` | Monthly dependency PRs into `develop`, grouped |

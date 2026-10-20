@@ -1,12 +1,12 @@
 ---
-version: 1.10
-date: 2026-10-19
+version: 1.13
+date: 2026-10-20
 category: plan
 ---
 
 # Progress Log
 
-> Version 1.10 · 2026-10-19 · [Plan](../plan/)
+> Version 1.13 · 2026-10-20 · [Plan](../plan/)
 
 ## Overview
 
@@ -40,14 +40,46 @@ Each entry:
 
 ## Log
 
+### 2026-10-20
+
+- **P0.4, P8.5 (partly)** Wordstat snapshot (08.09–07.10.2026, all regions) for the 10 live tools in [Wordstat Snapshot, October 2026](../business/wordstat-2026-10.md); titles, descriptions, `question` and FAQ of all 10 tool pages rewritten from it by `seo-content-writer`. Every FAQ number comes from the tool's `compute()` (18 m² room replaces the 12 m² example); new body sections «Площадь стен по площади пола», «Схема раскладки» (plitka), «Расход на 1 м²» (zatirka); klej h1 is now «Калькулятор плиточного клея».
+  - Where: `feature/wordstat-snippets`
+  - Notes: sitemap still not submitted — Webmaster «Файлы Sitemap» read-only on Yandex's side on 2026-10-20 (robots.txt `Sitemap:` and IndexNow cover discovery). Open: tile bathroom FAQ (2 × 1,7 m, 30 × 60 → 139 tiles, +47 % over area ÷ tile) wants a `formula-reviewer` pass; catalog `linoleum.rollWidthMin/Max` (1,2–2,4 m) disagree with `LINOLEUM_WIDTHS_MM` (1,5–4 m); `oboi.md` body ≈ 666 words (limit 600); `checkedAt` not bumped. P8.5 left: owner review.
+
 ### 2026-10-19
 
 - **P0.4 (partly), P0.6 (partly), P9.2 (partly)** Yandex Webmaster rights confirmed (DNS TXT at Namecheap); Metrika counter `113671906` created by the owner and set in `shared/config/analytics.ts`; `tag.js` now loads with `?id=` as the current Metrika snippet does.
-  - Where: `feature/metrika-counter`
+  - Where: `feature/metrika-counter` · PR #187 → `develop` · PR #188 → `main` · prod `437575223c53`
   - Notes: Webmaster diagnostics «Ошибок не обнаружено»; Yandex robot gets `/pol/laminat/` with 200 in 25 ms (robot-fetch part of P0.6); robots.txt 0 errors; region left unset (four countries). Yandex has «Файлы Sitemap» and «Переобход страниц» read-only right now — submit the sitemap and the 16 URLs when they come back (P9.8). Owner: add the 10 `EventMap` names as «JavaScript-событие» goals, link the counter in Webmaster and turn on crawling by counter, set `INDEXNOW_KEY` on the VPS. P0.4 left: Wordstat. P9.2 left: own counter `/api/e` (Phase 7, needs Supabase).
   - Deviation: the counter's own code snippet (`ssr`, `ecommerce: "dataLayer"`, noscript pixel) is not used — our loader runs only after consent and sends hits by hand.
+- **P9.2 (partly), P9.8 (partly)** Metrika and IndexNow set up on prod. Ten «Целевое событие» goals («Совпадает») created for the `EventMap` names — `calc_completed`, `calc_started`, `tool_view`, `project_shared`, `result_copied`, `next_tool_clicked`, `price_added`, `how_opened`, `calc_adjusted`, `js_error` (10 of 200). Owner linked the counter in Webmaster and turned on crawling by counter. `INDEXNOW_KEY` generated on the server into `/srv/umnyaut/web.env` (600; previous file kept as `web.env.bak-indexnow`), the active tag `437575223c53` redeployed (blue → green, blue kept for rollback); `/indexnow.txt` answers 200; all 16 sitemap URLs sent once by hand (`indexnow.mjs /dev/null …` → 202). On `/pol/laminat/` after consent `tag.js?id=113671906` loads and hits to `mc.yandex.ru` answer 200.
+  - Where: prod (VPS), Metrika, Webmaster · no code change
+  - Notes: first visits not yet in Metrika reports when checked (normal delay) — confirm events arrive (M1 gate). From now on the deploy workflow sends only new or changed URLs. P9.8 left: sitemap in Webmaster (tool read-only on Yandex's side) and Search Console. Delete `web.env.bak-indexnow` once prod is confirmed fine.
+- **P17.15** Rooms-and-estimate verification. `e2e/scenarios.spec.ts`: spec scenarios 1–7 as one journey each (first visit, second room, «Дальше по ремонту», the list from the header, new sizes with the recount and reset line, tile walls and floor as two calcs, move from «Моя комната»), run on the phone and on a new `desktop` Playwright project (1280 × 800, this file only); all 63 journeys green. `lighthouserc.estimate.cjs` + `scripts/lighthouse-seed.cjs`: the tile page and `/spisok/` with a filled list (3 rooms, 6 calcs) as cold loads — Lighthouse 12 keeps localStorage between runs; new CI step `lighthouse:estimate`, reports in `.lighthouseci-estimate` (the page budget's reports moved to `.lighthouseci-pages`, the second run wipes `.lighthouseci`). Server-HTML guard unchanged (21 pages), first-screen JS unchanged (tool 238 KB, `/spisok/` 217 KB).
+  - Where: `feature/p17-15-verify`
+  - Fix: `/spisok/` CLS 0.091 → 0.001 — the placeholder left the footer on the first screen and the list pushed it down; `<main>` is now at least a screen tall.
+  - Notes: with a filled list the tile page's LCP is 4.0–4.3 s (3.4 s with an empty list), performance 0.72–0.84: the room is applied after mount (rule 4), so the late result or a hint («Грунтовки нужно всего 0,56 л…») becomes the LCP; the list's calculators add ≈ 33 KB loaded on demand. Kept as Lighthouse warnings, not errors; the field LCP p75 from Metrika decides. One run in three on the tile page shifts the result by 0.049 when the chips row's chunk arrives after the room — a static import fixes it but puts tool pages at 252.8 KB (budget 250), so left as is.
+  - Deviation: the plan's «JS ≤ 250 KB» is checked by `js:check` (first-screen scripts), not by Lighthouse's script total, which also counts link prefetches (396 KB on the tile page).
+
+- **P17.16 (partly)** Phase 17 docs: new digest [Rooms and Estimate](../ui/rooms-and-estimate.md) (entities, decisions Р1–Р20 as built, scenarios, calculator, editor, `/spisok/`, data model, how the store, `EstimateSync` and `aggregateEstimate` fit, catalog keys, measured performance trade-off); architecture overview 1.3 (client state section), calc engine 2.2 (`variant`, `productKey`, `aggregateEstimate`), calculator shell 1.8 (input flow, room row and chips, storage keys, `/spisok/` routes, reserved segments), environments and CI 1.8 (desktop scenarios, second Lighthouse run); RU tech spec §11 and business spec §10 marked as replaced by the rooms-and-estimate spec; AGENTS status and the docs index refreshed.
+  - Where: `feature/p17-15-verify`
+  - Notes: left — the release PR `develop` → `main` (owner approval). `adoptEstimate` / `mergeEstimate` / `replaceEstimate` in `entities/estimate/model/share.ts` are unused since «Забрать себе» was removed (2026-10-14); kept for P17.17, noted in the digest.
+
+### 2026-10-16
+
+- **— (decision)** Static export (`output: "export"`, like `nuxt generate`) researched and recorded as an idea, not adopted: prod stays on the Node server (Docker + Caddy). Blockers, fixes and the Phase 7 backend limitation in [Static Export (Idea, Not Adopted)](../deploy/static-export-idea.md).
+  - Where: `docs/static-export-idea` (docs only)
 
 ### 2026-10-15
+
+- **P8.6 (G06)** Category photos on the home cards: owner's four 1536 × 1024 sources as `docs/details/materials/cat-{osnova,pol,steny,plitka}.png`; new `CATEGORIES` group in `apps/web/scripts/images.mjs` (opaque, frame kept, alpha dropped) → `public/img/c/`, `categoryImages` in `shared/config/categories.gen.ts`, AVIF/WebP at 120/144 (1×, 2×), every AVIF ≤ 8 KB. `CategoryDef.photo` set for the four categories; `CategoryPhoto` in `packages/ui` draws the photo under one brush-stroke SVG mask (`mask-image`); `CategoryCard` puts it bottom-right, a category without a photo keeps the icon blob. Checked at 390 px and desktop.
+  - Where: `feature/p8-6-category-photos`
+  - Notes: P8.6 is done but the optional desktop hero G07. Category page itself shows no photo yet (spec places it on the card only).
+  - Deviation: sources are PNG, not `cat-<slug>.jpg` from the brief, and 1536 × 1024 instead of 1600 × 1067 — still 3:2, the pipeline handles both.
+- **— (site audit 2026-10-15, owner's answers)** Quick fixes from the external audit. Catalog strings decline their numbers: `fill()` takes `{n|полоса|полосы|полос}`; wallpaper steps, hints and scheme notes no longer say «3 полос», «10 рул.», «полос(ы)». The wallpaper roll carries its width (`Pack.width`, output only, no formula change) and the home card reads «рулон 0,53 × 10,05 м». `/spisok/` and `/spisok/prosmotr/` get their own `og:title`/`og:url`. «Как посчитано» shows sources as linked names (`splitSources` moved from the methodology table to `shared/lib`, shared by both). Category «Основа» → «Площади» (title and H1; URL `/osnova/` kept). Home H1 holds the key phrase: the badge «Калькулятор материалов для ремонта» is now part of the `<h1>`, same look.
+  - Where: `feature/audit-quick-fixes`
+  - Notes: not done by the owner's choice — opening «О проекте», «Контакты», «Партнёрам», «Политика» for the index (they stay `draft: true`, P8.3 open), typical prices in the sum (wait for C07), the tile adhesive 30 × 30 (5,4 kg/m² = 4,2 notch 10 mm + 1,2 back-butter 1 mm, waits for the master review). Left for a separate step — primer pack set (2 / 5 / 10 l via `bestPackSet` in wallpaper, tile, paint: input schema, saved-input migration, golden, a source for the sizes). Audit errors: the JSON-LD (`BreadcrumbList`, `WebApplication`) is there — the owner checks it in the Yandex validator. Local `pnpm check` was not run in this session (the environment had no npm registry access) — CI is the gate.
+  - Deviation: home badge text «Ремонт начинается с правильного расчёта» replaced by the key phrase (mockup text).
 
 - **— (owner's SEO review)** Query fixes from the Wordstat export. Tile hub `/plitka/` no longer competes with `/plitka/plitka/`: title «Плитка: расчёт коробок, клея и затирки для пола и стен», H1 «Плитка, клей и затирка», the body links «Калькулятор плитки» to `/plitka/plitka/`. Tile tool title «Калькулятор плитки: сколько нужно плитки на пол и стены» (≈ 18k/month «сколько нужно плитки»), question and first paragraph use the phrase. Room area: «Калькулятор квадратных метров» (≈ 25k/month) in the first paragraph. Home: the categories H2 is «Строительный калькулятор: что рассчитать» (≈ 12.6k/month). `updatedAt` bumped on the three texts.
   - Where: `feature/seo-queries-fixes`

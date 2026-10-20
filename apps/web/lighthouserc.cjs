@@ -1,5 +1,5 @@
 // Lighthouse CI (plan P9.7): mobile profile against the production build, 3 runs, median. Run:
-// `pnpm --filter web lighthouse` after `pnpm build`. The planner page joins with Phase 11.
+// `pnpm --filter web lighthouse` after `pnpm build`. The tile page and `/spisok/` with a filled list: lighthouserc.estimate.cjs.
 //
 // Budget decided by the owner on 2026-10-11 (development plan, open question 12): React + Next alone are
 // ≈ 136 KB gzip, so the spec's 150 KB / LCP 2.0 s does not fit pages that run a calculator. Lab gates per page
@@ -48,6 +48,6 @@ module.exports = {
         { matchingUrlPattern: "localhost:3400/($|[a-z-]+/[a-z-]+/$)", assertions: calculator },
       ],
     },
-    upload: { target: "filesystem", outputDir: ".lighthouseci" },
+    upload: { target: "filesystem", outputDir: ".lighthouseci-pages" },
   },
 };
