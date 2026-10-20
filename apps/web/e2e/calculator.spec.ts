@@ -204,7 +204,8 @@ test("wallpaper: rolls by strips, roll preset and pattern repeat change the coun
   await page.goto(WALLPAPER);
   // Mockup room: 32 strips of 2,8 m, 3 per 10,05 m roll → 11 rolls; paste 44,78 / 30 → 2 packs.
   await expect(result(page)).toHaveText("11");
-  await expect(page.getByText("2 пачки")).toBeVisible();
+  // Exact: the tool text below (FAQ) also says «… 2 пачки клея».
+  await expect(page.getByText("2 пачки", { exact: true })).toBeVisible();
 
   await page.getByText("1,06 × 10 м").click();
   await expect(result(page)).toHaveText("6");
