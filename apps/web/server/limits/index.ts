@@ -40,10 +40,10 @@ export function clientKey(ip: string | null, now: Date, secret: string): string 
     .slice(0, 22);
 }
 
-/** Counts this request against the rule; `false` = over the limit (answer 429). */
-export async function checkLimit(request: Request, rule: LimitRule): Promise<boolean> {
+/** Counts this request against the rule; `false` = over the limit (answer 429). Takes the request's headers. */
+export async function checkLimit(headers: Headers, rule: LimitRule): Promise<boolean> {
   const now = new Date();
-  const key = `${rule.name}:${clientKey(getClientIp(request.headers), now, getEnv().SUPABASE_SECRET_KEY ?? "local")}`;
+  const key = `${rule.name}:${clientKey(getClientIp(headers), now, getEnv().SUPABASE_SECRET_KEY ?? "local")}`;
   const db = rule.store === "db" ? getDb() : null;
   // Without a DB (staging) every rule falls back to memory.
   if (!db) return memory.hit(key, rule.max, rule.windowSeconds * 1000, now.getTime());

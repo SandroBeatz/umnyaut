@@ -199,7 +199,13 @@ export function CalculatorShell({ tool, next, checkedAt, sources, module }: Calc
           />
         ) : null}
         <NextSteps tool={tool} next={next} />
-        <HowCalculated tool={tool} steps={view.steps} checkedAt={checkedAt} sources={sources} />
+        <HowCalculated
+          tool={tool}
+          steps={view.steps}
+          checkedAt={checkedAt}
+          sources={sources}
+          report={{ tool: tool.id, toolVersion: module.version, input: values }}
+        />
       </div>
       <PrintSheet tool={tool} view={view} items={calc.result.items} room={roomDimensions(room, unitLabels.m)} />
       <StickyResultBar text={view.short} visible={!panelVisible} inEstimate={current?.addedAt !== undefined} />

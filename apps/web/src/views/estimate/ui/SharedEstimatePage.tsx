@@ -1,13 +1,13 @@
-import { SharedEstimate } from "./SharedEstimate";
+import { SharedEstimate, type SharedEstimateProps } from "./SharedEstimate";
 
 /**
- * `/spisok/prosmotr/#s=…` (Р14): someone's estimate as a document. A static frame without the site header and
- * footer; the estimate is in the address after `#`, so it appears after mount.
+ * Someone's estimate as a document, without the site header and footer: `/spisok/prosmotr/#s=…` (Р14) — a static
+ * frame, the estimate appears after mount — or `/p/<id>/` (P17.17) with the snapshot from the server.
  */
-export function SharedEstimatePage() {
+export function SharedEstimatePage({ data }: SharedEstimateProps) {
   return (
     <main className="flex flex-1 flex-col bg-surface" data-document>
-      <SharedEstimate />
+      <SharedEstimate {...(data === undefined ? {} : { data })} />
     </main>
   );
 }

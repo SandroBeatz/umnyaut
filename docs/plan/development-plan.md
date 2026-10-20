@@ -257,8 +257,8 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 - [x] P7.1 Migrations (skill `db-migration`): `projects`, `project_opens`, `rate_limits`, `error_reports`, `events_daily`; functions `hit_limit`, `project_touch`; RLS on, zero policies; `pg_cron` cleanup; generated types. → `0002`–`0004` (+ `event_add`, `cleanup`), tested on PGlite; types written by hand until the local stack runs (2026-10-20).
 - [x] P7.2 `server/db` query functions (only entry point); `server/limits` (in-memory + Postgres).
 - [x] P7.3 API: `POST/GET/PUT/DELETE /api/projects[/id]`, ~~`POST /api/projects/[id]/copy`~~ (dropped: a link is a read-only snapshot, owner 2026-10-20) (editToken hash, 8-char ids without look-alikes, Zod, envelope, Origin check, limits); `POST /api/reports` (honeypot, 5/h).
-- [ ] P7.4 `app/p/[id]/page.tsx` SSR (read-only estimate snapshot like `/spisok/prosmotr/` for everyone — no owner edit, no «Сохранить как свой», owner 2026-10-14/20; `noindex`, `private, no-store`, “Расчёт обновлён” when tool version changed); preview title from dimensions.
-- [ ] P7.5 `features/save-project` (editToken in localStorage, autosave 2 s debounce, offline state), `features/report-error` wired.
+- [x] P7.4 `app/p/[id]/page.tsx` SSR (read-only estimate snapshot like `/spisok/prosmotr/` for everyone — no owner edit, no «Сохранить как свой», owner 2026-10-14/20; `noindex`, `private, no-store`, “Расчёт обновлён” when tool version changed); preview title from dimensions.
+- [x] P7.5 `features/save-project` (editToken in localStorage, autosave 2 s debounce, offline state), `features/report-error` wired. → Done as `features/estimate-link` (token in `umnyaut:estimate:link:v1`, refreshed on «Ссылка»; no autosave — owner 2026-10-20; offline / no DB → the `#` link) and the working report form (2026-10-20).
 - [ ] P7.6 `CountryConfig` RU/KZ/BY/KG (C07): currency, locale, price hints; country switch in header/footer; static HTML always RU. → Switch in the footer only, detection by time zone stays (rooms-and-estimate spec, Р12).
 - [ ] P7.7 API tests against local Supabase; Playwright “save and open project”, “report error”. → Partly 2026-10-20: SQL on PGlite (`packages/db`), handlers against an in-memory DB (`server/api/api.test.ts`); left: one run against the real stack (local or prod smoke) and the Playwright journeys with the UI.
 
@@ -511,7 +511,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 *G — After Supabase and the bot*
 
-- [ ] P17.17 Short link: estimate snapshot (schema 2) in `projects` (P7.1), `/p/<id>`, view only («Забрать себе» dropped, owner 2026-10-14); the owner's «Ссылка» again refreshes the same link by `editToken` (`PUT`, owner 2026-10-20), kept 12 months after the last open. Needs P2.7, P7.1–P7.4.
+- [x] P17.17 Short link: estimate snapshot (schema 2) in `projects` (P7.1), `/p/<id>`, view only («Забрать себе» dropped, owner 2026-10-14); the owner's «Ссылка» again refreshes the same link by `editToken` (`PUT`, owner 2026-10-20), kept 12 months after the last open. Needs P2.7, P7.1–P7.4.
 - [ ] P17.18 «Сохранить в Telegram»: the bot sends the estimate link. Needs Phase 12.
 
 **Exit gate:** scenarios 1–7 green on phone and desktop; old «Моя комната» and list migrated; header shows the estimate sum; shared consumables merge with savings shown; all CI gates green; release check passes for the tools changed in stage B.

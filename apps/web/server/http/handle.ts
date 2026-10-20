@@ -26,7 +26,7 @@ export async function handle(
   let response: Response;
   try {
     checkOrigin(request);
-    if (limit && !(await checkLimit(request, limit))) {
+    if (limit && !(await checkLimit(request.headers, limit))) {
       throw new ApiError("rate_limited", "Too many requests", { "Retry-After": String(limit.windowSeconds) });
     }
     response = await run();

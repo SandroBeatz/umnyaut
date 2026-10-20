@@ -108,6 +108,10 @@ export const estimatePage = {
     /** «Составлен 14 октября 2026». */
     made: "Составлен {date}",
     lead: "Прислали по ссылке — только для просмотра",
+    /** Link preview title of `/p/<id>`: from the size of the estimate, never its name (tech spec §11). */
+    shortTitle: "Список покупок: {rooms|комната|комнаты|комнат} · {calcs|расчёт|расчёта|расчётов}",
+    /** A calc saved with an older formula version, now counted by the current one. */
+    updated: "Расчёт обновлён: формулы с тех пор уточнились, количество посчитано по новым",
     /** «3 комнаты · пол 45 м² · 7 расчётов». */
     rooms: { one: "комната", few: "комнаты", many: "комнат" },
     calcs: { one: "расчёт", few: "расчёта", many: "расчётов" },
