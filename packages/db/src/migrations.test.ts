@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
 import { pgcrypto } from "@electric-sql/pglite/contrib/pgcrypto";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 /**
  * The migrations on PGlite (Postgres in WASM), so the SQL is checked without the Docker stack. What Supabase has and
@@ -54,12 +54,18 @@ async function scalar<T>(db: PGlite, sql: string, params: unknown[] = []): Promi
   return (rows[0] as { v: T }).v;
 }
 
-describe("migrations", () => {
-  let db: PGlite;
-  beforeEach(async () => {
-    db = await migratedDb();
-  });
+// One migrated database for the file (PGlite takes seconds to start on CI); every test starts from empty tables.
+let db: PGlite;
+beforeAll(async () => {
+  db = await migratedDb();
+}, 120_000);
+beforeEach(async () => {
+  await db.exec(
+    "truncate public.projects, public.project_opens, public.rate_limits, public.events_daily, public.error_reports cascade",
+  );
+});
 
+describe("migrations", () => {
   it("are numbered NNNN_name.sql without gaps", () => {
     expect(migrations.map((m) => m.name.slice(0, 4))).toEqual(migrations.map((_, i) => String(i + 1).padStart(4, "0")));
     for (const { name } of migrations) expect(name).toMatch(/^\d{4}_[a-z0-9_]+\.sql$/);
@@ -127,11 +133,6 @@ describe("migrations", () => {
 });
 
 describe("projects", () => {
-  let db: PGlite;
-  beforeEach(async () => {
-    db = await migratedDb();
-  });
-
   it("accept ids without look-alikes only", async () => {
     await insertProject(db, "abcd2345");
     for (const id of ["abcd234O", "abcd2340", "abcd234l", "abcd234I", "abcd234o", "abcd2341", "abc2345", "abcd23456"]) {
@@ -170,14 +171,12 @@ describe("projects", () => {
 
 describe("hit_limit", () => {
   it("allows max hits per window, then refuses", async () => {
-    const db = await migratedDb();
     const hit = () => scalar<boolean>(db, "select public.hit_limit('k', 2, 3600) as v");
     expect([await hit(), await hit(), await hit()]).toEqual([true, true, false]);
     expect(await scalar(db, "select public.hit_limit('other', 2, 3600) as v")).toBe(true);
   });
 
   it("starts a new window", async () => {
-    const db = await migratedDb();
     await db.query("select public.hit_limit('k', 1, 3600)");
     await db.exec("update public.rate_limits set window_start = window_start - interval '1 hour'");
     expect(await scalar(db, "select public.hit_limit('k', 1, 3600) as v")).toBe(true);
@@ -186,7 +185,6 @@ describe("hit_limit", () => {
 
 describe("event_add", () => {
   it("adds to today's total per event, tool, country and source", async () => {
-    const db = await migratedDb();
     await db.query("select public.event_add('calc_completed', 'laminat', 'RU', 'web')");
     await db.query("select public.event_add('calc_completed', 'laminat', 'RU', 'web', 3)");
     await db.query("select public.event_add('calc_completed', 'laminat', 'KZ', 'web')");
@@ -202,7 +200,6 @@ describe("event_add", () => {
 
 describe("cleanup", () => {
   it("drops projects unopened for 12 months with their opens, year-old reports and old limit windows", async () => {
-    const db = await migratedDb();
     await insertProject(db, "abcd2345");
     await insertProject(db, "efgh6789");
     await db.exec(`
