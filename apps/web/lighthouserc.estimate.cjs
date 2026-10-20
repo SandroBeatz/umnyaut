@@ -2,7 +2,8 @@
 // shared block — and `/spisok/`, measured as a returning visitor sees them. `scripts/lighthouse-seed.cjs` writes the
 // estimate before each URL; Lighthouse 12 clears the HTTP cache and service workers between runs but not localStorage
 // (`clearStorageTypes`), so every run is a cold load with the list in place. Run after `pnpm build`:
-// `pnpm --filter web lighthouse:estimate`.
+// `pnpm --filter web lighthouse:estimate`. CI sets CHROME_PATH: with a puppeteerScript LHCI otherwise asks puppeteer-core
+// for a browser it does not ship, and the healthcheck fails.
 //
 // Gates from the plan: CLS ≤ 0.05 and a11y ≥ 0.95. First-screen JS ≤ 250 KB stays with `js:check` (the list changes
 // no first-screen script). Measured 2026-10-19 and kept as warnings: the list's room is applied after mount, so the

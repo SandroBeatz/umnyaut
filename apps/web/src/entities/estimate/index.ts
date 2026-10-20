@@ -8,7 +8,7 @@ export {
   wallNumbering,
 } from "./model/ops";
 export { adoptEstimate, mergeEstimate, replaceEstimate } from "./model/share";
-export { decodeSnapshot, encodeSnapshot, SNAPSHOT_MAX, SNAPSHOT_PREFIX } from "./model/snapshot";
+export { decodeSnapshot, encodeSnapshot, SNAPSHOT_MAX, SNAPSHOT_PREFIX, snapshotOf } from "./model/snapshot";
 export {
   ESTIMATE_KEY,
   hydrateEstimate,
