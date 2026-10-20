@@ -1,12 +1,12 @@
 ---
-version: 1.14
+version: 1.15
 date: 2026-10-20
 category: plan
 ---
 
 # Progress Log
 
-> Version 1.14 · 2026-10-20 · [Plan](../plan/)
+> Version 1.15 · 2026-10-20 · [Plan](../plan/)
 
 ## Overview
 
@@ -41,6 +41,10 @@ Each entry:
 ## Log
 
 ### 2026-10-20
+
+- **P7.7, P7.5** Phase 7 checked on prod and closed. Deploy #196 applied `0002`–`0004` (`supabase db push`), `/api/health/` → `db: ok`. Smoke on umnyaut.com through the API: create → `GET` 200 and `/p/<id>/` 200 (title «Список покупок: 1 комната · 1 расчёт», `noindex`) → `PUT` with a foreign token 404 → owner `PUT` 200, new name read back → `PUT` without `Origin` 403 → `DELETE` 200 → `GET` and `/p/<id>/` 404; the test row is gone. «Удалить ссылку» on `/spisok/` (toast asks once, then `DELETE` by token; 404 counts as deleted). Playwright: short link made, refreshed by token, deleted; `/p/<id>/` without a DB → 404; report sent with tool, formula version and input, «over the limit» keeps the form open.
+  - Where: `feature/p7-close` · prod (migrations via deploy #196)
+  - Notes: `POST /api/reports/` not hit on prod (no way to remove the row without DB access). `packages/db/src/types.ts` stays hand-written: the Supabase MCP has no access to the project and `supabase gen types --db-url` needs Docker — regenerate with `supabase gen types --project-id rbawzripucjvdxmyrctn` after `supabase login`, or `db:types` once Docker runs. P7.6 waits for C07 prices.
 
 - **P0.4, P8.5 (partly)** Wordstat snapshot (08.09–07.10.2026, all regions) for the 10 live tools in [Wordstat Snapshot, October 2026](../business/wordstat-2026-10.md); titles, descriptions, `question` and FAQ of all 10 tool pages rewritten from it by `seo-content-writer`. Every FAQ number comes from the tool's `compute()` (18 m² room replaces the 12 m² example); new body sections «Площадь стен по площади пола», «Схема раскладки» (plitka), «Расход на 1 м²» (zatirka); klej h1 is now «Калькулятор плиточного клея».
   - Where: `feature/wordstat-snippets`

@@ -1,12 +1,12 @@
 ---
-version: 2.13
+version: 2.14
 date: 2026-10-20
 category: plan
 ---
 
 # Development Plan
 
-> Version 2.13 · 2026-10-20 · [Plan](../plan/)
+> Version 2.14 · 2026-10-20 · [Plan](../plan/)
 
 ## Overview
 
@@ -260,7 +260,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 - [x] P7.4 `app/p/[id]/page.tsx` SSR (read-only estimate snapshot like `/spisok/prosmotr/` for everyone — no owner edit, no «Сохранить как свой», owner 2026-10-14/20; `noindex`, `private, no-store`, “Расчёт обновлён” when tool version changed); preview title from dimensions.
 - [x] P7.5 `features/save-project` (editToken in localStorage, autosave 2 s debounce, offline state), `features/report-error` wired. → Done as `features/estimate-link` (token in `umnyaut:estimate:link:v1`, refreshed on «Ссылка»; no autosave — owner 2026-10-20; offline / no DB → the `#` link) and the working report form (2026-10-20).
 - [ ] P7.6 `CountryConfig` RU/KZ/BY/KG (C07): currency, locale, price hints; country switch in header/footer; static HTML always RU. → Switch in the footer only, detection by time zone stays (rooms-and-estimate spec, Р12).
-- [ ] P7.7 API tests against local Supabase; Playwright “save and open project”, “report error”. → Partly 2026-10-20: SQL on PGlite (`packages/db`), handlers against an in-memory DB (`server/api/api.test.ts`); left: one run against the real stack (local or prod smoke) and the Playwright journeys with the UI.
+- [x] P7.7 API tests against local Supabase; Playwright “save and open project”, “report error”. → 2026-10-20: SQL on PGlite (`packages/db`), handlers against an in-memory DB (`server/api/api.test.ts`), prod smoke after deploy #196 instead of the local stack (create → open `/p/<id>/` → refresh → foreign token 404 → no Origin 403 → delete → 404); Playwright journeys with the API answered in the test (previews have no DB): short link made, refreshed, deleted; report sent, over the limit.
 
 **Exit gate:** a project saved on a phone opens on a laptop; limits return 429; `/p/*` not indexable.
 

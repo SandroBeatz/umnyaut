@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import type { Estimate } from "@umnyaut/calc";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { LINK_KEY, shortLink } from "./link";
+import { deleteShortLink, hasShortLink, LINK_KEY, shortLink } from "./link";
 
 const estimate: Estimate = {
   schemaVersion: 2,
@@ -98,5 +98,34 @@ describe("shortLink", () => {
     await shortLink(estimate);
     expect(await shortLink(estimate)).toBeUndefined();
     expect(JSON.parse(localStorage.getItem(LINK_KEY) ?? "").id).toBe("abcd2345");
+  });
+});
+
+describe("deleteShortLink", () => {
+  beforeEach(() => localStorage.clear());
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("deletes by the owner's token and forgets the link", async () => {
+    const calls = server([created("abcd2345"), [200, { ok: true, data: { id: "abcd2345" } }]]);
+    await shortLink(estimate);
+    expect(hasShortLink("e1")).toBe(true);
+    expect(hasShortLink("e2")).toBe(false);
+    expect(await deleteShortLink("e1")).toBe(true);
+    expect(calls[1]).toMatchObject({ url: "/api/projects/abcd2345/", method: "DELETE", token: "t-abcd2345" });
+    expect(hasShortLink("e1")).toBe(false);
+  });
+
+  it("counts a link already gone as deleted", async () => {
+    server([created("abcd2345"), fail(404, "not_found")]);
+    await shortLink(estimate);
+    expect(await deleteShortLink("e1")).toBe(true);
+    expect(localStorage.getItem(LINK_KEY)).toBeNull();
+  });
+
+  it("keeps the link when the server could not delete it", async () => {
+    server([created("abcd2345"), fail(503, "db_unavailable")]);
+    await shortLink(estimate);
+    expect(await deleteShortLink("e1")).toBe(false);
+    expect(hasShortLink("e1")).toBe(true);
   });
 });
