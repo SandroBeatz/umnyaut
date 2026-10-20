@@ -1,12 +1,19 @@
 "use client";
 
-import type { BareZone, Opening, ToolModule } from "@umnyaut/calc";
+import type { BareZone, EstimateCalc, Opening, ToolModule } from "@umnyaut/calc";
 import { shell, type ToolDef, unitLabels } from "@umnyaut/catalog";
 import { toast, UnitToggle } from "@umnyaut/ui";
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useCountry } from "@/entities/country";
-import { useActiveRoom, useEstimateStore, useRoomCalcs, useToolCalcs } from "@/entities/estimate";
+import {
+  ESTIMATE_KEY,
+  hydrateEstimate,
+  useActiveRoom,
+  useEstimateStore,
+  useRoomCalcs,
+  useToolCalcs,
+} from "@/entities/estimate";
 import { roomDimensions, roomPatch } from "@/entities/room";
 import type { ToolValues } from "@/entities/tool";
 import { RoomBar } from "@/features/edit-room";
@@ -63,6 +70,8 @@ export function CalculatorShell({ tool, next, checkedAt, sources, module }: Calc
   const toolCalcs = useToolCalcs(tool.id);
   const roomCalcs = useRoomCalcs();
   const current = toolCalcs.find((c) => c.id === calc.calcId);
+  // Only when there is a choice: two calcs, or one and a free surface for «+ Ещё».
+  const showChips = toolCalcs.length > 1 || (toolCalcs.length === 1 && nextSurface(tool, toolCalcs) !== undefined);
   const [shared, setShared] = useState<Readonly<Record<string, SharedItemView>>>();
   const [products, setProducts] = useState<ListProducts>({});
   const removeCalc = (id: string) => {
@@ -128,18 +137,19 @@ export function CalculatorShell({ tool, next, checkedAt, sources, module }: Calc
               ) : null}
             </div>
             <RoomBar tool={tool} draft={roomPatch(values, tool.fields)} example={calc.example} />
-            {/* Only when there is a choice: two calcs, or one and a free surface for «+ Ещё». */}
-            {tool.items &&
-            manyCalcs(tool) &&
-            (toolCalcs.length > 1 || (toolCalcs.length === 1 && nextSurface(tool, toolCalcs))) ? (
-              <CalcChips
-                tool={tool}
-                calcs={toolCalcs}
-                currentId={calc.calcId}
-                onOpen={calc.openCalc}
-                onAdd={calc.addCalc}
-                onRemove={removeCalc}
-              />
+            {tool.items && manyCalcs(tool) ? (
+              <ChipsSlot tool={tool} show={showChips}>
+                {showChips ? (
+                  <CalcChips
+                    tool={tool}
+                    calcs={toolCalcs}
+                    currentId={calc.calcId}
+                    onOpen={calc.openCalc}
+                    onAdd={calc.addCalc}
+                    onRemove={removeCalc}
+                  />
+                ) : null}
+              </ChipsSlot>
             ) : null}
             <ToolForm
               tool={tool}
@@ -211,4 +221,47 @@ export function CalculatorShell({ tool, next, checkedAt, sources, module }: Calc
       <StickyResultBar text={view.short} visible={!panelVisible} inEstimate={current?.addedAt !== undefined} />
     </>
   );
+}
+
+/**
+ * The row of calc chips appears after mount (calcs live in the browser), and below it sit the form and the result: a
+ * returning visitor would see them jump by a row (CLS 0.06 on the tile page, P17.15 gate 0.05). An inline script
+ * right after the empty slot reads the stored estimate while the HTML is parsed and, when the chips will show,
+ * reserves their height before the first paint. A first-time visitor gets no reserve: the first screen stays within
+ * 660 px. The reserve is dropped once the estimate is read and the chips turn out not to show.
+ */
+function ChipsSlot({ tool, show, children }: { tool: ToolDef; show: boolean; children: ReactNode }) {
+  const slot = useRef<HTMLDivElement>(null);
+  const [read, setRead] = useState(false);
+  useEffect(() => {
+    void hydrateEstimate().then(() => setRead(true));
+  }, []);
+  useLayoutEffect(() => {
+    if (read && !show) slot.current?.removeAttribute("data-reserve");
+  }, [read, show]);
+  return (
+    <>
+      <div
+        ref={slot}
+        data-chips-slot
+        suppressHydrationWarning
+        className="empty:not-data-reserve:hidden data-reserve:min-h-12"
+      >
+        {children}
+      </div>
+      {/* biome-ignore lint/security/noDangerouslySetInnerHtml: our own code; the only data are a slug and surface names, `<` escaped */}
+      <script dangerouslySetInnerHTML={{ __html: reserveScript(tool) }} />
+    </>
+  );
+}
+
+/** Same rule as `showChips`, in plain JS: the surfaces that leave a free one for «+ Ещё» are worked out here. */
+function reserveScript(tool: ToolDef): string {
+  const surfaces = tool.surface && "field" in tool.surface ? Object.values(tool.surface.values) : [];
+  const roomy = [...surfaces, ""].filter(
+    (surface) => nextSurface(tool, [{ surface: surface || undefined } as EstimateCalc]) !== undefined,
+  );
+  // Data as JSON with `<` escaped, so nothing can close the script tag.
+  const json = (value: unknown) => JSON.stringify(value).replace(/</g, "\\u003c");
+  return `(function(slot){try{var e=JSON.parse(localStorage.getItem(${json(ESTIMATE_KEY)})).state.estimate;var c=e.calcs.filter(function(x){return x.roomId===e.activeRoomId&&x.tool===${json(tool.id)}});if(c.length>1||(c.length===1&&${json(roomy)}.indexOf(c[0].surface||"")>=0))slot.setAttribute("data-reserve","")}catch(_){}})(document.currentScript.previousElementSibling)`;
 }
