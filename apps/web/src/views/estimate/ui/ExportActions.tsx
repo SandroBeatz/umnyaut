@@ -6,6 +6,7 @@ import { Button, toast } from "@umnyaut/ui";
 import type { Country } from "@umnyaut/ui/format";
 import { Copy, Link2, Printer, Send } from "lucide-react";
 import { encodeSnapshot, SNAPSHOT_MAX, SNAPSHOT_PREFIX } from "@/entities/estimate";
+import { shortLink } from "@/features/estimate-link";
 import { fill } from "@/shared/lib";
 import type { EstimateBoard } from "../model/board";
 import { estimateText } from "../model/export";
@@ -29,8 +30,13 @@ async function copy(text: string, done: string) {
   }
 }
 
-/** The estimate's link (Р14), or `undefined` when the snapshot is too long for a messenger. */
+/**
+ * The estimate's link: the short `/p/<id>/` when the server is there (P17.17), else the snapshot after `#` (Р14);
+ * `undefined` when even that is too long for a messenger.
+ */
 async function linkOf(estimate: Estimate, country: Country): Promise<string | undefined> {
+  const short = await shortLink({ ...estimate, country });
+  if (short) return short;
   const snapshot = await encodeSnapshot({ ...estimate, country });
   if (snapshot.length > SNAPSHOT_MAX) return undefined;
   return `${window.location.origin}${SHARED_ESTIMATE_PATH}${SNAPSHOT_PREFIX}${snapshot}`;
@@ -40,7 +46,8 @@ const print = () => window.print();
 
 /**
  * «Печать / PDF» (browser print, Р13), «Отправить» (share sheet with the text and the link, else both copied),
- * «Скопировать» (plain text), «Ссылка» (snapshot after `#`; too long → suggests PDF). Nothing goes to a server.
+ * «Скопировать» (plain text), «Ссылка» (short link via the server, else the snapshot after `#`; too long → suggests
+ * PDF). Only the link goes to the server, and only the estimate's snapshot.
  */
 export function ExportActions({ estimate, board, country }: ExportActionsProps) {
   const text = () => estimateText(estimate.name, board, country);
@@ -59,9 +66,25 @@ export function ExportActions({ estimate, board, country }: ExportActionsProps) 
   };
 
   const share = async () => {
-    const url = await linkOf(estimate, country);
+    const pending = linkOf(estimate, country);
+    const tooLong = () => toast(t.linkTooLong, { action: { label: t.print, onClick: print } });
+    // Safari lets the clipboard be written after a network call only through a ClipboardItem made in the tap itself.
+    if (typeof ClipboardItem === "function" && typeof navigator.clipboard?.write === "function") {
+      const blob = pending.then((url) => {
+        if (!url) throw new Error("too long");
+        return new Blob([url], { type: "text/plain" });
+      });
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ "text/plain": blob })]);
+        toast(t.linkCopied);
+        return;
+      } catch {
+        if (!(await pending)) return tooLong();
+      }
+    }
+    const url = await pending;
     if (url) await copy(url, t.linkCopied);
-    else toast(t.linkTooLong, { action: { label: t.print, onClick: print } });
+    else tooLong();
   };
 
   const ghost =

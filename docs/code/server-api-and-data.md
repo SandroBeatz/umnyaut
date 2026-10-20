@@ -103,13 +103,13 @@ Only **input** is stored; results are recomputed on every open so formula fixes 
 
 ## Usage
 
-Sharing flow (estimate, P17.17 — UI not built yet):
+Sharing flow (estimate, P17.17, `features/estimate-link`):
 
 1. The estimate always lives in localStorage (`entities/estimate`); without a DB «Ссылка» keeps the `#s=` snapshot (Р14).
-2. First «Ссылка» → `POST /api/projects/` with `{ data }` → `{ id, editToken }`, link `/p/<id>`; the token goes to localStorage next to the estimate.
+2. First «Ссылка» or «Отправить» → `POST /api/projects/` with `{ data: snapshotOf(estimate) }` (no totals, drafts, active room) → `{ id, editToken }`, link `/p/<id>/`; `{ estimateId, id, editToken }` goes to localStorage `umnyaut:estimate:link:v1`. Any other failure (no DB, offline, 413, 429) → the `#` link. The link is copied through a `ClipboardItem` built in the tap, so Safari allows it after the network call.
 3. «Ссылка» after edits → `PUT /api/projects/<id>/` with the token in `X-Edit-Token` — the same link shows the new snapshot. `404` (deleted, cleaned up, or the token lost) → create a new link.
-4. `/p/<id>` (P7.4) is SSR, read-only, `noindex`, `private, no-store`; it reads through `server/db`, not HTTP.
-5. Link preview title from dimensions: “Список покупок: комната 19,8 м²” — never names/phones.
+4. `/p/<id>/` (P7.4) is dynamic SSR, read-only, `noindex, nofollow`, `private, no-store`; `server/pages/loadSharedProject` reads through `server/db` (React `cache()` — page and metadata read once), applies the API read limit and counts the open after the response. Unknown id, no DB or over the limit → 404. The browser migrates the data and renders the same document as `/spisok/prosmotr/`, with «Расчёт обновлён» when a calc was saved with an older formula version.
+5. Link preview title from the size of the estimate: «Список покупок: 2 комнаты · 5 расчётов» — never the estimate's name (it may hold a person's name).
 6. A reopen counts if > 1 h after the previous open (`project_touch`, run after the response).
 
 Data deletion: owner via `DELETE /api/projects/[id]`; bot `/forget` removes the Telegram user and unbinds projects; email requests handled manually with the same two operations.

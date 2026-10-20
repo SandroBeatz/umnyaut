@@ -55,6 +55,11 @@ Each entry:
   - Where: `fix/develop-e2e`
   - Notes: LCP on the tile page with a list stays a warning (≈ 4 s), as recorded in P17.15.
 
+- **P7.4, P7.5, P17.17** Short links in the UI. `/p/<id>/` (dynamic, `noindex`, `private, no-store`) renders the stored snapshot as the same read-only document as `/spisok/prosmotr/`, with «Расчёт обновлён» for calcs saved with an older formula; preview title by size («Список покупок: 1 комната · 1 расчёт»), never the estimate's name. «Ссылка» and «Отправить» on `/spisok/` first ask the server (`features/estimate-link`: POST, then PUT with the saved token; 404 → new link) and fall back to the `#` snapshot without a DB. «Сообщить об ошибке» sends the message with tool, formula version and input (`shared/lib/callApi`, honeypot, toasts for sent / failed / over the limit).
+  - Where: `feature/p7-ui` (on top of `feature/p7-backend`, PR #193)
+  - Notes: checked on a production build against a stand-in PostgREST: `/p/abcd2345/` → 200, one read per request, `project_touch` after the response, the document renders at 390 px; unknown id or no DB → 404. Not done: a «Удалить ссылку» button (the API has `DELETE`; tech spec §16 wants the owner to delete with a button), Playwright journeys (P7.7), a run against real Supabase.
+  - Deviation: no autosave and no «Сохранить как свой» (owner, 2026-10-14 and 2026-10-20).
+
 ### 2026-10-19
 
 - **P0.4 (partly), P0.6 (partly), P9.2 (partly)** Yandex Webmaster rights confirmed (DNS TXT at Namecheap); Metrika counter `113671906` created by the owner and set in `shared/config/analytics.ts`; `tag.js` now loads with `?id=` as the current Metrika snippet does.
