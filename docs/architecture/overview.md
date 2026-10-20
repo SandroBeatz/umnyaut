@@ -1,12 +1,12 @@
 ---
-version: 1.2
-date: 2026-10-11
+version: 1.3
+date: 2026-10-19
 category: architecture
 ---
 
 # Architecture Overview
 
-> Version 1.2 · 2026-10-11 · [Architecture](../architecture/)
+> Version 1.3 · 2026-10-19 · [Architecture](../architecture/)
 
 ## Overview
 
@@ -19,7 +19,7 @@ Three properties drive every architectural choice:
 1. **Search engines must get real HTML.** All indexable pages are statically generated with the result for default values already rendered.
 2. **Calculation is deterministic code, never AI.** Formulas live in a pure TypeScript package shared by the site, the Telegram mini app, the embeddable widget, and tests.
 3. **One developer, 8–10 hours a week.** Boring, low-maintenance choices: one repo, one container, no ORM, no CMS, no client-side DB access.
-4. **Connected result over page count.** `Room` is shared input, tool outputs are `PurchaseItem[]`, and `mergeItems()` is the seam that turns several calculators into one shopping list.
+4. **Connected result over page count.** A room is measured once and shared by every calculator, tool outputs are `PurchaseItem[]`, and the pure `aggregateEstimate()` (on top of `productKey()` / `mergeItems()`) is the seam that turns several rooms and calculators into one shopping list — the estimate (Phase 17, [Rooms and Estimate](../ui/rooms-and-estimate.md)).
 
 ## Architecture
 
@@ -44,11 +44,21 @@ The browser receives a finished page and **computes locally** after hydration. I
 |---|---|---|
 | Result for default values | Build time: `calc` + `catalog` + `content` → HTML | No |
 | Recalculation on input | Browser, `@umnyaut/calc` | No |
-| Room carried between tools | Browser, localStorage (Zustand persist) | No |
+| Rooms, calcs and the list of purchases (estimate) | Browser, localStorage `umnyaut:estimate:v1` (Zustand persist) | No |
+| Estimate by link | Browser: deflated snapshot after `#` on `/spisok/prosmotr/` | No |
 | Share link `?s=` | Browser (base64url of non-default fields) | No |
 | Save/open project | Route handler → Supabase | Yes |
 | Photo recognition | Route handler → Gemini API | Yes |
 | Telegram “My calculations” | Route handler → Supabase | Yes |
+
+### Client state
+
+All user state lives in the browser; the server never sees it until Phase 7 saves a snapshot.
+
+- **One estimate per device** — `entities/estimate`: Zustand `persist` under `umnyaut:estimate:v1` with `skipHydration`, read by `hydrateEstimate()` after mount, so the first client render equals the static HTML. The store is a thin wrapper over pure, tested steps (`model/ops.ts`); the shape is project schema 2 from `@umnyaut/calc`, the same one a link snapshot and the future `projects` row use.
+- **Calculator input** stays in React state (`useCalculator`); after mount it is filled from the last opened calc of the tool in the active room, and edits flow back to that calc and to the room.
+- **Totals are stored, not recomputed everywhere** (Р3): only a calculator page (`EstimateSync`, client-only) and `/spisok/` load other calculators and recount; the header reads the stored data alone, keeping every page's first-screen JS within budget.
+- **Legacy keys** `umnyaut:room:v1` and `umnyaut:list:v1` are moved into the estimate once and removed after a successful write.
 
 ### Monorepo layout (pnpm workspaces + Turborepo, Node.js 24 LTS)
 
@@ -59,8 +69,8 @@ umnyaut/
 │  ├─ src/                   FSD layers
 │  │  ├─ views/              page composition (FSD "pages"; named views because Next owns pages/)
 │  │  ├─ widgets/            calculator-shell (incl. LayoutScheme), site-header, site-footer, home-room
-│  │  ├─ features/           save-project, share-result, report-error, pick-country, scan-label
-│  │  ├─ entities/           room, project, tool, country
+│  │  ├─ features/           edit-room, edit-room-plan, estimate-totals, room-list, share-result, report-error, pick-country, cookie-consent
+│  │  ├─ entities/           estimate (store), room (bindings, plan), tool, country
 │  │  └─ shared/             api client, analytics (track), lib, config
 │  ├─ server/                server-only: db, ai, telegram, messenger, limits, platform
 │  ├─ content/               Markdown: tool texts, reference pages, info pages
@@ -137,6 +147,7 @@ Routes are generated from the registry (`generateStaticParams`, `dynamicParams =
 - [Competitive Benchmark](../business/competitive-benchmark.md) — why the shared room and merged list are architectural differentiators
 - [Calculation Engine](../code/calc-engine.md) — `ToolModule` contract and building blocks
 - [Calculator Shell, Pages and Routing](../ui/calculator-shell-and-pages.md) — UI composition, routes, state storage
+- [Rooms and Estimate](../ui/rooms-and-estimate.md) — browser state: rooms, calcs, shared consumables, saved totals
 - [Server API and Data](../code/server-api-and-data.md) — Supabase tables, route handlers
 - [Telegram Bot](../integrations/telegram-bot.md) and [AI Vision](../integrations/ai-vision.md)
 - [SEO and Analytics](../business/seo-and-analytics.md)

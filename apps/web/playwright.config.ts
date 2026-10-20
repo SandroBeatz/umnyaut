@@ -4,7 +4,8 @@ const PORT = 3200;
 
 /**
  * Phone-viewport journeys against the production build (`pnpm build` first). Chromium with the iPhone 13
- * viewport (390 × 844) keeps CI light; the 660 px first-screen budget is asserted in the tests.
+ * viewport (390 × 844) keeps CI light; the 660 px first-screen budget is asserted in the tests. The rooms-and-estimate
+ * scenarios (P17.15) also run on a desktop viewport, where the room editor is a dialog instead of a sheet.
  */
 export default defineConfig({
   testDir: "e2e",
@@ -21,6 +22,11 @@ export default defineConfig({
     {
       name: "phone",
       use: { ...devices["iPhone 13"], defaultBrowserType: "chromium", viewport: { width: 390, height: 844 } },
+    },
+    {
+      name: "desktop",
+      testMatch: "scenarios.spec.ts",
+      use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } },
     },
   ],
   webServer: {

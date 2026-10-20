@@ -506,8 +506,8 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 *F — Verify and release*
 
-- [ ] P17.15 Playwright (phone): scenarios 1–7 incl. migration of old storage; Lighthouse on a tool page with a seeded estimate (CLS ≤ 0.05, JS ≤ 250 KB, a11y ≥ 0.95) and on `/spisok/`; server-HTML guard unchanged.
-- [ ] P17.16 Docs: `docs/ui/rooms-and-estimate.md` digest via `/docs`; architecture (state), calc engine (variants, `aggregateEstimate`), calculator shell updated; RU tech and business spec sections on the planner and «Мои расчёты» point to the new spec. PR → `develop` → staging → `main` with owner approval.
+- [x] P17.15 Playwright (phone): scenarios 1–7 incl. migration of old storage; Lighthouse on a tool page with a seeded estimate (CLS ≤ 0.05, JS ≤ 250 KB, a11y ≥ 0.95) and on `/spisok/`; server-HTML guard unchanged. → Done 2026-10-19: `e2e/scenarios.spec.ts` (phone and desktop), `lighthouserc.estimate.cjs` (CLS and a11y gates; LCP and performance with a list measured and kept as warnings), `/spisok/` footer shift fixed.
+- [ ] P17.16 Docs: `docs/ui/rooms-and-estimate.md` digest via `/docs`; architecture (state), calc engine (variants, `aggregateEstimate`), calculator shell updated; RU tech and business spec sections on the planner and «Мои расчёты» point to the new spec. PR → `develop` → staging → `main` with owner approval. → Docs part done 2026-10-19 (digest, architecture 1.3, calc engine 2.2, calculator shell 1.8, CI doc 1.8, notes in the RU tech §11 and business §10); the release `develop` → `main` is left.
 
 *G — After Supabase and the bot*
 
