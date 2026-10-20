@@ -46,15 +46,23 @@ const binary = (bytes: Uint8Array) => {
 };
 
 /**
- * The estimate in a link without a server (Р14): what the receiver needs — rooms, calcs and prices, no totals or
- * active room — deflated and base64url'ed. The input of a calc is only what differs from defaults, so it stays short.
+ * What a receiver of the estimate needs — rooms, calcs in the estimate and prices; no totals, active room, drafts or
+ * open times. Same for the `#` link and the short link `/p/<id>`.
  */
-export async function encodeSnapshot(estimate: Estimate): Promise<string> {
+export function snapshotOf(estimate: Estimate): Estimate {
   const { totals: _, activeRoomId: __, ...rest } = estimate;
   const calcs = rest.calcs
     .filter((c) => c.addedAt !== undefined)
     .map(({ openedAt: _o, draft: _d, ...c }) => ({ ...c, openedAt: 0 }));
-  const json = JSON.stringify({ ...rest, calcs });
+  return { ...rest, calcs };
+}
+
+/**
+ * The estimate in a link without a server (Р14): the snapshot deflated and base64url'ed. The input of a calc is only
+ * what differs from defaults, so it stays short.
+ */
+export async function encodeSnapshot(estimate: Estimate): Promise<string> {
+  const json = JSON.stringify(snapshotOf(estimate));
   const packed = await pipe(new TextEncoder().encode(json), new CompressionStream("deflate-raw"));
   // base64url of the bytes themselves (`toBase64Url` in shared/lib encodes text).
   return btoa(binary(packed)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");

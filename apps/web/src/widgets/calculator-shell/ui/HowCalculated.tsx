@@ -1,7 +1,7 @@
 import { shell, type ToolDef } from "@umnyaut/catalog";
 import { Disclosure } from "@umnyaut/ui";
 import { Fragment } from "react";
-import { ReportError } from "@/features/report-error";
+import { ReportError, type ReportErrorProps } from "@/features/report-error";
 import { track } from "@/shared/analytics";
 import { fill, sourceLinks } from "@/shared/lib";
 
@@ -20,10 +20,12 @@ export interface HowCalculatedProps {
   checkedAt?: string;
   /** Norm sources of the tool, from the server: the norms register stays out of the browser bundle. */
   sources?: readonly string[];
+  /** What «Сообщить об ошибке» sends with the message. */
+  report: ReportErrorProps;
 }
 
 /** Closed `<details>`: numbered steps with the user's numbers, norm sources, checked date, report link. */
-export function HowCalculated({ tool, steps, checkedAt, sources = [] }: HowCalculatedProps) {
+export function HowCalculated({ tool, steps, checkedAt, sources = [], report }: HowCalculatedProps) {
   return (
     <Disclosure
       title={h.title}
@@ -61,7 +63,7 @@ export function HowCalculated({ tool, steps, checkedAt, sources = [] }: HowCalcu
         )}
         {checkedAt ? <p>{fill(h.checked, { date: dateFormat.format(new Date(`${checkedAt}T00:00:00Z`)) })}</p> : null}
         <div>
-          <ReportError />
+          <ReportError {...report} />
         </div>
       </div>
     </Disclosure>

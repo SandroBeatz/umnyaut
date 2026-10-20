@@ -24,6 +24,7 @@
   "dependencies": {
     "@umnyaut/calc": "workspace:*",
     "@umnyaut/catalog": "workspace:*",
+    "@umnyaut/db": "workspace:*",
     "@umnyaut/ui": "workspace:*",
     "lucide-react": "1.53.0",
     "next": "16.4.0",

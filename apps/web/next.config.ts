@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   reactCompiler: true,
   poweredByHeader: false,
-  transpilePackages: ["@umnyaut/calc", "@umnyaut/catalog", "@umnyaut/ui"],
+  transpilePackages: ["@umnyaut/calc", "@umnyaut/catalog", "@umnyaut/db", "@umnyaut/ui"],
   async headers() {
     // File names under /img carry a content hash (apps/web/scripts/images.mjs), so they never change.
     return [

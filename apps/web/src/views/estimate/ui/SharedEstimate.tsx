@@ -1,6 +1,6 @@
 "use client";
 
-import type { Estimate } from "@umnyaut/calc";
+import { type Estimate, migrateProject, type ToolId } from "@umnyaut/calc";
 import { estimatePage, shell, site } from "@umnyaut/catalog";
 import { Button, Logo } from "@umnyaut/ui";
 import { formatMoney, plural } from "@umnyaut/ui/format";
@@ -18,14 +18,26 @@ const dateFormat = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "lo
 /** What the address holds after `#`: not read yet, the estimate, or nothing that opens. */
 type Snapshot = Estimate | "broken" | undefined;
 
+/** Stored data of a short link, migrated to the current schema like any saved estimate. */
+function fromServer(data: unknown): Snapshot {
+  const migrated = migrateProject(data);
+  return migrated.ok ? migrated.data : "broken";
+}
+
+export interface SharedEstimateProps {
+  /** The snapshot of a short link `/p/<id>/` from the server; without it the estimate is read after `#` (Р14). */
+  data?: unknown;
+}
+
 /**
- * Someone's estimate opened by link (Р14), as a document (owner, 2026-10-14): the logo, the name, a table per room,
- * the shared consumables, the total, how it was counted and the way to the home page. Nothing on it changes the
- * estimate; the site header and footer stay away (`[data-document]` in globals.css).
+ * Someone's estimate opened by link (Р14, P17.17), as a document (owner, 2026-10-14): the logo, the name, a table per
+ * room, the shared consumables, the total, how it was counted and the way to the home page. Nothing on it changes
+ * the estimate; the site header and footer stay away (`[data-document]` in globals.css).
  */
-export function SharedEstimate() {
-  const [snapshot, setSnapshot] = useState<Snapshot>();
+export function SharedEstimate({ data }: SharedEstimateProps) {
+  const [snapshot, setSnapshot] = useState<Snapshot>(() => (data === undefined ? undefined : fromServer(data)));
   useEffect(() => {
+    if (data !== undefined) return;
     const read = async () => {
       const { hash } = window.location;
       const shared = hash.startsWith(SNAPSHOT_PREFIX) ? await decodeSnapshot(hash.slice(SNAPSHOT_PREFIX.length)) : null;
@@ -36,7 +48,7 @@ export function SharedEstimate() {
     const onHash = () => void read();
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
-  }, []);
+  }, [data]);
   const estimate = typeof snapshot === "object" ? snapshot : undefined;
   const added = estimate?.calcs.filter((c) => c.addedAt !== undefined) ?? [];
   const moduleOf = useToolModules(added.map((c) => c.tool));
@@ -45,6 +57,8 @@ export function SharedEstimate() {
     const aggregate = computeEstimate(estimate, moduleOf, (c) => c.addedAt !== undefined);
     return estimateBoard(estimate, aggregate, estimate.country);
   }, [estimate, moduleOf]);
+  // Saved with an older formula and counted by the current one (P7.4); version 0 = unknown, moved from the old list.
+  const updated = added.some((c) => c.toolVersion > 0 && (moduleOf?.(c.tool as ToolId)?.version ?? 0) > c.toolVersion);
 
   return (
     // Room at the end for the cookie bar (≤ 96 px, fixed): the way home must scroll clear of it.
@@ -62,7 +76,7 @@ export function SharedEstimate() {
           {t.broken}
         </p>
       ) : estimate && board ? (
-        <Document estimate={estimate} board={board} />
+        <Document estimate={estimate} board={board} updated={updated} />
       ) : (
         <Placeholder />
       )}
@@ -76,7 +90,7 @@ export function SharedEstimate() {
   );
 }
 
-function Document({ estimate, board }: { estimate: Estimate; board: EstimateBoard }) {
+function Document({ estimate, board, updated }: { estimate: Estimate; board: EstimateBoard; updated: boolean }) {
   const country = estimate.country;
   const money = (sum: number | undefined) => (sum ? formatMoney(sum, country) : "");
   const priced = board.total.sum > 0;
@@ -95,6 +109,11 @@ function Document({ estimate, board }: { estimate: Estimate; board: EstimateBoar
         <h1 className="mt-1 break-words text-h1">{estimate.name}</h1>
         <p className="mt-2 text-body text-text-muted">{summary}</p>
         <p className="mt-1 text-small text-text-muted">{t.lead}</p>
+        {updated ? (
+          <p className="mt-1 text-small text-text-muted" data-estimate-updated>
+            {t.updated}
+          </p>
+        ) : null}
       </div>
 
       {board.rooms.map((card) => (

@@ -21,6 +21,8 @@
 			request>client_ip ip_mask 24 48
 			request>headers>X-Forwarded-For delete
 			request>headers>Cookie delete
+			# The owner's token of a shared estimate (PUT/DELETE /api/projects/<id>/).
+			request>headers>X-Edit-Token delete
 		}
 	}
 }
@@ -34,6 +36,11 @@ www.{$DOMAIN} {
 	import security_headers
 	import access_log
 	encode zstd gzip
+
+	# The app caps JSON at 64 KB; 4 MB leaves room for the AI photo routes (tech spec §9).
+	request_body /api/* {
+		max_size 4MB
+	}
 
 	# Only the canonical domain is indexable; a temporary DOMAIN (e.g. <ip>.sslip.io before DNS) is not.
 	@noncanonical expression {host} != "umnyaut.com"

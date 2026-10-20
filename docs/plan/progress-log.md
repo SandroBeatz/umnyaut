@@ -1,12 +1,12 @@
 ---
-version: 1.13
+version: 1.14
 date: 2026-10-20
 category: plan
 ---
 
 # Progress Log
 
-> Version 1.13 · 2026-10-20 · [Plan](../plan/)
+> Version 1.14 · 2026-10-20 · [Plan](../plan/)
 
 ## Overview
 
@@ -46,9 +46,19 @@ Each entry:
   - Where: `feature/wordstat-snippets`
   - Notes: sitemap still not submitted — Webmaster «Файлы Sitemap» read-only on Yandex's side on 2026-10-20 (robots.txt `Sitemap:` and IndexNow cover discovery). Open: tile bathroom FAQ (2 × 1,7 m, 30 × 60 → 139 tiles, +47 % over area ÷ tile) wants a `formula-reviewer` pass; catalog `linoleum.rollWidthMin/Max` (1,2–2,4 m) disagree with `LINOLEUM_WIDTHS_MM` (1,5–4 m); `oboi.md` body ≈ 666 words (limit 600); `checkedAt` not bumped. P8.5 left: owner review.
 
+- **P7.1, P7.2, P7.3, P7.7 (partly)** Server side of saved estimates: migrations `0002_projects` (`projects`, `project_opens`, `project_touch`), `0003_limits_events_reports` (`rate_limits` + `hit_limit`, `events_daily` + `event_add`, `error_reports`), `0004_cleanup` (`cleanup()` daily at 03:17 UTC via `pg_cron`); RLS on, zero policies. `@umnyaut/db` gets the `@supabase/supabase-js` 2.117.2 client and query functions; `server/db` (ids without look-alikes, editToken → SHA-256, estimate schema 2 only, 32 KB), `server/limits` (memory per minute, Postgres per hour, IP as salted daily HMAC), `server/http` (envelope, Origin, 64 KB body, one log line), `server/api` behind thin routes `POST /api/projects/`, `GET/PUT/DELETE /api/projects/[id]/`, `POST /api/reports/` (honeypot, page path only). Tests: 12 on PGlite for the SQL, 18 handler tests against an in-memory DB, 12 for ids, limits and Origin/body checks; `pnpm check` green but Biome on the owner's untracked `.mcp.json`.
+  - Where: `feature/p7-backend`
+  - Notes: a migration test found that `0001_init`'s schema-level `revoke … from public` leaves `EXECUTE` on new functions to `PUBLIC` (so to `anon`); every new function revokes it explicitly. Left: one run against a real Supabase (local stack or prod smoke after deploy — the PostgREST side is only covered by the fake), `/p/<id>` (P7.4), «Ссылка» via the server and the report form (P7.5, P17.17), Playwright (P7.7). Prod migrations run on merge to `main` — needs the owner's go.
+  - Review (`code-reviewer`): fixed before the PR — the DB size guard measured `jsonb::text` (+25 % over compact JSON), so a 27–32 KB estimate would have got 500: DB backstop now 64 KB, DB check/range/NUL errors answer 400; Caddy log filter drops `X-Edit-Token` and caps `/api/*` bodies at 4 MB; the app reads bodies as a stream and stops past 64 KB (chunked uploads had no cap); explicit `service_role` grants on the tables; `hit_limit` failure falls back to the memory limiter; `rate_limits` kept 1 day (salted IP hashes, tech spec §16); report `toolVersion` and page path bounded. Tech spec §9 and P7.4 no longer mention «Сохранить как свой» / `/copy`.
+  - Deviation: the local Docker stack did not start (Docker Desktop I/O error while pulling `postgres:17.11.0.004`, 6 GB free on the host), so P7.7 runs SQL on PGlite instead of local Supabase and `packages/db/src/types.ts` is written by hand in the `supabase gen types` shape — regenerate with `db:types` once the stack runs. Owner, 2026-10-20: a link is a read-only snapshot; the owner refreshes it by `editToken` (`PUT`); no copy endpoint, no autosave (`server-api-and-data.md` v1.3, P17.17 updated).
 - **— (CI on `develop`), P17.15** `develop` was red since #191/#192; fixed. (1) Klej h1 «Калькулятор плиточного клея» took two lines at 390 px and pushed the result to 669 px (> 660, rule 8): h1 back to «Расход плиточного клея» (the 7,4k/month cluster; «Калькулятор плиточного клея» stays in the title). (2) Wallpaper e2e matched «2 пачки» in the new FAQ too: exact match. (3) Lighthouse with a filled list never ran on CI — LHCI asked puppeteer-core for a browser it does not ship and the healthcheck failed; CI now passes `CHROME_PATH`. (4) Once it ran: CLS 0.061 on the tile page (gate 0.05) — the calc chips row appears after mount and pushes the form and the result down 62 px. An inline script after an empty chips slot reads the stored estimate while the HTML is parsed and reserves the row only when the chips will show (first-time visitors keep their first screen); dropped once the estimate is read and no chips show. CLS 0.008, a11y 1.0; 63 e2e green.
   - Where: `fix/develop-e2e`
   - Notes: LCP on the tile page with a list stays a warning (≈ 4 s), as recorded in P17.15.
+
+- **P7.4, P7.5, P17.17** Short links in the UI. `/p/<id>/` (dynamic, `noindex`, `private, no-store`) renders the stored snapshot as the same read-only document as `/spisok/prosmotr/`, with «Расчёт обновлён» for calcs saved with an older formula; preview title by size («Список покупок: 1 комната · 1 расчёт»), never the estimate's name. «Ссылка» and «Отправить» on `/spisok/` first ask the server (`features/estimate-link`: POST, then PUT with the saved token; 404 → new link) and fall back to the `#` snapshot without a DB. «Сообщить об ошибке» sends the message with tool, formula version and input (`shared/lib/callApi`, honeypot, toasts for sent / failed / over the limit).
+  - Where: `feature/p7-ui` (on top of `feature/p7-backend`, PR #193)
+  - Notes: checked on a production build against a stand-in PostgREST: `/p/abcd2345/` → 200, one read per request, `project_touch` after the response, the document renders at 390 px; unknown id or no DB → 404. Not done: a «Удалить ссылку» button (the API has `DELETE`; tech spec §16 wants the owner to delete with a button), Playwright journeys (P7.7), a run against real Supabase.
+  - Deviation: no autosave and no «Сохранить как свой» (owner, 2026-10-14 and 2026-10-20).
 
 ### 2026-10-19
 

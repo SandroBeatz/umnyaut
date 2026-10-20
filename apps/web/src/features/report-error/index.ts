@@ -1,1 +1,1 @@
-export { ReportError } from "./ui/ReportError";
+export { ReportError, type ReportErrorProps } from "./ui/ReportError";

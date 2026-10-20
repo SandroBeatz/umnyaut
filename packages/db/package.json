@@ -17,8 +17,12 @@
     "db:types": "supabase gen types typescript --local --schema public > src/types.ts && biome format --write src/types.ts"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
     "@umnyaut/tsconfig": "workspace:*",
     "@umnyaut/vitest-config": "workspace:*",
     "supabase": "2.120.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.117.2"
   }
 }
