@@ -46,6 +46,10 @@ Each entry:
   - Where: `feature/wordstat-snippets`
   - Notes: sitemap still not submitted — Webmaster «Файлы Sitemap» read-only on Yandex's side on 2026-10-20 (robots.txt `Sitemap:` and IndexNow cover discovery). Open: tile bathroom FAQ (2 × 1,7 m, 30 × 60 → 139 tiles, +47 % over area ÷ tile) wants a `formula-reviewer` pass; catalog `linoleum.rollWidthMin/Max` (1,2–2,4 m) disagree with `LINOLEUM_WIDTHS_MM` (1,5–4 m); `oboi.md` body ≈ 666 words (limit 600); `checkedAt` not bumped. P8.5 left: owner review.
 
+- **— (CI on `develop`), P17.15** `develop` was red since #191/#192; fixed. (1) Klej h1 «Калькулятор плиточного клея» took two lines at 390 px and pushed the result to 669 px (> 660, rule 8): h1 back to «Расход плиточного клея» (the 7,4k/month cluster; «Калькулятор плиточного клея» stays in the title). (2) Wallpaper e2e matched «2 пачки» in the new FAQ too: exact match. (3) Lighthouse with a filled list never ran on CI — LHCI asked puppeteer-core for a browser it does not ship and the healthcheck failed; CI now passes `CHROME_PATH`. (4) Once it ran: CLS 0.061 on the tile page (gate 0.05) — the calc chips row appears after mount and pushes the form and the result down 62 px. An inline script after an empty chips slot reads the stored estimate while the HTML is parsed and reserves the row only when the chips will show (first-time visitors keep their first screen); dropped once the estimate is read and no chips show. CLS 0.008, a11y 1.0; 63 e2e green.
+  - Where: `fix/develop-e2e`
+  - Notes: LCP on the tile page with a list stays a warning (≈ 4 s), as recorded in P17.15.
+
 ### 2026-10-19
 
 - **P0.4 (partly), P0.6 (partly), P9.2 (partly)** Yandex Webmaster rights confirmed (DNS TXT at Namecheap); Metrika counter `113671906` created by the owner and set in `shared/config/analytics.ts`; `tag.js` now loads with `?id=` as the current Metrika snippet does.

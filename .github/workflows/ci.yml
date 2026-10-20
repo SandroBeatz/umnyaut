@@ -90,7 +90,9 @@ jobs:
         run: pnpm --filter web lighthouse
       - name: Tile page and /spisok/ with a filled list (apps/web/lighthouserc.estimate.cjs)
         if: ${{ !cancelled() }}
-        run: pnpm --filter web lighthouse:estimate
+        # With a puppeteerScript LHCI asks puppeteer-core for Chrome, which has none and throws («"path" argument
+        # must be of type string»); CHROME_PATH comes first and points at the runner's Chrome.
+        run: CHROME_PATH="$(command -v google-chrome || command -v chromium)" pnpm --filter web lighthouse:estimate
       - uses: actions/upload-artifact@v7
         if: always()
         with:
