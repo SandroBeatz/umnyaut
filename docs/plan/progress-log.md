@@ -1,12 +1,12 @@
 ---
-version: 1.12
-date: 2026-10-19
+version: 1.13
+date: 2026-10-20
 category: plan
 ---
 
 # Progress Log
 
-> Version 1.12 · 2026-10-19 · [Plan](../plan/)
+> Version 1.13 · 2026-10-20 · [Plan](../plan/)
 
 ## Overview
 
@@ -39,6 +39,12 @@ Each entry:
 - **Where** — short commit SHA (7 chars), PR number, and the environment it reached (`staging`, `prod`, `Vercel`).
 
 ## Log
+
+### 2026-10-20
+
+- **P0.4, P8.5 (partly)** Wordstat snapshot (08.09–07.10.2026, all regions) for the 10 live tools in [Wordstat Snapshot, October 2026](../business/wordstat-2026-10.md); titles, descriptions, `question` and FAQ of all 10 tool pages rewritten from it by `seo-content-writer`. Every FAQ number comes from the tool's `compute()` (18 m² room replaces the 12 m² example); new body sections «Площадь стен по площади пола», «Схема раскладки» (plitka), «Расход на 1 м²» (zatirka); klej h1 is now «Калькулятор плиточного клея».
+  - Where: `feature/wordstat-snippets`
+  - Notes: sitemap still not submitted — Webmaster «Файлы Sitemap» read-only on Yandex's side on 2026-10-20 (robots.txt `Sitemap:` and IndexNow cover discovery). Open: tile bathroom FAQ (2 × 1,7 m, 30 × 60 → 139 tiles, +47 % over area ÷ tile) wants a `formula-reviewer` pass; catalog `linoleum.rollWidthMin/Max` (1,2–2,4 m) disagree with `LINOLEUM_WIDTHS_MM` (1,5–4 m); `oboi.md` body ≈ 666 words (limit 600); `checkedAt` not bumped. P8.5 left: owner review.
 
 ### 2026-10-19
 
