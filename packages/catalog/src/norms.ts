@@ -44,7 +44,7 @@ const S = {
   S25: "Метилан Флизелин Экстра Комфорт, https://www.metylan.ru/ru/katalog/oboynyy-kley-metylan/metilan-flizelin-extra-comfort.html",
   S26: "Метилан Универсал Премиум, https://www.metylan.ru/ru/katalog/oboynyy-kley-metylan/metilan-universal-premium.html",
   S21: "Arbiton INDO, инструкция по монтажу (4 способа, шаг 30–40 см), https://pim.decora.pl/files/wils3fj3u4fgwr3c.pdf",
-  S27: "Карточки рулонов бытового линолеума Tarkett, Juteks, IVC в магазинах: ширины 1,5; 2; 2,5; 3; 3,5; 4 м; ГОСТ 18108-2016 (бытовой линолеум ПВХ на теплозвукоизолирующей подоснове)",
+  S27: "Магазин Tarkett, линолеум, фильтр «Ширина» (2,5; 3; 3,5; 4 м), https://shop.tarkett.ru/linoleum/; карточки: Caprice Aventura 1 — 2,5 м, https://shop.tarkett.ru/linoleum/linoleum-tarkett-caprice-aventura-1; Caprice Aventura 1, 31 класс — 3 м, https://shop.tarkett.ru/linoleum/linoleum-tarkett-caprice-aventura-1-31-klass-3-m; Caprice Gloriosa 1, 31 класс — 4 м, https://shop.tarkett.ru/linoleum/linoleum-tarkett-caprice-gloriosa-1-31-klass-4-m",
 } as const;
 
 const norm = (value: number, unit: string, source: string, extra: Partial<Norm> = {}): Norm => ({
@@ -166,12 +166,11 @@ export const norms: Readonly<Record<string, Norm>> = {
   "linoleum.rollWidthMin": norm(1.5, "м", S.S27, {
     checkedAt: "2026-10-21",
     unconfirmed: true,
-    note: "ширины рулонов по карточкам производителей, ссылки ещё не собраны — проверьте ширину у выбранной коллекции. Прежние 1,2–2,4 м по ГОСТ 7251 расходились с ширинами в магазинах и в калькуляторе",
+    note: "у Tarkett самые узкие рулоны — 2,5 м; 1,5 и 2 м встречаются только как отрезы в рознице, ссылки производителя нет — проверьте ширину у выбранной коллекции. ГОСТ 18108-2016 «Линолеум поливинилхлоридный на теплозвукоизолирующей подоснове. Технические условия» задаёт требования к материалу, не ширины. Прежние 1,2–2,4 м по ГОСТ 7251 расходились с ширинами в магазинах и в калькуляторе",
   }),
   "linoleum.rollWidthMax": norm(4, "м", S.S27, {
     checkedAt: "2026-10-21",
-    unconfirmed: true,
-    note: "4,5 и 5 м бывают у части коллекций — в калькуляторе пока нет",
+    note: "4 м — Tarkett Caprice Gloriosa 1; 4,5 и 5 м бывают у части коллекций — в калькуляторе пока нет",
   }),
   "plinth.length": norm(2.5, "м", `${S.S13}; ${S.S20}`, { note: "2,2 м — IDEAL Классик (S14), пресет" }),
   "plinth.fastenerSpacing": norm(400, "мм", S.S21, { note: "в инструкции: шаг не больше 30–40 см" }),

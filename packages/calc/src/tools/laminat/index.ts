@@ -233,8 +233,9 @@ function scheme(i: LaminatInput, lay: ReturnType<typeof straight>, alongLength: 
 export const laminat: ToolModule<LaminatInput> = {
   id: "laminat",
   // 2: a full offcut pool gives up its shortest piece instead of wasting a longer new one (narrow rooms).
-  // 3: boards = max(optimised plan, row-by-row plan) — the optimised plan alone left no reserve (mockup 85 → 92
-  //    boards, 10 → 11 packs); underlay by 1 m strips (mockup 2 → 3 rolls); herringbone warns about A/B boards
+  // 3: boards = max(optimised plan, row-by-row plan) — a fitter without the scheme in hand (who trims a start
+  //    offcut to fit, re-review 2026-10-21) must still have enough; the mockup stays 85 boards / 10 packs, 2.08 ×
+  //    4.436 m 39 / 5; underlay by 1 m strips (mockup 2 → 3 rolls); herringbone warns about A/B boards
   //    (formula review 2026-10-21).
   version: 3,
   input,

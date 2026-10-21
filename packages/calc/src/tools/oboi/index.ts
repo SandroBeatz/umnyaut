@@ -885,8 +885,23 @@ export const oboi: ToolModule<OboiInput> = {
         tailMm = Math.max(0, ...cut.remnantsMm);
         perRoll = cut.perRoll;
         steps.push({ code: "per_roll", values: { roll: mmToM(R), perRoll } });
-        const stripRolls = cutStrips({ ...stripsOnly, strips }).rolls;
-        steps.push({ code: "strip_rolls", values: { strips, perRoll, rolls: stripRolls } });
+        const stripCut = cutStrips({ ...stripsOnly, strips });
+        const stripRolls = stripCut.rolls;
+        const split = stripCut.phases;
+        // Offset match cut by phase: each phase from its own rolls, so ⌈strips / per roll⌉ does not add up.
+        if (split && split.strips.length === 2)
+          steps.push({
+            code: "strip_rolls_phases",
+            values: {
+              a: split.strips[0] ?? 0,
+              b: split.strips[1] ?? 0,
+              perRoll: split.perRoll,
+              ra: split.rolls[0] ?? 0,
+              rb: split.rolls[1] ?? 0,
+              rolls: stripRolls,
+            },
+          });
+        else steps.push({ code: "strip_rolls", values: { strips, perRoll, rolls: stripRolls } });
         if (cut.rolls > stripRolls) steps.push({ code: "pieces_rolls", values: { extra: cut.rolls - stripRolls } });
         if (i.repeatMm > 0) {
           const lucky = cutStrips({ ...stripsOnly, strips, pieces: lengths, luckyStart: true }).rolls;

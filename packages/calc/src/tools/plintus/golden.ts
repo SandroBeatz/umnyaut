@@ -152,10 +152,10 @@ export const golden: GoldenFile<PlintusInput> = {
     {
       name: "Fasteners every 30 cm",
       input: { fastenerSpacingMm: 300 },
-      expected: { items: { "plinth-fastener": { packs: 65 } } },
+      expected: { items: { "plinth-fastener": { packs: 64 } } },
       source: {
         kind: "datasheet",
-        ref: `${MANUAL}. участки 1,9 × 2, 4,3 × 2, 4,6: (7 + 1) × 2 + (15 + 1) × 2 + (16 + 1) = 65`,
+        ref: `${MANUAL}. Дверь примера стоит на плане (стена 3, отступ 0,6): участки 0,6 и 3,2 на ней, 4,3 × 2, 4,6: (2 + 1) + (11 + 1) + (15 + 1) × 2 + (16 + 1) = 64 (до re-review 2026-10-21 крепёж считался по двери посередине стены — 1,9 × 2: 65)`,
       },
     },
     {
@@ -223,6 +223,26 @@ export const golden: GoldenFile<PlintusInput> = {
       source: {
         kind: "manual",
         ref: `${REVIEW}. Дверь 0,8 м на стене 3 от её первого угла: между стенами 2 и 3 плинтус не сходится — 3 внутренних угла (в версии 1 — 4). Участки 4, 3, 3,2, 3: 2,5 + 1,5 | 1,0 + 2,0 | 0,5 + 2,4 + 0,3 | 2,2 + 0,8 — 6 планок, остаток 1,7 м, 5 стыков`,
+      },
+    },
+    {
+      name: "Door at the far end of a wall (offset = wall − width): 3 inner corners, fixings by the real runs (v2)",
+      input: {
+        lengthMm: 4000,
+        widthMm: 3000,
+        openings: [{ type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 0, offsetMm: 3200 }] }],
+      },
+      expected: {
+        items: {
+          plinth: { packs: 6, need: 13.2 },
+          "plinth-corner-in": { packs: 3 },
+          "plinth-cap": { packs: 2 },
+          "plinth-fastener": { packs: 38 },
+        },
+      },
+      source: {
+        kind: "manual",
+        ref: `${REVIEW}; re-review 2026-10-21. Дверь 0,8 м на стене 1 (4 м) с отступом 3,2 — вплотную к углу стен 1 и 2: там плинтус не сходится, внутренних углов 3. Участки 3,2, 3, 4, 3 = 13,2 м → 13,2 / 2,5 = 5,28 → 6 планок. ${MANUAL}: ⌈3,2 / 0,4⌉ + 1 = 9, ⌈3 / 0,4⌉ + 1 = 9, ⌈4 / 0,4⌉ + 1 = 11, 9 → 38 (по двери посередине стены — 1,6 + 1,6: 5 + 5 вместо 9 — было 39)`,
       },
     },
     {

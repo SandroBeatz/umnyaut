@@ -248,8 +248,11 @@ export function layRows(input: RowsInput): RowsResult {
 
 /**
  * The same rows laid the way a fitter does without planning ahead (formula review 2026-10-21): row by row, each
- * start is 1) the first start-side offcut that keeps the rules, in the order the offcuts were made, 2) a whole
- * board, 3) a board cut to shift the joints (its left part may end a later row); a row end takes the first
+ * start is 1) the first start-side offcut that keeps the rules, in the order the offcuts were made — trimmed from
+ * its sawn end to the longest length that keeps the joint offset and a row end of at least `minPieceMm` (the
+ * trimmed-off bit is waste; re-review 2026-10-21: fitters trim an offcut rather than open a new board), 2) a whole
+ * board, 3) a board cut to shift the joints, first a cut whose row end an offcut at hand closes (its left part may
+ * end a later row); a row end takes the first
  * end-side offcut long enough, else a new board. Same rules as `layRows`, no look-ahead. The purchase takes the
  * larger of the two counts, so a fitter who does not repeat the optimised plan cut by cut still has enough.
  */
@@ -287,9 +290,17 @@ export function greedyRows(input: RowsInput): number {
       start <= board &&
       (previous === undefined || phaseGap(start, previous, board) >= minOffset) &&
       ((row - start) % board === 0 || (row - start) % board >= minPiece);
+    // The longest length a start-side offcut can be trimmed to (from its sawn end) and still keep the rules, or
+    // undefined: the offcut itself, else the upper edge of the range the joint offset or the row-end sliver rule
+    // forbids, just below it.
+    const trim = (piece: number) =>
+      [piece, (previous ?? 0) - minOffset, row - minPiece, row]
+        .map((x) => ((Math.round(x) % board) + board) % board || board)
+        .filter((x) => x <= piece && fits(x))
+        .reduce<number | undefined>((b, x) => (b === undefined || x > b ? x : b), undefined);
     let start: number;
-    const k = first(starts, fits);
-    if (k >= 0) start = starts.splice(k, 1)[0] as number;
+    const k = first(starts, (p) => trim(p) !== undefined);
+    if (k >= 0) start = trim(starts.splice(k, 1)[0] as number) as number;
     else if (fits(board)) {
       start = board;
       boards++;
@@ -298,7 +309,14 @@ export function greedyRows(input: RowsInput): number {
       const shifted = [p + minOffset, p - minOffset, p + Math.floor(board / 2), p - Math.floor(board / 2)]
         .map((x) => ((Math.round(x) % board) + board) % board)
         .filter((x) => x > 0);
-      start = shifted.find(fits) ?? board;
+      // A fitter cutting a board for the start first looks for a cut whose row end an offcut at hand (or the
+      // board's own left part) can close.
+      const closes = (s: number) => {
+        const e = (row - s) % board;
+        return e === 0 || board - s >= e || ends.some((x) => x >= e);
+      };
+      const cuts = [...shifted, ...ends.map((e) => (((row - e) % board) + board) % board)].filter((x) => x > 0);
+      start = cuts.find((s) => fits(s) && closes(s)) ?? shifted.find(fits) ?? board;
       boards++;
       if (start < board) keep(ends, board - start);
     }
