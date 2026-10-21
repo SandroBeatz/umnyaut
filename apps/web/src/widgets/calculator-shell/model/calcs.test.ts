@@ -81,6 +81,12 @@ describe("calcs of a tool in a room", () => {
       parts: ["floor"],
       item: "Плиточный клей",
     });
+    // Adhesive on the walls too: the estimate replaces the tile's adhesive whole — nothing twice.
+    const glueWalls = calc("c9", "klej", { surface: "walls" });
+    expect(overlapOf(glueFloor, [tileBoth, glueFloor, glueWalls], tools)).toBeUndefined();
+    // Tile without adhesive brings none.
+    const tileNoGlue = calc("c10", "plitka", { surface: "floor-walls", input: { adhesive: false } });
+    expect(overlapOf(glueFloor, [tileNoGlue, glueFloor], tools)).toBeUndefined();
     // Tile on the walls too: the paint split still comes first.
     const tiled = calc("c6", "plitka", { surface: "walls" });
     expect(overlapOf(walls, [tiled, both, walls], tools)?.split).toEqual({ id: "c1", surfaces: ["walls", "ceiling"] });

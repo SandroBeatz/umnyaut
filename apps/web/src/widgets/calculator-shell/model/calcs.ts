@@ -1,5 +1,5 @@
 import { type EstimateCalc, type Surface, type SurfacePart, surfaceParts } from "@umnyaut/calc";
-import { shell, type ToolDef } from "@umnyaut/catalog";
+import { type FieldDef, shell, type ToolDef } from "@umnyaut/catalog";
 import type { ToolValues } from "@/entities/tool";
 import { fill } from "@/shared/lib";
 import { roomBindings, same } from "./fields";
@@ -72,10 +72,21 @@ export interface CalcOverlap {
 const consumables = (tool: ToolDef | undefined) =>
   tool?.surface && !finishes(tool) ? Object.keys(tool.items ?? {}) : [];
 
+/** The finish calc brings the consumable: the tool has the item and its group is not switched off in the calc. */
+function brings(tool: ToolDef, calc: EstimateCalc, key: string): boolean {
+  if (!tool.items?.[key]) return false;
+  const price = tool.fields.find(
+    (f): f is Extract<FieldDef, { kind: "price" }> => f.kind === "price" && f.item === key,
+  );
+  const group = price?.group;
+  const toggle = tool.groups?.find((g) => g.id === group)?.toggle;
+  return !toggle || calc.input[toggle] !== false;
+}
+
 /**
  * A consumable calc (adhesive on «Пол») and a finish of the room that brings the same consumable on more than it
  * («Плитка: Пол и стены»): the estimate keeps both, so the shared part counts twice (`aggregateEstimate` overlaps).
- * A finish covered whole is replaced in the estimate and is no overlap.
+ * When the room's calcs of that consumable cover the finish whole, the estimate replaces it: no overlap.
  */
 function consumableOverlap(
   current: EstimateCalc,
@@ -85,22 +96,25 @@ function consumableOverlap(
   for (const other of calcs) {
     if (other.id === current.id || other.roomId !== current.roomId || !other.surface || !current.surface) continue;
     const [own, finish] = consumables(toolOf(current.tool)).length > 0 ? [current, other] : [other, current];
-    const keys = consumables(toolOf(own.tool));
     const finishTool = toolOf(finish.tool);
-    if (keys.length === 0 || !finishes(finishTool) || !own.surface || !finish.surface) continue;
-    const key = keys.find((k) => finishTool?.items?.[k]);
+    if (!finishTool || !finishes(finishTool) || !own.surface || !finish.surface) continue;
+    const key = consumables(toolOf(own.tool)).find((k) => brings(finishTool, finish, k));
     if (!key) continue;
-    const ownParts = surfaceParts(own.surface);
-    const finishParts = surfaceParts(finish.surface);
-    const parts = finishParts.filter((p) => ownParts.includes(p));
-    if (parts.length === 0 || finishParts.every((p) => ownParts.includes(p))) continue;
-    const index = calcs.filter((c) => c.tool === other.tool).indexOf(other);
+    const parts = surfaceParts(finish.surface).filter((p) => surfaceParts(own.surface as Surface).includes(p));
+    if (parts.length === 0) continue;
+    const covered = new Set(
+      calcs
+        .filter((c) => c.roomId === finish.roomId && c.surface && consumables(toolOf(c.tool)).includes(key))
+        .flatMap((c) => surfaceParts(c.surface as Surface)),
+    );
+    if (surfaceParts(finish.surface).every((p) => covered.has(p))) continue;
     const otherTool = toolOf(other.tool);
     if (!otherTool) continue;
+    const index = calcs.filter((c) => c.tool === other.tool).indexOf(other);
     return {
       parts,
       calc: `${otherTool.title}: ${chipLabel(otherTool, other, index)}`,
-      item: finishTool?.items?.[key]?.title ?? key,
+      item: finishTool.items?.[key]?.title ?? key,
     };
   }
   return undefined;
