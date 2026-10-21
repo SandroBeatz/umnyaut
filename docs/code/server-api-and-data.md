@@ -1,12 +1,12 @@
 ---
-version: 1.3
+version: 1.4
 date: 2026-10-20
 category: code
 ---
 
 # Server API and Data
 
-> Version 1.3 · 2026-10-20 · [Code](../code/)
+> Version 1.4 · 2026-10-20 · [Code](../code/)
 
 ## Overview
 
@@ -111,8 +111,9 @@ Sharing flow (estimate, P17.17, `features/estimate-link`):
 4. `/p/<id>/` (P7.4) is dynamic SSR, read-only, `noindex, nofollow`, `private, no-store`; `server/pages/loadSharedProject` reads through `server/db` (React `cache()` — page and metadata read once), applies the API read limit and counts the open after the response. Unknown id, no DB or over the limit → 404. The browser migrates the data and renders the same document as `/spisok/prosmotr/`, with «Расчёт обновлён» when a calc was saved with an older formula version.
 5. Link preview title from the size of the estimate: «Список покупок: 2 комнаты · 5 расчётов» — never the estimate's name (it may hold a person's name).
 6. A reopen counts if > 1 h after the previous open (`project_touch`, run after the response).
+7. «Удалить ссылку» shows under the export buttons once this device holds a link for the estimate; a toast asks once («Удалить»), then `DELETE /api/projects/<id>/` with the token. `404` counts as deleted; the saved link is forgotten, so the next «Ссылка» makes a new one.
 
-Data deletion: owner via `DELETE /api/projects/[id]`; bot `/forget` removes the Telegram user and unbinds projects; email requests handled manually with the same two operations.
+Data deletion: owner via «Удалить ссылку» (`DELETE /api/projects/[id]`); bot `/forget` removes the Telegram user and unbinds projects; email requests handled manually with the same two operations.
 
 Later stages add without restructuring: `accounts`, `price_lists`, `clients`, `subscriptions`, `projects.account_id` (stage 4, Supabase Auth with email OTP; httpOnly session cookie, still no browser→DB), `payments` (behind `PaymentProvider`), `widgets`, `ai_credits`.
 

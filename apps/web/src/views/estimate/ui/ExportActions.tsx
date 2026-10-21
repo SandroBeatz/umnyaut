@@ -4,9 +4,10 @@ import type { Estimate } from "@umnyaut/calc";
 import { estimatePage } from "@umnyaut/catalog";
 import { Button, toast } from "@umnyaut/ui";
 import type { Country } from "@umnyaut/ui/format";
-import { Copy, Link2, Printer, Send } from "lucide-react";
+import { Copy, Link2, Link2Off, Printer, Send } from "lucide-react";
+import { useEffect, useState } from "react";
 import { encodeSnapshot, SNAPSHOT_MAX, SNAPSHOT_PREFIX } from "@/entities/estimate";
-import { shortLink } from "@/features/estimate-link";
+import { deleteShortLink, hasShortLink, shortLink } from "@/features/estimate-link";
 import { fill } from "@/shared/lib";
 import type { EstimateBoard } from "../model/board";
 import { estimateText } from "../model/export";
@@ -47,13 +48,19 @@ const print = () => window.print();
 /**
  * «Печать / PDF» (browser print, Р13), «Отправить» (share sheet with the text and the link, else both copied),
  * «Скопировать» (plain text), «Ссылка» (short link via the server, else the snapshot after `#`; too long → suggests
- * PDF). Only the link goes to the server, and only the estimate's snapshot.
+ * PDF). Only the link goes to the server, and only the estimate's snapshot. «Удалить ссылку» shows once this device
+ * holds a short link for the estimate.
  */
 export function ExportActions({ estimate, board, country }: ExportActionsProps) {
   const text = () => estimateText(estimate.name, board, country);
+  // Read after mount: the server render knows nothing of this device's links.
+  const [linked, setLinked] = useState(false);
+  useEffect(() => setLinked(hasShortLink(estimate.id)), [estimate.id]);
+  const recheck = () => setLinked(hasShortLink(estimate.id));
 
   const send = async () => {
     const url = await linkOf(estimate, country);
+    recheck();
     if (typeof navigator.share === "function") {
       try {
         await navigator.share({ title: estimate.name, text: text(), ...(url ? { url } : {}) });
@@ -67,6 +74,7 @@ export function ExportActions({ estimate, board, country }: ExportActionsProps) 
 
   const share = async () => {
     const pending = linkOf(estimate, country);
+    void pending.then(recheck);
     const tooLong = () => toast(t.linkTooLong, { action: { label: t.print, onClick: print } });
     // Safari lets the clipboard be written after a network call only through a ClipboardItem made in the tap itself.
     if (typeof ClipboardItem === "function" && typeof navigator.clipboard?.write === "function") {
@@ -86,6 +94,21 @@ export function ExportActions({ estimate, board, country }: ExportActionsProps) 
     if (url) await copy(url, t.linkCopied);
     else tooLong();
   };
+
+  const unlink = () =>
+    toast(t.unlinkAsk, {
+      action: {
+        label: t.unlinkConfirm,
+        onClick: async () => {
+          if (await deleteShortLink(estimate.id)) {
+            setLinked(false);
+            toast(t.unlinked);
+          } else {
+            toast.error(t.unlinkFailed);
+          }
+        },
+      },
+    });
 
   const ghost =
     "flex h-12 items-center justify-center gap-2 rounded-md px-3 text-body-strong text-primary hover:bg-primary-soft hover:text-primary-hover [&_svg]:size-5";
@@ -108,6 +131,16 @@ export function ExportActions({ estimate, board, country }: ExportActionsProps) 
         <Link2 aria-hidden="true" />
         {t.link}
       </button>
+      {linked && (
+        <button
+          type="button"
+          className="col-span-2 flex h-12 items-center justify-center gap-2 rounded-md px-3 text-danger hover:bg-danger-soft [&_svg]:size-5"
+          onClick={unlink}
+        >
+          <Link2Off aria-hidden="true" />
+          {t.unlink}
+        </button>
+      )}
     </div>
   );
 }

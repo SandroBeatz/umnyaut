@@ -204,6 +204,42 @@ test("a link opens the estimate as a document of its own: tables, no editing, th
   await other.close();
 });
 
+test("with the server: a short link, refreshed by the owner and deleted by them (P7.7)", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  // Previews run without a database: the API is answered here; the real one is checked by the prod smoke test.
+  const calls: Array<{ method: string; url: string; token: string | null }> = [];
+  await page.route("**/api/projects/**", async (route) => {
+    const request = route.request();
+    calls.push({
+      method: request.method(),
+      url: new URL(request.url()).pathname,
+      token: request.headers()["x-edit-token"] ?? null,
+    });
+    const data = request.method() === "POST" ? { id: "abcd2345", editToken: "t".repeat(43) } : { id: "abcd2345" };
+    await route.fulfill({ status: request.method() === "POST" ? 201 : 200, json: { ok: true, data } });
+  });
+  await open(page);
+  await expect(page.getByRole("button", { name: "Удалить ссылку" })).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Ссылка" }).click();
+  await expect(page.getByText(/Ссылка скопирована/)).toBeVisible();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(/\/p\/abcd2345\/$/);
+  await page.getByRole("button", { name: "Ссылка", exact: true }).click();
+  await expect.poll(() => calls.map((c) => c.method)).toEqual(["POST", "PUT"]);
+  expect(calls[1]).toEqual({ method: "PUT", url: "/api/projects/abcd2345/", token: "t".repeat(43) });
+
+  await page.getByRole("button", { name: "Удалить ссылку" }).click();
+  await page.getByRole("button", { name: "Удалить", exact: true }).click();
+  await expect(page.getByText("Ссылка удалена")).toBeVisible();
+  expect(calls[2]).toMatchObject({ method: "DELETE", url: "/api/projects/abcd2345/" });
+  await expect(page.getByRole("button", { name: "Удалить ссылку" })).toHaveCount(0);
+});
+
+test("a short link without a database is simply not found", async ({ page }) => {
+  const response = await page.goto("/p/abcd2345/");
+  expect(response?.status()).toBe(404);
+});
+
 test("an old /spisok/#s= link goes on to the document page", async ({ page }) => {
   await page.goto(`${ESTIMATE}#s=old`);
   await expect(page).toHaveURL(/\/spisok\/prosmotr\/#s=old$/);
