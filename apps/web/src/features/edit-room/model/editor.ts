@@ -113,7 +113,7 @@ export function totalsOf(form: RoomForm) {
   return {
     floorM2: floor,
     perimeterM: mmToM(planOutline(plan).walls.reduce((n, w) => n + w.lengthMm, 0)),
-    ...(form.heightMm ? { wallsM2: wallAreaM2(room).areaM2 } : {}),
+    ...(form.heightMm ? { wallsM2: wallAreaM2(room, "height").areaM2 } : {}),
     ceilingM2: floor,
   };
 }

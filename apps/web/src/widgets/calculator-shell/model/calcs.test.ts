@@ -69,6 +69,24 @@ describe("calcs of a tool in a room", () => {
     // Adhesive is a consumable, not a finish: no overlap with tile on the same floor.
     const floor = calc("c4", "plitka", { surface: "floor" });
     expect(overlapOf(floor, [floor, calc("c5", "klej", { surface: "floor" })], tools)).toBeUndefined();
+    // Tile on floor and walls brings adhesive for both; adhesive on the floor alone keeps both — counted twice.
+    const tileBoth = calc("c7", "plitka", { surface: "floor-walls" });
+    const glueFloor = calc("c8", "klej", { surface: "floor" });
+    expect(overlapOf(glueFloor, [tileBoth, glueFloor], tools)).toEqual({
+      parts: ["floor"],
+      calc: "Плитка: Пол и стены",
+      item: "Плиточный клей",
+    });
+    expect(overlapOf(tileBoth, [tileBoth, glueFloor], tools)).toMatchObject({
+      parts: ["floor"],
+      item: "Плиточный клей",
+    });
+    // Adhesive on the walls too: the estimate replaces the tile's adhesive whole — nothing twice.
+    const glueWalls = calc("c9", "klej", { surface: "walls" });
+    expect(overlapOf(glueFloor, [tileBoth, glueFloor, glueWalls], tools)).toBeUndefined();
+    // Tile without adhesive brings none.
+    const tileNoGlue = calc("c10", "plitka", { surface: "floor-walls", input: { adhesive: false } });
+    expect(overlapOf(glueFloor, [tileNoGlue, glueFloor], tools)).toBeUndefined();
     // Tile on the walls too: the paint split still comes first.
     const tiled = calc("c6", "plitka", { surface: "walls" });
     expect(overlapOf(walls, [tiled, both, walls], tools)?.split).toEqual({ id: "c1", surfaces: ["walls", "ceiling"] });

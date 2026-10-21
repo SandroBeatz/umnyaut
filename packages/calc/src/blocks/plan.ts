@@ -212,9 +212,15 @@ export function lightDirection(
  * door stands on the floor, a window on its sill (`WINDOW_SILL_MM` when not set); one that would pass the
  * ceiling is held under it (`aboveCeiling` counts those windows); a window with `bareBelow` adds a bare zone from
  * its sill to the floor. `defaultSill` — a window here has no sill of its
- * own.
+ * own. `band` — the wall is covered only from the floor up to `heightMm` (tile to a height): a window keeps its
+ * sill and loses what is above the band (all of it when the sill is at or above it); nothing is moved.
  */
-export function wallOpenings(placed: readonly PlacedOpening[], wall: number, heightMm: number) {
+export function wallOpenings(
+  placed: readonly PlacedOpening[],
+  wall: number,
+  heightMm: number,
+  { band = false }: { band?: boolean } = {},
+) {
   let defaultSill = false;
   /** Windows whose sill + height passes the ceiling: held under it (a warning in the tool). */
   let aboveCeiling = 0;
@@ -224,8 +230,13 @@ export function wallOpenings(placed: readonly PlacedOpening[], wall: number, hei
       const h = Math.min(p.heightMm, heightMm);
       if (p.type === "door") return [{ type: "door", x: p.offsetMm, y: heightMm - h, w: p.widthMm, h }];
       if (p.sillMm === undefined) defaultSill = true;
-      if ((p.sillMm ?? WINDOW_SILL_MM) + h > heightMm) aboveCeiling++;
-      const sill = Math.min(p.sillMm ?? WINDOW_SILL_MM, heightMm - h);
+      const own = p.sillMm ?? WINDOW_SILL_MM;
+      if (band) {
+        const top = Math.min(own + p.heightMm, heightMm);
+        return top > own ? [{ type: "window", x: p.offsetMm, y: heightMm - top, w: p.widthMm, h: top - own }] : [];
+      }
+      if (own + h > heightMm) aboveCeiling++;
+      const sill = Math.min(own, heightMm - h);
       const window: ElevationOpening = { type: "window", x: p.offsetMm, y: heightMm - sill - h, w: p.widthMm, h };
       // Left bare under the window: a zone from the sill down to the floor, as wide as the window.
       return p.bareBelow && sill > 0

@@ -17,6 +17,8 @@ const input = z.object({
   cutLengthMm: z.int().check(z.minimum(0), z.maximum(100_000)),
   cutWidthMm: z.int().check(z.minimum(0), z.maximum(100_000)),
   heightMm: z.int().check(z.minimum(1000), z.maximum(10_000)),
+  /** «Высота облицовки»: walls tiled from the floor up to it (an apron); absent or 0 — up to the ceiling. */
+  tileHeightMm: z.optional(z.int().check(z.minimum(0), z.maximum(10_000))),
   openings: z.readonly(z.array(opening).check(z.maxLength(20))),
   tileLengthMm: z.int().check(z.minimum(20), z.maximum(3000)),
   tileWidthMm: z.int().check(z.minimum(20), z.maximum(3000)),
@@ -53,12 +55,14 @@ const MAX_JOINT_MM = 10;
 
 /**
  * Grout: kg/m² = (A + B) / (A × B) × joint × depth × 1,6 (Ceresit formula, A × B tile in mm); total = area ×
- * rate × (1 + reserve); packs via `ceilPacks`. Area as for tile adhesive: floor or walls without openings.
+ * rate × (1 + reserve); packs via `ceilPacks`. Area as for tile adhesive: floor or walls without the openings'
+ * parts inside the tiled height.
  */
 export const zatirka: ToolModule<ZatirkaInput> = {
   id: "zatirka",
   // 2: «Пол и стены» — the floor and the walls with one tile, areas summed.
-  version: 2,
+  // 3: walls tiled to a height lose only the parts of the doors and windows inside it (formula review 2026-10-21).
+  version: 3,
   input,
   defaults: () => ({
     surface: "floor",
@@ -68,6 +72,7 @@ export const zatirka: ToolModule<ZatirkaInput> = {
     cutLengthMm: 1500,
     cutWidthMm: 1200,
     heightMm: 2700,
+    tileHeightMm: 0,
     openings: [
       { type: "door", widthMm: 800, heightMm: 2000, count: 1 },
       { type: "window", widthMm: 1200, heightMm: 1400, count: 1 },

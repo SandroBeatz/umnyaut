@@ -24,11 +24,15 @@ export type PloshchadStenInput = z.infer<typeof input>;
 /**
  * Wall area: perimeter × height minus doors and windows; ceiling = floor. An L-shaped room has the same
  * perimeter as its bounding rectangle, so its walls are counted as the rectangle's; its ceiling loses the
- * cut-out (version 2). The picture is the room plan with the placed doors and windows; places change no area.
+ * cut-out (version 2). An opening taller than the wall is cut at the wall's height, a window with a sill set on
+ * the plan at the wall's top: only its part between the sill and the top is subtracted (version 3). The picture is
+ * the room plan with the placed doors and windows; their offsets change no area.
  */
 export const ploshchadSten: ToolModule<PloshchadStenInput> = {
   id: "ploshchad-sten",
-  version: 2,
+  // 3: a door or a window taller than the wall subtracts width × wall height, not its own height; a window with
+  //   its sill set subtracts only its part between the sill and the wall's top.
+  version: 3,
   input,
   defaults: () => ({
     lengthMm: 4600,
@@ -47,7 +51,9 @@ export const ploshchadSten: ToolModule<PloshchadStenInput> = {
     const warnings: Warning[] = [];
     const openings = i.openings.filter((o) => o.count > 0);
     const room: Room = { shape: "rect", lengthMm: i.lengthMm, widthMm: i.widthMm, heightMm: i.heightMm, openings };
-    const walls = wallAreaM2(room);
+    // A door or a window taller than the wall takes no more than the wall's height, a window on a known sill only
+    // its part under the wall's top (version 3).
+    const walls = wallAreaM2(room, "height");
     const length = mmToM(i.lengthMm);
     const width = mmToM(i.widthMm);
     const height = mmToM(i.heightMm);
@@ -65,6 +71,17 @@ export const ploshchadSten: ToolModule<PloshchadStenInput> = {
     if (tallest > i.heightMm) {
       warnings.push({ code: "opening_too_tall", level: "warning", values: { height: mmToM(tallest), wall: height } });
     }
+    // A window whose sill set on the plan plus its height passes the wall's top: an input error, cut at the top.
+    const above = openings
+      .filter((o) => o.type === "window")
+      .reduce(
+        (n, o) =>
+          n +
+          (o.places ?? []).slice(0, o.count).filter((p) => p.sillMm !== undefined && p.sillMm + o.heightMm > i.heightMm)
+            .length,
+        0,
+      );
+    if (above > 0) warnings.push({ code: "window_above_ceiling", level: "warning", values: { count: above } });
     if (walls.openingsExceedWalls) warnings.push({ code: "openings_exceed_walls", level: "warning" });
 
     const outline = roomOutline(

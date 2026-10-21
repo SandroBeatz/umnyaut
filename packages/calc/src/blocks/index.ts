@@ -8,11 +8,21 @@ export {
   planCuts,
 } from "./cutting";
 export {
+  DIAGONAL_EPS_MM,
+  type DiagonalCount,
+  type DiagonalInput,
+  type DiagonalRect,
+  diagonalGrid,
+} from "./diagonal";
+export {
+  clippedOpeningsAreaM2,
   doorWidthMm,
   floorAreaM2,
   grossWallAreaM2,
   mm2ToM2,
   mmToM,
+  type OpeningClip,
+  openingHeightInMm,
   openingsAreaM2,
   perimeterMm,
   polygonAreaMm2,
@@ -39,7 +49,15 @@ export {
   wallGrid,
 } from "./layout-grid";
 export { type RowsLayoutInput, rowsLayout, traceRows } from "./layout-rows";
-export { type RunsLayoutInput, runsLayout, wallRuns } from "./layout-runs";
+export {
+  fromLongest,
+  MIN_PLINTH_PIECE_MM,
+  planRuns,
+  type RunsLayoutInput,
+  type RunsPlan,
+  runsLayout,
+  wallRuns,
+} from "./layout-runs";
 export { type SheetsLayoutInput, seamInDoor, sheetsLayout } from "./layout-sheets";
 export { bestPackSet, ceilPacks, PACK_EPSILON, type PackOption, type PackSet, purchase, purchaseSet } from "./packs";
 export {
@@ -59,7 +77,7 @@ export {
   WINDOW_SILL_MM,
   wallOpenings,
 } from "./plan";
-export { layRows, type RowPlan, type RowsInput, type RowsResult } from "./rows";
+export { greedyRows, layRows, type RowPlan, type RowsInput, type RowsResult } from "./rows";
 export { cutStrips, type StripCut, type StripCutInput } from "./strips";
-export { type TiledSurfaceInput, tiledAreaM2 } from "./tiled";
+export { type TiledSurfaceInput, tiledAreaM2, tiledBandMm } from "./tiled";
 export { type WasteRule, wastePct, withWaste } from "./waste";

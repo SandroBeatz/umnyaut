@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import type { Room } from "../types";
-import { doorWidthMm, floorAreaM2, openingsAreaM2, perimeterMm, polygonAreaMm2, wallAreaM2 } from "./geometry";
+import {
+  clippedOpeningsAreaM2,
+  doorWidthMm,
+  floorAreaM2,
+  openingHeightInMm,
+  openingsAreaM2,
+  perimeterMm,
+  polygonAreaMm2,
+  wallAreaM2,
+} from "./geometry";
 
 const rect = (lengthMm: number, widthMm: number, heightMm = 2700, extra: Partial<Room> = {}): Room => ({
   shape: "rect",
@@ -69,5 +78,47 @@ describe("geometry", () => {
     const room = rect(1000, 1000, 1000, { openings: [{ type: "window", widthMm: 3000, heightMm: 3000, count: 1 }] });
     expect(wallAreaM2(room)).toMatchObject({ areaM2: 0, openingsExceedWalls: true });
     expect(openingsAreaM2([])).toBe(0);
+  });
+
+  it("«height»: a door taller than the wall takes only the wall's height — 35 − 0,9 × 2,5 = 32,75", () => {
+    const room = rect(4000, 3000, 2500, { openings: [{ type: "door", widthMm: 900, heightMm: 2600, count: 1 }] });
+    expect(wallAreaM2(room).areaM2).toBeCloseTo(32.66, 10);
+    expect(wallAreaM2(room, "height")).toMatchObject({ grossM2: 35, openingsM2: 2.25, areaM2: 32.75 });
+  });
+
+  it("«band» to 1,5 m: door 0,8 × 1,5, window on its 0,9 m sill 1,2 × 0,6 — 16,5 − 1,92 = 14,58", () => {
+    const openings = [
+      { type: "door" as const, widthMm: 800, heightMm: 2000, count: 1 },
+      { type: "window" as const, widthMm: 1200, heightMm: 1400, count: 1 },
+    ];
+    const walls = wallAreaM2(rect(3000, 2500, 1500, { openings }), "band");
+    expect(walls.openingsM2).toBeCloseTo(1.92, 10);
+    expect(walls.areaM2).toBeCloseTo(14.58, 10);
+  });
+
+  it("«band» takes each placed window's own sill; unplaced copies the usual 0,9 m; above the band — nothing", () => {
+    const window = (sills: number[], count: number) => ({
+      type: "window" as const,
+      widthMm: 1000,
+      heightMm: 1000,
+      count,
+      places: sills.map((sillMm) => ({ wall: 0, offsetMm: 0, sillMm })),
+    });
+    // Sill 1200 → 1200…1500 = 0,3 m²; sill 1600 → 0; one more unplaced on 900 → 900…1500 = 0,6 m².
+    expect(clippedOpeningsAreaM2([window([1200, 1600], 3)], 1500, "band")).toBeCloseTo(0.9, 10);
+    expect(openingHeightInMm({ type: "window", heightMm: 1000 }, 1500, "none")).toBe(1000);
+    expect(openingHeightInMm({ type: "window", heightMm: 3000 }, 2500, "height")).toBe(2500);
+    expect(openingHeightInMm({ type: "door", heightMm: 2000 }, 1500, "band")).toBe(1500);
+  });
+
+  it("«height» clips a window by its known sill: 1,5 m on a 0,9 m sill under a 2,0 m wall takes 1,1 m", () => {
+    expect(openingHeightInMm({ type: "window", heightMm: 1500 }, 2000, "height", 900)).toBe(1100);
+    // Unknown sill: held at the wall's height only.
+    expect(openingHeightInMm({ type: "window", heightMm: 1500 }, 2000, "height")).toBe(1500);
+    expect(openingHeightInMm({ type: "door", heightMm: 2100 }, 2000, "height", 900)).toBe(2000);
+    const window = { type: "window" as const, widthMm: 1000, heightMm: 1500, count: 2 };
+    // One placed on 0,9 m (1,1 m inside), one not placed (1,5 m): 1 × 1,1 + 1 × 1,5 = 2,6 m².
+    const placed = { ...window, places: [{ wall: 0, offsetMm: 0, sillMm: 900 }] };
+    expect(clippedOpeningsAreaM2([placed], 2000, "height")).toBeCloseTo(2.6, 10);
   });
 });

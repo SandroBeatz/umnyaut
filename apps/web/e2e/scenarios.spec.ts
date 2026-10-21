@@ -156,6 +156,7 @@ test("4 · the list: the header opens every room and the shared consumables, a r
   await expect(shared).toContainText("Плиточный клей");
   await expect(shared).toContainText(/на \d+ упаковк\S* меньше, чем по комнатам/);
   const total = page.getByRole("complementary", { name: "Итого по списку" });
+  // 10 packs of laminate × 1120 ₽.
   await expect(total).toContainText(/11\s200\s₽/);
   for (const name of ["Печать / PDF", "Отправить", "Скопировать", "Ссылка"])
     await expect(page.getByRole("button", { name, exact: true })).toBeVisible();

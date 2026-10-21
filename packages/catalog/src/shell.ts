@@ -190,6 +190,8 @@ export const shell = {
     and: " и ",
     /** «Пол уже в расчёте «Плитка: Пол и стены».» */
     overlap: "{parts} уже в расчёте «{calc}».",
+    /** A consumable calc covering part of what a finish calc brings it for: kept in both (estimate `overlaps` with a key). */
+    overlapItem: "{parts}: «{item}» уже есть в расчёте «{calc}» — в списке это количество будет дважды.",
     split: "Разделить на два расчёта?",
     splitButton: "Разделить",
   },

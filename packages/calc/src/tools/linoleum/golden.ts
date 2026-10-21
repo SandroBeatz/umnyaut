@@ -4,10 +4,16 @@ import type { LinoleumInput } from "./index";
 const TARKETT =
   "Tarkett: замер по наибольшей длине и ширине, «избегайте швов, выбирая максимальную ширину рулона», нахлёст полотен 3–5 см для подгонки рисунка, https://www.tarkett.ru/hub/vidy-napolnykh-pokrytiy/ukladka-linoleuma-i-ukhod/";
 
+const REVIEW = "Formula review 2026-10-21, derived by hand";
+const DOORWAY =
+  "Tarkett: замер «учитывая выступы и дверные проемы», https://www.tarkett.ru/hub/vidy-napolnykh-pokrytiy/ukladka-linoleuma-i-ukhod/; заход в проём 10 см — практика укладчиков, не подтверждено (C10)";
+
 /**
  * Hand derivations. For each width w and both directions: sheets n = least n with n·w − (n − 1)·50 ≥ the room
- * across the sheets (+ allowance); length = n × (room along + allowance), rounded up to the 10 cm cut step.
- * Fewest seams first, then the smallest bought area, then along the room length.
+ * across the sheets; length = n × (room along + allowance, by default 5 cm), rounded up to the 10 cm cut step.
+ * Fewest seams first, then the smallest bought area, then along the room length. Version 4: a sheet that runs
+ * into a placed door (on a wall the sheets run toward or away from) is cut 10 cm longer. The example door is on
+ * the bottom wall (x 3,2–4,0 m in a 4,6 m room): it counts only for sheets running along the width.
  */
 export const golden: GoldenFile<LinoleumInput> = {
   tool: "linoleum",
@@ -16,110 +22,122 @@ export const golden: GoldenFile<LinoleumInput> = {
       name: "Mockup room 4.6 × 4.3 m: no width covers it, best is 2.5 m across with one seam (defaults)",
       input: {},
       expected: {
-        items: { linoleum: { packs: 86 }, "seam-weld": { packs: 1, need: 4.6 } },
-        summary: { width: 2.5, length: 8.6, sheets: 2, seams: 1, boughtArea: 21.5, waste: 1.72 },
+        items: { linoleum: { packs: 88 }, "seam-weld": { packs: 1, need: 4.6 } },
+        summary: { width: 2.5, length: 8.8, sheets: 2, seams: 1, boughtArea: 22, waste: 2.22 },
         warnings: ["seams"],
       },
       source: {
         kind: "manual",
-        ref: `${TARKETT}. Шире 4,3 м рулонов нет (до 4 м) — минимум 1 шов. 2,5 м поперёк длины: 2 × 2,5 − 0,05 = 4,95 ≥ 4,6; 2 полотна × 4,3 = 8,6 м = 21,5 м². 3 м так же даёт 8,6 м, но 25,8 м²; вдоль длины 2,5 м — 9,2 м, 23 м²`,
+        ref: `${TARKETT}; ${REVIEW}; ${DOORWAY}. Шире 4,3 м рулонов нет (до 4 м) — минимум 1 шов. 2,5 м поперёк длины: 2 × 2,5 − 0,05 = 4,95 ≥ 4,6; 2 полотна × (4,3 + 0,05 припуск) = 8,7 м; шов на 2,475 м, дверь 3,2–4,0 м — на втором полотне, оно длиннее на 0,1: 8,8 м = 22 м² (v3 — 8,6 м без припуска и проёма). 3 м даёт 8,8 м и 26,4 м²; вдоль длины 2,5 м — 9,3 м, 23,25 м²`,
       },
     },
     {
-      name: "Room 3 × 2.5 m: one 2.5 m sheet, tie broken along the length",
-      input: { lengthMm: 3000, widthMm: 2500 },
+      name: "Room 3 × 2.5 m without allowance: one 2.5 m sheet, tie broken along the length",
+      input: { lengthMm: 3000, widthMm: 2500, allowanceMm: 0, openings: [] },
       expected: {
         items: { linoleum: { packs: 30 } },
         summary: { width: 2.5, length: 3, seams: 0, boughtArea: 7.5, waste: 0 },
       },
       source: {
         kind: "manual",
-        ref: "2,5 вдоль длины: 3,0 м = 7,5 м²; 3 м поперёк: 2,5 м = 7,5 м² — равно, берём вдоль длины",
+        ref: "2,5 вдоль длины: 3,0 м = 7,5 м²; 3 м поперёк: 2,5 м = 7,5 м² — равно, берём вдоль длины. Без проёмов на плане (openings: []): пример двери на нижней стене с v4 расширял бы комнату поперёк на заход в проём.",
       },
     },
     {
-      name: "Allowance 5 cm on uneven walls: the 3 m roll no longer fits",
-      input: { lengthMm: 3000, widthMm: 2500, allowanceMm: 50 },
+      name: "Allowance 5 cm by default goes on the sheet length only: room 3 × 2.5 m — 3.1 m of 2.5 m (v4)",
+      input: { lengthMm: 3000, widthMm: 2500, openings: [] },
       expected: {
-        items: { linoleum: { packs: 26 } },
-        summary: { width: 3.5, seams: 0, boughtArea: 9.1 },
+        items: { linoleum: { packs: 31 } },
+        summary: { width: 2.5, length: 3.1, seams: 0, boughtArea: 7.75 },
       },
       source: {
         kind: "manual",
-        ref: "Комната с припуском 3,05 × 2,55: 3 м поперёк уже не хватает (3,05), 3,5 м поперёк: 2,55 → 2,6 м = 9,1 м²; вдоль длины 3 м: 3,05 → 3,1 м = 9,3 м²",
+        ref: `${REVIEW}. Припуск 5 см к длине отреза (подсказка поля: «добавьте 5–10 см»; Tarkett — мерить по наибольшим размерам). 2,5 м вдоль длины: 3,05 → 3,1 м = 7,75 м²; 3 м поперёк: 2,55 → 2,6 м = 7,8 м². Поперёк рулон закрывает комнату как есть, припуск ширину не увеличивает: в v3 припуск 5 см к ширине уводил на рулон 3,5 м и 9,1 м². Без проёмов на плане (openings: []): пример двери на нижней стене с v4 расширял бы комнату поперёк на заход в проём.`,
       },
     },
     {
       name: "Only 3 m rolls in the shop",
       input: { rollWidthMm: 3000 },
-      expected: { items: { linoleum: { packs: 86 } }, summary: { width: 3, seams: 1, boughtArea: 25.8 } },
-      source: { kind: "manual", ref: "3 м: вдоль длины 2 × 4,6 = 9,2 м (27,6 м²), поперёк 2 × 4,3 = 8,6 м (25,8 м²)" },
+      expected: { items: { linoleum: { packs: 88 } }, summary: { width: 3, seams: 1, boughtArea: 26.4 } },
+      source: {
+        kind: "manual",
+        ref: "3 м: вдоль длины 2 × 4,65 = 9,3 м (27,9 м²), поперёк 2 × 4,35 = 8,7 м; шов на 2,975, дверь 3,2–4,0 — на втором полотне, +0,1: 8,8 м (26,4 м²)",
+      },
     },
     {
       name: "Only 4 m rolls",
       input: { rollWidthMm: 4000 },
-      expected: { items: { linoleum: { packs: 86 } }, summary: { width: 4, boughtArea: 34.4 } },
-      source: { kind: "manual", ref: "4 м < 4,3 — два полотна; поперёк 8,6 м × 4 = 34,4 м²" },
+      expected: { items: { linoleum: { packs: 88 } }, summary: { width: 4, boughtArea: 35.2 } },
+      source: {
+        kind: "manual",
+        ref: "4 м < 4,3 — два полотна; поперёк 2 × 4,35 = 8,7 м. Шов на 3,975 попал бы в дверь 3,2–4,0 — полотна зеркалятся, шов на 0,625, дверь целиком на широком полотне: +0,1 → 8,8 м × 4 = 35,2 м²",
+      },
     },
     {
       name: "Only 1.5 m rolls: three sheets along the length",
       input: { rollWidthMm: 1500 },
-      expected: { items: { linoleum: { packs: 138 } }, summary: { sheets: 3, seams: 2, boughtArea: 20.7 } },
+      expected: { items: { linoleum: { packs: 140 } }, summary: { sheets: 3, seams: 2, boughtArea: 21 } },
       source: {
         kind: "manual",
-        ref: "Вдоль длины: 3 × 1,5 − 0,1 = 4,4 ≥ 4,3 → 3 × 4,6 = 13,8 м; поперёк нужно 4 полотна (4,4 < 4,6) → 17,2 м",
+        ref: "Вдоль длины: 3 × 1,5 − 0,1 = 4,4 ≥ 4,3 → 3 × 4,65 = 13,95 → 14,0 м = 21 м² (дверь на нижней стене — полотна идут вдоль неё, торцом не упираются); поперёк нужно 4 полотна (4,4 < 4,6)",
       },
     },
     {
       name: "Room 5 × 4.5 m: 2.5 m along the length",
       input: { lengthMm: 5000, widthMm: 4500 },
-      expected: { items: { linoleum: { packs: 100 } }, summary: { width: 2.5, seams: 1, boughtArea: 25 } },
+      expected: { items: { linoleum: { packs: 101 } }, summary: { width: 2.5, seams: 1, boughtArea: 25.25 } },
       source: {
         kind: "manual",
-        ref: "Один шов: 2,5 вдоль длины 2 × 5 = 10 м = 25 м²; 3 м поперёк 2 × 4,5 = 9 м = 27 м²; 2,5 поперёк — 3 полотна (4,95 < 5)",
+        ref: "Один шов: 2,5 вдоль длины 2 × 5,05 = 10,1 м = 25,25 м²; 3 м поперёк 2 × 4,55 = 9,1 м = 27,3 м²; 2,5 поперёк — 3 полотна (4,95 < 5)",
       },
     },
     {
       name: "Seam overlap makes a 4.97 m room need a third 2.5 m sheet",
       input: { lengthMm: 6000, widthMm: 4970, rollWidthMm: 2500 },
       expected: {
-        items: { linoleum: { packs: 150 } },
-        summary: { sheets: 3, seams: 2, boughtArea: 37.5 },
+        items: { linoleum: { packs: 152 } },
+        summary: { sheets: 3, seams: 2, boughtArea: 38 },
       },
       source: {
         kind: "manual",
-        ref: `${TARKETT}. Вдоль длины 2 × 2,5 − 0,05 = 4,95 < 4,97 → 3 полотна × 6 = 18 м; поперёк 3 × 4,97 = 14,91 → 15,0 м = 37,5 м²`,
+        ref: `${TARKETT}. Вдоль длины 2 × 2,5 − 0,05 = 4,95 < 4,97 → 3 полотна × 6,05 = 18,15 м; поперёк 3 × 5,02 = 15,06 м. Дверь 4,6–5,4 м на нижней стене попадает на шов 4,925 — полотна зеркалятся (швы 1,075 и 3,525), дверь на первом полотне: +0,1 → 15,16 → 15,2 м = 38 м²`,
       },
     },
     {
       name: "Plain linoleum without a pattern: no overlap, two sheets",
-      input: { lengthMm: 6000, widthMm: 4970, rollWidthMm: 2500, overlapMm: 0 },
-      expected: { items: { linoleum: { packs: 120 } }, summary: { sheets: 2, seams: 1, boughtArea: 30 } },
-      source: { kind: "manual", ref: "Без нахлёста 2 × 2,5 = 5 ≥ 4,97 → 2 × 6 = 12 м = 30 м²" },
+      input: { lengthMm: 6000, widthMm: 4970, rollWidthMm: 2500, overlapMm: 0, openings: [] },
+      expected: { items: { linoleum: { packs: 121 } }, summary: { sheets: 2, seams: 1, boughtArea: 30.25 } },
+      source: {
+        kind: "manual",
+        ref: "Без нахлёста 2 × 2,5 = 5 ≥ 4,97 → 2 × 6,05 = 12,1 м = 30,25 м². Без проёмов на плане (openings: []): пример двери на нижней стене с v4 расширял бы комнату поперёк на заход в проём.",
+      },
     },
     {
       name: "Patterned linoleum, repeat 50 cm: the second sheet is cut longer",
       input: { pattern: true, repeatMm: 500 },
       expected: {
-        items: { linoleum: { packs: 91 } },
-        summary: { width: 2.5, length: 9.1, seams: 1, boughtArea: 22.75 },
+        items: { linoleum: { packs: 93 } },
+        summary: { width: 2.5, length: 9.3, seams: 1, boughtArea: 23.25 },
       },
       source: {
         kind: "manual",
-        ref: `${TARKETT} (подгонка рисунка). Второе полотно смещают до совпадения рисунка — до одного раппорта: 2 × 4,3 + 0,5 = 9,1 м × 2,5 = 22,75 м²; вдоль длины 9,2 + 0,5 = 9,7 м`,
+        ref: `${TARKETT} (подгонка рисунка). Второе полотно смещают до совпадения рисунка — до одного раппорта: 2 × 4,35 + 0,5 = 9,2 м, второе полотно под дверью +0,1 → 9,3 м × 2,5 = 23,25 м²; вдоль длины 9,3 + 0,5 = 9,8 м`,
       },
     },
     {
       name: "L-shaped room 6 × 5 m with a 3 × 2 m cut-out, 2.5 m roll",
       input: { shape: "l", lengthMm: 6000, widthMm: 5000, cutLengthMm: 3000, cutWidthMm: 2000, rollWidthMm: 2500 },
-      expected: { items: { linoleum: { packs: 130 } }, summary: { sheets: 3, seams: 2, length: 13, boughtArea: 32.5 } },
+      expected: {
+        items: { linoleum: { packs: 133 } },
+        summary: { sheets: 3, seams: 2, length: 13.3, boughtArea: 33.25 },
+      },
       source: {
         kind: "manual",
-        ref: `${TARKETT}. Поперёк (полотна вдоль 5 м, поперёк 6 м): 3 полотна с начала 0; 2,45; 4,9 — третье целиком в полосе выреза (с 3 м), оно короче на 2 м: 5 + 5 + 3 = 13 м = 32,5 м². Вдоль длины: 6 + 6 + 3 = 15 м. Прямоугольник дал бы 15 м поперёк`,
+        ref: `${TARKETT}; ${DOORWAY}. Поперёк (полотна вдоль 5 м, поперёк 6 м): 3 полотна с начала 0; 2,45; 4,9 — третье целиком в полосе выреза (с 3 м), оно короче на 2 м: 5,05 + 5,05 + 3,05 = 13,15 м. Дверь 4,6–5,4 м на внутренней стене выреза (y = 3 м): третье полотно кончается у неё — +0,1; второе идёт дальше (его вырезанный угол закрывает проём) → 13,25 → 13,3 м = 33,25 м². Вдоль длины: 6,05 + 6,05 + 3,05 → 15,2 м`,
       },
     },
     {
-      name: "L-shape with allowance: a sheet whose seam is short of the narrow part stays full length (v2)",
+      name: "L-shape, allowance 10 cm: the second sheet lies wholly in the narrow part — short (v4)",
       input: {
         shape: "l",
         lengthMm: 6000,
@@ -131,14 +149,14 @@ export const golden: GoldenFile<LinoleumInput> = {
         pattern: true,
         repeatMm: 300,
       },
-      expected: { items: { linoleum: { packs: 125 } }, summary: { sheets: 2, seams: 1, length: 12.5, boughtArea: 25 } },
+      expected: { items: { linoleum: { packs: 105 } }, summary: { sheets: 2, seams: 1, length: 10.5, boughtArea: 21 } },
       source: {
         kind: "manual",
-        ref: `${TARKETT}. Вдоль длины: 6,1 × 3,1 м с припуском, шаг 2 − 0,05 = 1,95 м, 2 полотна. Полотна раскатаны от −5 см (половина припуска), шов посередине нахлёста — 1,95 − 0,05 + 0,025 = 1,925 м, а узкая часть начинается с 3 − 1,05 = 1,95 м: полотно 2 на 2,5 см заходит в широкую часть, значит целой длины. 6,1 + 6,4 (раппорт) = 12,5 м = 25 м². Поперёк — 4 полотна, 3 шва. В v1 полотно 2 укорачивалось: 10,5 м, полоса 2,5 × 200 см без покрытия`,
+        ref: `${TARKETT}; ${REVIEW}. Вдоль длины: отрез 6,1 м (припуск 10 см только к длине, v4), поперёк 3 м без припуска, шаг 2 − 0,05 = 1,95 м, 2 полотна. Первое полотно от стены, шов посередине нахлёста — 1,95 + 0,025 = 1,975 м, узкая часть с 3 − 1,05 = 1,95 м: полотно 2 целиком в ней, короче на 2 м: 6,1 + (4,1 + 0,3 раппорт) = 10,5 м = 21 м². В v2–v3 припуск сдвигал полотна поперёк на 5 см, шов был на 1,925 и второе полотно — целой длины (12,5 м)`,
       },
     },
     {
-      name: "L-shape with allowance and no overlap: the second sheet is full length (v2)",
+      name: "L-shape, no overlap: the seam right at the narrow part — the second sheet is short (v4)",
       input: {
         shape: "l",
         lengthMm: 6000,
@@ -150,17 +168,17 @@ export const golden: GoldenFile<LinoleumInput> = {
         overlapMm: 0,
       },
       expected: {
-        items: { linoleum: { packs: 122 } },
-        summary: { sheets: 2, seams: 1, length: 12.2, boughtArea: 24.4 },
+        items: { linoleum: { packs: 102 } },
+        summary: { sheets: 2, seams: 1, length: 10.2, boughtArea: 20.4 },
       },
       source: {
         kind: "manual",
-        ref: "Вдоль длины: 6,1 × 3,1 м, шаг 2 м, 2 полотна; шов на 2 − 0,05 = 1,95 м, узкая часть с 2 м — полотно 2 целой длины: 2 × 6,1 = 12,2 м = 24,4 м². В v1 было 10,2 м и 5 × 200 см пола без покрытия",
+        ref: `${REVIEW}. Вдоль длины: отрез 6,1 м, поперёк 3 м, шаг 2 м, 2 полотна; шов на 2,0 м, узкая часть с 3 − 1 = 2,0 м — полотно 2 целиком в ней: 6,1 + 4,1 = 10,2 м = 20,4 м² (пол узкой части 4 × 1 м закрыт). В v2–v3 сдвиг на половину припуска делал его целым (12,2 м)`,
       },
     },
     {
       name: "Length rounded up to the 10 cm cut step",
-      input: { lengthMm: 4620, widthMm: 2400 },
+      input: { lengthMm: 4620, widthMm: 2400, allowanceMm: 0 },
       expected: {
         items: { linoleum: { packs: 47 } },
         summary: { width: 2.5, seams: 0 },
@@ -168,34 +186,34 @@ export const golden: GoldenFile<LinoleumInput> = {
       source: { kind: "manual", ref: "2,5 вдоль длины: 4,62 м → отрез 4,7 м (шаг 10 см) = 11,75 м²" },
     },
     {
-      name: "Room 4 × 3 m: a 3 m roll along the length, no waste",
-      input: { lengthMm: 4000, widthMm: 3000 },
+      name: "Room 4 × 3 m without allowance: a 3 m roll along the length, no waste",
+      input: { lengthMm: 4000, widthMm: 3000, allowanceMm: 0, openings: [] },
       expected: {
         items: { linoleum: { packs: 40 } },
         summary: { width: 3, length: 4, boughtArea: 12, waste: 0 },
       },
       source: {
         kind: "manual",
-        ref: "3 м вдоль: 4,0 м = 12 м²; 4 м поперёк: 3,0 м = 12 м² — равно, берём вдоль длины",
+        ref: "3 м вдоль: 4,0 м = 12 м²; 4 м поперёк: 3,0 м = 12 м² — равно, берём вдоль длины. Без проёмов на плане (openings: []): пример двери на нижней стене с v4 расширял бы комнату поперёк на заход в проём.",
       },
     },
     {
       name: "Hall 12 × 8 m: two seams with 3 m rolls",
       input: { lengthMm: 12_000, widthMm: 8000 },
       expected: {
-        items: { linoleum: { packs: 360 }, "seam-weld": { packs: 2, need: 24 } },
-        summary: { width: 3, sheets: 3, seams: 2, boughtArea: 108 },
+        items: { linoleum: { packs: 362 }, "seam-weld": { packs: 2, need: 24 } },
+        summary: { width: 3, sheets: 3, seams: 2, boughtArea: 108.6 },
       },
       source: {
         kind: "manual",
-        ref: "Меньше двух швов нельзя (2 × 4 − 0,05 < 8). Два шва: 3 м вдоль длины 3 × 12 = 36 м = 108 м²; 3,5 м — 126 м²; поперёк — от 3 швов",
+        ref: "Меньше двух швов нельзя (2 × 4 − 0,05 < 8). Два шва: 3 м вдоль длины 3 × 12,05 = 36,15 → 36,2 м = 108,6 м²; 3,5 м — 126,7 м²; поперёк — от 3 швов",
       },
     },
     {
       name: "With pack prices: total cost",
       input: { price_linoleum: 800 } as Partial<LinoleumInput>,
-      expected: { costTotal: 17200 },
-      source: { kind: "manual", ref: "21,5 м² × 800 ₽/м² = 17 200 ₽ (8,6 м × 2,5 м)" },
+      expected: { costTotal: 17600 },
+      source: { kind: "manual", ref: "22 м² × 800 ₽/м² = 17 600 ₽ (8,8 м × 2,5 м)" },
     },
     {
       name: "Welding switched off: the seam hint asks to switch it on, nothing to weld bought",
@@ -209,10 +227,71 @@ export const golden: GoldenFile<LinoleumInput> = {
     {
       name: "A repeat left with «Рисунок» off counts nothing (v3)",
       input: { pattern: false, repeatMm: 500 },
-      expected: { summary: { length: 8.6 } },
+      expected: { summary: { length: 8.8 } },
       source: {
         kind: "manual",
-        ref: "Как пример по умолчанию (припуск 0): 2 полотна по 4,3 м → 8,6 м, без раппорта; раппорт 50 см учитывается только с включённым «Рисунок нужно совмещать»",
+        ref: "Как пример по умолчанию: 2 полотна по 4,35 м + 0,1 под дверью → 8,8 м, без раппорта; раппорт 50 см учитывается только с включённым «Рисунок нужно совмещать»",
+      },
+    },
+    {
+      name: "Sheets along the length, door on the end wall: the sheet under it is 10 cm longer (v4)",
+      input: {
+        lengthMm: 4000,
+        widthMm: 3000,
+        openings: [{ type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 1, offsetMm: 1000 }] }],
+      },
+      expected: { items: { linoleum: { packs: 42 } }, summary: { width: 3, sheets: 1, length: 4.2, boughtArea: 12.6 } },
+      source: {
+        kind: "manual",
+        ref: `${REVIEW}; ${DOORWAY}. Рулон 3 м вдоль длины 4 м: одно полотно 4,0 + 0,05 = 4,05 м (4 м поперёк — 3,05 → 3,1 м, 12,4 м², больше). Дверь на правой стене — в неё полотно упирается торцом: +0,1 на заход в проём → 4,15 → 4,2 м = 12,6 м²`,
+      },
+    },
+    {
+      name: "Room 4 × 3 m, door on the 4 m wall the sheets would run along: the roll must reach into it (v4)",
+      input: {
+        lengthMm: 4000,
+        widthMm: 3000,
+        openings: [{ type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 0, offsetMm: 1600 }] }],
+      },
+      expected: {
+        items: { linoleum: { packs: 32 } },
+        summary: { width: 4, sheets: 1, seams: 0, length: 3.2, boughtArea: 12.8 },
+      },
+      source: {
+        kind: "manual",
+        ref: `${REVIEW} (re-review: заход в проём на стене вдоль полотен); ${DOORWAY}. Вдоль длины полотно идёт вдоль стены с дверью — поперёк надо закрыть 3,0 + 0,1 = 3,1 м: рулон 3 м уже не хватает, 3,5 м × (4,0 + 0,05 → 4,1 м) = 14,35 м². Поперёк: рулон 4 м закрывает 4,0 м, полотно упирается торцом в дверь на верхней стене — 3,0 + 0,05 + 0,1 = 3,15 → 3,2 м × 4 = 12,8 м², одно полотно — дешевле. До исправления было 3 м × 4,1 = 12,3 м², и под дверью у стены оставалась голая полоса`,
+      },
+    },
+    {
+      name: "Room 4.5 × 4 m, door on the 4.5 m wall: the 4 m roll no longer covers it in one sheet (v4)",
+      input: {
+        lengthMm: 4500,
+        widthMm: 4000,
+        openings: [{ type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 0, offsetMm: 600 }] }],
+      },
+      expected: {
+        items: { linoleum: { packs: 82 } },
+        summary: { width: 2.5, sheets: 2, seams: 1, length: 8.2, boughtArea: 20.5 },
+      },
+      source: {
+        kind: "manual",
+        ref: `${REVIEW}; ${DOORWAY}. Вдоль длины поперёк нужно 4,0 + 0,1 = 4,1 м > 4 м — одного полотна нет ни в одной ширине. Один шов: вдоль длины 2,5 м — 2 × 4,55 → 9,2 м = 23 м²; поперёк (полотна по 4,0 + 0,05 м вдоль ширины, поперёк 4,5 м) 2,5 м — шов на 2,475, дверь 0,6–1,4 м под первым полотном: 8,1 + 0,1 = 8,2 м × 2,5 = 20,5 м²; 3 м поперёк — 24,6 м²`,
+      },
+    },
+    {
+      name: "Room 4.5 × 4 m, door on the 4 m wall: one 4 m sheet runs into it end-on (v4)",
+      input: {
+        lengthMm: 4500,
+        widthMm: 4000,
+        openings: [{ type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 1, offsetMm: 1600 }] }],
+      },
+      expected: {
+        items: { linoleum: { packs: 47 } },
+        summary: { width: 4, sheets: 1, seams: 0, length: 4.7, boughtArea: 18.8 },
+      },
+      source: {
+        kind: "manual",
+        ref: `${REVIEW}; ${DOORWAY}. Рулон 4 м вдоль длины закрывает ширину 4,0 м (дверь не на боковой стене); полотно упирается в дверь на правой стене: 4,5 + 0,05 + 0,1 = 4,65 → 4,7 м × 4 = 18,8 м², без шва`,
       },
     },
   ],

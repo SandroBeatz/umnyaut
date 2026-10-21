@@ -51,6 +51,7 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | S26 | Метилан Универсал Премиум, product page: 250 g — 40–50 m² paper simplex, 35–45 m² duplex | Metylan (Henkel) | https://www.metylan.ru/ru/katalog/oboynyy-kley-metylan/metilan-universal-premium.html | 2026-10-13 |
 | S24 | «Поклейка обоев своими руками: что нужно знать»: an outer corner is wrapped 3–4 cm | Российская газета | https://rg.ru/2024/03/30/poklejka-oboev-svoimi-rukami-chto-nuzhno-znat.html | 2026-10-12 |
 | S17 | Инструкция по поклейке обоев (ARTSIMPLE) | SURGAZ (ООО «Фортпост»), manufacturer | https://artsimple.ru/instruction | 2026-10-09 |
+| S27 | Tarkett shop, linoleum, «Ширина» filter: 2,5; 3; 3,5; 4 m. Product cards: Caprice Aventura 1 — 2,5 m; Caprice Aventura 1, class 31 — 3 m; Caprice Gloriosa 1, class 31 — 4 m. ГОСТ 18108-2016 «Линолеум поливинилхлоридный на теплозвукоизолирующей подоснове. Технические условия» sets material requirements, not widths — not a width source | Tarkett | https://shop.tarkett.ru/linoleum/ · https://shop.tarkett.ru/linoleum/linoleum-tarkett-caprice-aventura-1 · https://shop.tarkett.ru/linoleum/linoleum-tarkett-caprice-aventura-1-31-klass-3-m · https://shop.tarkett.ru/linoleum/linoleum-tarkett-caprice-gloriosa-1-31-klass-4-m | 2026-10-21 |
 
 ## Norms
 
@@ -62,6 +63,7 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | CE 40 table (golden cross-check) | 40 × 40 j2 0,2; 60 × 60 j2 0,15 kg/m² | S18 | confirmed | Reproduced exactly by the Ceresit formula at 12,5 / 14 mm joint depth — the table assumes thick porcelain, so the formula with the real tile thickness is used; two golden examples cross-check it |
 | `tileAdhesive.perMm` | 1,2 kg/m² per 1 mm of layer | S2 | confirmed | For a user-entered layer thickness |
 | `tileAdhesive.bag` | 25 kg | S2 | confirmed | Preset; 5 kg second preset |
+| `tileAdhesive.reserve` | 5 % | — (owner, 2026-10-21, after the formula review) | **default, unconfirmed** | Minimal reserve for what stays in the bucket and on the trowel; no primary source with a figure; field «Запас» (klej v3, plitka v6) |
 | `grout.density` | 1,6 | S3 | confirmed (owner: 1,6) | Mapei S4 implies ~1,5; we keep the larger value. S4 rows are golden cross-checks with that difference explained |
 | `grout.pack`, `grout.maxJoint` | 2 kg pack; joint 1–10 mm | S18 | confirmed | 5 kg as a second pack size (field). S18's consumption table (10 × 10, joint 2 → ≈ 0,4 kg/m²) is a golden cross-check |
 | `grout.reserve` | 10% | S3 (10–15%) | confirmed | Lower bound of the range |
@@ -83,13 +85,17 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | `laminate.waste.diagonal` | 15% | — | **default, unconfirmed** (owner: keep with a note) | Labelled «по опыту укладчиков»; to be confirmed by the master (A26) |
 | `laminate.waste.herringbone` | 15% | — | **default, unconfirmed** | Same note |
 | `underlay.rollArea` | 10 m² per roll | — (shop packs, content plan C03) | **default, unconfirmed** | Field «Подложка: м² в рулоне», hint «проверьте по упаковке»; Quick-Step and others sell 5–15 m² |
+| `underlay.rollWidth` | 1 m | — (shop packs, content plan C03) | **default, unconfirmed** | Laminate v3: underlay counted in strips of this width as long as the room (roll length = m² / width), never fewer rolls than by area |
 | `linoleum.weldPerTube` | 20 m of seam per 44 g tube (type A) | — (retailer product cards; Tarkett publishes no figure) | **default, unconfirmed** | Related item «Холодная сварка»; seams counted along the longer room side (safe side, monotonic); type T ≈ 7 m, type C ≈ 15 m |
 | `linoleum.seamOverlap` | 50 mm (3–5 cm) | S11 | confirmed | Pattern matching per seam |
 | `linoleum.wallTrim` | 10 mm (0,5–1 cm) | S11 | confirmed | |
-| `linoleum.rollWidthMin`, `linoleum.rollWidthMax` | 1,2 / 2,4 m (table 1 allows up to 3 m) | S12 | confirmed | Market presets 1,5 … 4 m (C03) |
+| `linoleum.rollWidthMin`, `linoleum.rollWidthMax` | 1,5 / 4 m | S27 | max 4 m **confirmed** (Tarkett card); min 1,5 m **default, unconfirmed** — 1,5 and 2 m only as retail cut pieces, no manufacturer URL (re-review 2026-10-21) | Were 1,2 / 2,4 m from S12 (ГОСТ 7251), which contradicted the widths the tool tries (`LINOLEUM_WIDTHS_MM` 1,5 … 4 m) and the page text; now the tool's range. 2,5 / 3 / 3,5 / 4 m verified on the Tarkett shop. 4,5 / 5 m collections are out of scope |
+| `linoleum.trimAllowance` | 5 cm on every sheet length | S11 (measure by the largest size) | **default, unconfirmed** (owner, 2026-10-21: minimal reserve) | Linoleum v4: was 0. Field «Припуск на подрезку», hint «добавьте 5–10 см»; across, the roll covers the room as it is |
+| `linoleum.doorway` | 10 cm into a placed doorway | S11 («учитывая выступы и дверные проемы») | **default, unconfirmed** — fitters' practice, master review C10 | Linoleum v4. A sheet running into the door end-on is cut 10 cm longer (only sheets that end at the door's wall; a sheet notched by an L-shape runs on past its inner wall). A door in an outer wall along the sheets: the sheets cover the room across + 10 cm per such wall (re-review 2026-10-21); every variant is laid with its doorways before the choice |
 | `plinth.length` | 2,5 m (2,2 m preset) | S13, S20 (2,2 m: S14) | confirmed | The earlier catalogue links showed no length; replaced by the product page and its datasheet |
 | `plinth.fastenerSpacing` | 400 mm | S21 | confirmed (owner: 40 cm) | Manual: «max 30–40 cm» for screws; toggle off for glue or tape |
-| `tile.reserve`, `tile.reserve.diagonal` | 10 % straight, 15 % diagonal | S19 | confirmed | On top of the piece count (every cut piece already takes a tile) — the conservative reading; field «Запас» |
+| `plinth.minPiece` | 30 cm | — (fitters' practice) | **default, unconfirmed** — master review C10 | Plinth v2 (P16.7a): no piece shorter in a run (a run shorter than that is one piece); when the cut plan leaves less, one more plank for a mis-cut |
+| `tile.reserve`, `tile.reserve.diagonal` | 10 % straight, 15 % diagonal | S19 | confirmed | On top of the piece count (every cut piece already takes a tile) — the conservative reading; field «Запас». Diagonal (plitka v6): pieces of the 45° grid, the user's reserve but never under 15 % |
 | `tile.perBox` | 12 tiles per box | — (typical 30 × 30 box, 1,08 m²) | **default, unconfirmed** | Field «Плиток в коробке», hint «проверьте на коробке» |
 | `tile.joint.wall`, `tile.joint.floor` | 2 mm / 3 mm | S3 (1,5–2 wall 15 × 15; 2–3 floor 33 × 33) | confirmed | Upper bound of each range |
 | Adhesive layer limit | ≤ manufacturer's value | S15 | confirmed | Warning when notch × format leaves the S1 table |

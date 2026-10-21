@@ -68,5 +68,5 @@ export function openingsText(room: ExampleRoom): string {
 export function surfacesOf(room: ExampleRoom) {
   const box = { shape: "rect", ...room } as const;
   const floor = floorAreaM2(box);
-  return { floorM2: floor, wallsM2: wallAreaM2(box).areaM2, ceilingM2: floor };
+  return { floorM2: floor, wallsM2: wallAreaM2(box, "height").areaM2, ceilingM2: floor };
 }

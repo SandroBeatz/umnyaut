@@ -161,6 +161,30 @@ describe("aggregateEstimate", () => {
     expect(result.replaced).toEqual([]);
     // Both kept: 70 + 30 kg — a little extra on the floor rather than the walls without adhesive.
     expect(result.shared.find((l) => l.item.key === "tile-adhesive")?.shares.map((x) => x.need)).toEqual([70, 30]);
+    // …but not silently: the floor's adhesive is in both calcs (formula review 2026-10-21).
+    expect(result.overlaps).toEqual([
+      { roomId: "bath", calcIds: ["tileBoth", "glueFloor"], parts: ["floor"], key: "tile-adhesive" },
+    ]);
+  });
+
+  it("real tools: tile on «Пол и стены» and adhesive on «Пол» flag the floor's adhesive counted twice", () => {
+    const ctx = { country: "RU" } as const;
+    const { plitka, klej } = toolModules;
+    const bath = { lengthMm: 2200, widthMm: 1700, heightMm: 2500, openings: [] };
+    const tileBoth = plitka.compute({ ...plitka.defaults(ctx), ...bath, surface: "both" }, ctx);
+    const glueFloor = klej.compute({ ...klej.defaults(ctx), ...bath, surface: "floor" }, ctx);
+    const result = aggregateEstimate({
+      roomIds: ["bath"],
+      calcs: [
+        calc("tileBoth", "bath", [...tileBoth.items], { surface: "floor-walls" }),
+        calc("glueFloor", "bath", [...glueFloor.items], { surface: "floor" }),
+      ],
+      shared,
+      prices: {},
+    });
+    expect(result.overlaps).toEqual([
+      { roomId: "bath", calcIds: ["tileBoth", "glueFloor"], parts: ["floor"], key: "tile-adhesive" },
+    ]);
   });
 
   it("finds two finishes on one surface of a room: tile on «Пол и стены» and on «Пол», wallpaper and paint", () => {
