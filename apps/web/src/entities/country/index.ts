@@ -1,1 +1,1 @@
-export { COUNTRY_KEY, detectCountry, setCountry, useCountry } from "./model/country";
+export { COUNTRY_KEY, countryNow, detectCountry, setCountry, useCountry } from "./model/country";
