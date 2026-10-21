@@ -62,8 +62,48 @@ export interface CalcOverlap {
   parts: readonly SurfacePart[];
   /** «Плитка: Пол и стены». */
   calc: string;
+  /** A consumable counted twice on `parts` («Плиточный клей»): a calc of its own beside a finish that brings it. */
+  item?: string;
   /** Same tool, one of the two covers two surfaces: split it into one calc per surface. */
   split?: { id: string; surfaces: readonly [Surface, Surface] };
+}
+
+/** Item keys of a consumable-only tool (adhesive, grout), whose calc can stand beside a finish bringing the same. */
+const consumables = (tool: ToolDef | undefined) =>
+  tool?.surface && !finishes(tool) ? Object.keys(tool.items ?? {}) : [];
+
+/**
+ * A consumable calc (adhesive on «Пол») and a finish of the room that brings the same consumable on more than it
+ * («Плитка: Пол и стены»): the estimate keeps both, so the shared part counts twice (`aggregateEstimate` overlaps).
+ * A finish covered whole is replaced in the estimate and is no overlap.
+ */
+function consumableOverlap(
+  current: EstimateCalc,
+  calcs: readonly EstimateCalc[],
+  toolOf: (id: string) => ToolDef | undefined,
+): CalcOverlap | undefined {
+  for (const other of calcs) {
+    if (other.id === current.id || other.roomId !== current.roomId || !other.surface || !current.surface) continue;
+    const [own, finish] = consumables(toolOf(current.tool)).length > 0 ? [current, other] : [other, current];
+    const keys = consumables(toolOf(own.tool));
+    const finishTool = toolOf(finish.tool);
+    if (keys.length === 0 || !finishes(finishTool) || !own.surface || !finish.surface) continue;
+    const key = keys.find((k) => finishTool?.items?.[k]);
+    if (!key) continue;
+    const ownParts = surfaceParts(own.surface);
+    const finishParts = surfaceParts(finish.surface);
+    const parts = finishParts.filter((p) => ownParts.includes(p));
+    if (parts.length === 0 || finishParts.every((p) => ownParts.includes(p))) continue;
+    const index = calcs.filter((c) => c.tool === other.tool).indexOf(other);
+    const otherTool = toolOf(other.tool);
+    if (!otherTool) continue;
+    return {
+      parts,
+      calc: `${otherTool.title}: ${chipLabel(otherTool, other, index)}`,
+      item: finishTool?.items?.[key]?.title ?? key,
+    };
+  }
+  return undefined;
 }
 
 /**
@@ -76,7 +116,8 @@ export function overlapOf(
   tools: readonly ToolDef[],
 ): CalcOverlap | undefined {
   const toolOf = (id: string) => tools.find((tool) => tool.id === id);
-  if (!current?.surface || !finishes(toolOf(current.tool))) return undefined;
+  if (!current?.surface) return undefined;
+  if (!finishes(toolOf(current.tool))) return consumableOverlap(current, calcs, toolOf);
   const found: CalcOverlap[] = [];
   for (const other of calcs) {
     if (other.id === current.id || other.roomId !== current.roomId || !other.surface) continue;
@@ -96,8 +137,8 @@ export function overlapOf(
         : {}),
     });
   }
-  // One the user can fix right here («Разделить») goes first.
-  return found.find((o) => o.split) ?? found[0];
+  // One the user can fix right here («Разделить») goes first; else a finish, else a consumable counted twice.
+  return found.find((o) => o.split) ?? found[0] ?? consumableOverlap(current, calcs, toolOf);
 }
 
 /** «Пол», «Пол и стены». */
