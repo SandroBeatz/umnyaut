@@ -47,8 +47,8 @@ test("1 · first visit from search: the result at once, sizes make «Комна�
   page,
 }) => {
   await page.goto(LAMINATE);
-  // Nothing asked: the example room is counted and no editor opens.
-  await expect(result(page)).toHaveText("10");
+  // Nothing asked: the example room is counted and no editor opens (laminate v3: 11 packs).
+  await expect(result(page)).toHaveText("11");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(headerCount(page)).toHaveCount(0);
 
@@ -156,7 +156,8 @@ test("4 · the list: the header opens every room and the shared consumables, a r
   await expect(shared).toContainText("Плиточный клей");
   await expect(shared).toContainText(/на \d+ упаковк\S* меньше, чем по комнатам/);
   const total = page.getByRole("complementary", { name: "Итого по списку" });
-  await expect(total).toContainText(/11\s200\s₽/);
+  // 11 packs of laminate × 1120 ₽ (laminate v3).
+  await expect(total).toContainText(/12\s320\s₽/);
   for (const name of ["Печать / PDF", "Отправить", "Скопировать", "Ссылка"])
     await expect(page.getByRole("button", { name, exact: true })).toBeVisible();
 

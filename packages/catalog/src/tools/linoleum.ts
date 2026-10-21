@@ -99,7 +99,7 @@ export const linoleum: ToolDef = {
       max: 300,
       name: "allowanceMm",
       label: "Припуск на подрезку",
-      hint: "Стены неровные — добавьте 5–10 см",
+      hint: "К длине отреза; стены неровные — добавьте 5–10 см",
       group: "cutting",
     },
     {
@@ -165,7 +165,8 @@ export const linoleum: ToolDef = {
   },
   steps: {
     room: "Комната {length} × {width} = {area} м²",
-    allowance: "Припуск на подрезку {allowance} м к длине и ширине",
+    allowance: "Припуск на подрезку {allowance} м к длине каждого полотна",
+    doorway: "Полотен, что упираются в дверной проём: {sheets} — каждое длиннее на {depth} м, всего +{extra} м",
     variant_length: "Рулон {width} м вдоль длины: полотен {sheets}, отрез {length} м, {area} м²",
     variant_width: "Рулон {width} м поперёк: полотен {sheets}, отрез {length} м, {area} м²",
     best: "Берём {width} м: швов {seams}, отрез {length} м, {area} м² — меньше швов, затем меньше площадь",
@@ -177,5 +178,12 @@ export const linoleum: ToolDef = {
       "Стыков полотен: {seams}. Их сваривают холодной сваркой — включите «Холодная сварка швов», чтобы добавить её в покупки",
     opening_off_wall: "Проёмов не помещается на своей стене: {count}. Проверьте отступ от угла на плане",
   },
-  norms: ["linoleum.weldPerTube", "linoleum.seamOverlap", "linoleum.rollWidthMin", "linoleum.rollWidthMax"],
+  norms: [
+    "linoleum.weldPerTube",
+    "linoleum.seamOverlap",
+    "linoleum.trimAllowance",
+    "linoleum.doorway",
+    "linoleum.rollWidthMin",
+    "linoleum.rollWidthMax",
+  ],
 };

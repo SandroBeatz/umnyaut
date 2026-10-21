@@ -101,7 +101,7 @@ test("without rooms «Указать размеры» opens the editor; its room
 test("without a room: the example row and «Указать размеры», no editor on any calculator", async ({ page }) => {
   await page.goto(LAMINATE);
   await expect(page.locator("[data-room-example]")).toHaveText(/^Пример: 4,6\s×\s4,3\sм$/);
-  await expect(result(page)).toHaveText("10");
+  await expect(result(page)).toHaveText("11");
 
   await page.goto(WALLS);
   await expect(page.getByRole("button", { name: "Указать размеры" })).toBeVisible();
@@ -297,8 +297,8 @@ test("rooms: a new room starts from the example, the picker brings the first one
   await expect(editor.getByRole("textbox", { name: "Название" })).toHaveValue("Комната 2");
   await editor.getByRole("button", { name: "Сохранить комнату" }).click();
   await expect(page.getByRole("button", { name: /^Комната 2, Размеры не заданы/ })).toBeVisible();
-  // 4,6 × 4,3 м of the example: 10 packs.
-  await expect(result(page)).toHaveText("10");
+  // 4,6 × 4,3 м of the example: 11 packs (92 boards row by row, laminate v3).
+  await expect(result(page)).toHaveText("11");
   await editRoom(page, { Длина: "3", Ширина: "2,5" });
   await expect(page.locator("[data-room-dimensions]")).toHaveText(/^3\s×\s2,5\sм$/);
 
@@ -469,18 +469,20 @@ test("tile adhesive and grout follow the tile size", async ({ page }) => {
 
 test("linoleum: the best width and the cut length, a pinned width", async ({ page }) => {
   await page.goto(LINOLEUM);
-  // 4,6 × 4,3: no roll covers it; 2,5 м across, 2 × 4,3 = 8,6 м, 21,5 м².
-  await expect(result(page)).toHaveText("8,6");
-  await expect(page.getByText(/ширина 2,5\sм\s·\s21,5\sм²/)).toBeVisible();
+  // 4,6 × 4,3: no roll covers it; 2,5 м across, 2 × (4,3 + 0,05) + 0,1 under the door = 8,8 м, 22 м² (v4).
+  await expect(result(page)).toHaveText("8,8");
+  await expect(page.getByText(/ширина 2,5\sм\s·\s22\sм²/)).toBeVisible();
 
   await page.getByRole("button", { name: "Ширина рулона" }).click();
   await page.getByRole("radio", { name: "4 м" }).click();
-  await expect(page.getByText(/ширина 4\sм\s·\s34,4\sм²/)).toBeVisible();
+  await expect(page.getByText(/ширина 4\sм\s·\s35,2\sм²/)).toBeVisible();
 });
 
-test("laminate: the mockup room — 10 packs (85 boards), 9 across; diagonal adds 15 %", async ({ page }) => {
+test("laminate: the mockup room — 11 packs (85 boards by the scheme, 92 row by row), 9 across; diagonal adds 15 %", async ({
+  page,
+}) => {
   await page.goto(LAMINATE);
-  await expect(result(page)).toHaveText("10");
+  await expect(result(page)).toHaveText("11");
   await expect(page.getByText("Если класть ряды в другую сторону, хватит 9 пачек")).toBeVisible();
 
   await page.getByRole("button", { name: "Укладка" }).click();
@@ -519,7 +521,7 @@ test("laminate scheme: rows from the count, a guide, the door moved on the plan 
   await page.getByRole("radio", { name: "Стена 1" }).click();
   await editor.getByRole("button", { name: "Готово" }).click();
   await expect(scheme.getByText(/Начните от стены 3 в углу «Старт»/)).toBeVisible();
-  await expect(result(page)).toHaveText("10");
+  await expect(result(page)).toHaveText("11");
 });
 
 test("room plan: a door placed in wall area shows on the plan and in room area", async ({ page }) => {
@@ -600,10 +602,10 @@ test("pack price gives a total and «без N позиций» for items without
   await page.goto(LAMINATE);
   await page.getByRole("button", { name: /Ещё параметры/ }).click();
   await type(page, "Цена пачки", "1800");
-  // 10 пачек × 1800; подложка без цены.
+  // 11 пачек × 1800; подложка без цены.
   const total = page.locator("#result [data-result-total]");
   await expect(total).toContainText("Итого");
-  await expect(total).toContainText(/18\s000/);
+  await expect(total).toContainText(/19\s800/);
   await expect(total).toContainText(/без 1 позиции/);
 });
 

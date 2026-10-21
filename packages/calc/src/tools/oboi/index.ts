@@ -199,6 +199,13 @@ function roomWalls(i: OboiInput, openings: OboiInput["openings"], warnings: Warn
   const count = outline.walls.length;
   const { placed, off } = placeOpenings(outline.walls, openings);
   if (off > 0) warnings.push({ code: "opening_off_wall", level: "warning", values: { count: off } });
+  // Not placed yet: an opening wider than every wall cannot be anywhere (the estimate would still subtract it).
+  const longestWall = Math.max(...outline.walls.map((w) => w.lengthMm));
+  const tooWide = openings.reduce(
+    (n, o) => n + (o.widthMm > longestWall ? Math.max(o.count - (o.places?.length ?? 0), 0) : 0),
+    0,
+  );
+  if (tooWide > 0) warnings.push({ code: "opening_wider_than_walls", level: "warning", values: { count: tooWide } });
   const total = openings.reduce((n, o) => n + o.count, 0);
   const perWall = outline.walls.map((_, k) => wallOpenings(placed, k, i.heightMm));
   const aboveCeiling = perWall.reduce((n, w) => n + w.aboveCeiling, 0);
@@ -665,7 +672,10 @@ export const oboi: ToolModule<OboiInput> = {
   // 5: the paste by wallpaper type (Metylan datasheets): 42 m² per 300 g for non-woven, 36 for heavy, 35 per
   //    250 g of a paper paste — was 30 m² per 250 g, unconfirmed.
   // 6: the repeat counts only with «Рисунок нужно совмещать» on (owner, 2026-10-14).
-  version: 6,
+  // 7: an offset match is also cut the fitters' way — strips of each phase from their own roll — in the cutting
+  //    plan and in the estimate (was 16 rolls for 4,6 × 4,3 × 2,8 m with a 64 cm repeat, now 11; formula review
+  //    2026-10-21); a warning for an unplaced opening wider than any wall.
+  version: 7,
   input,
   upgrade: patternFromRepeat,
   defaults: () => ({

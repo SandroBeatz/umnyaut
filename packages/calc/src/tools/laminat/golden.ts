@@ -2,11 +2,15 @@ import type { GoldenFile } from "../../golden";
 import type { LaminatInput } from "./index";
 
 const RULES =
-  "Quick-Step: смещение стыков соседних рядов не меньше 30 см, кусок не короче 30 см, последний ряд не уже 5 см, https://www.quick-step.ru/laminate/installation/; Tarkett: зазор у стен 10–15 мм, https://www.tarkett.ru/hub/vidy-napolnykh-pokrytiy/ukladka-laminata-i-ukhod/";
+  "Quick-Step: смещение стыков соседних рядов не меньше 30 см, последний ряд не уже 5 см, https://www.quick-step.ru/laminate/installation/; Tarkett: кусок не короче 30 см, зазор у стен 10–15 мм, https://www.tarkett.ru/hub/vidy-napolnykh-pokrytiy/ukladka-laminata-i-ukhod/";
+const REVIEW = "Formula review 2026-10-21, derived by hand";
 
 /**
  * Hand derivations, row by row (the `layRows` rules). Rows = ⌈(room across − 2 × 10) / board width⌉; each row
- * is room along − 2 × 10; packs = ⌈boards / per pack⌉. Diagonal and herringbone: floor area × 1,15 / pack area.
+ * is room along − 2 × 10; packs = ⌈boards / per pack⌉. Version 3: boards bought = the larger of the optimised
+ * plan (the scheme) and the same rules laid row by row without look-ahead (first fitting offcut, else a whole
+ * board, else a board cut to shift the joints). Underlay: 1 m strips as long as the room, cut from 10 m rolls.
+ * Diagonal and herringbone: floor area × 1,15 / pack area.
  */
 export const golden: GoldenFile<LaminatInput> = {
   tool: "laminat",
@@ -15,13 +19,13 @@ export const golden: GoldenFile<LaminatInput> = {
       name: "Mockup room 4.6 × 4.3 m, board 1285 × 192, 9 per pack (defaults)",
       input: {},
       expected: {
-        items: { laminate: { packs: 10 }, underlay: { packs: 2, need: 19.78 } },
-        summary: { rows: 23, boards: 85, lastRow: 56 },
+        items: { laminate: { packs: 11 }, underlay: { packs: 3, need: 19.78 } },
+        summary: { rows: 23, boards: 92, spareBoards: 7, lastRow: 56 },
         warnings: ["other_direction_cheaper"],
       },
       source: {
         kind: "manual",
-        ref: `${RULES}. Замок с двух концов: правая часть обрезка может только начать ряд, левая — только закончить. Ряды по 4580, первые восемь вручную: 985 (рез, левая часть 300 в запас концов) + 2 + 1025 → 4; 425 (рез, левая 860) + 3 + конец 300 из запаса → 4; 725 (рез, левая 560) + 3, без конца → 4; целая + 2 + конец 725 из 860 → 3; 300 (рез, левая 985) + 3 + конец 425 из 560 → 4; 1025 (рез) + 2 + конец 985 из запаса → 3; 725 + 3 → 4; целая + 2 + 725 → 4. Все куски ≥ 30 см, стыки соседних рядов ≥ 30 см. 23 ряда → 85 досок (раскладка проверена по правилам построчно, test/rows-plan.test.ts) / 9 → 10 пачек; поперёк — 80 досок, 9 пачек`,
+        ref: `${RULES}; ${REVIEW}: оптимальный план (схема) — 85 досок, но мастер, который кладёт ряд за рядом без перебора, расходует 92: покупаем 92 → 11 пачек (в v2 — 10 пачек без запаса). Подложка полосами 1 м по 4,6 м: 5 полос, из рулона 10 м — 2 → 3 рулона (в v2 по площади 19,78 / 10 → 2). Схема: замок с двух концов: правая часть обрезка может только начать ряд, левая — только закончить. Ряды по 4580, первые восемь вручную: 985 (рез, левая часть 300 в запас концов) + 2 + 1025 → 4; 425 (рез, левая 860) + 3 + конец 300 из запаса → 4; 725 (рез, левая 560) + 3, без конца → 4; целая + 2 + конец 725 из 860 → 3; 300 (рез, левая 985) + 3 + конец 425 из 560 → 4; 1025 (рез) + 2 + конец 985 из запаса → 3; 725 + 3 → 4; целая + 2 + 725 → 4. Все куски ≥ 30 см, стыки соседних рядов ≥ 30 см. 23 ряда → 85 досок (раскладка проверена по правилам построчно, test/rows-plan.test.ts); поперёк — 80 досок и по оптимуму, и ряд за рядом, 9 пачек`,
       },
     },
     {
@@ -72,11 +76,14 @@ export const golden: GoldenFile<LaminatInput> = {
       name: "Last row of 30 mm: warning",
       input: { widthMm: 4274 },
       expected: {
-        items: { laminate: { packs: 10 } },
+        items: { laminate: { packs: 11 } },
         summary: { rows: 23, lastRow: 30 },
         warnings: ["narrow_last_row"],
       },
-      source: { kind: "manual", ref: `${RULES}. 4254 − 22 × 192 = 30 мм < 50; ряды те же, 85 досок → 10 пачек` },
+      source: {
+        kind: "manual",
+        ref: `${RULES}. 4254 − 22 × 192 = 30 мм < 50; ряды те же: по схеме 85 досок, ряд за рядом 92 → 11 пачек`,
+      },
     },
     {
       name: "Diagonal: area + 15 % «по опыту укладчиков»",
@@ -92,18 +99,21 @@ export const golden: GoldenFile<LaminatInput> = {
       },
     },
     {
-      name: "Herringbone: same 15 %",
+      name: "Herringbone: same 15 %, and a warning that it needs A/B boards (v3)",
       input: { method: "herringbone" },
-      expected: { items: { laminate: { packs: 11 } }, warnings: ["waste_unconfirmed"] },
-      source: { kind: "manual", ref: "19,78 × 1,15 / 2,22048 → 11 пачек" },
-    },
-    {
-      name: "Rows of 2060 mm: a cut start that pays off rows later",
-      input: { lengthMm: 2080, widthMm: 4436 },
-      expected: { items: { laminate: { packs: 5 } }, summary: { rows: 23, boards: 39 } },
+      expected: { items: { laminate: { packs: 11 } }, warnings: ["waste_unconfirmed", "herringbone_ab"] },
       source: {
         kind: "manual",
-        ref: `${RULES}. Ряд 2060 = 1,6 доски: по правилам замков и смещения 23 ряда укладываются из 39 досок (оптимум полного перебора рецензента; раньше пошаговый выбор брал 46). Раскладка проверена построчно (test/rows-plan.test.ts). 39 / 9 → 5 пачек`,
+        ref: `19,78 × 1,15 / 2,22048 → 11 пачек. ${REVIEW}: ёлочку собирают из досок с левым и правым замком (A и B) — обычная доска 1285 × 192 так не ляжет, предупреждаем`,
+      },
+    },
+    {
+      name: "Rows of 2060 mm: the optimised plan takes 39 boards, row by row 46 — buy 46 (v3)",
+      input: { lengthMm: 2080, widthMm: 4436 },
+      expected: { items: { laminate: { packs: 6 } }, summary: { rows: 23, boards: 46, spareBoards: 7 } },
+      source: {
+        kind: "manual",
+        ref: `${RULES}; ${REVIEW}. Ряд 2060 = 1,6 доски: по правилам замков и смещения 23 ряда укладываются из 39 досок (оптимум полного перебора рецензента, схема; раскладка проверена построчно, test/rows-plan.test.ts). Ряд за рядом без перебора выходит 46 — без плана в руках мастер расходует столько: 46 / 9 → 6 пачек (в v2 — 5)`,
       },
     },
     {
@@ -136,14 +146,17 @@ export const golden: GoldenFile<LaminatInput> = {
     {
       name: "Without underlay",
       input: { underlay: false },
-      expected: { items: { laminate: { packs: 10 } }, absentItems: ["underlay"] },
+      expected: { items: { laminate: { packs: 11 } }, absentItems: ["underlay"] },
       source: { kind: "manual", ref: "Подложка выключена" },
     },
     {
       name: "Underlay roll 15 m²",
       input: { underlayRollM2: 15 },
       expected: { items: { underlay: { packs: 2, need: 19.78, leftover: 10.22 } } },
-      source: { kind: "manual", ref: "19,78 / 15 = 1,3 → 2 рулона, останется 10,22 м²" },
+      source: {
+        kind: "manual",
+        ref: "19,78 / 15 = 1,3 → 2 рулона; полосами: рулон 1 × 15 м даёт 3 полосы по 4,6, 5 полос → 2 рулона; останется 10,22 м²",
+      },
     },
     {
       name: "Room 3 × 2 m: three-row cycle 3 + 2 + 2",
@@ -184,8 +197,17 @@ export const golden: GoldenFile<LaminatInput> = {
     {
       name: "With pack prices: total cost",
       input: { price_laminate: 1800, price_underlay: 600 } as Partial<LaminatInput>,
-      expected: { costTotal: 19200 },
-      source: { kind: "manual", ref: "10 пачек × 1800 + 2 рулона × 600 = 19 200 ₽" },
+      expected: { costTotal: 21600 },
+      source: { kind: "manual", ref: "11 пачек × 1800 + 3 рулона × 600 = 21 600 ₽" },
+    },
+    {
+      name: "Underlay by strips: room 5.1 × 1.9 m — 1 roll by area, 2 by strips (v3)",
+      input: { lengthMm: 5100, widthMm: 1900 },
+      expected: { items: { underlay: { packs: 2, need: 9.69, leftover: 10.31 } } },
+      source: {
+        kind: "manual",
+        ref: `${REVIEW}. По площади 9,69 / 10 → 1 рулон, но рулон 1 × 10 м: вдоль 5,1 м — 2 полосы по 5,1, из рулона одна (10 / 5,1 → 1) → 2 рулона; вдоль 1,9 м — 6 полос по 1,9, из рулона пять → 2 рулона. Покупаем 2`,
+      },
     },
   ],
 };

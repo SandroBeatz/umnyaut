@@ -3,6 +3,7 @@ import {
   cornerFlips,
   coverage,
   cutCornerSchema,
+  greedyRows,
   layRows,
   lightDirection,
   mm2ToM2,
@@ -50,6 +51,48 @@ export type LaminatInput = z.infer<typeof input>;
 const MIN_LAST_ROW_MM = 50;
 /** Norms `laminate.waste.diagonal`, `laminate.waste.herringbone` (unconfirmed, owner's 15 %). */
 export const LAMINATE_WASTE_PCT = { diagonal: 15, herringbone: 15 } as const;
+/** Norm `underlay.rollWidth`: an underlay roll is 1 m wide (shop packs, unconfirmed); the length = m² / width. */
+export const UNDERLAY_ROLL_WIDTH_MM = 1000;
+
+/**
+ * Underlay rolls by strips: strips of the roll width across the room, each as long as the room (shorter in an
+ * L-shape's narrow part), cut from rolls; a strip longer than a roll is joined from whole rolls and a rest. Both
+ * directions, the fewer rolls win. Never fewer rolls than by area.
+ */
+function underlayRolls(i: LaminatInput, rollM2: number): { rolls: number; strips: number; alongLength: boolean } {
+  const rollMm = Math.round((rollM2 * 1e6) / UNDERLAY_ROLL_WIDTH_MM);
+  const cut = cutOf(i);
+  const plan = (alongLength: boolean) => {
+    const along = alongLength ? i.lengthMm : i.widthMm;
+    const across = alongLength ? i.widthMm : i.lengthMm;
+    const cutAlong = cut ? (alongLength ? cut.along : cut.across) : 0;
+    const cutAcross = cut ? (alongLength ? cut.across : cut.along) : 0;
+    const n = Math.ceil(across / UNDERLAY_ROLL_WIDTH_MM - 1e-9);
+    const lengths = Array.from({ length: n }, (_, k) =>
+      cut && k * UNDERLAY_ROLL_WIDTH_MM >= across - cutAcross ? along - cutAlong : along,
+    );
+    // Whole rolls for what a strip is longer than a roll; the rests cut from rolls, longest first, first fit.
+    let rolls = 0;
+    const rests: number[] = [];
+    const tails: number[] = [];
+    for (const l of lengths) {
+      rolls += Math.floor(l / rollMm);
+      if (l % rollMm > 0) rests.push(l % rollMm);
+    }
+    for (const r of rests.sort((a, b) => b - a)) {
+      const k = tails.findIndex((t) => t >= r);
+      if (k >= 0) tails[k] = (tails[k] as number) - r;
+      else {
+        rolls++;
+        tails.push(rollMm - r);
+      }
+    }
+    return { rolls, strips: n, alongLength };
+  };
+  const a = plan(true);
+  const b = plan(false);
+  return b.rolls < a.rolls ? b : a;
+}
 
 /** The cut-out if it makes a real L-shape (smaller than the room both ways), else none. */
 const cutOf = (i: LaminatInput) =>
@@ -82,11 +125,23 @@ function straight(i: LaminatInput, alongLength: boolean) {
     minOffsetMm: i.minOffsetMm,
   });
   const relaxed = (laid.plan ?? []).some((r) => r.relaxed);
+  // A fitter laying row by row without the optimised plan in hand: the purchase covers that too.
+  const greedy = greedyRows({
+    rowLengthMm: Math.max(along, 1),
+    rows,
+    rowLengthsMm: Array.from({ length: rows }, (_, k) => (k < fullRows ? Math.max(along, 1) : short)),
+    boardLengthMm: i.boardLengthMm,
+    minPieceMm: i.minOffsetMm,
+    minOffsetMm: i.minOffsetMm,
+  });
+  const boards = Math.max(laid.boards, greedy);
   return {
     rows,
     lastRowMm,
-    boards: laid.boards,
-    packs: Math.ceil(laid.boards / i.boardsPerPack),
+    planBoards: laid.boards,
+    greedyBoards: greedy,
+    boards,
+    packs: Math.ceil(boards / i.boardsPerPack),
     relaxed,
     plan: laid.plan ?? [],
     lengths: Array.from({ length: rows }, (_, k) => (k < fullRows ? Math.max(along, 1) : short)),
@@ -171,13 +226,17 @@ function scheme(i: LaminatInput, lay: ReturnType<typeof straight>, alongLength: 
 
 /**
  * Laminate. Straight: rows across the room minus the wall gaps, each row laid by `layRows` (offcuts start the
- * next rows, joints ≥ 30 cm apart, no piece under 30 cm); packs = ⌈boards / per pack⌉; a last row under 5 cm
- * warns. Diagonal and herringbone: floor area + 15 % (unconfirmed). Underlay by floor area in rolls.
+ * next rows, joints ≥ 30 cm apart, no piece under 30 cm) — the scheme; boards bought = the larger of that plan
+ * and the same rules laid row by row without look-ahead (`greedyRows`), packs = ⌈boards / per pack⌉; a last row
+ * under 5 cm warns. Diagonal and herringbone: floor area + 15 % (unconfirmed). Underlay in 1 m strips, in rolls.
  */
 export const laminat: ToolModule<LaminatInput> = {
   id: "laminat",
   // 2: a full offcut pool gives up its shortest piece instead of wasting a longer new one (narrow rooms).
-  version: 2,
+  // 3: boards = max(optimised plan, row-by-row plan) — the optimised plan alone left no reserve (mockup 85 → 92
+  //    boards, 10 → 11 packs); underlay by 1 m strips (mockup 2 → 3 rolls); herringbone warns about A/B boards
+  //    (formula review 2026-10-21).
+  version: 3,
   input,
   defaults: () => ({
     shape: "rect",
@@ -233,7 +292,12 @@ export const laminat: ToolModule<LaminatInput> = {
             last: lay.lastRowMm,
           },
         },
-        { code: "boards", values: { boards: lay.boards, perPack: i.boardsPerPack, packs: lay.packs } },
+        lay.greedyBoards > lay.planBoards
+          ? {
+              code: "boards_reserve",
+              values: { plan: lay.planBoards, boards: lay.boards, perPack: i.boardsPerPack, packs: lay.packs },
+            }
+          : { code: "boards", values: { boards: lay.boards, perPack: i.boardsPerPack, packs: lay.packs } },
       );
       if (lay.lastRowMm < MIN_LAST_ROW_MM) {
         warnings.push({
@@ -251,6 +315,9 @@ export const laminat: ToolModule<LaminatInput> = {
       summary.push(
         { key: "rows", value: lay.rows, unit: "pcs" },
         { key: "boards", value: lay.boards, unit: "pcs" },
+        ...(lay.boards > lay.planBoards
+          ? [{ key: "spareBoards", value: lay.boards - lay.planBoards, unit: "pcs" as const }]
+          : []),
         { key: "lastRow", value: lay.lastRowMm, unit: "mm" },
       );
     } else {
@@ -258,13 +325,15 @@ export const laminat: ToolModule<LaminatInput> = {
       const need = coverage({ areaM2: floorM2, ratePerM2: 1, wastePct });
       items.push(purchase("laminate", "main", { value: need, unit: "m2" }, pack));
       warnings.push({ code: "waste_unconfirmed", level: "info", values: { pct: wastePct } });
+      // Herringbone is laid from left and right boards (A and B locks); ordinary planks do not make it.
+      if (i.method === "herringbone") warnings.push({ code: "herringbone_ab", level: "warning" });
       steps.push({ code: "waste", values: { area: floorM2, pct: wastePct, need } });
     }
     steps.push({ code: "packs", values: { pack: packM2, packs: (items[0] as PurchaseItem).packs } });
     summary.push({ key: "floorArea", value: floorM2, unit: "m2" });
 
     if (i.underlay) {
-      const underlay = purchase(
+      const byArea = purchase(
         "underlay",
         "related",
         { value: floorM2, unit: "m2" },
@@ -273,8 +342,27 @@ export const laminat: ToolModule<LaminatInput> = {
           size: { value: i.underlayRollM2, unit: "m2" },
         },
       );
+      const strips = underlayRolls(i, i.underlayRollM2);
+      const rolls = Math.max(byArea.packs, strips.rolls);
+      const bought = rolls * i.underlayRollM2;
+      const underlay: PurchaseItem = {
+        ...byArea,
+        packs: rolls,
+        bought: { value: bought, unit: "m2" },
+        leftover: { value: Math.max(bought - floorM2, 0), unit: "m2" },
+      };
       items.push(underlay);
-      steps.push({ code: "underlay", values: { area: floorM2, roll: i.underlayRollM2, rolls: underlay.packs } });
+      steps.push({
+        code: "underlay",
+        values: {
+          area: floorM2,
+          strips: strips.strips,
+          width: UNDERLAY_ROLL_WIDTH_MM / 1000,
+          length: (strips.alongLength ? i.lengthMm : i.widthMm) / 1000,
+          roll: i.underlayRollM2,
+          rolls,
+        },
+      });
     }
     return layout ? { items, summary, warnings, steps, layout } : { items, summary, warnings, steps };
   },

@@ -245,3 +245,74 @@ export function layRows(input: RowsInput): RowsResult {
     plan: unroll(best.plan),
   };
 }
+
+/**
+ * The same rows laid the way a fitter does without planning ahead (formula review 2026-10-21): row by row, each
+ * start is 1) the first start-side offcut that keeps the rules, in the order the offcuts were made, 2) a whole
+ * board, 3) a board cut to shift the joints (its left part may end a later row); a row end takes the first
+ * end-side offcut long enough, else a new board. Same rules as `layRows`, no look-ahead. The purchase takes the
+ * larger of the two counts, so a fitter who does not repeat the optimised plan cut by cut still has enough.
+ */
+export function greedyRows(input: RowsInput): number {
+  const board = Math.round(input.boardLengthMm);
+  const lengths = (
+    input.rowLengthsMm ?? Array.from({ length: Math.max(Math.trunc(input.rows), 0) }, () => input.rowLengthMm)
+  ).map((l) => Math.round(l));
+  const minPiece = Math.min(input.minPieceMm, board);
+  const minOffset = Math.min(input.minOffsetMm, Math.floor(board / 2));
+  const starts: number[] = [];
+  const ends: number[] = [];
+  const keep = (pool: number[], rest: number) => {
+    if (rest >= minPiece) pool.push(rest);
+  };
+  const first = (pool: number[], ok: (p: number) => boolean) => pool.findIndex(ok);
+  let boards = 0;
+  let previous: number | undefined;
+  for (const row of lengths) {
+    if (row <= board) {
+      // One piece: the first offcut of either kind long enough, else a board whose rest may start a row.
+      const k = first(starts, (p) => p >= row);
+      const e = k < 0 ? first(ends, (p) => p >= row) : -1;
+      if (k >= 0) keep(starts, (starts.splice(k, 1)[0] as number) - row);
+      else if (e >= 0) keep(ends, (ends.splice(e, 1)[0] as number) - row);
+      else {
+        boards++;
+        keep(starts, board - row);
+      }
+      previous = undefined;
+      continue;
+    }
+    const fits = (start: number) =>
+      start >= minPiece &&
+      start <= board &&
+      (previous === undefined || phaseGap(start, previous, board) >= minOffset) &&
+      ((row - start) % board === 0 || (row - start) % board >= minPiece);
+    let start: number;
+    const k = first(starts, fits);
+    if (k >= 0) start = starts.splice(k, 1)[0] as number;
+    else if (fits(board)) {
+      start = board;
+      boards++;
+    } else {
+      const p = previous ?? 0;
+      const shifted = [p + minOffset, p - minOffset, p + Math.floor(board / 2), p - Math.floor(board / 2)]
+        .map((x) => ((Math.round(x) % board) + board) % board)
+        .filter((x) => x > 0);
+      start = shifted.find(fits) ?? board;
+      boards++;
+      if (start < board) keep(ends, board - start);
+    }
+    boards += Math.floor((row - start) / board);
+    const end = (row - start) % board;
+    if (end > 0) {
+      const e = first(ends, (p) => p >= end);
+      if (e >= 0) ends.splice(e, 1);
+      else {
+        boards++;
+        keep(starts, board - end);
+      }
+    }
+    previous = start;
+  }
+  return boards;
+}

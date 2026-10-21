@@ -13,14 +13,23 @@ describe("linoleum scheme", () => {
     if (!layout) throw new Error("no layout");
     expect(layout.kind).toBe("strips");
     expect(layout.sheets?.map((s) => [s.lengthMm, s.floorWidthMm])).toEqual([
-      [4300, 2475],
-      [4300, 2125],
+      // Linoleum v4: 4,3 m + 5 cm allowance; the door on the bottom wall lies on sheet 2 — 10 cm longer.
+      [4350, 2475],
+      [4450, 2125],
     ]);
     expect(layout.stats).toMatchObject({ whole: 1, cut: 1, reused: 0 });
     expect(layout.marks.map((m) => m.kind)).toEqual(["start", "seam", "door", "window"]);
     // Window in the left wall: light runs along the length, the 2.5 m sheets run across it.
-    expect(layout.guide.map((s) => s.code)).toEqual(["start", "relax", "seam_overlap", "weld", "trim", "light_across"]);
-    expect(layout.guide.at(-1)?.values).toEqual({ width: 2.5, seams: 1, area: 23 });
+    expect(layout.guide.map((s) => s.code)).toEqual([
+      "start",
+      "relax",
+      "seam_overlap",
+      "weld",
+      "doorway",
+      "trim",
+      "light_across",
+    ]);
+    expect(layout.guide.at(-1)?.values).toEqual({ width: 2.5, seams: 1, area: 23.25 });
   });
 
   it("the sheets in the scheme are the sheets bought, whatever the room, width, allowance, repeat and L-cut", () => {
@@ -70,7 +79,7 @@ describe("linoleum scheme", () => {
     );
   });
 
-  it("a seam in the doorway moves the sheets to start from the other wall; the purchase stays", () => {
+  it("a seam in the doorway moves the sheets to start from the other wall; only the doorway adds to the purchase", () => {
     // 2.5 m sheets across a 4.6 m length: the seam at 2475 mm from the left wall, 2125 mm from the right one.
     const door = {
       type: "door",
@@ -81,7 +90,10 @@ describe("linoleum scheme", () => {
     } as const;
     const plain = linoleum.compute({ ...defaults, openings: [] }, ctx);
     const result = linoleum.compute({ ...defaults, openings: [door] }, ctx);
-    expect(result.items).toEqual(plain.items);
+    // The sheets are not re-chosen; the one sheet running into the doorway is cut 10 cm longer (v4).
+    const packs = (r: typeof plain) => r.items.find((x) => x.key === "linoleum")?.packs;
+    expect(packs(result)).toBe((packs(plain) ?? 0) + 1);
+    expect(result.items.filter((x) => x.key !== "linoleum")).toEqual(plain.items.filter((x) => x.key !== "linoleum"));
     expect(result.layout?.guide.map((s) => s.code)).toContain("door_clear");
     const seam = result.layout?.marks.find((m) => m.kind === "seam");
     expect(seam?.x1).toBe(2125);

@@ -1,11 +1,13 @@
 /**
  * Strips cut from rolls (wallpaper now; linoleum and curtains later). Full-height strips are cut one after
  * another; with a pattern each one must start where the pattern lines up with its neighbour: every `repeat`
- * for a straight match, alternating 0 and repeat / 2 for an offset (drop) match. Short pieces (above doors,
- * above and below windows) go into the tails of the rolls first, a new roll only when no tail fits.
+ * for a straight match, alternating 0 and repeat / 2 for an offset (drop) match. An offset match is also tried
+ * the fitters' way — strips of each phase from their own roll (two rolls alternately), so no half repeat is lost
+ * between strips — and the plan with fewer rolls wins. Short pieces (above doors, above and below windows) go
+ * into the tails of the rolls first, a new roll only when no tail fits.
  * Where the pattern starts on a new roll is unknown, so with a repeat each roll is taken at the worst case:
- * up to one repeat (repeat − 1 mm) is lost before its first cut. That matches the fitters' rule
- * «высота + раппорт» per strip. Tails shorter than a piece are waste.
+ * up to one repeat (repeat − 1 mm) is lost once per roll before its first cut — less than the fitters' cautious
+ * rule «высота + раппорт», which loses a repeat on every strip. Tails shorter than a piece are waste.
  */
 export interface StripCutInput {
   rollLengthMm: number;
@@ -88,40 +90,63 @@ export function cutStrips(input: StripCutInput): StripCut {
   const local = (r: Roll, phase: number) => (repeat > 0 ? (((phase - r.base) % repeat) + repeat) % repeat : 0);
   const next = (r: Roll, phase: number) => startAt(r.end, local(r, phase), repeat);
 
-  let perRoll = 0;
-  const fresh: Roll = { end: 0, base: 0, cuts: [] };
-  for (; strip > 0; perRoll++) {
-    const start = perRoll === 0 ? 0 : next(fresh, alternate(perRoll));
-    if (start + strip > roll) break;
-    fresh.end = start + strip;
-  }
+  // A fresh roll: phases alternating, or one phase (each phase from its own roll) — the most strips, then the
+  // most slack.
+  const freshRoll = (phase: (k: number) => number) => {
+    let n = 0;
+    const r: Roll = { end: 0, base: 0, cuts: [] };
+    for (; strip > 0; n++) {
+      const start = n === 0 ? 0 : next(r, phase(n));
+      if (start + strip > roll) break;
+      r.end = start + strip;
+    }
+    return { n, end: r.end };
+  };
+  const [fresh] = [freshRoll(alternate), freshRoll(() => 0)].sort((a, b) => b.n - a.n || a.end - b.end) as [
+    { n: number; end: number },
+  ];
+  const perRoll = fresh.n;
 
-  const rolls: Roll[] = [];
-  for (let k = 0; k < strips; k++) {
-    const last = rolls[rolls.length - 1];
-    const start = last ? next(last, phaseOf(k)) : roll;
-    if (last && start + strip <= roll) {
-      last.cuts.push({ kind: "strip", index: k, startMm: start / SCALE });
-      last.end = start + strip;
-    } else rolls.push({ end: strip, base: phaseOf(k), cuts: [{ kind: "strip", index: k, startMm: 0 }] });
-  }
+  const cut = (grouped: boolean): Roll[] => {
+    const rolls: Roll[] = [];
+    /** The roll strips of each phase are cut from now (grouped), else the last one. */
+    const open = new Map<number, Roll>();
+    for (let k = 0; k < strips; k++) {
+      const phase = phaseOf(k);
+      const last = grouped ? open.get(phase) : rolls[rolls.length - 1];
+      const start = last ? next(last, phase) : roll;
+      if (last && start + strip <= roll) {
+        last.cuts.push({ kind: "strip", index: k, startMm: start / SCALE });
+        last.end = start + strip;
+      } else {
+        const fresh: Roll = { end: strip, base: phase, cuts: [{ kind: "strip", index: k, startMm: 0 }] };
+        rolls.push(fresh);
+        open.set(phase, fresh);
+      }
+    }
 
-  // Longest pieces first; equal ones in their order.
-  const order = pieces
-    .map((p, index) => ({ p, index }))
-    .filter(({ p }) => p > 0)
-    .sort((a, b) => b.p - a.p || a.index - b.index);
-  for (const { p: piece, index } of order) {
-    const fixed = input.piecePhasesMm?.[index];
-    const phases = fixed === undefined ? anyPhase : [wrapPhase(fixed)];
-    const earliest = (r: Roll) => Math.min(...phases.map((phase) => next(r, phase)));
-    const target = rolls.find((r) => earliest(r) + piece <= roll);
-    if (target) {
-      const start = earliest(target);
-      target.cuts.push({ kind: "piece", index, startMm: start / SCALE });
-      target.end = start + piece;
-    } else rolls.push({ end: piece, base: phases[0] ?? 0, cuts: [{ kind: "piece", index, startMm: 0 }] });
-  }
+    // Longest pieces first; equal ones in their order.
+    const order = pieces
+      .map((p, index) => ({ p, index }))
+      .filter(({ p }) => p > 0)
+      .sort((a, b) => b.p - a.p || a.index - b.index);
+    for (const { p: piece, index } of order) {
+      const fixed = input.piecePhasesMm?.[index];
+      const phases = fixed === undefined ? anyPhase : [wrapPhase(fixed)];
+      const earliest = (r: Roll) => Math.min(...phases.map((phase) => next(r, phase)));
+      const target = rolls.find((r) => earliest(r) + piece <= roll);
+      if (target) {
+        const start = earliest(target);
+        target.cuts.push({ kind: "piece", index, startMm: start / SCALE });
+        target.end = start + piece;
+      } else rolls.push({ end: piece, base: phases[0] ?? 0, cuts: [{ kind: "piece", index, startMm: 0 }] });
+    }
+    return rolls;
+  };
+  const inOrder = cut(false);
+  const phases = new Set(Array.from({ length: strips }, (_, k) => phaseOf(k))).size;
+  const byPhase = phases > 1 ? cut(true) : inOrder;
+  const rolls = byPhase.length < inOrder.length ? byPhase : inOrder;
 
   return {
     fits: true,

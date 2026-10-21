@@ -1,6 +1,7 @@
 /**
- * Cutting plan for rolls (wallpaper): full-length strips are cut from the rolls in hanging order, each where its
- * pattern lines up; then shorter or narrower parts (pieces above and below openings, narrow closing strips) go
+ * Cutting plan for rolls (wallpaper): full-length strips are cut from the rolls, each where its pattern lines up —
+ * either in hanging order from one roll, or (offset match) every pattern phase from its own roll, as fitters cut
+ * a drop match from two rolls alternately so no half repeat is lost between strips; then shorter or narrower parts (pieces above and below openings, narrow closing strips) go
  * into the material already left over — roll tails and the side rests of strips cut lengthwise — and a new roll
  * is opened only when no rest fits. Every rest is a rectangle in its roll; a part taken from it splits it across
  * (guillotine): the rest along the roll keeps the full rest width, the rest beside the part keeps the part's
@@ -91,7 +92,7 @@ interface RollState {
   trimmed: number;
 }
 
-function plan(i: CutPlanInput, order: number[], best: boolean): CutPlan {
+function plan(i: CutPlanInput, order: number[], best: boolean, grouped: boolean): CutPlan {
   const W = i.rollWidthMm;
   const repeat = Math.max(i.repeatMm, 0);
   const usable = i.rollLengthMm - (repeat > 0 && !i.luckyStart ? repeat - 1 : 0);
@@ -105,15 +106,18 @@ function plan(i: CutPlanInput, order: number[], best: boolean): CutPlan {
 
   const rolls: RollState[] = [];
   const rests: Rest[] = [];
+  /** Grouped: the roll strips of each pattern phase are cut from now. */
+  const open = new Map<number, number>();
   i.strips.forEach((s, index) => {
-    const last = rolls[rolls.length - 1];
-    let roll = rolls.length - 1;
+    let roll = grouped ? (open.get(wrap(s.phaseMm)) ?? -1) : rolls.length - 1;
+    const last = rolls[roll];
     let from = last ? at(last.end, last.base, s.phaseMm) : Number.POSITIVE_INFINITY;
     if (!last || from + s.lengthMm > usable + EPS) {
       rolls.push({ base: wrap(s.phaseMm), end: 0, cuts: [], trimmed: 0 });
       roll = rolls.length - 1;
       from = 0;
     }
+    open.set(wrap(s.phaseMm), roll);
     const r = rolls[roll] as RollState;
     // Cut lengthwise: the strip uses its parts; the width left is a rest (or waste when too narrow).
     r.cuts.push({
@@ -201,17 +205,26 @@ function plan(i: CutPlanInput, order: number[], best: boolean): CutPlan {
     }
   }
 
-  // A fresh roll: how many strips of the first length it gives (pattern alternation 0, half, 0 …).
+  // A fresh roll: how many strips of the first length it gives — phases alternating (0, half, 0 …) or one phase
+  // (each phase from its own roll), the most strips, then the most slack.
   const first = i.strips[0];
   let perRoll = 0;
   let end = 0;
   if (first) {
     const half = i.strips[1] ? wrap((i.strips[1]?.phaseMm ?? 0) - first.phaseMm) : 0;
-    for (;;) {
-      const from = perRoll === 0 ? 0 : at(end, 0, perRoll % 2 === 1 ? half : 0);
-      if (from + first.lengthMm > usable + EPS) break;
-      end = from + first.lengthMm;
-      perRoll++;
+    for (const shift of half > 0 ? [half, 0] : [0]) {
+      let n = 0;
+      let e = 0;
+      for (;;) {
+        const from = n === 0 ? 0 : at(e, 0, n % 2 === 1 ? shift : 0);
+        if (from + first.lengthMm > usable + EPS) break;
+        e = from + first.lengthMm;
+        n++;
+      }
+      if (n > perRoll || (n === perRoll && e < end)) {
+        perRoll = n;
+        end = e;
+      }
     }
   }
 
@@ -242,16 +255,20 @@ export function planCuts(i: CutPlanInput): CutPlan {
   const by = (f: (p: CutPlanInput["parts"][number]) => number) =>
     [...idx].sort((a, b) => f(i.parts[b] as never) - f(i.parts[a] as never) || a - b);
   const orders = [by((p) => p.lengthMm), by((p) => p.widthMm * p.lengthMm), by((p) => p.widthMm * 1e6 + p.lengthMm)];
+  // Strips of several pattern phases (offset match): also each phase from its own roll.
+  const wrap = (v: number) => (i.repeatMm > 0 ? ((v % i.repeatMm) + i.repeatMm) % i.repeatMm : 0);
+  const phases = new Set(i.strips.map((s) => wrap(s.phaseMm))).size;
   let bestPlan: CutPlan | undefined;
-  for (const order of i.quick ? orders.slice(0, 1) : orders)
-    for (const rule of i.quick ? [true] : [true, false]) {
-      const candidate = plan(i, order, rule);
-      if (
-        !bestPlan ||
-        candidate.rolls.length < bestPlan.rolls.length ||
-        (candidate.rolls.length === bestPlan.rolls.length && candidate.tailMm > bestPlan.tailMm + EPS)
-      )
-        bestPlan = candidate;
-    }
+  for (const grouped of phases > 1 ? [false, true] : [false])
+    for (const order of i.quick ? orders.slice(0, 1) : orders)
+      for (const rule of i.quick ? [true] : [true, false]) {
+        const candidate = plan(i, order, rule, grouped);
+        if (
+          !bestPlan ||
+          candidate.rolls.length < bestPlan.rolls.length ||
+          (candidate.rolls.length === bestPlan.rolls.length && candidate.tailMm > bestPlan.tailMm + EPS)
+        )
+          bestPlan = candidate;
+      }
   return bestPlan as CutPlan;
 }
