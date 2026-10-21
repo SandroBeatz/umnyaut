@@ -77,3 +77,19 @@ test("the own counter gets the events without consent: name, tool, country, sour
   }
   expect(events.find((e) => e.event === "tool_view")).toMatchObject({ tool: "ploshchad-sten", source: "web" });
 });
+
+test.describe("a visitor from Bishkek", () => {
+  test.use({ timezoneId: "Asia/Bishkek" });
+
+  test("the counter gets KG from the very first event, not the RU of the static HTML", async ({ page }) => {
+    const events: Array<Record<string, unknown>> = [];
+    await page.route("**/api/e/", async (route) => {
+      events.push(JSON.parse(route.request().postData() ?? "{}"));
+      await route.fulfill({ status: 204 });
+    });
+    await page.goto(WALLS);
+    await expect.poll(() => events.map((e) => e.event)).toContain("tool_view");
+    expect(events.find((e) => e.event === "tool_view")).toMatchObject({ country: "KG" });
+    expect(events.filter((e) => e.country !== "KG")).toEqual([]);
+  });
+});

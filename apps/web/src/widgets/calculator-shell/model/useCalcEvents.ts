@@ -3,6 +3,7 @@
 import type { Country } from "@umnyaut/calc";
 import type { ToolDef } from "@umnyaut/catalog";
 import { useEffect, useRef } from "react";
+import { countryNow } from "@/entities/country";
 import type { ToolValues } from "@/entities/tool";
 import { setAnalyticsContext, track } from "@/shared/analytics";
 
@@ -33,8 +34,10 @@ export function useCalcEvents({ tool, country, values, edits, fieldsChanged, pan
   const adjusted = useRef(false);
   const prices = useRef<ToolValues | undefined>(undefined);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `country` changing (footer switch) resets the context
   useEffect(() => {
-    setAnalyticsContext({ country, category: tool.category, tool: tool.id });
+    // Not `country`: on the first render it is still the default RU, and `tool_view` below goes out in this commit.
+    setAnalyticsContext({ country: countryNow(), category: tool.category, tool: tool.id });
     return () => setAnalyticsContext({});
   }, [country, tool]);
 

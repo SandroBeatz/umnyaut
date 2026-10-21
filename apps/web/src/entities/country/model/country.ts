@@ -44,6 +44,12 @@ function subscribe(listener: () => void) {
   };
 }
 
+/**
+ * The country right now, outside React (client only): effects run after the first render, which still shows the
+ * default — analytics must not send that RU for a KZ/BY/KG visitor.
+ */
+export const countryNow = (): Country => current();
+
 /** The user's country; the server and the first client render use the default (static HTML is RU). */
 export function useCountry(): Country {
   return useSyncExternalStore(subscribe, current, () => DEFAULT_COUNTRY);
