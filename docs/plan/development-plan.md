@@ -1,12 +1,12 @@
 ---
-version: 2.14
-date: 2026-10-20
+version: 2.15
+date: 2026-10-21
 category: plan
 ---
 
 # Development Plan
 
-> Version 2.14 · 2026-10-20 · [Plan](../plan/)
+> Version 2.15 · 2026-10-21 · [Plan](../plan/)
 
 ## Overview
 
@@ -300,8 +300,8 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 **Tasks**
 
 - [x] P9.1 Cookie banner (strict mode: Metrika not loaded before «Принять»; equal buttons; 6-month hide after refusal; footer “Настройки cookie”).
-- [ ] P9.2 `shared/analytics/track()` typed `EventMap`; adapters: own counter (`sendBeacon('/api/e')` → `events_daily`) always, Metrika after consent (URL without `s`); common params (country, source, category, variation); `calc_completed` logic (≥ 2 fields + 5 s visible, `via`); `js_error`. Metrika part live on prod 2026-10-19 (counter `113671906`, 10 goals); own counter left.
-- [ ] P9.3 `POST /api/e` with limits.
+- [x] P9.2 `shared/analytics/track()` typed `EventMap`; adapters: own counter (`sendBeacon('/api/e')` → `events_daily`) always, Metrika after consent (URL without `s`); common params (country, source, category, variation); `calc_completed` logic (≥ 2 fields + 5 s visible, `via`); `js_error`. Metrika part live on prod 2026-10-19 (counter `113671906`, 10 goals); own counter live with P9.3 (2026-10-21).
+- [x] P9.3 `POST /api/e` with limits. → 2026-10-21: `POST /api/e/` (Origin, 300/min in memory, `EventMap` names only, unknown tool/country → none, 204), `track()` sends a text beacon always, `fetch` keepalive as fallback.
 - [x] P9.4 `generateMetadata` from frontmatter; canonical everywhere; JSON-LD (`WebApplication`, `FAQPage`, `BreadcrumbList`, `Organization`, `WebSite`).
 - [x] P9.5 `sitemap.ts` (lastmod from text/formula change), `robots.txt` route (disallow `/api/`, Yandex `Clean-param: s`), `manifest.ts` (PWA icons G08), OG image G09, 301 map in catalog.
 - [x] P9.6 Security headers in Caddy/Next: CSP (self, Metrika, Telegram), HSTS, nosniff, Referrer-Policy, `frame-ancestors` per route table.
