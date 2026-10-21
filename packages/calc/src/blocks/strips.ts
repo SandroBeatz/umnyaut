@@ -44,6 +44,11 @@ export interface StripCut {
   remnantsMm: number[];
   /** What each roll is cut into, in cutting order: strip `index` (0-based) or piece `index` of `pieces`. */
   cuts: { kind: "strip" | "piece"; index: number; startMm: number }[][];
+  /**
+   * Set when strips of each phase were cut from their own rolls (that plan won): strips and rolls per phase in
+   * phase order, and how many strips of one phase a fresh roll gives — for a step a person can recount.
+   */
+  phases?: { strips: number[]; rolls: number[]; perRoll: number };
 }
 
 /** Coordinates are doubled inside so that half a repeat stays an integer. */
@@ -102,7 +107,8 @@ export function cutStrips(input: StripCutInput): StripCut {
     }
     return { n, end: r.end };
   };
-  const [fresh] = [freshRoll(alternate), freshRoll(() => 0)].sort((a, b) => b.n - a.n || a.end - b.end) as [
+  const onePhase = freshRoll(() => 0);
+  const [fresh] = [freshRoll(alternate), onePhase].sort((a, b) => b.n - a.n || a.end - b.end) as [
     { n: number; end: number },
   ];
   const perRoll = fresh.n;
@@ -147,6 +153,11 @@ export function cutStrips(input: StripCutInput): StripCut {
   const phases = new Set(Array.from({ length: strips }, (_, k) => phaseOf(k))).size;
   const byPhase = phases > 1 ? cut(true) : inOrder;
   const rolls = byPhase.length < inOrder.length ? byPhase : inOrder;
+  const phaseList = [...new Set(Array.from({ length: strips }, (_, k) => phaseOf(k)))].sort((a, b) => a - b);
+  const phaseOfRoll = (r: Roll) => {
+    const first = r.cuts.find((c) => c.kind === "strip");
+    return first === undefined ? undefined : phaseOf(first.index);
+  };
 
   return {
     fits: true,
@@ -155,5 +166,16 @@ export function cutStrips(input: StripCutInput): StripCut {
     perRollSlackMm: (roll - fresh.end) / SCALE,
     remnantsMm: rolls.map((r) => (roll - r.end) / SCALE),
     cuts: rolls.map((r) => r.cuts),
+    ...(rolls === byPhase && byPhase !== inOrder
+      ? {
+          phases: {
+            strips: phaseList.map(
+              (ph) => Array.from({ length: strips }, (_, k) => phaseOf(k)).filter((x) => x === ph).length,
+            ),
+            rolls: phaseList.map((ph) => byPhase.filter((r) => phaseOfRoll(r) === ph).length),
+            perRoll: onePhase.n,
+          },
+        }
+      : {}),
   };
 }

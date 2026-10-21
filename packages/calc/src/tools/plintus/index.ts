@@ -259,8 +259,10 @@ export const plintus: ToolModule<PlintusInput> = {
       ...(joiners > 0 ? [piece("plinth-joiner", joiners)] : []),
     ];
     if (i.fasteners) {
-      // A fixing near both ends of every straight run, and no more than the spacing between them.
-      const fasteners = runs(i, l).reduce((n, run) => n + Math.ceil(run / i.fastenerSpacingMm) + 1, 0);
+      // A fixing near both ends of every straight run, and no more than the spacing between them; the real runs
+      // once every door is placed, else each door splitting the longest run.
+      const straight = laid ? laid.runs.map((r) => r.lengthMm) : runs(i, l);
+      const fasteners = straight.reduce((n, run) => n + Math.ceil(run / i.fastenerSpacingMm) + 1, 0);
       items.push(piece("plinth-fastener", fasteners));
       steps.push({
         code: "fasteners",

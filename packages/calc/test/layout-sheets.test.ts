@@ -124,8 +124,54 @@ describe("linoleum scheme", () => {
     expect(result.layout?.guide.map((s) => s.code)).toContain("light_along");
   });
 
+  it("door in a wall along the sheets: the sheets cover the room across plus the doorway", () => {
+    // 1.5 m rolls along the length: 4.3 m + 0.1 m into the bottom doorway = 4.4 m = 3 × 1.5 − 2 × 0.05.
+    const far = linoleum.compute({ ...defaults, rollWidthMm: 1500 }, ctx);
+    expect(summary(far, "sheets")).toBe(3);
+    expect(far.layout?.guide.map((s) => s.code)).toContain("doorway_side");
+    expect(far.steps.find((s) => s.code === "doorway_side_length")?.values).toEqual({
+      room: 4.3,
+      extra: 0.1,
+      across: 4.4,
+    });
+    // The same door in the top wall, where sheet 1 starts: it starts 10 cm inside the doorway, so every seam
+    // moves 10 cm toward the start wall.
+    const near = linoleum.compute(
+      {
+        ...defaults,
+        rollWidthMm: 1500,
+        openings: [{ type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 0, offsetMm: 600 }] }],
+      },
+      ctx,
+    );
+    const seams = near.layout?.marks.filter((m) => m.kind === "seam").map((m) => m.y1);
+    expect(seams).toEqual([1375, 2825]);
+    expect(near.layout?.sheets?.map((s) => s.floorWidthMm)).toEqual([1375, 1450, 1475]);
+    // Two doors, one in each long wall: 4.3 + 0.2 = 4.5 m > 4.4 m — a fourth sheet.
+    const both = linoleum.compute(
+      {
+        ...defaults,
+        rollWidthMm: 1500,
+        openings: [
+          {
+            type: "door",
+            widthMm: 800,
+            heightMm: 2000,
+            count: 2,
+            places: [
+              { wall: 0, offsetMm: 600 },
+              { wall: 2, offsetMm: 600 },
+            ],
+          },
+        ],
+      },
+      ctx,
+    );
+    expect(summary(both, "sheets")).toBe(4);
+  });
+
   it("one sheet: no seams, no seam advice", () => {
-    const result = linoleum.compute({ ...defaults, lengthMm: 3000, widthMm: 2500 }, ctx);
+    const result = linoleum.compute({ ...defaults, lengthMm: 3000, widthMm: 2500, openings: [] }, ctx);
     expect(result.layout?.marks.filter((m) => m.kind === "seam")).toEqual([]);
     expect(result.layout?.guide.map((s) => s.code)).toEqual(["start", "relax", "trim"]);
   });

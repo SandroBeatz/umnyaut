@@ -33,26 +33,26 @@ export const golden: GoldenFile<LinoleumInput> = {
     },
     {
       name: "Room 3 × 2.5 m without allowance: one 2.5 m sheet, tie broken along the length",
-      input: { lengthMm: 3000, widthMm: 2500, allowanceMm: 0 },
+      input: { lengthMm: 3000, widthMm: 2500, allowanceMm: 0, openings: [] },
       expected: {
         items: { linoleum: { packs: 30 } },
         summary: { width: 2.5, length: 3, seams: 0, boughtArea: 7.5, waste: 0 },
       },
       source: {
         kind: "manual",
-        ref: "2,5 вдоль длины: 3,0 м = 7,5 м²; 3 м поперёк: 2,5 м = 7,5 м² — равно, берём вдоль длины",
+        ref: "2,5 вдоль длины: 3,0 м = 7,5 м²; 3 м поперёк: 2,5 м = 7,5 м² — равно, берём вдоль длины. Без проёмов на плане (openings: []): пример двери на нижней стене с v4 расширял бы комнату поперёк на заход в проём.",
       },
     },
     {
       name: "Allowance 5 cm by default goes on the sheet length only: room 3 × 2.5 m — 3.1 m of 2.5 m (v4)",
-      input: { lengthMm: 3000, widthMm: 2500 },
+      input: { lengthMm: 3000, widthMm: 2500, openings: [] },
       expected: {
         items: { linoleum: { packs: 31 } },
         summary: { width: 2.5, length: 3.1, seams: 0, boughtArea: 7.75 },
       },
       source: {
         kind: "manual",
-        ref: `${REVIEW}. Припуск 5 см к длине отреза (подсказка поля: «добавьте 5–10 см»; Tarkett — мерить по наибольшим размерам). 2,5 м вдоль длины: 3,05 → 3,1 м = 7,75 м²; 3 м поперёк: 2,55 → 2,6 м = 7,8 м². Поперёк рулон закрывает комнату как есть, припуск ширину не увеличивает: в v3 припуск 5 см к ширине уводил на рулон 3,5 м и 9,1 м²`,
+        ref: `${REVIEW}. Припуск 5 см к длине отреза (подсказка поля: «добавьте 5–10 см»; Tarkett — мерить по наибольшим размерам). 2,5 м вдоль длины: 3,05 → 3,1 м = 7,75 м²; 3 м поперёк: 2,55 → 2,6 м = 7,8 м². Поперёк рулон закрывает комнату как есть, припуск ширину не увеличивает: в v3 припуск 5 см к ширине уводил на рулон 3,5 м и 9,1 м². Без проёмов на плане (openings: []): пример двери на нижней стене с v4 расширял бы комнату поперёк на заход в проём.`,
       },
     },
     {
@@ -105,9 +105,12 @@ export const golden: GoldenFile<LinoleumInput> = {
     },
     {
       name: "Plain linoleum without a pattern: no overlap, two sheets",
-      input: { lengthMm: 6000, widthMm: 4970, rollWidthMm: 2500, overlapMm: 0 },
+      input: { lengthMm: 6000, widthMm: 4970, rollWidthMm: 2500, overlapMm: 0, openings: [] },
       expected: { items: { linoleum: { packs: 121 } }, summary: { sheets: 2, seams: 1, boughtArea: 30.25 } },
-      source: { kind: "manual", ref: "Без нахлёста 2 × 2,5 = 5 ≥ 4,97 → 2 × 6,05 = 12,1 м = 30,25 м²" },
+      source: {
+        kind: "manual",
+        ref: "Без нахлёста 2 × 2,5 = 5 ≥ 4,97 → 2 × 6,05 = 12,1 м = 30,25 м². Без проёмов на плане (openings: []): пример двери на нижней стене с v4 расширял бы комнату поперёк на заход в проём.",
+      },
     },
     {
       name: "Patterned linoleum, repeat 50 cm: the second sheet is cut longer",
@@ -184,14 +187,14 @@ export const golden: GoldenFile<LinoleumInput> = {
     },
     {
       name: "Room 4 × 3 m without allowance: a 3 m roll along the length, no waste",
-      input: { lengthMm: 4000, widthMm: 3000, allowanceMm: 0 },
+      input: { lengthMm: 4000, widthMm: 3000, allowanceMm: 0, openings: [] },
       expected: {
         items: { linoleum: { packs: 40 } },
         summary: { width: 3, length: 4, boughtArea: 12, waste: 0 },
       },
       source: {
         kind: "manual",
-        ref: "3 м вдоль: 4,0 м = 12 м²; 4 м поперёк: 3,0 м = 12 м² — равно, берём вдоль длины",
+        ref: "3 м вдоль: 4,0 м = 12 м²; 4 м поперёк: 3,0 м = 12 м² — равно, берём вдоль длины. Без проёмов на плане (openings: []): пример двери на нижней стене с v4 расширял бы комнату поперёк на заход в проём.",
       },
     },
     {
@@ -244,16 +247,51 @@ export const golden: GoldenFile<LinoleumInput> = {
       },
     },
     {
-      name: "Door on a side wall the sheets run along: no doorway extra (v4)",
+      name: "Room 4 × 3 m, door on the 4 m wall the sheets would run along: the roll must reach into it (v4)",
       input: {
         lengthMm: 4000,
         widthMm: 3000,
-        openings: [{ type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 0, offsetMm: 1000 }] }],
+        openings: [{ type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 0, offsetMm: 1600 }] }],
       },
-      expected: { items: { linoleum: { packs: 41 } }, summary: { width: 3, length: 4.1, boughtArea: 12.3 } },
+      expected: {
+        items: { linoleum: { packs: 32 } },
+        summary: { width: 4, sheets: 1, seams: 0, length: 3.2, boughtArea: 12.8 },
+      },
       source: {
         kind: "manual",
-        ref: `${REVIEW}. Дверь на верхней стене, полотно 3 м идёт вдоль неё: торцом в проём не упирается, отрез 4,05 → 4,1 м = 12,3 м²`,
+        ref: `${REVIEW} (re-review: заход в проём на стене вдоль полотен); ${DOORWAY}. Вдоль длины полотно идёт вдоль стены с дверью — поперёк надо закрыть 3,0 + 0,1 = 3,1 м: рулон 3 м уже не хватает, 3,5 м × (4,0 + 0,05 → 4,1 м) = 14,35 м². Поперёк: рулон 4 м закрывает 4,0 м, полотно упирается торцом в дверь на верхней стене — 3,0 + 0,05 + 0,1 = 3,15 → 3,2 м × 4 = 12,8 м², одно полотно — дешевле. До исправления было 3 м × 4,1 = 12,3 м², и под дверью у стены оставалась голая полоса`,
+      },
+    },
+    {
+      name: "Room 4.5 × 4 m, door on the 4.5 m wall: the 4 m roll no longer covers it in one sheet (v4)",
+      input: {
+        lengthMm: 4500,
+        widthMm: 4000,
+        openings: [{ type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 0, offsetMm: 600 }] }],
+      },
+      expected: {
+        items: { linoleum: { packs: 82 } },
+        summary: { width: 2.5, sheets: 2, seams: 1, length: 8.2, boughtArea: 20.5 },
+      },
+      source: {
+        kind: "manual",
+        ref: `${REVIEW}; ${DOORWAY}. Вдоль длины поперёк нужно 4,0 + 0,1 = 4,1 м > 4 м — одного полотна нет ни в одной ширине. Один шов: вдоль длины 2,5 м — 2 × 4,55 → 9,2 м = 23 м²; поперёк (полотна по 4,0 + 0,05 м вдоль ширины, поперёк 4,5 м) 2,5 м — шов на 2,475, дверь 0,6–1,4 м под первым полотном: 8,1 + 0,1 = 8,2 м × 2,5 = 20,5 м²; 3 м поперёк — 24,6 м²`,
+      },
+    },
+    {
+      name: "Room 4.5 × 4 m, door on the 4 m wall: one 4 m sheet runs into it end-on (v4)",
+      input: {
+        lengthMm: 4500,
+        widthMm: 4000,
+        openings: [{ type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 1, offsetMm: 1600 }] }],
+      },
+      expected: {
+        items: { linoleum: { packs: 47 } },
+        summary: { width: 4, sheets: 1, seams: 0, length: 4.7, boughtArea: 18.8 },
+      },
+      source: {
+        kind: "manual",
+        ref: `${REVIEW}; ${DOORWAY}. Рулон 4 м вдоль длины закрывает ширину 4,0 м (дверь не на боковой стене); полотно упирается в дверь на правой стене: 4,5 + 0,05 + 0,1 = 4,65 → 4,7 м × 4 = 18,8 м², без шва`,
       },
     },
   ],

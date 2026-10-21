@@ -167,6 +167,10 @@ export const linoleum: ToolDef = {
     room: "Комната {length} × {width} = {area} м²",
     allowance: "Припуск на подрезку {allowance} м к длине каждого полотна",
     doorway: "Полотен, что упираются в дверной проём: {sheets} — каждое длиннее на {depth} м, всего +{extra} м",
+    doorway_side_length:
+      "Вдоль длины полотна идут вдоль стены с дверью: поперёк закрываем {room} м и {extra} м в проём = {across} м",
+    doorway_side_width:
+      "Поперёк полотна идут вдоль стены с дверью: поперёк закрываем {room} м и {extra} м в проём = {across} м",
     variant_length: "Рулон {width} м вдоль длины: полотен {sheets}, отрез {length} м, {area} м²",
     variant_width: "Рулон {width} м поперёк: полотен {sheets}, отрез {length} м, {area} м²",
     best: "Берём {width} м: швов {seams}, отрез {length} м, {area} м² — меньше швов, затем меньше площадь",
