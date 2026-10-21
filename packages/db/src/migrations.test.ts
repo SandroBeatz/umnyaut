@@ -23,6 +23,8 @@ const SUPABASE_STUBS = `
   alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
   alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
   alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
+  -- The platform's ensure_rls event-trigger function, executable by everyone (0005 takes it back from the API roles).
+  create function public.rls_auto_enable() returns event_trigger language plpgsql security definer as $$ begin end $$;
   create schema cron;
   create table cron.job (jobname text primary key, schedule text not null, command text not null);
   create function cron.schedule(p_name text, p_schedule text, p_command text) returns bigint language sql as $$
@@ -102,6 +104,7 @@ describe("migrations", () => {
         "project_touch(text)",
         "event_add(text,text,text,text,integer)",
         "cleanup()",
+        "rls_auto_enable()",
       ]) {
         expect(
           await scalar(db, "select has_function_privilege($1, $2, 'execute') as v", [role, `public.${fn}`]),

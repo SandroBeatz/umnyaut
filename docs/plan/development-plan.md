@@ -254,7 +254,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 
 **Tasks**
 
-- [x] P7.1 Migrations (skill `db-migration`): `projects`, `project_opens`, `rate_limits`, `error_reports`, `events_daily`; functions `hit_limit`, `project_touch`; RLS on, zero policies; `pg_cron` cleanup; generated types. → `0002`–`0004` (+ `event_add`, `cleanup`), tested on PGlite; types written by hand until the local stack runs (2026-10-20).
+- [x] P7.1 Migrations (skill `db-migration`): `projects`, `project_opens`, `rate_limits`, `error_reports`, `events_daily`; functions `hit_limit`, `project_touch`; RLS on, zero policies; `pg_cron` cleanup; generated types. → `0002`–`0004` (+ `event_add`, `cleanup`), tested on PGlite; types generated from prod via the Supabase MCP (2026-10-21); `0005` takes `rls_auto_enable()` back from the API roles.
 - [x] P7.2 `server/db` query functions (only entry point); `server/limits` (in-memory + Postgres).
 - [x] P7.3 API: `POST/GET/PUT/DELETE /api/projects[/id]`, ~~`POST /api/projects/[id]/copy`~~ (dropped: a link is a read-only snapshot, owner 2026-10-20) (editToken hash, 8-char ids without look-alikes, Zod, envelope, Origin check, limits); `POST /api/reports` (honeypot, 5/h).
 - [x] P7.4 `app/p/[id]/page.tsx` SSR (read-only estimate snapshot like `/spisok/prosmotr/` for everyone — no owner edit, no «Сохранить как свой», owner 2026-10-14/20; `noindex`, `private, no-store`, “Расчёт обновлён” when tool version changed); preview title from dimensions.
