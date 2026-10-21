@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-21
 
+- **P9.2, P9.3** Own anonymous counter: `POST /api/e/` (`server/api/events.ts`: Origin check, 300/min per client in memory, event names from `EventMap` only, unknown tool/country → `""`, everything but name/tool/country/source dropped, `204`), `track()` sends every event there without consent (text `sendBeacon`, `fetch` keepalive fallback, never throws); Metrika stays after «Принять». Tests: 5 handler tests (one fails `tsc` if the server list and `EventMap` drift), 2 for `track()`, an e2e that the beacon carries only those four fields before any consent.
+  - Where: `feature/p9-events`
+  - Notes: every request logs one `[api] POST /api/e 204` line — fine at today's traffic, revisit if logs grow. The weekly «useful calcs» SQL over `events_daily` and `pnpm report:weekly` are P13.1.
+
 - **P7.1, P7.7** Prod DB checked through the Supabase MCP (project-scoped server for `rbawzripucjvdxmyrctn`): migrations `0001`–`0004` recorded; RLS on all five tables, zero policies; `anon`/`authenticated` have no table or function rights, `service_role` has DML and `EXECUTE`; `umnyaut-cleanup` ran at 03:17 UTC (`succeeded`). One real link `ng8V7uJX` with two returns on 2026-10-20 — `project_touch` works on prod. `packages/db/src/types.ts` now generated from prod (same tables and functions as the hand-written file, plus the `__InternalSupabase` and `Tables<>` helpers). Security advisor: `public.rls_auto_enable()` (the platform's `ensure_rls` event-trigger function, SECURITY DEFINER) was executable by `anon`/`authenticated` over `/rest/v1/rpc` → `0005_rls_auto_enable_revoke` (guarded, PGlite test with a stub). Performance advisor: only `projects_tg_user_id_idx` unused — kept for the bot (Phase 12).
   - Where: `feature/p7-close`
   - Notes: `0005` reaches prod with the next `develop` → `main`. Regenerate types with the MCP `generate_typescript_types` or `db:types` (local stack).
