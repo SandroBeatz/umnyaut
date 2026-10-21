@@ -7,12 +7,16 @@ export {
   type PlannedRoll,
   planCuts,
 } from "./cutting";
+export { type DiagonalCount, type DiagonalInput, type DiagonalRect, diagonalGrid } from "./diagonal";
 export {
+  clippedOpeningsAreaM2,
   doorWidthMm,
   floorAreaM2,
   grossWallAreaM2,
   mm2ToM2,
   mmToM,
+  type OpeningClip,
+  openingHeightInMm,
   openingsAreaM2,
   perimeterMm,
   polygonAreaMm2,

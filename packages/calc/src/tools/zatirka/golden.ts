@@ -216,6 +216,24 @@ export const golden: GoldenFile<ZatirkaInput> = {
         ref: "(300 + 300) / (300 × 300) × 3 × 8 × 1,6 = 0,256 кг/м²; пол 19,78 + стены 44,78 = 64,56 м² × 0,256 × 1,1 = 18,18 кг → 10 упаковок по 2 кг (по отдельности 3 + 7 = 10)",
       },
     },
+    {
+      name: "Walls tiled to 1.5 m: openings only inside the band (v3)",
+      input: {
+        surface: "walls",
+        lengthMm: 3000,
+        widthMm: 2500,
+        heightMm: 1500,
+        openings: [
+          { type: "door", widthMm: 800, heightMm: 2000, count: 1 },
+          { type: "window", widthMm: 1200, heightMm: 1400, count: 1 },
+        ],
+      },
+      expected: { items: { grout: { packs: 3, need: 4.105728 } }, summary: { area: 14.58 } },
+      source: {
+        kind: "manual",
+        ref: `formula review 2026-10-21, derived by hand. Стены 11 × 1,5 = 16,5 м²; в полосе до 1,5 м дверь 0,8 × 1,5 = 1,2, окно на подоконнике 0,9 — 1,2 × 0,6 = 0,72: 14,58 м² (v2 вычитал 3,28 → 13,22 м², 3,72 кг, 2 упаковки). ${FORMULA}: 0,256 кг/м² × 14,58 × 1,1 = 4,105728 кг → 3 упаковки по 2 кг (${CE40})`,
+      },
+    },
   ],
   benchmarks: [
     {

@@ -24,11 +24,13 @@ export type PloshchadStenInput = z.infer<typeof input>;
 /**
  * Wall area: perimeter × height minus doors and windows; ceiling = floor. An L-shaped room has the same
  * perimeter as its bounding rectangle, so its walls are counted as the rectangle's; its ceiling loses the
- * cut-out (version 2). The picture is the room plan with the placed doors and windows; places change no area.
+ * cut-out (version 2). An opening taller than the wall is cut at the wall's height (version 3). The picture is the
+ * room plan with the placed doors and windows; places change no area.
  */
 export const ploshchadSten: ToolModule<PloshchadStenInput> = {
   id: "ploshchad-sten",
-  version: 2,
+  // 3: a door or a window taller than the wall subtracts width × wall height, not its own height.
+  version: 3,
   input,
   defaults: () => ({
     lengthMm: 4600,
@@ -47,7 +49,8 @@ export const ploshchadSten: ToolModule<PloshchadStenInput> = {
     const warnings: Warning[] = [];
     const openings = i.openings.filter((o) => o.count > 0);
     const room: Room = { shape: "rect", lengthMm: i.lengthMm, widthMm: i.widthMm, heightMm: i.heightMm, openings };
-    const walls = wallAreaM2(room);
+    // A door or a window taller than the wall takes no more than the wall's height (version 3).
+    const walls = wallAreaM2(room, "height");
     const length = mmToM(i.lengthMm);
     const width = mmToM(i.widthMm);
     const height = mmToM(i.heightMm);

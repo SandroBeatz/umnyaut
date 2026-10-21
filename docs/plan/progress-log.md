@@ -42,6 +42,10 @@ Each entry:
 
 ### 2026-10-21
 
+- **—** Tile chain fixes from the independent formula review (owner: minimal reserves, no waiting for the master): plitka v6 — diagonal counted on a 45° grid (`blocks/diagonal.ts`, never below straight, reserve = max(user, 15 %)), walls tiled to a height subtract only the openings' parts inside the band (`wallAreaM2(…, "band")`, `wallOpenings(…, { band })`), the L-shape's six walls, the L floor as its scheme, warning `grout_no_joint`; klej v3 — 5 % reserve (`tileAdhesive.reserve`, unconfirmed); zatirka v3 — band area; ploshchad-sten v3 — an opening taller than the wall is cut at its height; `aggregateEstimate` flags a consumable counted twice on a shared part (`Overlap.key`).
+  - Where: worktree branch (not pushed)
+  - Notes: the web hint for `Overlap.key` (apps/web `overlapOf`) and a surface-dependent default joint (2 mm on walls) need frontend work; kraska still subtracts full-height openings.
+
 - **P7.1, P7.7** Prod DB checked through the Supabase MCP (project-scoped server for `rbawzripucjvdxmyrctn`): migrations `0001`–`0004` recorded; RLS on all five tables, zero policies; `anon`/`authenticated` have no table or function rights, `service_role` has DML and `EXECUTE`; `umnyaut-cleanup` ran at 03:17 UTC (`succeeded`). One real link `ng8V7uJX` with two returns on 2026-10-20 — `project_touch` works on prod. `packages/db/src/types.ts` now generated from prod (same tables and functions as the hand-written file, plus the `__InternalSupabase` and `Tables<>` helpers). Security advisor: `public.rls_auto_enable()` (the platform's `ensure_rls` event-trigger function, SECURITY DEFINER) was executable by `anon`/`authenticated` over `/rest/v1/rpc` → `0005_rls_auto_enable_revoke` (guarded, PGlite test with a stub). Performance advisor: only `projects_tg_user_id_idx` unused — kept for the bot (Phase 12).
   - Where: `feature/p7-close`
   - Notes: `0005` reaches prod with the next `develop` → `main`. Regenerate types with the MCP `generate_typescript_types` or `db:types` (local stack).

@@ -132,19 +132,42 @@ export const golden: GoldenFile<PloshchadStenInput> = {
       },
     },
     {
-      name: "Door taller than the wall → warning, area still counted",
+      name: "Door taller than the wall → warning, the door cut at the wall's height (v3)",
       input: { lengthMm: 4000, widthMm: 3000, heightMm: 2500, openings: [door(900, 2600)] },
-      expected: { summary: { wallArea: 32.66, grossWallArea: 35 }, warnings: ["opening_too_tall"] },
-      source: { kind: "manual", ref: "14 × 2,5 = 35; 35 − 0,9 × 2,6 = 32,66 м²; дверь 2,6 м выше стены 2,5 м" },
+      expected: {
+        summary: { wallArea: 32.75, grossWallArea: 35, openingsArea: 2.25 },
+        warnings: ["opening_too_tall"],
+      },
+      source: {
+        kind: "manual",
+        ref: "formula review 2026-10-21, derived by hand: 14 × 2,5 = 35; дверь 2,6 м выше стены 2,5 м — вычитаем только то, что в стене: 0,9 × 2,5 = 2,25; 35 − 2,25 = 32,75 м² (в v2 вычиталось 0,9 × 2,6 = 2,34 → 32,66)",
+      },
     },
     {
+      // v3: was one window 3 × 3 m on a 1 m wall (9 m²); cut at the wall's height it takes 3 m² and no longer
+      // exceeds the 4 m² of walls, so the case keeps its intent with two windows.
       name: "Openings larger than the walls → zero, not negative",
-      input: { lengthMm: 1000, widthMm: 1000, heightMm: 1000, openings: [window(3000, 3000)] },
+      input: { lengthMm: 1000, widthMm: 1000, heightMm: 1000, openings: [window(3000, 3000, 2)] },
       expected: {
-        summary: { wallArea: 0, grossWallArea: 4, openingsArea: 9 },
+        summary: { wallArea: 0, grossWallArea: 4, openingsArea: 6 },
         warnings: ["openings_exceed_walls", "opening_too_tall"],
       },
-      source: { kind: "manual", ref: "4 × 1 = 4 м² стен, окно 9 м²: площадь стен 0, а не −5" },
+      source: {
+        kind: "manual",
+        ref: "4 × 1 = 4 м² стен; два окна 3 × 3 м выше стены 1 м — по 3 × 1 = 3 м², вместе 6 м²: площадь стен 0, а не −2",
+      },
+    },
+    {
+      name: "Window taller than a low wall: cut at the wall's height (v3)",
+      input: { lengthMm: 3000, widthMm: 2500, heightMm: 2000, openings: [window(1500, 2200)] },
+      expected: {
+        summary: { wallArea: 19, grossWallArea: 22, openingsArea: 3 },
+        warnings: ["opening_too_tall"],
+      },
+      source: {
+        kind: "manual",
+        ref: "formula review 2026-10-21, derived by hand: 2 × 5,5 × 2 = 22 м²; окно 2,2 м на стене 2 м — 1,5 × 2 = 3 м²; 22 − 3 = 19 м²",
+      },
     },
   ],
 };

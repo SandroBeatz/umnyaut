@@ -84,6 +84,7 @@ describe("registry", () => {
     for (const row of NOTCH_TABLE)
       expect(row.kgPerM2, `notch ${row.notchMm}`).toBe(value(`tileAdhesive.notch${row.notchMm}`));
     expect(toolModules.klej.defaults({ country: "RU" }).bagKg).toBe(value("tileAdhesive.bag"));
+    expect(toolModules.klej.defaults({ country: "RU" }).reservePct).toBe(value("tileAdhesive.reserve"));
     const zatirka = toolModules.zatirka.defaults({ country: "RU" });
     expect(GROUT_DENSITY).toBe(value("grout.density"));
     expect(zatirka.reservePct).toBe(value("grout.reserve"));

@@ -10,6 +10,7 @@ export const normTitles: Readonly<Record<string, string>> = {
   "tileAdhesive.backButter": "Слой клея на тыльную сторону плитки",
   "tileAdhesive.perMm": "Расход клея на 1 мм слоя",
   "tileAdhesive.bag": "Мешок клея",
+  "tileAdhesive.reserve": "Запас клея на остатки",
   "grout.density": "Плотность затирки",
   "grout.reserve": "Запас затирки",
   "grout.pack": "Упаковка затирки",

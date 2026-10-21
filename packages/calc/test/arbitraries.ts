@@ -155,6 +155,7 @@ const klej: ToolArbitrary<KlejInput> = {
         method: f.constantFrom("notch" as const, "layer" as const),
         layerMm: f.double({ min: 1, max: 20, noNaN: true }),
         bagKg: f.double({ min: 1, max: 50, noNaN: true }),
+        reservePct: f.double({ min: 0, max: 30, noNaN: true }),
       })
       .map(validCut),
   grow,

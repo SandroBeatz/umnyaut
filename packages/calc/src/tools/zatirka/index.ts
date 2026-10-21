@@ -53,12 +53,14 @@ const MAX_JOINT_MM = 10;
 
 /**
  * Grout: kg/m² = (A + B) / (A × B) × joint × depth × 1,6 (Ceresit formula, A × B tile in mm); total = area ×
- * rate × (1 + reserve); packs via `ceilPacks`. Area as for tile adhesive: floor or walls without openings.
+ * rate × (1 + reserve); packs via `ceilPacks`. Area as for tile adhesive: floor or walls without the openings'
+ * parts inside the tiled height.
  */
 export const zatirka: ToolModule<ZatirkaInput> = {
   id: "zatirka",
   // 2: «Пол и стены» — the floor and the walls with one tile, areas summed.
-  version: 2,
+  // 3: walls tiled to a height lose only the parts of the doors and windows inside it (formula review 2026-10-21).
+  version: 3,
   input,
   defaults: () => ({
     surface: "floor",

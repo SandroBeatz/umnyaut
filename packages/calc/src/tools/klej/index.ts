@@ -29,6 +29,8 @@ const input = z.object({
   bagKg: z.number().check(z.minimum(1), z.maximum(50)),
   /** Combined method from 30 × 30: a thin layer on the tile back, mm (norm `tileAdhesive.backButter`, unconfirmed). */
   backButterMm: z.number().check(z.minimum(0), z.maximum(5)),
+  /** Norm `tileAdhesive.reserve`: what stays in the bucket and on the trowel. */
+  reservePct: z.number().check(z.minimum(0), z.maximum(30)),
 });
 
 export type KlejInput = z.infer<typeof input>;
@@ -54,14 +56,19 @@ const COMBINED_FROM_MM = 300;
 /** From 60 × 60 the note becomes a warning: the table value is a bare minimum there. */
 const LARGE_COMBINED_MM = 600;
 
+/** Norm `tileAdhesive.reserve`: the minimal reserve on what stays in the bucket and on the trowel (owner, 2026-10-21). */
+export const ADHESIVE_RESERVE_PCT = 5;
+
 /**
- * Tile adhesive: area (floor = length × width, walls = perimeter × height − openings) × kg/m² from the notch
- * table by the tile's longer side, or × 1,2 × layer mm (V = S × Vст × h); bags via `ceilPacks`.
+ * Tile adhesive: area (floor = length × width, walls = perimeter × height − the openings inside the tiled band) ×
+ * kg/m² from the notch table by the tile's longer side, or × 1,2 × layer mm (V = S × Vст × h), × (1 + reserve);
+ * bags via `ceilPacks`.
  */
 export const klej: ToolModule<KlejInput> = {
   id: "klej",
   // 2: «Пол и стены» — the floor and the walls with one tile, areas summed.
-  version: 2,
+  // 3: a reserve of 5 % (norm `tileAdhesive.reserve`); walls tiled to a height lose only the openings inside it.
+  version: 3,
   input,
   defaults: () => ({
     surface: "floor",
@@ -82,6 +89,7 @@ export const klej: ToolModule<KlejInput> = {
     adhesiveClass: "C1T",
     bagKg: 25,
     backButterMm: 1,
+    reservePct: ADHESIVE_RESERVE_PCT,
   }),
   compute(i): ToolResult {
     const warnings: Warning[] = [];
@@ -122,7 +130,7 @@ export const klej: ToolModule<KlejInput> = {
       rate += extra;
     }
 
-    const kg = coverage({ areaM2, ratePerM2: rate });
+    const kg = coverage({ areaM2, ratePerM2: rate, wastePct: i.reservePct });
     const item = purchase(
       "tile-adhesive",
       "main",
@@ -133,7 +141,10 @@ export const klej: ToolModule<KlejInput> = {
       },
       { variant: i.adhesiveClass },
     );
-    steps.push({ code: "adhesive", values: { area: areaM2, rate, kg, bag: i.bagKg, bags: item.packs } });
+    steps.push({
+      code: "adhesive",
+      values: { area: areaM2, rate, reserve: i.reservePct, kg, bag: i.bagKg, bags: item.packs },
+    });
 
     return {
       items: [item],

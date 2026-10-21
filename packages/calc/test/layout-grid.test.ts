@@ -240,7 +240,9 @@ describe("tile walls scheme", () => {
     ]);
   });
 
-  it("a window that would go through the ceiling sits under it; a door taller than the wall ends at the ceiling", () => {
+  // plitka v6 (formula review 2026-10-21): the tiled height is a band from the floor — a window through its top is
+  // clipped there (it used to be moved down under it with a `window_above_ceiling` warning).
+  it("a window through the top of the tiled band is clipped at it; a door taller than the wall ends there", () => {
     const openings = [
       {
         type: "window" as const,
@@ -253,10 +255,25 @@ describe("tile walls scheme", () => {
     ];
     const result = plitka.compute({ ...walls, openings }, ctx);
     const layout = result.layout;
-    expect(result.warnings.map((w) => w.code)).toContain("window_above_ceiling");
-    expect(layout?.elevations?.[0]?.openings[0]).toMatchObject({ y: 0, h: 1400 });
+    expect(result.warnings.map((w) => w.code)).not.toContain("window_above_ceiling");
+    // Sill 2000, top 3400 → only 2000…2700 is in the tiled band.
+    expect(layout?.elevations?.[0]?.openings[0]).toMatchObject({ y: 0, h: 700 });
     expect(layout?.elevations?.[1]?.openings[0]).toMatchObject({ y: 0, h: 2700 });
     expect(layout?.guide.map((s) => s.code)).not.toContain("walls_sill");
+  });
+
+  it("a window wholly above the tiled band is not on the wall at all", () => {
+    const openings = [
+      {
+        type: "window" as const,
+        widthMm: 1200,
+        heightMm: 1400,
+        count: 1,
+        places: [{ wall: 0, offsetMm: 0, sillMm: 1000 }],
+      },
+    ];
+    const result = plitka.compute({ ...walls, heightMm: 1000, openings }, ctx);
+    expect(result.layout?.elevations?.[0]?.openings).toEqual([]);
   });
 
   it("an opening wider than its wall is off the plan: the estimate and a warning", () => {

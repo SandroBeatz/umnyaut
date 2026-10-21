@@ -71,6 +71,11 @@ export const norms: Readonly<Record<string, Norm>> = {
   }),
   "tileAdhesive.perMm": norm(1.2, "кг/м² на 1 мм", S.S2),
   "tileAdhesive.bag": norm(25, "кг", S.S2),
+  "tileAdhesive.reserve": norm(5, "%", "решение владельца 2026-10-21 по ревью формул: минимальный запас", {
+    checkedAt: "2026-10-21",
+    unconfirmed: true,
+    note: "на остатки в ведре и на шпателе; первоисточника с цифрой нет — уточнить у мастера",
+  }),
   "grout.density": norm(1.6, "кг/дм³", S.S3, { note: "у Mapei Keracolor FF по таблице ≈ 1,5; берём больше" }),
   "grout.reserve": norm(10, "%", S.S3, { note: "в источнике 10–15%" }),
   "grout.pack": norm(2, "кг", S.S18),

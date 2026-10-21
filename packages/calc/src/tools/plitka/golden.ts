@@ -26,7 +26,7 @@ export const golden: GoldenFile<PlitkaInput> = {
       expected: {
         items: {
           tile: { packs: 22, need: 264, leftover: 0 },
-          "tile-adhesive": { packs: 5, need: 106.812 },
+          "tile-adhesive": { packs: 5, need: 112.1526 },
           grout: { packs: 3, need: 5.570048 },
         },
         summary: { whole: 210, cut: 30, tiles: 264 },
@@ -131,10 +131,58 @@ export const golden: GoldenFile<PlitkaInput> = {
       source: { kind: "manual", ref: "3000 / 300 = 10 ровно; 100 × 1,1 = 110 / 12 → 10" },
     },
     {
-      name: "Diagonal: area + 15 %",
+      // v6: was «area / tile × 1,15» = 253 / 22 boxes — fewer than straight laying of the same room (264 / 22).
+      name: "Diagonal: pieces of the 45° grid + 15 % (v6)",
       input: { layout: "diagonal" },
-      expected: { items: { tile: { packs: 22, need: 253 } } },
-      source: { kind: "manual", ref: `${KM}. 19,78 / 0,09 = 219,8 × 1,15 = 252,7 → 253 плитки / 12 → 22` },
+      expected: { items: { tile: { packs: 25, need: 290 } }, summary: { whole: 190, cut: 62 } },
+      source: {
+        kind: "manual",
+        ref: `formula review 2026-10-21. ${KM}: штучный метод, на диагональ запас 15 %. Сетка 30 × 30 со швом 3 повёрнута на 45°, вершина плитки в углу: 190 целых + 62 подрезанных = 252 куска (сверено перебором каждой плитки в blocks/diagonal.test.ts) × 1,15 = 289,8 → 290 / 12 → 25 коробок. По площади вышло бы 19,78 / 0,09 × 1,15 = 253 — меньше прямой раскладки (264)`,
+      },
+    },
+    {
+      name: "Diagonal bathroom floor 2.2 × 1.7 m, porcelain 60 × 60, 4 per box: more than straight (v6)",
+      input: { lengthMm: 2200, widthMm: 1700, tileLengthMm: 600, tileWidthMm: 600, tilesPerBox: 4, layout: "diagonal" },
+      expected: { items: { tile: { packs: 5, need: 20 } }, summary: { whole: 4, cut: 13 } },
+      source: {
+        kind: "manual",
+        ref: `formula review 2026-10-21, derived by hand: прямая раскладка — 3 × 2 целых + 3 + 2 + 1 = 12 кусков × 1,1 → 14 плиток, 4 коробки; v5 по площади давал 3,74 / 0,36 × 1,15 → 12 плиток, 3 коробки — меньше прямой. Сетка под 45° от угла: 4 целых + 13 подрезанных = 17 кусков (ревью моделировало 17–21; сверено перебором в blocks/diagonal.test.ts) × 1,15 = 19,55 → 20 / 4 → 5 коробок. ${KM}`,
+      },
+    },
+    {
+      name: "Diagonal from the centre, same bathroom (v6)",
+      input: {
+        lengthMm: 2200,
+        widthMm: 1700,
+        tileLengthMm: 600,
+        tileWidthMm: 600,
+        tilesPerBox: 4,
+        layout: "diagonal",
+        start: "center",
+      },
+      expected: { items: { tile: { packs: 5, need: 20 } }, summary: { whole: 1, cut: 16 } },
+      source: {
+        kind: "manual",
+        ref: `formula review 2026-10-21. Середина плитки в середине комнаты: 1 целая + 16 подрезанных = 17 (перебор в blocks/diagonal.test.ts) × 1,15 → 20 / 4 → 5 коробок. ${KM}`,
+      },
+    },
+    {
+      name: "Diagonal honours a reserve above 15 %: 20 % (v6)",
+      input: { layout: "diagonal", reservePct: 20 },
+      expected: { items: { tile: { packs: 26, need: 303 } }, summary: { whole: 190, cut: 62 } },
+      source: {
+        kind: "manual",
+        ref: `formula review 2026-10-21, derived by hand: 252 куска диагонали × 1,2 = 302,4 → 303 / 12 → 26 коробок (v5 всегда брал 15 % и поле «Запас» не действовало). ${KM}`,
+      },
+    },
+    {
+      name: "Diagonal walls: never under straight laying, reserve not below 15 % (v6)",
+      input: { surface: "walls", layout: "diagonal", reservePct: 5 },
+      expected: { items: { tile: { packs: 59, need: 707 } }, summary: { whole: 371, cut: 243 } },
+      source: {
+        kind: "manual",
+        ref: `formula review 2026-10-21. Каждая стена — сетка под 45°, дверь и окно на плане — её отверстия: 371 + 243 = 614 куска (прямая раскладка тех же стен — 534). Запас 5 % ниже нормы диагонали — берём 15 %: 614 × 1,15 = 706,1 → 707 / 12 → 59. ${KM}`,
+      },
     },
     {
       name: "Bathroom walls 1.7 × 1.5 × 2.5 m, tile 20 × 25 upright, joint 2, door",
@@ -152,7 +200,7 @@ export const golden: GoldenFile<PlitkaInput> = {
       expected: {
         items: {
           tile: { packs: 18, need: 359 },
-          "tile-adhesive": { packs: 3, need: 52.56 },
+          "tile-adhesive": { packs: 3, need: 55.188 },
           grout: { packs: 2, need: 3.700224 },
         },
         summary: { whole: 256, cut: 70 },
@@ -231,6 +279,100 @@ export const golden: GoldenFile<PlitkaInput> = {
       },
     },
     {
+      name: "Walls tiled to 1.5 m in a 3 × 2.5 m room: openings only inside the band (v6)",
+      input: {
+        surface: "walls",
+        lengthMm: 3000,
+        widthMm: 2500,
+        heightMm: 1500,
+        openings: [
+          { type: "door", widthMm: 800, heightMm: 2000, count: 1 },
+          { type: "window", widthMm: 1200, heightMm: 1400, count: 1 },
+        ],
+      },
+      expected: {
+        items: { tile: { packs: 18, need: 205 }, "tile-adhesive": { packs: 4, need: 82.6686 } },
+        summary: { whole: 132, cut: 54, area: 14.58 },
+      },
+      source: {
+        kind: "manual",
+        ref: `formula review 2026-10-21, derived by hand. Стены 11 × 1,5 = 16,5 м²; дверь 0,8 × 2,0 в полосе до 1,5 м — 0,8 × 1,5 = 1,2; окно 1,2 × 1,4 на подоконнике 0,9 закрывает только 900…1500 — 1,2 × 0,6 = 0,72: 14,58 м² (v5 вычитал 3,28 → 13,22). Раскладка: высота 1500 по 303 — 4 целых ряда и 288; стена 3000 — 9 целых и 273, стена 2500 — 8 и 76: 2 × (10 + 9) × 5 = 190 кусков, целых 34 × 4 = 136. Дверь где угодно закрывает ⌊500 / 303⌋ = 1 × ⌊1503 / 303⌋ = 4 целых, окно в полосе 600 мм — ни одной: 132 + 54 = 186 × 1,1 = 204,6 → 205 / 12 → 18. Клей Ceresit CM 11 PRO (https://ceresit.ru/ru/products/tiling/tile-adhesives/cm_11_pro/) 5,4 кг/м² × 14,58 = 78,732 кг + 5 % = 82,6686 → 4 мешка`,
+      },
+    },
+    {
+      name: "Same band, door and window placed: the window clipped to 900–1500 mm (v6)",
+      input: {
+        surface: "walls",
+        lengthMm: 3000,
+        widthMm: 2500,
+        heightMm: 1500,
+        openings: [
+          { type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 0, offsetMm: 600 }] },
+          {
+            type: "window",
+            widthMm: 1200,
+            heightMm: 1400,
+            count: 1,
+            places: [{ wall: 1, offsetMm: 600, sillMm: 900 }],
+          },
+        ],
+      },
+      expected: { items: { tile: { packs: 16, need: 192 } }, summary: { whole: 110, cut: 64, area: 14.58 } },
+      source: {
+        kind: "manual",
+        ref: `formula review 2026-10-21, derived by hand. ${KM}. Без проёмов 190 кусков (136 целых, 54 подрезанных). Дверь на стене 1, 600…1400 мм, во всю полосу: столбцы по 303 внутри 606, 909 (2) × 5 рядов = 10 не кладём, задеты ещё 303 и 1212 — 10 подрезаем. Окно на стене 2, 600…1800 мм, от 900 до верха полосы 1500 (а не сдвинуто вниз до 100…1500): внутри столбцы 606, 909, 1212 × ряды 909 и 1212 = 6 не кладём, задето 5 × 3 − 6 = 9. 190 − 16 = 174 × 1,1 = 191,4 → 192 / 12 → 16`,
+      },
+    },
+    {
+      name: "Band below the window sill: the window takes nothing (v6)",
+      input: {
+        surface: "walls",
+        lengthMm: 3000,
+        widthMm: 2500,
+        heightMm: 1500,
+        openings: [
+          {
+            type: "window",
+            widthMm: 1200,
+            heightMm: 1400,
+            count: 1,
+            places: [{ wall: 1, offsetMm: 600, sillMm: 1600 }],
+          },
+        ],
+      },
+      expected: {
+        items: { tile: { packs: 18, need: 209 } },
+        summary: { whole: 136, cut: 54, area: 16.5 },
+        warnings: [],
+      },
+      source: {
+        kind: "manual",
+        ref: "formula review 2026-10-21, derived by hand: подоконник 1,6 м выше полосы 1,5 м — окно не вычитаем и предупреждения «выше потолка» нет: 16,5 м², 190 кусков × 1,1 = 209 / 12 → 18",
+      },
+    },
+    {
+      name: "L-shaped room walls 4.6 × 4.3 × 2.7, cut-out 1.55 × 1.25: six real walls (v6)",
+      input: { surface: "walls", shape: "l", cutLengthMm: 1550, cutWidthMm: 1250, openings: [] },
+      expected: {
+        items: { tile: { packs: 53, need: 634 } },
+        summary: { whole: 464, cut: 112, area: 48.06 },
+        warnings: ["narrow_cut"],
+      },
+      source: {
+        kind: "manual",
+        ref: `formula review 2026-10-21, derived by hand. ${KM}. Шесть стен 4600, 3050, 1550, 1250, 3050, 4300 (периметр тот же 17,8 м); высота 2700 по 303 — 8 целых рядов и 276. Столбцы: 15 + 55; 10 + 20; 5 + 35; 4 + 38; 10 + 20; 14 + 58 — 64 столбца × 9 рядов = 576 кусков, целых 58 × 8 = 464. 576 × 1,1 = 633,6 → 634 / 12 → 53 коробки (v5 считал прямоугольник с 4 углами: 62 × 9 = 558 → 614 → 52)`,
+      },
+    },
+    {
+      name: "Grout on with a zero joint: a warning, no grout (v6)",
+      input: { jointMm: 0 },
+      expected: { absentItems: ["grout"], warnings: ["grout_no_joint"] },
+      source: {
+        kind: "manual",
+        ref: "formula review 2026-10-21: шов 0 мм — затирать нечего; v5 молча убирал затирку из списка, теперь предупреждаем (шов по Ceresit: стены 1,5–2 мм, пол 2–3 мм)",
+      },
+    },
+    {
       name: "Floor smaller than one tile",
       input: { lengthMm: 500, widthMm: 400, tileLengthMm: 600, tileWidthMm: 600, tilesPerBox: 4 },
       expected: { items: { tile: { packs: 1, need: 2 } }, summary: { whole: 0, cut: 1 } },
@@ -249,15 +391,24 @@ export const golden: GoldenFile<PlitkaInput> = {
       source: { kind: "manual", ref: "Стены 10 м², окна 20 м² — класть нечего" },
     },
     {
-      name: "L-shaped floor 6 × 5 m with a 3 × 2 m cut-out",
+      name: "L-shaped floor 6 × 5 m with a 3 × 2 m cut-out: exactly the scheme's grid (v6)",
       input: { shape: "l", lengthMm: 6000, widthMm: 5000, cutLengthMm: 3000, cutWidthMm: 2000 },
       expected: {
-        items: { tile: { packs: 28, need: 330 }, "tile-adhesive": { packs: 6, need: 129.6 } },
-        summary: { whole: 264, cut: 36, area: 24 },
+        items: { tile: { packs: 25, need: 297 }, "tile-adhesive": { packs: 6, need: 136.08 } },
+        summary: { whole: 234, cut: 36, area: 24 },
       },
       source: {
         kind: "manual",
-        ref: `${KM}. Прямоугольник 6 × 5: 6000 — 19 целых и 243, 5000 — 16 целых и 152: 304 + 19 + 16 + 1 = 340. В вырезе 3 × 2 наверняка лежат ⌊(3000 − 300) / 303⌋ × ⌊(2000 − 300) / 303⌋ = 8 × 5 = 40 целых — их не берём: 300 × 1,1 = 330 / 12 → 28. Клей на 24 м² × 5,4 = 129,6 кг → 6 мешков`,
+        ref: `formula review 2026-10-21, derived by hand. ${KM}. Прямоугольник 6 × 5 от левого верхнего угла (дверь в стене выреза — старт не двигаем): 6000 — 19 целых столбцов по 303 и 243, 5000 — 16 целых рядов и 152: 304 целых + 36 подрезанных = 340. Вырез 3000…6000 × 3000…5000: в нём целиком столбцы 10–19 (10, с подрезанным) × ряды 10–16 (7) = 70 плиток — не кладём; столбец 9 и ряд 9 (2727…3027) заходят в вырез — 7 + 10 + 1 = 18 плиток подрезаем по его краю (16 из них были целыми). Целых 304 − 54 − 16 = 234, подрезанных 36 − 16 + 16 = 36 — как на схеме: 270 × 1,1 = 297 / 12 → 25 коробок (v5 вычитал только 40 «наверняка целых» и брал 330 / 28). Клей 24 м² × 5,4 = 129,6 кг + 5 % = 136,08 кг → 6 мешков`,
+      },
+    },
+    {
+      name: "Diagonal L-shaped floor 6 × 5 m: the cut-out is a hole in the 45° grid (v6)",
+      input: { shape: "l", lengthMm: 6000, widthMm: 5000, cutLengthMm: 3000, cutWidthMm: 2000, layout: "diagonal" },
+      expected: { items: { tile: { packs: 29, need: 344 } }, summary: { whole: 234, cut: 65 } },
+      source: {
+        kind: "manual",
+        ref: `formula review 2026-10-21. ${KM}: на диагональ 15 %. Сетка под 45° без плиток внутри выреза: 234 целых + 65 подрезанных = 299 (сверено перебором каждой плитки в blocks/diagonal.test.ts) × 1,15 = 343,85 → 344 / 12 → 29 коробок; не меньше прямой (270)`,
       },
     },
     {
@@ -282,12 +433,12 @@ export const golden: GoldenFile<PlitkaInput> = {
       name: "Floor and walls, bathroom 2.2 × 1.7 × 2.5 m, tile 20 × 20 (v5)",
       input: { ...BATH, surface: "both", tileLengthMm: 200, tileWidthMm: 200, tilesPerBox: 25 },
       expected: {
-        items: { tile: { packs: 27, need: 662, leftover: 13 }, "tile-adhesive": { packs: 4, need: 78.624 } },
+        items: { tile: { packs: 27, need: 662, leftover: 13 }, "tile-adhesive": { packs: 4, need: 82.5552 } },
         summary: { whole: 494, cut: 107, area: 21.84 },
       },
       source: {
         kind: "manual",
-        ref: `${KM}. Пол от угла: 2200 по 203 — 10 целых и 170, 1700 — 8 целых и 76: 80 целых, 19 подрезанных. Стены 2500 по 203 — 12 рядов и 64 под потолком; стена 2200: 120 целых и 23 подрезанных, стена 1700: 96 и 21 → 432 и 88; дверь не на плане — внутри неё ⌊(700 − 200) / 203⌋ = 2 × ⌊2003 / 203⌋ = 9 = 18 целых не берём: 414. Пол и стены одной плиткой: 494 + 107 = 601 × 1,1 = 661,1 → 662 / 25 → 27 коробок (по отдельности 5 + 23 = 28). Площадь 3,74 + 19,5 − 1,4 = 21,84 м²; клей 21,84 × 3,6 (зуб 8 мм для плитки до 25 см) = 78,624 кг → 4 мешка`,
+        ref: `${KM}. Пол от угла: 2200 по 203 — 10 целых и 170, 1700 — 8 целых и 76: 80 целых, 19 подрезанных. Стены 2500 по 203 — 12 рядов и 64 под потолком; стена 2200: 120 целых и 23 подрезанных, стена 1700: 96 и 21 → 432 и 88; дверь не на плане — внутри неё ⌊(700 − 200) / 203⌋ = 2 × ⌊2003 / 203⌋ = 9 = 18 целых не берём: 414. Пол и стены одной плиткой: 494 + 107 = 601 × 1,1 = 661,1 → 662 / 25 → 27 коробок (по отдельности 5 + 23 = 28). Площадь 3,74 + 19,5 − 1,4 = 21,84 м²; клей 21,84 × 3,6 (зуб 8 мм для плитки до 25 см) = 78,624 кг + 5 % = 82,5552 кг → 4 мешка`,
       },
     },
     {
@@ -305,7 +456,7 @@ export const golden: GoldenFile<PlitkaInput> = {
       expected: {
         items: {
           tile: { packs: 71, need: 852 },
-          "tile-adhesive": { packs: 14, need: 348.624 },
+          "tile-adhesive": { packs: 15, need: 366.0552 },
           grout: { packs: 10, need: 18.180096 },
           primer: { packs: 1, need: 9.684 },
         },
@@ -313,7 +464,7 @@ export const golden: GoldenFile<PlitkaInput> = {
       },
       source: {
         kind: "manual",
-        ref: "Пол — как в примере «Floor 4.6 × 4.3 m… (defaults)»: 210 целых и 30 подрезанных; стены — как в «Walls of the example room, door and window placed (v3)»: 406 и 128. 774 × 1,1 = 851,4 → 852 / 12 → 71 коробка (22 + 49 по отдельности — тоже 71). Площадь 19,78 + 44,78 = 64,56 м²: клей 64,56 × (4,2 + 1,2 на плитку) = 348,624 кг → 14 мешков; затирка 64,56 × 0,256 × 1,1 = 18,18 кг → 10 упаковок по 2 кг (по отдельности 3 + 7); грунтовка 64,56 × 0,15 = 9,684 л → 1 канистра",
+        ref: "Пол — как в примере «Floor 4.6 × 4.3 m… (defaults)»: 210 целых и 30 подрезанных; стены — как в «Walls of the example room, door and window placed (v3)»: 406 и 128. 774 × 1,1 = 851,4 → 852 / 12 → 71 коробка (22 + 49 по отдельности — тоже 71). Площадь 19,78 + 44,78 = 64,56 м²: клей 64,56 × (4,2 + 1,2 на плитку) = 348,624 кг + 5 % = 366,0552 кг → 15 мешков; затирка 64,56 × 0,256 × 1,1 = 18,18 кг → 10 упаковок по 2 кг (по отдельности 3 + 7); грунтовка 64,56 × 0,15 = 9,684 л → 1 канистра",
       },
     },
   ],

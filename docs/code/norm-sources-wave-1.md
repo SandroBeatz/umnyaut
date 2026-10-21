@@ -62,6 +62,7 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | CE 40 table (golden cross-check) | 40 × 40 j2 0,2; 60 × 60 j2 0,15 kg/m² | S18 | confirmed | Reproduced exactly by the Ceresit formula at 12,5 / 14 mm joint depth — the table assumes thick porcelain, so the formula with the real tile thickness is used; two golden examples cross-check it |
 | `tileAdhesive.perMm` | 1,2 kg/m² per 1 mm of layer | S2 | confirmed | For a user-entered layer thickness |
 | `tileAdhesive.bag` | 25 kg | S2 | confirmed | Preset; 5 kg second preset |
+| `tileAdhesive.reserve` | 5 % | — (owner, 2026-10-21, after the formula review) | **default, unconfirmed** | Minimal reserve for what stays in the bucket and on the trowel; no primary source with a figure; field «Запас» (klej v3, plitka v6) |
 | `grout.density` | 1,6 | S3 | confirmed (owner: 1,6) | Mapei S4 implies ~1,5; we keep the larger value. S4 rows are golden cross-checks with that difference explained |
 | `grout.pack`, `grout.maxJoint` | 2 kg pack; joint 1–10 mm | S18 | confirmed | 5 kg as a second pack size (field). S18's consumption table (10 × 10, joint 2 → ≈ 0,4 kg/m²) is a golden cross-check |
 | `grout.reserve` | 10% | S3 (10–15%) | confirmed | Lower bound of the range |
@@ -89,7 +90,7 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | `linoleum.rollWidthMin`, `linoleum.rollWidthMax` | 1,2 / 2,4 m (table 1 allows up to 3 m) | S12 | confirmed | Market presets 1,5 … 4 m (C03) |
 | `plinth.length` | 2,5 m (2,2 m preset) | S13, S20 (2,2 m: S14) | confirmed | The earlier catalogue links showed no length; replaced by the product page and its datasheet |
 | `plinth.fastenerSpacing` | 400 mm | S21 | confirmed (owner: 40 cm) | Manual: «max 30–40 cm» for screws; toggle off for glue or tape |
-| `tile.reserve`, `tile.reserve.diagonal` | 10 % straight, 15 % diagonal | S19 | confirmed | On top of the piece count (every cut piece already takes a tile) — the conservative reading; field «Запас» |
+| `tile.reserve`, `tile.reserve.diagonal` | 10 % straight, 15 % diagonal | S19 | confirmed | On top of the piece count (every cut piece already takes a tile) — the conservative reading; field «Запас». Diagonal (plitka v6): pieces of the 45° grid, the user's reserve but never under 15 % |
 | `tile.perBox` | 12 tiles per box | — (typical 30 × 30 box, 1,08 m²) | **default, unconfirmed** | Field «Плиток в коробке», hint «проверьте на коробке» |
 | `tile.joint.wall`, `tile.joint.floor` | 2 mm / 3 mm | S3 (1,5–2 wall 15 × 15; 2–3 floor 33 × 33) | confirmed | Upper bound of each range |
 | Adhesive layer limit | ≤ manufacturer's value | S15 | confirmed | Warning when notch × format leaves the S1 table |

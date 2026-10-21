@@ -14,8 +14,9 @@ export interface TiledSurfaceInput {
 }
 
 /**
- * The tiled area, m²: floor = length × width (− the L cut-out), walls = perimeter × height − openings (the walls keep
- * the rectangle's perimeter), both = their sum. Pushes the steps «Пол = …», «Стены = …», «Пол + стены = …» and the
+ * The tiled area, m²: floor = length × width (− the L cut-out), walls = perimeter × height − the parts of the doors
+ * and windows inside the band from the floor to that height (`wallAreaM2` «band»; the walls keep the rectangle's
+ * perimeter), both = their sum. Pushes the steps «Пол = …», «Стены = …», «Пол + стены = …» and the
  * warnings of a cut-out larger than the room or openings larger than the walls.
  */
 export function tiledAreaM2(i: TiledSurfaceInput, warnings: Warning[], steps: Step[]): number {
@@ -46,7 +47,8 @@ export function tiledAreaM2(i: TiledSurfaceInput, warnings: Warning[], steps: St
   if (i.surface !== "floor") {
     const openings = i.openings.filter((o) => o.count > 0);
     const room: Room = { shape: "rect", lengthMm: i.lengthMm, widthMm: i.widthMm, heightMm: i.heightMm, openings };
-    const area = wallAreaM2(room);
+    // Tiled from the floor up to the height: a door or a window counts only inside that band.
+    const area = wallAreaM2(room, "band");
     walls = Math.max(area.areaM2, 0);
     if (area.openingsExceedWalls) warnings.push({ code: "openings_exceed_walls", level: "warning" });
     steps.push({ code: "walls", values: { gross: area.grossM2, openings: area.openingsM2, area: walls } });
