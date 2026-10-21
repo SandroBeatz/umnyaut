@@ -1,10 +1,15 @@
 import {
   GROUT_DENSITY,
   LAMINATE_WASTE_PCT,
+  LINOLEUM_DOORWAY_MM,
+  LINOLEUM_TRIM_ALLOWANCE_MM,
   LINOLEUM_WALL_TRIM_MM,
+  LINOLEUM_WIDTHS_MM,
+  MIN_PLINTH_PIECE_MM,
   NOTCH_TABLE,
   TILE_DIAGONAL_RESERVE_PCT,
   toolModules,
+  UNDERLAY_ROLL_WIDTH_MM,
 } from "@umnyaut/calc";
 import { describe, expect, it } from "vitest";
 import { type CategoryDef, categories, reservedSegments } from "./categories";
@@ -79,6 +84,12 @@ describe("registry", () => {
     expect(toolModules.oboi.defaults({ country: "RU" }).primerRateLPerM2).toBe(value("primer.consumption"));
     expect(toolModules.plintus.defaults({ country: "RU" }).plankLengthMm / 1000).toBe(value("plinth.length"));
     expect(LINOLEUM_WALL_TRIM_MM).toBe(value("linoleum.wallTrim"));
+    expect(toolModules.linoleum.defaults({ country: "RU" }).allowanceMm / 10).toBe(value("linoleum.trimAllowance"));
+    expect(LINOLEUM_TRIM_ALLOWANCE_MM / 10).toBe(value("linoleum.trimAllowance"));
+    expect(LINOLEUM_DOORWAY_MM / 10).toBe(value("linoleum.doorway"));
+    expect(Math.min(...LINOLEUM_WIDTHS_MM) / 1000).toBe(value("linoleum.rollWidthMin"));
+    expect(Math.max(...LINOLEUM_WIDTHS_MM) / 1000).toBe(value("linoleum.rollWidthMax"));
+    expect(MIN_PLINTH_PIECE_MM / 10).toBe(value("plinth.minPiece"));
     expect(toolModules.plintus.defaults({ country: "RU" }).fastenerSpacingMm).toBe(value("plinth.fastenerSpacing"));
     expect(toolModules.klej.defaults({ country: "RU" }).backButterMm).toBe(value("tileAdhesive.backButter"));
     for (const row of NOTCH_TABLE)
@@ -96,6 +107,7 @@ describe("registry", () => {
     expect(laminat.gapMm).toBe(value("laminate.expansionGap"));
     expect(laminat.minOffsetMm).toBe(value("laminate.minOffset"));
     expect(laminat.underlayRollM2).toBe(value("underlay.rollArea"));
+    expect(UNDERLAY_ROLL_WIDTH_MM / 1000).toBe(value("underlay.rollWidth"));
     expect(LAMINATE_WASTE_PCT.diagonal).toBe(value("laminate.waste.diagonal"));
     expect(LAMINATE_WASTE_PCT.herringbone).toBe(value("laminate.waste.herringbone"));
     const plitka = toolModules.plitka.defaults({ country: "RU" });

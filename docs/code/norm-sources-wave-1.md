@@ -51,6 +51,7 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | S26 | Метилан Универсал Премиум, product page: 250 g — 40–50 m² paper simplex, 35–45 m² duplex | Metylan (Henkel) | https://www.metylan.ru/ru/katalog/oboynyy-kley-metylan/metilan-universal-premium.html | 2026-10-13 |
 | S24 | «Поклейка обоев своими руками: что нужно знать»: an outer corner is wrapped 3–4 cm | Российская газета | https://rg.ru/2024/03/30/poklejka-oboev-svoimi-rukami-chto-nuzhno-znat.html | 2026-10-12 |
 | S17 | Инструкция по поклейке обоев (ARTSIMPLE) | SURGAZ (ООО «Фортпост»), manufacturer | https://artsimple.ru/instruction | 2026-10-09 |
+| S27 | Roll cards of household linoleum (Tarkett, Juteks, IVC): widths 1,5; 2; 2,5; 3; 3,5; 4 m; ГОСТ 18108-2016 (household PVC linoleum on an insulating backing) | Manufacturers, standard | — (links not collected yet) | 2026-10-21 |
 
 ## Norms
 
@@ -84,12 +85,16 @@ Status values: **confirmed** — accepted by the owner (2026-10-09); **default, 
 | `laminate.waste.diagonal` | 15% | — | **default, unconfirmed** (owner: keep with a note) | Labelled «по опыту укладчиков»; to be confirmed by the master (A26) |
 | `laminate.waste.herringbone` | 15% | — | **default, unconfirmed** | Same note |
 | `underlay.rollArea` | 10 m² per roll | — (shop packs, content plan C03) | **default, unconfirmed** | Field «Подложка: м² в рулоне», hint «проверьте по упаковке»; Quick-Step and others sell 5–15 m² |
+| `underlay.rollWidth` | 1 m | — (shop packs, content plan C03) | **default, unconfirmed** | Laminate v3: underlay counted in strips of this width as long as the room (roll length = m² / width), never fewer rolls than by area |
 | `linoleum.weldPerTube` | 20 m of seam per 44 g tube (type A) | — (retailer product cards; Tarkett publishes no figure) | **default, unconfirmed** | Related item «Холодная сварка»; seams counted along the longer room side (safe side, monotonic); type T ≈ 7 m, type C ≈ 15 m |
 | `linoleum.seamOverlap` | 50 mm (3–5 cm) | S11 | confirmed | Pattern matching per seam |
 | `linoleum.wallTrim` | 10 mm (0,5–1 cm) | S11 | confirmed | |
-| `linoleum.rollWidthMin`, `linoleum.rollWidthMax` | 1,2 / 2,4 m (table 1 allows up to 3 m) | S12 | confirmed | Market presets 1,5 … 4 m (C03) |
+| `linoleum.rollWidthMin`, `linoleum.rollWidthMax` | 1,5 / 4 m | S27 | **default, unconfirmed** (formula review 2026-10-21) | Were 1,2 / 2,4 m from S12 (ГОСТ 7251), which contradicted the widths the tool tries (`LINOLEUM_WIDTHS_MM` 1,5 … 4 m) and the page text; now the tool's range. 4,5 / 5 m collections are out of scope. Links to the manufacturer cards still to be collected |
+| `linoleum.trimAllowance` | 5 cm on every sheet length | S11 (measure by the largest size) | **default, unconfirmed** (owner, 2026-10-21: minimal reserve) | Linoleum v4: was 0. Field «Припуск на подрезку», hint «добавьте 5–10 см»; across, the roll covers the room as it is |
+| `linoleum.doorway` | 10 cm longer for a sheet running into a placed doorway | S11 («учитывая выступы и дверные проемы») | **default, unconfirmed** — fitters' practice, master review C10 | Linoleum v4. Only sheets that end at the door's wall; a sheet notched by an L-shape runs on past its inner wall |
 | `plinth.length` | 2,5 m (2,2 m preset) | S13, S20 (2,2 m: S14) | confirmed | The earlier catalogue links showed no length; replaced by the product page and its datasheet |
 | `plinth.fastenerSpacing` | 400 mm | S21 | confirmed (owner: 40 cm) | Manual: «max 30–40 cm» for screws; toggle off for glue or tape |
+| `plinth.minPiece` | 30 cm | — (fitters' practice) | **default, unconfirmed** — master review C10 | Plinth v2 (P16.7a): no piece shorter in a run (a run shorter than that is one piece); when the cut plan leaves less, one more plank for a mis-cut |
 | `tile.reserve`, `tile.reserve.diagonal` | 10 % straight, 15 % diagonal | S19 | confirmed | On top of the piece count (every cut piece already takes a tile) — the conservative reading; field «Запас». Diagonal (plitka v6): pieces of the 45° grid, the user's reserve but never under 15 % |
 | `tile.perBox` | 12 tiles per box | — (typical 30 × 30 box, 1,08 m²) | **default, unconfirmed** | Field «Плиток в коробке», hint «проверьте на коробке» |
 | `tile.joint.wall`, `tile.joint.floor` | 2 mm / 3 mm | S3 (1,5–2 wall 15 × 15; 2–3 floor 33 × 33) | confirmed | Upper bound of each range |

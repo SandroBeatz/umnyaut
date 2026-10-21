@@ -19,6 +19,11 @@ import type { ZatirkaInput } from "../src/tools/zatirka";
 export interface ToolArbitrary<I> {
   input(f: typeof fc): fc.Arbitrary<Partial<I>>;
   grow(input: I): I;
+  /**
+   * Item keys left out of the monotonic-in-area property, each with a reason and a golden example: a count that
+   * follows the real layout, not the amount of material (plinth joiners: one per mid-run joint).
+   */
+  exempt?: readonly string[];
 }
 
 const lengthMm = (f: typeof fc) => f.integer({ min: 300, max: 50_000 });
@@ -136,6 +141,10 @@ const plintus: ToolArbitrary<PlintusInput> = {
       })
       .map(validCut),
   grow,
+  // Plinth v2: joiners are the cut plan's mid-run joints — a larger room can need fewer (planks ending in the
+  // corners): 0,3 × 1,002 m has one joint, 1,3 × 1,002 m none (golden «Joiners follow the joints»). Planks stay
+  // monotonic.
+  exempt: ["plinth-joiner"],
 };
 
 const klej: ToolArbitrary<KlejInput> = {

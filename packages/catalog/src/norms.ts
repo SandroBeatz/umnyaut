@@ -44,6 +44,7 @@ const S = {
   S25: "Метилан Флизелин Экстра Комфорт, https://www.metylan.ru/ru/katalog/oboynyy-kley-metylan/metilan-flizelin-extra-comfort.html",
   S26: "Метилан Универсал Премиум, https://www.metylan.ru/ru/katalog/oboynyy-kley-metylan/metilan-universal-premium.html",
   S21: "Arbiton INDO, инструкция по монтажу (4 способа, шаг 30–40 см), https://pim.decora.pl/files/wils3fj3u4fgwr3c.pdf",
+  S27: "Карточки рулонов бытового линолеума Tarkett, Juteks, IVC в магазинах: ширины 1,5; 2; 2,5; 3; 3,5; 4 м; ГОСТ 18108-2016 (бытовой линолеум ПВХ на теплозвукоизолирующей подоснове)",
 } as const;
 
 const norm = (value: number, unit: string, source: string, extra: Partial<Norm> = {}): Norm => ({
@@ -136,6 +137,11 @@ export const norms: Readonly<Record<string, Norm>> = {
     unconfirmed: true,
     note: "проверьте по упаковке; бывает 5, 10, 15 м²",
   }),
+  "underlay.rollWidth": norm(1, "м", "фасовка подложек в магазинах (C03)", {
+    checkedAt: "2026-10-21",
+    unconfirmed: true,
+    note: "подложку считаем полосами этой ширины вдоль комнаты; длина рулона = площадь / ширина",
+  }),
   "linoleum.weldPerTube": norm(
     20,
     "м шва на тюбик 44 г",
@@ -147,10 +153,33 @@ export const norms: Readonly<Record<string, Norm>> = {
   ),
   "linoleum.seamOverlap": norm(50, "мм", S.S11, { note: "в источнике 3–5 см" }),
   "linoleum.wallTrim": norm(10, "мм", S.S11, { note: "в источнике 0,5–1 см" }),
-  "linoleum.rollWidthMin": norm(1.2, "м", S.S12),
-  "linoleum.rollWidthMax": norm(2.4, "м", S.S12, { note: "по таблице 1 до 3 м" }),
+  "linoleum.trimAllowance": norm(5, "см", S.S11, {
+    checkedAt: "2026-10-21",
+    unconfirmed: true,
+    note: "к длине каждого полотна; Tarkett велит мерить по наибольшим размерам, 5–10 см на подрезку — практика, берём минимум (решение владельца 2026-10-21)",
+  }),
+  "linoleum.doorway": norm(10, "см", S.S11, {
+    checkedAt: "2026-10-21",
+    unconfirmed: true,
+    note: "Tarkett: мерить «учитывая выступы и дверные проемы»; глубина захода под дверь 10 см — практика укладчиков, ждёт мастера (C10)",
+  }),
+  "linoleum.rollWidthMin": norm(1.5, "м", S.S27, {
+    checkedAt: "2026-10-21",
+    unconfirmed: true,
+    note: "ширины рулонов по карточкам производителей, ссылки ещё не собраны — проверьте ширину у выбранной коллекции. Прежние 1,2–2,4 м по ГОСТ 7251 расходились с ширинами в магазинах и в калькуляторе",
+  }),
+  "linoleum.rollWidthMax": norm(4, "м", S.S27, {
+    checkedAt: "2026-10-21",
+    unconfirmed: true,
+    note: "4,5 и 5 м бывают у части коллекций — в калькуляторе пока нет",
+  }),
   "plinth.length": norm(2.5, "м", `${S.S13}; ${S.S20}`, { note: "2,2 м — IDEAL Классик (S14), пресет" }),
   "plinth.fastenerSpacing": norm(400, "мм", S.S21, { note: "в инструкции: шаг не больше 30–40 см" }),
+  "plinth.minPiece": norm(30, "см", "практика монтажников (C10)", {
+    checkedAt: "2026-10-21",
+    unconfirmed: true,
+    note: "кусок короче плохо держится на дюбеле и отходит на стыке; если после раскроя остаётся меньше — ещё одна планка на ошибку при резке (решение владельца 2026-10-21)",
+  }),
 };
 
 export const getNorm = (id: string, from: Readonly<Record<string, Norm>> = norms): Norm | undefined => from[id];
