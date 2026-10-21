@@ -58,3 +58,22 @@ test("the static HTML has no banner and the structured data", async ({ request }
   const types = blocks.flat().map((block: { "@type": string }) => block["@type"]);
   expect(types).toEqual(["WebApplication", "BreadcrumbList", "FAQPage"]);
 });
+
+test("the own counter gets the events without consent: name, tool, country, source — nothing else (P9.3)", async ({
+  page,
+}) => {
+  const events: Array<Record<string, unknown>> = [];
+  // Previews have no database: the counter is answered here.
+  await page.route("**/api/e/", async (route) => {
+    events.push(JSON.parse(route.request().postData() ?? "{}"));
+    await route.fulfill({ status: 204 });
+  });
+  await page.goto(WALLS);
+  await expect(page.getByRole("region", { name: "Cookie" })).toBeVisible();
+  await expect.poll(() => events.map((e) => e.event)).toContain("tool_view");
+  for (const event of events) {
+    expect(Object.keys(event).sort()).toEqual(expect.arrayContaining(["event", "source"]));
+    for (const key of Object.keys(event)) expect(["event", "tool", "country", "source"]).toContain(key);
+  }
+  expect(events.find((e) => e.event === "tool_view")).toMatchObject({ tool: "ploshchad-sten", source: "web" });
+});

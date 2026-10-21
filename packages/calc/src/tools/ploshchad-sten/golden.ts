@@ -132,19 +132,81 @@ export const golden: GoldenFile<PloshchadStenInput> = {
       },
     },
     {
-      name: "Door taller than the wall → warning, area still counted",
+      name: "Door taller than the wall → warning, the door cut at the wall's height (v3)",
       input: { lengthMm: 4000, widthMm: 3000, heightMm: 2500, openings: [door(900, 2600)] },
-      expected: { summary: { wallArea: 32.66, grossWallArea: 35 }, warnings: ["opening_too_tall"] },
-      source: { kind: "manual", ref: "14 × 2,5 = 35; 35 − 0,9 × 2,6 = 32,66 м²; дверь 2,6 м выше стены 2,5 м" },
+      expected: {
+        summary: { wallArea: 32.75, grossWallArea: 35, openingsArea: 2.25 },
+        warnings: ["opening_too_tall"],
+      },
+      source: {
+        kind: "manual",
+        ref: "formula review 2026-10-21, derived by hand: 14 × 2,5 = 35; дверь 2,6 м выше стены 2,5 м — вычитаем только то, что в стене: 0,9 × 2,5 = 2,25; 35 − 2,25 = 32,75 м² (в v2 вычиталось 0,9 × 2,6 = 2,34 → 32,66)",
+      },
     },
     {
+      // v3: was one window 3 × 3 m on a 1 m wall (9 m²); cut at the wall's height it takes 3 m² and no longer
+      // exceeds the 4 m² of walls, so the case keeps its intent with two windows.
       name: "Openings larger than the walls → zero, not negative",
-      input: { lengthMm: 1000, widthMm: 1000, heightMm: 1000, openings: [window(3000, 3000)] },
+      input: { lengthMm: 1000, widthMm: 1000, heightMm: 1000, openings: [window(3000, 3000, 2)] },
       expected: {
-        summary: { wallArea: 0, grossWallArea: 4, openingsArea: 9 },
+        summary: { wallArea: 0, grossWallArea: 4, openingsArea: 6 },
         warnings: ["openings_exceed_walls", "opening_too_tall"],
       },
-      source: { kind: "manual", ref: "4 × 1 = 4 м² стен, окно 9 м²: площадь стен 0, а не −5" },
+      source: {
+        kind: "manual",
+        ref: "4 × 1 = 4 м² стен; два окна 3 × 3 м выше стены 1 м — по 3 × 1 = 3 м², вместе 6 м²: площадь стен 0, а не −2",
+      },
+    },
+    {
+      name: "Window taller than a low wall: cut at the wall's height (v3)",
+      input: { lengthMm: 3000, widthMm: 2500, heightMm: 2000, openings: [window(1500, 2200)] },
+      expected: {
+        summary: { wallArea: 19, grossWallArea: 22, openingsArea: 3 },
+        warnings: ["opening_too_tall"],
+      },
+      source: {
+        kind: "manual",
+        ref: "formula review 2026-10-21, derived by hand: 2 × 5,5 × 2 = 22 м²; окно 2,2 м на стене 2 м — 1,5 × 2 = 3 м²; 22 − 3 = 19 м²",
+      },
+    },
+    {
+      name: "Window on a 0.9 m sill set on the plan passes a 2.0 m wall: only its part under the top (v3)",
+      input: {
+        lengthMm: 3000,
+        widthMm: 2500,
+        heightMm: 2000,
+        openings: [
+          {
+            type: "window",
+            widthMm: 1200,
+            heightMm: 1500,
+            count: 1,
+            places: [{ wall: 0, offsetMm: 600, sillMm: 900 }],
+          },
+        ],
+      },
+      expected: {
+        summary: { wallArea: 20.68, grossWallArea: 22, openingsArea: 1.32 },
+        warnings: ["window_above_ceiling"],
+      },
+      source: {
+        kind: "manual",
+        ref: "re-review 2026-10-21, derived by hand: 2 × 5,5 × 2 = 22 м²; окно 1,5 м на подоконнике 0,9 м уходит до 2,4 м — в стене до 2,0 м только 2,0 − 0,9 = 1,1 м: 1,2 × 1,1 = 1,32 м²; 22 − 1,32 = 20,68 м² (до правки вычиталось 1,2 × 1,5 = 1,8 → 20,2). Подоконник плюс окно выше стены — предупреждение",
+      },
+    },
+    {
+      name: "Same window not placed: its sill is unknown, the whole 1.5 m is subtracted (v3)",
+      input: {
+        lengthMm: 3000,
+        widthMm: 2500,
+        heightMm: 2000,
+        openings: [window(1200, 1500)],
+      },
+      expected: { summary: { wallArea: 20.2, grossWallArea: 22, openingsArea: 1.8 }, warnings: [] },
+      source: {
+        kind: "manual",
+        ref: "re-review 2026-10-21, derived by hand: окно 1,5 м ниже стены 2,0 м, высота подоконника не задана — вычитаем всё окно: 1,2 × 1,5 = 1,8; 22 − 1,8 = 20,2 м²",
+      },
     },
   ],
 };

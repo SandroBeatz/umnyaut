@@ -6,6 +6,7 @@ import {
   mm2ToM2,
   mmToM,
   openingInputSchema,
+  type PlacedOpening,
   placeOpenings,
   purchase,
   roomOutline,
@@ -32,7 +33,10 @@ const input = z.object({
   rollWidthMm: z.union([z.literal(0), z.int().check(z.minimum(500), z.maximum(6000))]),
   /** Seam overlap for matching the pattern (norm `linoleum.seamOverlap`). */
   overlapMm: z.int().check(z.minimum(0), z.maximum(300)),
-  /** Extra on each room dimension for uneven walls; 0 — the room's largest length and width (Tarkett). */
+  /**
+   * Extra on the sheet length for uneven walls, trimmed off at both ends (norm `linoleum.trimAllowance`); the room
+   * is measured by its largest length and width (Tarkett). Across, the roll width covers the room as it is.
+   */
   allowanceMm: z.int().check(z.minimum(0), z.maximum(300)),
   /** The linoleum has a pattern to match: only then the repeat counts. */
   pattern: z.boolean(),
@@ -50,8 +54,18 @@ export type LinoleumInput = z.infer<typeof input>;
 /** Norm `linoleum.wallTrim`: gap left at the walls when trimming. */
 export const LINOLEUM_WALL_TRIM_MM = 10;
 
-/** Market roll widths (content plan C03: 1,5 … 4 м). */
+/** Market roll widths (norms `linoleum.rollWidthMin` / `linoleum.rollWidthMax`: 1,5 … 4 м). */
 export const LINOLEUM_WIDTHS_MM = [1500, 2000, 2500, 3000, 3500, 4000] as const;
+
+/** Norm `linoleum.trimAllowance`: the least extra on the sheet length (the field hint says 5–10 cm). */
+export const LINOLEUM_TRIM_ALLOWANCE_MM = 50;
+
+/**
+ * Norm `linoleum.doorway`: a sheet running into a doorway is cut this much longer, so the floor under the door
+ * leaf is covered up to the threshold (Tarkett: measure «учитывая выступы и дверные проемы»; the depth is
+ * fitters' practice, unconfirmed — master review C10).
+ */
+export const LINOLEUM_DOORWAY_MM = 100;
 
 interface Variant {
   widthMm: number;
@@ -67,6 +81,14 @@ interface Variant {
   /** Sheets wholly in the L-shape's cut-out band. */
   short: boolean[];
   cut?: { along: number; across: number };
+  /** Doorways in the outer walls the sheets run along: the sheets cover the room across plus this, mm. */
+  sideMm: number;
+}
+
+/** Placed doors in the two outer walls running along the sheets: `near` at the plan's 0 across, `far` opposite. */
+interface SideDoors {
+  near: boolean;
+  far: boolean;
 }
 
 /** The cut-out if it makes a real L-shape (smaller than the room both ways), else none. */
@@ -75,9 +97,33 @@ const cutOf = (i: LinoleumInput) =>
     ? { along: i.cutLengthMm, across: i.cutWidthMm }
     : undefined;
 
-function variant(widthMm: number, alongLength: boolean, i: LinoleumInput): Variant {
+/**
+ * Doors in an outer wall parallel to the sheets: no sheet runs into them end-on, so the sheet along that wall
+ * must reach `LINOLEUM_DOORWAY_MM` into the doorway — the room is covered across plus that much per such wall.
+ * A door in the L-shape's inner wall is crossed by a full-length sheet and needs nothing extra.
+ */
+function sideDoors(i: LinoleumInput, placed: readonly PlacedOpening[], alongLength: boolean): SideDoors {
+  const span = alongLength ? i.widthMm : i.lengthMm;
+  const side = { near: false, far: false };
+  for (const p of placed) {
+    if (p.type !== "door") continue;
+    const m = p.mark;
+    if (alongLength ? m.y1 !== m.y2 : m.x1 !== m.x2) continue;
+    const c = alongLength ? m.y1 : m.x1;
+    if (Math.abs(c) < 1) side.near = true;
+    else if (Math.abs(c - span) < 1) side.far = true;
+  }
+  return side;
+}
+
+/** Shift of sheet 1 into a doorway on the start wall's side, mm (`flipV`: the start is at the far side). */
+const startShift = (side: SideDoors, flipV: boolean) => ((flipV ? side.far : side.near) ? LINOLEUM_DOORWAY_MM : 0);
+
+function variant(widthMm: number, alongLength: boolean, i: LinoleumInput, side: SideDoors, flipV: boolean): Variant {
   const along = (alongLength ? i.lengthMm : i.widthMm) + i.allowanceMm;
-  const across = (alongLength ? i.widthMm : i.lengthMm) + i.allowanceMm;
+  const sideMm = (Number(side.near) + Number(side.far)) * LINOLEUM_DOORWAY_MM;
+  const across = (alongLength ? i.widthMm : i.lengthMm) + sideMm;
+  const shift = startShift(side, flipV);
   const step = widthMm - i.overlapMm;
   const sheets = across <= widthMm || step <= 0 ? 1 : 1 + Math.ceil((across - widthMm) / step);
   const fits = step > 0 || across <= widthMm;
@@ -85,11 +131,8 @@ function variant(widthMm: number, alongLength: boolean, i: LinoleumInput): Varia
   const cut = cutOf(i);
   const cutAlong = cut ? (alongLength ? cut.along : cut.across) : 0;
   const bandFrom = cut ? (alongLength ? i.widthMm - cut.across : i.lengthMm - cut.along) : Number.POSITIVE_INFINITY;
-  // A sheet's floor part starts at its seam: unrolled at −allowance / 2 + j × step, cut mid-overlap.
-  const short = Array.from(
-    { length: sheets },
-    (_, j) => j > 0 && j * step - i.allowanceMm / 2 + i.overlapMm / 2 >= bandFrom,
-  );
+  // A sheet's floor part starts at its seam: unrolled at j × step (less the shift into a doorway), cut mid-overlap.
+  const short = Array.from({ length: sheets }, (_, j) => j > 0 && j * step - shift + i.overlapMm / 2 >= bandFrom);
   const lengths = short.map((s, j) => along - (s ? cutAlong : 0) + (j > 0 ? i.repeatMm : 0));
   const needMm = fits ? lengths.reduce((sum, l) => sum + l, 0) : Number.POSITIVE_INFINITY;
   const boughtMm = Math.ceil(needMm / i.cutStepMm) * i.cutStepMm;
@@ -103,6 +146,7 @@ function variant(widthMm: number, alongLength: boolean, i: LinoleumInput): Varia
     lengths,
     short,
     cut: cut ? { along: cutAlong, across: alongLength ? cut.across : cut.along } : undefined,
+    sideMm,
   };
 }
 
@@ -113,51 +157,116 @@ const better = (a: Variant, b: Variant) =>
   Number(b.alongLength) - Number(a.alongLength) ||
   a.widthMm - b.widthMm;
 
+interface Room {
+  cut?: { along: number; across: number };
+  outline: ReturnType<typeof roomOutline>;
+  placed: PlacedOpening[];
+}
+
+interface Planned {
+  /** The variant with every doorway counted: lengths, need, bought and area as bought. */
+  v: Variant;
+  laid: ReturnType<typeof sheetsLayout> & { inDoor: boolean; flipX: boolean; flipY: boolean; shift: number };
+  /** The sheets start from the other wall to keep a seam out of a doorway. */
+  moved: boolean;
+  /** Extra length of each sheet for a doorway it runs into, mm. */
+  doorway: number[];
+}
+
 /**
- * Scheme and laying guide from the very variant the purchase was counted on. Canonical frame: sheet 1 at the
- * start wall, the L-cut at the far end of the last sheets; mirrored to the plan's cut corner. A rectangle is
- * mirrored across the sheets when that keeps every seam out of the doorways.
+ * Lays a variant on the plan and adds the doorways: canonical frame — sheet 1 at the start wall, the L-cut at the
+ * far end of the last sheets, mirrored to the plan's cut corner. A rectangle is mirrored across the sheets when
+ * that keeps every seam out of the doorways. A sheet running into a door end-on is cut longer by the doorway.
  */
-function scheme(i: LinoleumInput, best: Variant, variants: readonly Variant[], warnings: Warning[]): Layout {
-  const cut = cutOf(i);
-  const outline = roomOutline(
-    i.lengthMm,
-    i.widthMm,
-    cut ? { lengthMm: cut.along, widthMm: cut.across } : undefined,
-    i.cutCorner,
-  );
-  const { placed, off } = placeOpenings(outline.walls, i.openings);
-  if (off > 0) warnings.push({ code: "opening_off_wall", level: "warning", values: { count: off } });
+function plan(i: LinoleumInput, v: Variant, room: Room, side: SideDoors): Planned {
+  const { cut, outline, placed } = room;
   const doors = placed.filter((p) => p.type === "door").map((p) => p.mark);
   const lay = (flipX: boolean, flipY: boolean) => {
+    const shift = startShift(side, v.alongLength ? flipY : flipX);
     const laid = sheetsLayout({
       lengthMm: i.lengthMm,
       widthMm: i.widthMm,
-      alongLength: best.alongLength,
-      rollWidthMm: best.widthMm,
+      alongLength: v.alongLength,
+      rollWidthMm: v.widthMm,
       overlapMm: i.overlapMm,
-      allowanceMm: i.allowanceMm,
-      lengthsMm: best.lengths,
-      short: best.short,
-      cut: best.cut,
+      // The allowance is on the sheet length only: across, sheet 1 starts at the wall or `shift` in its doorway.
+      allowanceMm: 2 * shift,
+      lengthsMm: v.lengths,
+      short: v.short,
+      cut: v.cut,
       flipX,
       flipY,
       walls: outline.walls,
     });
     const inDoor = laid.seams.some((seam) => doors.some((door) => seamInDoor(seam, door)));
-    return { ...laid, inDoor };
+    return { ...laid, inDoor, flipX, flipY, shift };
   };
   const flips = cut ? cornerFlips(i.cutCorner) : { x: false, y: false };
   let laid = lay(flips.x, flips.y);
   let moved = false;
   if (!cut && laid.inDoor) {
-    const other = lay(!best.alongLength, best.alongLength);
+    const other = lay(!v.alongLength, v.alongLength);
     if (!other.inDoor) {
       laid = other;
       moved = true;
     }
   }
 
+  // Doors on the walls the sheets run into: every sheet under the doorway is cut longer by its depth.
+  const across = v.alongLength ? i.widthMm : i.lengthMm;
+  const step = v.widthMm - i.overlapMm;
+  const seamAt = (j: number) => j * step - laid.shift + i.overlapMm / 2;
+  const doorway = v.lengths.map(() => 0);
+  for (const p of placed) {
+    if (p.type !== "door") continue;
+    const wallSide = outline.walls[p.wall]?.side;
+    const end = v.alongLength
+      ? wallSide === "left" || wallSide === "right"
+      : wallSide === "top" || wallSide === "bottom";
+    if (!end) continue;
+    // Back to the canonical frame: u along the sheets, v across.
+    const flipU = v.alongLength ? laid.flipX : laid.flipY;
+    const flipV = v.alongLength ? laid.flipY : laid.flipX;
+    const spanU = v.alongLength ? i.lengthMm : i.widthMm;
+    const vOf = (x: number, y: number) => {
+      const c = v.alongLength ? y : x;
+      return flipV ? across - c : c;
+    };
+    const uRaw = v.alongLength ? p.mark.x1 : p.mark.y1;
+    const u = flipU ? spanU - uRaw : uRaw;
+    const a = vOf(p.mark.x1, p.mark.y1);
+    const b = vOf(p.mark.x2, p.mark.y2);
+    const [lo, hi] = [Math.min(a, b), Math.max(a, b)];
+    for (let j = 0; j < doorway.length; j++) {
+      const from = j === 0 ? 0 : seamAt(j);
+      const to = j === doorway.length - 1 ? across : seamAt(j + 1);
+      // Only a sheet that ends at this wall: one notched by an L-shape runs on past its inner wall.
+      const stop = v.short[j] && v.cut ? spanU - v.cut.along : spanU;
+      const ends = Math.abs(u) < 1 || Math.abs(u - stop) < 1;
+      if (from < hi && to > lo && ends) doorway[j] = (doorway[j] ?? 0) + LINOLEUM_DOORWAY_MM;
+    }
+  }
+  const extra = doorway.reduce((n, d) => n + d, 0);
+  const needMm = v.needMm + extra;
+  const boughtMm = Math.ceil(needMm / i.cutStepMm) * i.cutStepMm;
+  return {
+    v: {
+      ...v,
+      needMm,
+      boughtMm,
+      areaMm2: boughtMm * v.widthMm,
+      lengths: v.lengths.map((l, j) => l + (doorway[j] ?? 0)),
+    },
+    laid,
+    moved,
+    doorway,
+  };
+}
+
+/** Scheme and laying guide from the very plan the purchase was counted on. */
+function scheme(i: LinoleumInput, chosen: Planned, variants: readonly Variant[], room: Room): Layout {
+  const { cut, outline, placed } = room;
+  const { v: best, laid, moved, doorway } = chosen;
   const seams = best.sheets - 1;
   const guide: Step[] = [
     { code: "start", values: { wall: laid.startWall + 1, width: mmToM(best.widthMm) } },
@@ -170,6 +279,8 @@ function scheme(i: LinoleumInput, best: Variant, variants: readonly Variant[], w
   }
   const shortCount = best.short.filter(Boolean).length;
   if (shortCount > 0) guide.push({ code: "short", values: { count: shortCount } });
+  if (doorway.some((d) => d > 0)) guide.push({ code: "doorway", values: { depth: LINOLEUM_DOORWAY_MM / 10 } });
+  if (best.sideMm > 0) guide.push({ code: "doorway_side", values: { depth: LINOLEUM_DOORWAY_MM / 10 } });
   guide.push({ code: "trim", values: { trim: LINOLEUM_WALL_TRIM_MM } });
   if (seams > 0) {
     if (moved) guide.push({ code: "door_clear", values: {} });
@@ -204,7 +315,7 @@ function scheme(i: LinoleumInput, best: Variant, variants: readonly Variant[], w
     walls: outline.walls,
     pieces: laid.pieces,
     marks,
-    sheets: laid.sheets,
+    sheets: laid.sheets.map((s, j) => ({ ...s, lengthMm: best.lengths[j] ?? s.lengthMm })),
     guide,
     stats: {
       whole: laid.pieces.length - cutPieces,
@@ -225,7 +336,10 @@ export const linoleum: ToolModule<LinoleumInput> = {
   id: "linoleum",
   // 2: a sheet is short only when its seam lies in the L-shape's narrow part (allowance shift counted).
   // 3: the repeat counts only with «Рисунок» on (owner, 2026-10-14) — a repeat left in a hidden field adds nothing.
-  version: 3,
+  // 4: a 5 cm trim allowance on the sheet length by default (was 0), the allowance no longer widens the room across,
+  //    a sheet running into a placed doorway is cut 10 cm longer, a door in a wall along the sheets widens the
+  //    room across by 10 cm — every variant is laid with its doorways before the choice (formula review 2026-10-21).
+  version: 4,
   input,
   upgrade: patternFromRepeat,
   defaults: () => ({
@@ -242,7 +356,7 @@ export const linoleum: ToolModule<LinoleumInput> = {
     ],
     rollWidthMm: 0,
     overlapMm: 50,
-    allowanceMm: 0,
+    allowanceMm: LINOLEUM_TRIM_ALLOWANCE_MM,
     pattern: false,
     repeatMm: 0,
     weld: true,
@@ -252,12 +366,41 @@ export const linoleum: ToolModule<LinoleumInput> = {
   compute(i): ToolResult {
     i = { ...i, repeatMm: i.pattern ? i.repeatMm : 0 };
     const widths = i.rollWidthMm > 0 ? [i.rollWidthMm] : [...LINOLEUM_WIDTHS_MM];
-    const variants = widths
-      .flatMap((w) => [variant(w, true, i), variant(w, false, i)])
-      .filter((v) => Number.isFinite(v.needMm))
-      .sort(better);
-    const best = variants[0] as Variant;
     const cut = cutOf(i);
+    const outline = roomOutline(
+      i.lengthMm,
+      i.widthMm,
+      cut ? { lengthMm: cut.along, widthMm: cut.across } : undefined,
+      i.cutCorner,
+    );
+    const { placed, off } = placeOpenings(outline.walls, i.openings);
+    const room: Room = { cut, outline, placed };
+    const flips = cut ? cornerFlips(i.cutCorner) : { x: false, y: false };
+    // Every variant is laid with its doorways before the choice: a door can add a sheet or a longer cut.
+    const planned = widths
+      .flatMap((w) =>
+        [true, false].map((alongLength) => {
+          const side = sideDoors(i, placed, alongLength);
+          return { side, v: variant(w, alongLength, i, side, alongLength ? flips.y : flips.x) };
+        }),
+      )
+      .filter(({ v }) => Number.isFinite(v.needMm))
+      .map(({ side, v }) => plan(i, v, room, side))
+      .sort((a, b) => better(a.v, b.v));
+    const variants = planned.map((p) => p.v);
+    const chosen = planned[0] as Planned;
+    const best = chosen.v;
+    const warnings: Warning[] =
+      best.sheets > 1
+        ? [{ code: i.weld ? "seams" : "seams_no_weld", level: "info", values: { seams: best.sheets - 1 } }]
+        : [];
+    if (i.shape === "l" && !cut && i.cutLengthMm > 0 && i.cutWidthMm > 0) {
+      warnings.push({ code: "cut_too_large", level: "warning" });
+    }
+    if (off > 0) warnings.push({ code: "opening_off_wall", level: "warning", values: { count: off } });
+    const layout = scheme(i, chosen, variants, room);
+    const doorway = chosen.doorway;
+    const doorwayMm = doorway.reduce((n, d) => n + d, 0);
     const floorM2 = mm2ToM2(i.lengthMm * i.widthMm - (cut ? cut.along * cut.across : 0));
     // Bought by area: one cut step of this width is the pack, so packs = cut length / step.
     const item = purchase(
@@ -293,25 +436,32 @@ export const linoleum: ToolModule<LinoleumInput> = {
       { code: "room", values: { length: mmToM(i.lengthMm), width: mmToM(i.widthMm), area: floorM2 } },
     ];
     if (i.allowanceMm > 0) steps.push({ code: "allowance", values: { allowance: mmToM(i.allowanceMm) } });
-    for (const v of variants.slice(0, 4)) {
+    const shown = variants.slice(0, 4);
+    for (const alongLength of [true, false]) {
+      const v = shown.find((s) => s.alongLength === alongLength && s.sideMm > 0);
+      if (!v) continue;
+      const roomAcross = alongLength ? i.widthMm : i.lengthMm;
+      steps.push({
+        code: alongLength ? "doorway_side_length" : "doorway_side_width",
+        values: { room: mmToM(roomAcross), extra: mmToM(v.sideMm), across: mmToM(roomAcross + v.sideMm) },
+      });
+    }
+    for (const v of shown) {
       steps.push({
         code: v.alongLength ? "variant_length" : "variant_width",
         values: { width: mmToM(v.widthMm), sheets: v.sheets, length: mmToM(v.boughtMm), area: mm2ToM2(v.areaMm2) },
       });
     }
+    const doorwaySheets = doorway.filter((d) => d > 0).length;
+    if (doorwayMm > 0)
+      steps.push({
+        code: "doorway",
+        values: { sheets: doorwaySheets, depth: mmToM(LINOLEUM_DOORWAY_MM), extra: mmToM(doorwayMm) },
+      });
     steps.push({
       code: "best",
       values: { width: mmToM(best.widthMm), seams: best.sheets - 1, length: mmToM(best.boughtMm), area: boughtM2 },
     });
-
-    const warnings: Warning[] =
-      best.sheets > 1
-        ? [{ code: i.weld ? "seams" : "seams_no_weld", level: "info", values: { seams: best.sheets - 1 } }]
-        : [];
-    if (i.shape === "l" && !cut && i.cutLengthMm > 0 && i.cutWidthMm > 0) {
-      warnings.push({ code: "cut_too_large", level: "warning" });
-    }
-    const layout = scheme(i, best, variants, warnings);
 
     return {
       items,

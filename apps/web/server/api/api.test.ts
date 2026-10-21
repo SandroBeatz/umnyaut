@@ -1,6 +1,7 @@
 import "server-only";
 import type { ProjectData } from "@umnyaut/calc";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { EventName } from "@/shared/analytics";
 
 /**
  * Route handlers end to end against an in-memory stand-in for `@umnyaut/db`: the queries' contract (insert says
@@ -13,6 +14,7 @@ const fake = vi.hoisted(() => {
     projects: new Map<string, Row>(),
     opens: [] as string[],
     reports: [] as unknown[],
+    events: [] as unknown[],
     limits: new Map<string, number>(),
   };
   return {
@@ -21,6 +23,7 @@ const fake = vi.hoisted(() => {
       state.projects.clear();
       state.opens.length = 0;
       state.reports.length = 0;
+      state.events.length = 0;
       state.limits.clear();
     },
     db: {
@@ -60,7 +63,9 @@ const fake = vi.hoisted(() => {
       async insertReport(_db: unknown, report: unknown) {
         state.reports.push(report);
       },
-      async addEvent() {},
+      async addEvent(_db: unknown, event: unknown) {
+        state.events.push(event);
+      },
     },
   };
 });
@@ -321,6 +326,64 @@ describe("reports API", () => {
     for (let i = 0; i < 5; i++) await api.postReport(request("POST", "/api/reports/", { body: report }));
     expect((await api.postReport(request("POST", "/api/reports/", { body: report }))).status).toBe(429);
     expect(fake.state.reports).toHaveLength(5);
+  });
+});
+
+describe("events API", () => {
+  let api: Awaited<ReturnType<typeof load>>;
+  beforeEach(async () => {
+    fake.reset();
+    vi.spyOn(console, "info").mockImplementation(() => {});
+    api = await load(withDb);
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  const send = (body: unknown, headers?: Record<string, string>) =>
+    api.postEvent(request("POST", "/api/e/", { body, ...(headers ? { headers } : {}) }));
+
+  it("counts the event with its tool, country and source only", async () => {
+    const response = await send({
+      event: "calc_completed",
+      tool: "laminat",
+      country: "KZ",
+      source: "web",
+      fieldsChanged: 3,
+      via: "panel",
+      area: 18,
+    });
+    expect(response.status).toBe(204);
+    expect(fake.state.events).toEqual([{ event: "calc_completed", tool: "laminat", country: "KZ", source: "web" }]);
+  });
+
+  it("counts an unknown tool, country or source as none", async () => {
+    await send({ event: "tool_view", tool: "../etc", country: "US", source: "bot" });
+    await send({ event: "js_error" });
+    expect(fake.state.events).toEqual([
+      { event: "tool_view", tool: "", country: "", source: "web" },
+      { event: "js_error", tool: "", country: "", source: "web" },
+    ]);
+  });
+
+  it("refuses events it does not know and other sites", async () => {
+    expect((await send({ event: "drop_table" })).status).toBe(400);
+    expect((await send({ event: "tool_view" }, { origin: "https://evil.example" })).status).toBe(403);
+    expect(fake.state.events).toEqual([]);
+  });
+
+  it("allows 300 events a minute", async () => {
+    for (let i = 0; i < 300; i++) await send({ event: "tool_view" });
+    expect((await send({ event: "tool_view" })).status).toBe(429);
+    expect(fake.state.events).toHaveLength(300);
+  });
+
+  it("knows every event of EventMap and nothing else", () => {
+    // A name missing on either side fails tsc here.
+    type Counted = (typeof api.COUNTED_EVENTS)[number];
+    const same: [Exclude<EventName, Counted> | Exclude<Counted, EventName>] extends [never] ? true : false = true;
+    expect(same).toBe(true);
   });
 });
 

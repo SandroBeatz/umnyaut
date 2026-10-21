@@ -630,6 +630,52 @@ export const golden: GoldenFile<OboiInput> = {
         ref: "11 рулонов × 1500 + 2 пачки клея × 400 = 17 300 ₽; грунтовка без цены — «без 1 позиции»",
       },
     },
+    {
+      name: "Offset match 64 cm, height 2.8 m: each phase from its own roll — 11 rolls, as straight (v7)",
+      input: { heightMm: 2800, pattern: true, repeatMm: 640, match: "offset" },
+      expected: {
+        items: { wallpaper: { packs: 11, need: 109.739, leftover: 0.811 } },
+        summary: { strips: 32, perRoll: 3, rollsUsed: 11 },
+      },
+      source: {
+        kind: "manual",
+        ref: "Formula review 2026-10-21, derived by hand. Полоса 2,9 м, раппорт 0,64 → 3,2 м в рулоне, рабочая длина 10,05 − 0,639 = 9,411. Подряд со сдвигом в одном рулоне: 0–2,9, 3,52–6,42, 7,04 + 2,9 > 9,411 → 2 из рулона, было 16 рулонов. Мастера режут смещённый рисунок из двух рулонов попеременно: чётные из одного (0, 3,2, 6,4 → 9,3), нечётные из другого — по 3 из рулона, как при прямой стыковке (11 рулонов): со смещением не больше прямой + 1. Карта раскроя: 11 рулонов, хвост 0,811 → 110,55 − 0,811 = 109,739 м",
+      },
+    },
+    {
+      name: "Offset match 64 cm, roll 1.06 m, height 2.9 m: 6 rolls, not 8 (v7)",
+      input: { heightMm: 2900, rollWidthMm: 1060, pattern: true, repeatMm: 640, match: "offset" },
+      expected: {
+        items: { wallpaper: { packs: 6, need: 57.089, leftover: 3.211 } },
+        summary: { strips: 16, perRoll: 3, rollsUsed: 6 },
+        warnings: ["roll_tight"],
+      },
+      source: {
+        kind: "manual",
+        ref: "Formula review 2026-10-21, derived by hand. Полоса 3,0 → 3,2 м с подгонкой; в рабочих 9,411 м одной фазы: 0, 3,2, 6,4 → 9,4 — 3 полосы, остаётся 0,011 (меньше 1,5% — подсказка). 16 полос: 8 чётных → 3 рулона, 8 нечётных → 3 рулона = 6, как при прямой стыковке; подряд со сдвигом выходило 2 из рулона и 8 рулонов. 60,3 − 3,211 = 57,089 м",
+      },
+    },
+    {
+      name: "Offset match 64 cm, height 2.8 m, door and window not placed: the estimate also cuts by phase — 12 rolls (v7)",
+      input: { ...UNPLACED, heightMm: 2800, pattern: true, repeatMm: 640, match: "offset" },
+      expected: {
+        items: { wallpaper: { packs: 12, need: 114.089, leftover: 6.511 } },
+        summary: { strips: 32, pieces: 3, perRoll: 3, rollsUsed: 12 },
+      },
+      source: {
+        kind: "manual",
+        ref: "Formula review 2026-10-21, derived by hand. Полос ⌈(17,8 − 0,27 − 0,67) / 0,53⌉ = ⌈31,8⌉ = 32, по 16 каждой фазы. Одной фазы из рулона 3 (0, 3,2, 6,4 → 9,3 ≤ 9,411): 16 = 5 × 3 + 1 → 6 рулонов на фазу, 12 всего (прямая стыковка тоже 12: 11 рулонов полос, куски — 12-й). Куски 0,9 над дверью и 2 × 1,6 над и под окном — в хвосты рулонов с одной полосой. Было 16: подряд со сдвигом 2 из рулона. 120,6 − 6,511 = 114,089 м",
+      },
+    },
+    {
+      name: "A door wider than any wall, not placed: warning",
+      input: { openings: [door(5000, 2000)] },
+      expected: { items: { wallpaper: { packs: 9 } }, warnings: ["opening_wider_than_walls"] },
+      source: {
+        kind: "manual",
+        ref: "Formula review 2026-10-21: дверь 5 м шире самой длинной стены 4,6 м — такого проёма нет ни на одной стене, оценка по периметру вычла бы его целиком; предупреждаем, расчёт не меняем",
+      },
+    },
   ],
   benchmarks: [
     {
@@ -657,7 +703,7 @@ export const golden: GoldenFile<OboiInput> = {
       checkedAt: "2026-10-09",
       observed: { items: { wallpaper: { packs: 17 } }, summary: { perRoll: 2 } },
       explanation:
-        "Qalculator adds half a repeat to every strip (3,2 + 0,32 = 3,52 → 2 per roll → 17 rolls). In a real cut only every second strip shifts by half a repeat: 0–2,8, 2,88–5,68, 5,76–8,56 m fit in 9,411 m even after the worst pattern start, so a roll gives 3 strips: 32 strips in 11 rolls, the pieces above and below the window in the tails.",
+        "Qalculator adds half a repeat to every strip (3,2 + 0,32 = 3,52 → 2 per roll → 17 rolls). In a real cut only every second strip shifts by half a repeat: 0–2,8, 2,88–5,68, 5,76–8,56 m fit in 9,411 m even after the worst pattern start, so a roll gives 3 strips: 32 strips in 11 rolls, the pieces above and below the window in the tails. Where alternating in one roll loses a strip (height 2,8 m: 2 per roll), v7 cuts each phase from its own roll, as fitters do — never more than straight + 1.",
     },
   ],
 };

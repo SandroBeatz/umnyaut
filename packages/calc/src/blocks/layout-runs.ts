@@ -29,6 +29,88 @@ export function wallRuns(walls: readonly PlanWall[], placed: readonly PlacedOpen
   });
 }
 
+/**
+ * Shortest plinth piece cut into a run, mm: a shorter one is hard to fix and breaks off at the joint (fitters'
+ * practice, unconfirmed — master review C10). A run shorter than this (between a door and a corner) is one piece.
+ */
+export const MIN_PLINTH_PIECE_MM = 300;
+
+type RunPiece = LayoutRun["pieces"][number];
+
+export interface RunsPlan {
+  /** Pieces of each run in laying order and what is left of the last plank after it. */
+  runs: { lengthMm: number; pieces: RunPiece[]; carryMm: number }[];
+  planks: number;
+  /** Joints in the middle of a run, one connector each; a plank ending in a corner or at a door needs none. */
+  joints: number;
+  /** The longest offcut left unused: the last plank's rest, or a rest put aside because it fitted no run. */
+  leftoverMm: number;
+}
+
+/**
+ * Cut plan for runs laid one after another as a ribbon: what is left of a plank at a corner or a door starts the
+ * next run when it is at least `minPieceMm` long (or covers that run whole). No piece shorter than `minPieceMm`
+ * is cut into a run: when the last piece would be shorter, the plank before it is cut shorter (its offcut is
+ * waste), or the rest it starts from is shortened, or the rest is put aside and the run starts from a new plank.
+ */
+export function planRuns(lengths: readonly number[], plankMm: number, minPieceMm = MIN_PLINTH_PIECE_MM): RunsPlan {
+  const plank = Math.round(plankMm);
+  const min = Math.min(minPieceMm, plank);
+  let planks = 0;
+  let joints = 0;
+  let left = 0;
+  let aside = 0;
+  const runs: RunsPlan["runs"] = [];
+  /** New planks for `rest` mm: whole ones and the last cut; a too short last piece takes from the one before. */
+  const fresh = (rest: number) => {
+    const n = Math.max(Math.ceil(rest / plank - 1e-9), 1);
+    const list = Array.from({ length: n }, (_, k) => (k < n - 1 ? plank : rest - (n - 1) * plank));
+    const last = list[n - 1] as number;
+    if (n >= 2 && last < min) {
+      list[n - 2] = plank - (min - last);
+      list[n - 1] = min;
+    }
+    return list;
+  };
+  for (const L of lengths) {
+    const pieces: RunPiece[] = [];
+    if (left >= L) {
+      pieces.push({ lengthMm: L, plank: planks, from: "rest" });
+      left -= L;
+      runs.push({ lengthMm: L, pieces, carryMm: left });
+      continue;
+    }
+    let rest = left >= min ? left : 0;
+    let tail = fresh(L - rest);
+    const last = tail[tail.length - 1] as number;
+    if (rest > 0 && tail.length === 1 && last < min) {
+      if (rest - (min - last) >= min) {
+        rest -= min - last;
+        tail = [min];
+      } else {
+        rest = 0;
+        tail = fresh(L);
+      }
+    }
+    aside = Math.max(aside, left - rest);
+    if (rest > 0) pieces.push({ lengthMm: rest, plank: planks, from: "rest" });
+    for (const len of tail) {
+      planks++;
+      pieces.push({ lengthMm: len, plank: planks, from: len < plank ? "cut" : "whole" });
+    }
+    left = plank - (tail[tail.length - 1] as number);
+    joints += pieces.length - 1;
+    runs.push({ lengthMm: L, pieces, carryMm: left });
+  }
+  return { runs, planks, joints, leftoverMm: Math.max(left, aside) };
+}
+
+/** Runs in laying order: from the longest one, then on round the room. */
+export function fromLongest<T>(list: readonly T[], length: (t: T) => number): T[] {
+  const first = list.reduce((b, s, k) => (length(s) > length(list[b] as T) ? k : b), 0);
+  return [...list.slice(first), ...list.slice(0, first)];
+}
+
 export interface RunsLayoutInput {
   walls: readonly PlanWall[];
   placed: readonly PlacedOpening[];
@@ -39,9 +121,8 @@ export interface RunsLayoutInput {
 
 /**
  * Plinth along the outline (docs/ui/room-plan-and-layout-guides.md): from the longest run clockwise, planks laid
- * as one ribbon — what is left of a plank at a corner or a door starts the next run, joined mid-run by a
- * connector. That is the purchase model (planks = ⌈run / plank⌉, joiners = planks − 1), so the plank count of
- * the scheme equals the purchase whenever every door is placed.
+ * as one ribbon by `planRuns` — the plan the purchase counts once every door is placed, so the planks and joints
+ * of the scheme are those bought.
  */
 export function runsLayout(i: RunsLayoutInput): {
   runs: LayoutRun[];
@@ -49,18 +130,20 @@ export function runsLayout(i: RunsLayoutInput): {
   joints: LayoutMark[];
   start: LayoutMark;
   startWall: number;
-  planks: number;
+  plan: RunsPlan;
+  /** Corners with plinth on both sides (no door right at it), as the index of the wall ending there. */
+  corners: number[];
 } {
   const spans = wallRuns(i.walls, i.placed);
-  const first = spans.reduce((b, s, k) => (s.to - s.from > (spans[b] as Span).to - (spans[b] as Span).from ? k : b), 0);
-  const ordered = [...spans.slice(first), ...spans.slice(0, first)];
-  const plank = Math.round(i.plankLengthMm);
+  const ordered = fromLongest(spans, (s) => s.to - s.from);
+  const plan = planRuns(
+    ordered.map((s) => s.to - s.from),
+    i.plankLengthMm,
+  );
   const t = i.thicknessMm;
   const runs: LayoutRun[] = [];
   const pieces: LayoutPiece[] = [];
   const joints: LayoutMark[] = [];
-  let planks = 0;
-  let left = 0;
 
   ordered.forEach((span, k) => {
     const w = i.walls[span.wall] as PlanWall;
@@ -70,36 +153,37 @@ export function runsLayout(i: RunsLayoutInput): {
     const nx = -uy;
     const ny = ux;
     const at = (d: number) => [w.x1 + ux * d, w.y1 + uy * d] as const;
-    const run: LayoutRun = { wall: span.wall, lengthMm: span.to - span.from, pieces: [], carryMm: 0 };
-    const list: LayoutRun["pieces"][number][] = [];
+    const planned = plan.runs[k] as RunsPlan["runs"][number];
     let d = span.from;
-    while (d < span.to) {
-      const rest = left > 0;
-      if (!rest) {
-        planks++;
-        left = plank;
-      }
-      const len = Math.min(left, span.to - d);
-      list.push({ lengthMm: len, plank: planks, from: rest ? "rest" : len < plank ? "cut" : "whole" });
+    for (const p of planned.pieces) {
       const [x1, y1] = at(d);
-      const [x2, y2] = at(d + len);
+      const [x2, y2] = at(d + p.lengthMm);
       const [x3, y3] = [x2 + nx * t, y2 + ny * t];
       pieces.push({
         x: Math.min(x1, x3),
         y: Math.min(y1, y3),
         w: Math.abs(x3 - x1),
         h: Math.abs(y3 - y1),
-        cut: len < plank,
-        reused: rest || undefined,
+        cut: p.from !== "whole",
+        reused: p.from === "rest" || undefined,
         row: k,
       });
       if (d > span.from) joints.push({ kind: "seam", x1, y1, x2: x1 + nx * t * 2, y2: y1 + ny * t * 2 });
-      d += len;
-      left -= len;
+      d += p.lengthMm;
     }
-    run.carryMm = left;
-    runs.push({ ...run, pieces: list });
+    runs.push({ wall: span.wall, lengthMm: span.to - span.from, pieces: planned.pieces, carryMm: planned.carryMm });
   });
+
+  // The end of wall k is a plinth corner when a run ends there and the next wall's run starts there.
+  const count = i.walls.length;
+  const corners = i.walls
+    .map((_, k) => k)
+    .filter((k) => {
+      const length = (i.walls[k] as PlanWall).lengthMm;
+      const ends = spans.some((s) => s.wall === k && s.to >= length);
+      const starts = spans.some((s) => s.wall === (k + 1) % count && s.from <= 0);
+      return ends && starts;
+    });
 
   const s0 = ordered[0];
   const w0 = s0 ? i.walls[s0.wall] : undefined;
@@ -109,5 +193,5 @@ export function runsLayout(i: RunsLayoutInput): {
   const y0 = (w0?.y1 ?? 0) + uy * (s0?.from ?? 0);
   const reach = Math.min(((s0?.to ?? 0) - (s0?.from ?? 0)) / 3, 1000);
   const start: LayoutMark = { kind: "start", x1: x0, y1: y0, x2: x0 + ux * reach, y2: y0 + uy * reach };
-  return { runs, pieces, joints, start, startWall: s0?.wall ?? 0, planks };
+  return { runs, pieces, joints, start, startWall: s0?.wall ?? 0, plan, corners };
 }

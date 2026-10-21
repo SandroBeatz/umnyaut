@@ -96,11 +96,17 @@ export interface SharedLine {
   saved?: number;
 }
 
-/** Two calcs of a room lay a finish on the same surface (tile on «Пол и стены» and on «Пол»; wallpaper and paint). */
+/**
+ * Two calcs of a room lay a finish on the same surface (tile on «Пол и стены» and on «Пол»; wallpaper and paint), or
+ * — with `key` — count the same consumable on a shared part that neither replaces (tile on «Пол и стены» brings
+ * adhesive, an adhesive calc on «Пол» counts it too: the floor's adhesive is in the list twice).
+ */
 export interface Overlap {
   roomId: string;
   calcIds: readonly [string, string];
   parts: readonly SurfacePart[];
+  /** The consumable counted twice on `parts` (an item key); none for two finishes. */
+  key?: string;
 }
 
 /** A consumable a calc brought along that another calc of the room counts itself (Р11). */
@@ -137,7 +143,8 @@ const finishes = (calc: EstimateCalcItems, shared: ReadonlySet<string>) =>
  * consumables of all rooms are summed per product key and rounded to packs once, each calc's share kept. A calc that
  * counts a consumable itself (adhesive, grout) replaces the same consumable another calc of the room brings along on
  * a surface it covers whole; covering only part of it (adhesive on the floor, tile on floor and walls), both stay —
- * a little extra rather than the walls' share lost. Pure: the browser computes each calc and passes its items.
+ * a little extra rather than the walls' share lost — and `overlaps` flags the shared part with the item `key`, so the
+ * list can tell the user it is counted twice. Pure: the browser computes each calc and passes its items.
  */
 export function aggregateEstimate({ roomIds, calcs, shared, prices }: AggregateInput): EstimateAggregate {
   const replaced: Replacement[] = [];
@@ -157,8 +164,16 @@ export function aggregateEstimate({ roomIds, calcs, shared, prices }: AggregateI
             own.map((o) => o.surface),
             calc.surface,
           )
-        )
+        ) {
+          // Kept so no part goes without it — but a part both surfaces share now has it twice: flag it.
+          for (const o of own) {
+            if (!calc.surface || !o.surface) continue;
+            const parts = sharedParts(calc.surface, o.surface);
+            const known = overlaps.some((x) => x.key === item.key && x.calcIds[0] === calc.id && x.calcIds[1] === o.id);
+            if (parts.length > 0 && !known) overlaps.push({ roomId, calcIds: [calc.id, o.id], parts, key: item.key });
+          }
           return true;
+        }
         if (!replaced.some((r) => r.calcId === calc.id && r.key === item.key))
           replaced.push({ calcId: calc.id, by: by.id, key: item.key });
         return false;

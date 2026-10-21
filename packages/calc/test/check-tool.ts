@@ -17,7 +17,9 @@ export function checkTool<I>(tool: ToolModule<I>, arb: ToolArbitrary<I>, runs = 
   );
   fc.assert(
     fc.property(full, (input) => {
-      expect(growthViolations(tool.compute(input, ctx), tool.compute(arb.grow(input), ctx))).toEqual([]);
+      const exempt = arb.exempt ?? [];
+      const violations = growthViolations(tool.compute(input, ctx), tool.compute(arb.grow(input), ctx));
+      expect(violations.filter((v) => !exempt.some((key) => v.startsWith(`${key}:`)))).toEqual([]);
     }),
     { numRuns: runs },
   );

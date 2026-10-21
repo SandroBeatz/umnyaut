@@ -38,6 +38,16 @@ export const klej: ToolDef = {
       when: { surface: ["walls", "both"] },
     },
     {
+      kind: "length",
+      unit: "m",
+      min: 0,
+      max: 10_000,
+      name: "tileHeightMm",
+      label: "Высота облицовки",
+      hint: "Если плитка не до потолка; 0 — до потолка",
+      when: { surface: ["walls", "both"] },
+    },
+    {
       kind: "select",
       name: "shape",
       label: "Форма комнаты",
@@ -115,6 +125,17 @@ export const klej: ToolDef = {
       group: "adhesive",
     },
     { kind: "number", min: 1, max: 50, step: 1, unit: "кг", name: "bagKg", label: "Мешок", group: "adhesive" },
+    {
+      kind: "number",
+      min: 0,
+      max: 30,
+      step: 1,
+      unit: "%",
+      name: "reservePct",
+      label: "Запас",
+      hint: "Остатки в ведре и на шпателе",
+      group: "adhesive",
+    },
     { kind: "price", item: "tile-adhesive", name: "price_tile-adhesive", label: "Цена мешка", group: "adhesive" },
   ],
   presets: [
@@ -141,6 +162,7 @@ export const klej: ToolDef = {
   },
   summary: { adhesiveKg: "Клея нужно", area: "Площадь облицовки", notch: "Зуб шпателя" },
   steps: {
+    band: "Плитка на стенах до {band} м от пола (высота стен {height} м)",
     floor: "Пол = {length} × {width} = {area} м²",
     floor_l: "Пол = {length} × {width} − вырез {cutLength} × {cutWidth} = {area} м²",
     walls: "Стены = {gross} − окна и двери {openings} = {area} м²",
@@ -148,7 +170,7 @@ export const klej: ToolDef = {
     rate_notch: "Плитка до {side} см — шпатель {notch} мм, расход от {rate} кг/м²",
     rate_layer: "Расход = {perMm} кг/м² на 1 мм × {layer} мм = {rate} кг/м²",
     back_butter: "Слой на плитку {layer} мм × {perMm} = {extra} кг/м²; всего {rate} кг/м²",
-    adhesive: "Клей = {area} × {rate} = {kg} кг → мешков по {bag} кг: {bags}",
+    adhesive: "Клей = {area} × {rate} + {reserve}% запаса = {kg} кг → мешков по {bag} кг: {bags}",
   },
   warnings: {
     openings_exceed_walls: "Окна и двери больше площади стен. Проверьте их размеры",
@@ -169,5 +191,6 @@ export const klej: ToolDef = {
     "tileAdhesive.maxLayer",
     "tileAdhesive.backButter",
     "tileAdhesive.bag",
+    "tileAdhesive.reserve",
   ],
 };

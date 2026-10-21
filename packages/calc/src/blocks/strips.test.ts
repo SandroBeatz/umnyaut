@@ -1,3 +1,4 @@
+import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { cutStrips } from "./strips";
 
@@ -50,8 +51,49 @@ describe("cutStrips", () => {
 
   it("offset with repeat 500: every roll, not only the first, gives 3 strips of 2900", () => {
     // Usable 9551: 0–2900, 3250–6150, 6500–9400 — in each roll's own frame (the review's double-lead case).
+    // A fresh roll of one phase leaves more: 0–2900, 3000–5900, 6000–8900, slack 651 (formula review 2026-10-21).
     const cut = cutStrips({ ...base, repeatMm: 500, offset: true, stripLengthMm: 2900, strips: 32 });
-    expect(cut).toMatchObject({ rolls: 11, perRoll: 3, perRollSlackMm: 151 });
+    expect(cut).toMatchObject({ rolls: 11, perRoll: 3, perRollSlackMm: 651 });
+  });
+
+  it("offset 640, strips of 2900: each phase from its own roll — 12 rolls, not 16 (formula review 2026-10-21)", () => {
+    // Alternating in one roll: 0–2900, 3520–6420, 7040 + 2900 > 9411 — 2 per roll, 16 rolls for 32 strips.
+    // One phase per roll: 0–2900, 3200–6100, 6400–9300 — 3 per roll, 16 strips of each phase → 6 + 6 rolls.
+    // Straight match gives ⌈32 / 3⌉ = 11: offset never needs more than straight + 1.
+    const input = { ...base, repeatMm: 640, stripLengthMm: 2900, strips: 32 };
+    expect(cutStrips({ ...input, offset: true })).toMatchObject({
+      rolls: 12,
+      perRoll: 3,
+      // The per-phase split for the step: 16 + 16 strips, 3 of one phase per roll → 6 + 6 rolls.
+      phases: { strips: [16, 16], rolls: [6, 6], perRoll: 3 },
+    });
+    expect(cutStrips({ ...input, offset: false }).rolls).toBe(11);
+    expect(cutStrips({ ...input, offset: false }).phases).toBeUndefined();
+  });
+
+  it("offset can need fewer rolls than straight: strip 1500, repeat 1000, 24 strips — 4 vs 6 (re-review 2026-10-21)", () => {
+    // Usable 10 050 − 999 = 9051. Straight: strips every 2000 (0, 2000, 4000, 6000; 8000 + 1500 > 9051) — 4 per
+    // roll, 24 / 4 = 6 rolls. Offset: phases 0 and 500 alternate, every 1500 (0, 1500, … 7500 + 1500 = 9000) —
+    // 6 per roll in one roll, 24 / 6 = 4 rolls; by phase would be 3 of one phase per roll, so the in-order plan wins.
+    const input = { ...base, repeatMm: 1000, stripLengthMm: 1500, strips: 24 };
+    expect(cutStrips({ ...input, offset: false })).toMatchObject({ rolls: 6, perRoll: 4 });
+    const offset = cutStrips({ ...input, offset: true });
+    expect(offset).toMatchObject({ rolls: 4, perRoll: 6 });
+    expect(offset.phases).toBeUndefined();
+  });
+
+  it("offset with given strip phases: same-phase strips share a roll", () => {
+    const phases = Array.from({ length: 6 }, (_, k) => (k % 2) * 320);
+    const cut = cutStrips({
+      ...base,
+      repeatMm: 640,
+      offset: true,
+      stripLengthMm: 2900,
+      strips: 6,
+      stripPhasesMm: phases,
+    });
+    expect(cut.rolls).toBe(2);
+    expect(cut.cuts[0]?.map((c) => c.index)).toEqual([0, 2, 4]);
   });
 
   it("lucky start: no lead, the 3100 mm strips fit 3 per roll", () => {
@@ -74,5 +116,21 @@ describe("cutStrips", () => {
     });
     expect(cutStrips({ ...base, strips: 2, pieces: [10_051] })).toMatchObject({ fits: false, tooLong: "piece" });
     expect(cutStrips({ ...base, strips: 0 })).toMatchObject({ fits: true, rolls: 0, remnantsMm: [] });
+  });
+
+  it("offset match never needs more than straight + 1 roll (formula review 2026-10-21)", () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1000, max: 9000 }),
+        fc.integer({ min: 2, max: 1500 }),
+        fc.integer({ min: 0, max: 80 }),
+        (strip, repeat, strips) => {
+          const input = { rollLengthMm: 10_050, repeatMm: repeat, stripLengthMm: strip, strips };
+          const straight = cutStrips({ ...input, offset: false });
+          const offset = cutStrips({ ...input, offset: true });
+          if (straight.fits && offset.fits) expect(offset.rolls).toBeLessThanOrEqual(straight.rolls + 1);
+        },
+      ),
+    );
   });
 });

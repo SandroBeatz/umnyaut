@@ -1,12 +1,12 @@
 ---
-version: 2.14
-date: 2026-10-20
+version: 2.15
+date: 2026-10-21
 category: plan
 ---
 
 # Development Plan
 
-> Version 2.14 · 2026-10-20 · [Plan](../plan/)
+> Version 2.15 · 2026-10-21 · [Plan](../plan/)
 
 ## Overview
 
@@ -300,8 +300,8 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 **Tasks**
 
 - [x] P9.1 Cookie banner (strict mode: Metrika not loaded before «Принять»; equal buttons; 6-month hide after refusal; footer “Настройки cookie”).
-- [ ] P9.2 `shared/analytics/track()` typed `EventMap`; adapters: own counter (`sendBeacon('/api/e')` → `events_daily`) always, Metrika after consent (URL without `s`); common params (country, source, category, variation); `calc_completed` logic (≥ 2 fields + 5 s visible, `via`); `js_error`. Metrika part live on prod 2026-10-19 (counter `113671906`, 10 goals); own counter left.
-- [ ] P9.3 `POST /api/e` with limits.
+- [x] P9.2 `shared/analytics/track()` typed `EventMap`; adapters: own counter (`sendBeacon('/api/e')` → `events_daily`) always, Metrika after consent (URL without `s`); common params (country, source, category, variation); `calc_completed` logic (≥ 2 fields + 5 s visible, `via`); `js_error`. Metrika part live on prod 2026-10-19 (counter `113671906`, 10 goals); own counter live with P9.3 (2026-10-21).
+- [x] P9.3 `POST /api/e` with limits. → 2026-10-21: `POST /api/e/` (Origin, 300/min in memory, `EventMap` names only, unknown tool/country → none, 204), `track()` sends a text beacon always, `fetch` keepalive as fallback.
 - [x] P9.4 `generateMetadata` from frontmatter; canonical everywhere; JSON-LD (`WebApplication`, `FAQPage`, `BreadcrumbList`, `Organization`, `WebSite`).
 - [x] P9.5 `sitemap.ts` (lastmod from text/formula change), `robots.txt` route (disallow `/api/`, Yandex `Clean-param: s`), `manifest.ts` (PWA icons G08), OG image G09, 301 map in catalog.
 - [x] P9.6 Security headers in Caddy/Next: CSP (self, Metrika, Telegram), HSTS, nosniff, Referrer-Policy, `frame-ancestors` per route table.
@@ -452,7 +452,7 @@ pnpm add -D --filter web babel-plugin-react-compiler tailwindcss @tailwindcss/po
 - [x] P16.5 Linoleum: sheets, seams, allowance, L-shape short sheets; guide (seams along the light, not in the doorway, cutting after relaxation).
 - [x] P16.6 Tile floor: grid from `gridLine` per axis, edge cuts with widths, start point (centre or corner, whole tiles at a placed door); then walls per wall around placed openings. → Floor (straight) done 2026-10-11; walls done 2026-10-12 (tile version 3: placed openings counted tile by tile, window sill on the plan). The diagonal scheme goes with P16.10.
 - [x] P16.7 Plinth: runs split by placed doors, corners, cut list per run.
-- [ ] P16.7a Plinth **formula version 2** (owner, 2026-10-11; found by `formula-reviewer` on the P16.7 scheme): (1) a minimum piece length — the ribbon now allows a 1 cm piece (2.51 × 2.49 m, 2.5 m plank → 4 planks), the purchase should add a plank instead; the length needs a source or the master's word (C10); (2) joiners = mid-run joints of the scheme instead of planks − 1 (a plank ending in a corner needs none: 5 × 5 m buys 7, uses 4); (3) inner corners minus corners taken by a door; (4) `door_wider_than_wall` against the door's own wall once it is placed. New golden examples for each, `formula-reviewer` pass.
+- [x] P16.7a Plinth **formula version 2** (owner, 2026-10-11; found by `formula-reviewer` on the P16.7 scheme): (1) a minimum piece length — the ribbon now allows a 1 cm piece (2.51 × 2.49 m, 2.5 m plank → 4 planks), the purchase should add a plank instead; the length needs a source or the master's word (C10); (2) joiners = mid-run joints of the scheme instead of planks − 1 (a plank ending in a corner needs none: 5 × 5 m buys 7, uses 4); (3) inner corners minus corners taken by a door; (4) `door_wider_than_wall` against the door's own wall once it is placed. New golden examples for each, `formula-reviewer` pass. → Done 2026-10-21 (formula review 2026-10-21): 30 cm minimum piece (unconfirmed, C10) and a spare plank when less is left (2,51 × 2,49 → 5 planks, 5 × 2,5 → 7), joiners = mid-run joints (5 × 5 → 4), corners taken by a placed door dropped, door checked against its own wall.
 - [x] P16.8 Wallpaper: per-wall strip engine (plumb line from the start corner, wraps at corners, pieces above/below openings, roll cut map) — **formula version 2**, new golden examples, `formula-reviewer` pass; guide (start corner by paper type, direction, step-off). → Done 2026-10-12: engine, scheme, roll map, guide, content section (version 2, golden re-derived by hand); `formula-reviewer`: CHANGES REQUIRED → fixed (piece pattern phase, window margin, sill above the ceiling).
 - [x] P16.8a Wallpaper **version 3** (owner's request, 2026-10-12): the start chosen from the room (level line, two directions, closing corner by the door, manual and symmetric starts), a real cutting plan (blanks, parts, rests, waste; narrow strips and pieces from rests), bare zones and «nothing under the window», L-shaped rooms with outer corners, spare rolls, the result block split into parts / blanks / parts from rests / rolls by the map.
 - [x] P16.8b Wallpaper **version 4** (owner's request, 2026-10-12): a door beside a window is one opening, what is trimmed off a strip over an opening is a rest for pieces, and a choice «Как клеить у окон и дверей»: whole strips trimmed in place (default, manufacturers' way) or cut at the opening edge (fewer strips, joints at the corners of openings — warning `edge_seams`, hints `edge_saves` / `edge_no_gain` / `edge_pattern`); red joints and slanting relief cuts on the walls.

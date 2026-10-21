@@ -16,8 +16,13 @@ export type {
 export * from "./project";
 export { type ToolId, toolModules } from "./tools";
 export { NOTCH_TABLE } from "./tools/klej";
-export { LAMINATE_WASTE_PCT } from "./tools/laminat";
-export { LINOLEUM_WALL_TRIM_MM } from "./tools/linoleum";
+export { LAMINATE_WASTE_PCT, UNDERLAY_ROLL_WIDTH_MM } from "./tools/laminat";
+export {
+  LINOLEUM_DOORWAY_MM,
+  LINOLEUM_TRIM_ALLOWANCE_MM,
+  LINOLEUM_WALL_TRIM_MM,
+  LINOLEUM_WIDTHS_MM,
+} from "./tools/linoleum";
 export { upgradeInput } from "./tools/pattern";
 export { TILE_DIAGONAL_RESERVE_PCT } from "./tools/plitka";
 export { costOf, type PriceBasis, priced, priceField } from "./tools/priced";

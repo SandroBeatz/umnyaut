@@ -1,12 +1,12 @@
 ---
-version: 1.4
-date: 2026-10-20
+version: 1.5
+date: 2026-10-21
 category: code
 ---
 
 # Server API and Data
 
-> Version 1.4 · 2026-10-20 · [Code](../code/)
+> Version 1.5 · 2026-10-21 · [Code](../code/)
 
 ## Overview
 
@@ -77,7 +77,7 @@ Only **input** is stored; results are recomputed on every open so formula fixes 
 | `PUT /api/projects/[id]` | Refresh by `editToken` (`X-Edit-Token` header) | 60/min |
 | `DELETE /api/projects/[id]` | Delete by `editToken` (`X-Edit-Token` header) | 20/h |
 | `POST /api/reports` | Error report (with honeypot field) | 5/h |
-| `POST /api/e` | Increment anonymous event counter (`sendBeacon`) | 300/min per IP |
+| `POST /api/e` | Increment anonymous event counter (`sendBeacon`): body `{ event, tool?, country?, source? }`, only `EventMap` names (else 400), unknown tool or country stored as `""`, other fields dropped; `204` | 300/min per IP (memory) |
 | `POST /api/ai/label` · `/plan` · `/describe` | AI recognition | Daily per device |
 | `POST /api/tg/webhook` | Telegram updates | Secret header |
 | `GET, POST /api/tg/calcs` | “My calculations” list / bind project | `initData` signature |
@@ -102,6 +102,8 @@ Only **input** is stored; results are recomputed on every open so formula fixes 
 `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `APP_ENV`. Local development uses Supabase in Docker via Supabase CLI. Free plan limits: 500 MB DB, pauses after a week of inactivity (daily health check keeps it awake). Upgrade to Pro ($25/mo) with the first paying user.
 
 ## Usage
+
+Anonymous counter (P9.2, P9.3): `track()` (`shared/analytics`) sends every event to `/api/e/` regardless of consent — `navigator.sendBeacon` with a text body (no preflight; the server parses JSON whatever the content type), `fetch(..., { keepalive: true })` when the beacon is refused. Only name, tool, country and source leave the browser; the server adds 1 to today's row via `event_add`. The server's `COUNTED_EVENTS` must equal the `EventMap` names — `api.test.ts` fails `tsc` otherwise. No DB (staging) → `503`, ignored by the beacon.
 
 Sharing flow (estimate, P17.17, `features/estimate-link`):
 

@@ -38,6 +38,16 @@ export const zatirka: ToolDef = {
       when: { surface: ["walls", "both"] },
     },
     {
+      kind: "length",
+      unit: "m",
+      min: 0,
+      max: 10_000,
+      name: "tileHeightMm",
+      label: "Высота облицовки",
+      hint: "Если плитка не до потолка; 0 — до потолка",
+      when: { surface: ["walls", "both"] },
+    },
+    {
       kind: "select",
       name: "shape",
       label: "Форма комнаты",
@@ -146,6 +156,7 @@ export const zatirka: ToolDef = {
   },
   summary: { groutKg: "Затирки нужно", rate: "Расход на 1 м²", area: "Площадь облицовки" },
   steps: {
+    band: "Плитка на стенах до {band} м от пола (высота стен {height} м)",
     floor: "Пол = {length} × {width} = {area} м²",
     floor_l: "Пол = {length} × {width} − вырез {cutLength} × {cutWidth} = {area} м²",
     walls: "Стены = {gross} − окна и двери {openings} = {area} м²",

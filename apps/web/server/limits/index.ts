@@ -23,6 +23,7 @@ export const LIMITS = {
   projectUpdate: { name: "project-update", max: 60, windowSeconds: 60, store: "memory" },
   projectDelete: { name: "project-delete", max: 20, windowSeconds: 3600, store: "db" },
   report: { name: "report", max: 5, windowSeconds: 3600, store: "db" },
+  event: { name: "event", max: 300, windowSeconds: 60, store: "memory" },
 } as const satisfies Record<string, LimitRule>;
 
 const memory = new MemoryLimiter();

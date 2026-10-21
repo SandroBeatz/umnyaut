@@ -96,7 +96,9 @@ export function CalcOverlapHint({ current, calcs, onSplit }: CalcOverlapHintProp
   return (
     <Hint>
       <p>
-        {fill(t.overlap, { parts: partsLabel(overlap.parts), calc: overlap.calc })}
+        {overlap.item
+          ? fill(t.overlapItem, { parts: partsLabel(overlap.parts), item: overlap.item, calc: overlap.calc })
+          : fill(t.overlap, { parts: partsLabel(overlap.parts), calc: overlap.calc })}
         {split ? ` ${t.split}` : null}
       </p>
       {split ? (
