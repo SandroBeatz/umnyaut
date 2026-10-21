@@ -42,6 +42,9 @@ Each entry:
 
 ### 2026-10-21
 
+- **P9.2 (fix)** Prod check in Chrome after deploy #201 (`b863eac`): 10 tools, «Высота облицовки», list → short link → `/p/<id>/` → «Удалить ссылку», report form (not sent), `/api/e/` 204 — all fine. Found: `tool_view` went out with country RU for a KG visitor — the first client render still has the static default, and the event fired in that commit. The analytics context now reads the country from the store (`countryNow()`), not the hydrated value; e2e with time zone Asia/Bishkek (fails without the fix). The 17 test events of the check were deleted from `events_daily`.
+  - Where: `fix/tool-view-country`
+
 - **—** Tile chain fixes from the independent formula review (owner: minimal reserves, no waiting for the master): plitka v6 — diagonal counted on a 45° grid (`blocks/diagonal.ts`, never below straight, reserve = max(user, 15 %)), walls tiled to a height subtract only the openings' parts inside the band (`wallAreaM2(…, "band")`, `wallOpenings(…, { band })`), the L-shape's six walls, the L floor as its scheme, warning `grout_no_joint`; klej v3 — 5 % reserve (`tileAdhesive.reserve`, unconfirmed); zatirka v3 — band area; ploshchad-sten v3 — an opening taller than the wall is cut at its height; `aggregateEstimate` flags a consumable counted twice on a shared part (`Overlap.key`).
   - Where: `feature/calc-review-fixes`
   - Notes: the web hint for `Overlap.key` (apps/web `overlapOf`) and a surface-dependent default joint (2 mm on walls) need frontend work; kraska still subtracts full-height openings.
