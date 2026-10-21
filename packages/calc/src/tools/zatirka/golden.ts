@@ -222,7 +222,8 @@ export const golden: GoldenFile<ZatirkaInput> = {
         surface: "walls",
         lengthMm: 3000,
         widthMm: 2500,
-        heightMm: 1500,
+        heightMm: 2500,
+        tileHeightMm: 1500,
         openings: [
           { type: "door", widthMm: 800, heightMm: 2000, count: 1 },
           { type: "window", widthMm: 1200, heightMm: 1400, count: 1 },
@@ -231,7 +232,23 @@ export const golden: GoldenFile<ZatirkaInput> = {
       expected: { items: { grout: { packs: 3, need: 4.105728 } }, summary: { area: 14.58 } },
       source: {
         kind: "manual",
-        ref: `formula review 2026-10-21, derived by hand. Стены 11 × 1,5 = 16,5 м²; в полосе до 1,5 м дверь 0,8 × 1,5 = 1,2, окно на подоконнике 0,9 — 1,2 × 0,6 = 0,72: 14,58 м² (v2 вычитал 3,28 → 13,22 м², 3,72 кг, 2 упаковки). ${FORMULA}: 0,256 кг/м² × 14,58 × 1,1 = 4,105728 кг → 3 упаковки по 2 кг (${CE40})`,
+        ref: `formula review 2026-10-21, derived by hand; re-review: «Высота облицовки» 1,5 м в комнате высотой 2,5 м. Стены 11 × 1,5 = 16,5 м²; в полосе до 1,5 м дверь 0,8 × 1,5 = 1,2, окно на подоконнике 0,9 — 1,2 × 0,6 = 0,72: 14,58 м² (v2 вычитал 3,28 → 13,22 м², 3,72 кг, 2 упаковки). ${FORMULA}: 0,256 кг/м² × 14,58 × 1,1 = 4,105728 кг → 3 упаковки по 2 кг (${CE40})`,
+      },
+    },
+    {
+      name: "Tile height 2.0 m in a 2.5 m room, door 0.8 × 2.0 (v3)",
+      input: {
+        surface: "walls",
+        lengthMm: 3000,
+        widthMm: 2500,
+        heightMm: 2500,
+        tileHeightMm: 2000,
+        openings: [{ type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 0, offsetMm: 600 }] }],
+      },
+      expected: { items: { grout: { packs: 3, need: 5.74464 } }, summary: { area: 20.4 } },
+      source: {
+        kind: "manual",
+        ref: `re-review 2026-10-21, derived by hand: «Высота облицовки» 2,0 м в комнате 2,5 м: 11 × 2,0 − 0,8 × 2,0 = 20,4 м². ${FORMULA}: 0,256 кг/м² × 20,4 × 1,1 = 5,74464 кг → 3 упаковки по 2 кг`,
       },
     },
   ],

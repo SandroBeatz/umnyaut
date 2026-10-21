@@ -158,6 +158,8 @@ const klej: ToolArbitrary<KlejInput> = {
         cutLengthMm: f.integer({ min: 0, max: 60_000 }),
         cutWidthMm: f.integer({ min: 0, max: 60_000 }),
         heightMm: f.integer({ min: 1000, max: 10_000 }),
+        // «Высота облицовки»: 0 (to the ceiling) or any band, also above the walls.
+        tileHeightMm: f.oneof(f.constant(0), f.integer({ min: 0, max: 10_000 })),
         openings: f.array(opening(f), { maxLength: 20 }),
         tileLengthMm: f.integer({ min: 20, max: 3000 }),
         tileWidthMm: f.integer({ min: 20, max: 3000 }),
@@ -181,6 +183,8 @@ const zatirka: ToolArbitrary<ZatirkaInput> = {
         cutLengthMm: f.integer({ min: 0, max: 60_000 }),
         cutWidthMm: f.integer({ min: 0, max: 60_000 }),
         heightMm: f.integer({ min: 1000, max: 10_000 }),
+        // «Высота облицовки»: 0 (to the ceiling) or any band, also above the walls.
+        tileHeightMm: f.oneof(f.constant(0), f.integer({ min: 0, max: 10_000 })),
         openings: f.array(opening(f), { maxLength: 20 }),
         tileLengthMm: f.integer({ min: 20, max: 3000 }),
         tileWidthMm: f.integer({ min: 20, max: 3000 }),
@@ -251,6 +255,8 @@ const plitka: ToolArbitrary<PlitkaInput> = {
         cutLengthMm: f.integer({ min: 0, max: 30_000 }),
         cutWidthMm: f.integer({ min: 0, max: 30_000 }),
         heightMm: f.integer({ min: 1000, max: 10_000 }),
+        // «Высота облицовки»: 0 (to the ceiling) or any band, also above the walls.
+        tileHeightMm: f.oneof(f.constant(0), f.integer({ min: 0, max: 10_000 })),
         openings: f.array(opening(f), { maxLength: 20 }),
         tileLengthMm: f.integer({ min: 20, max: 3000 }),
         tileWidthMm: f.integer({ min: 20, max: 3000 }),

@@ -37,8 +37,12 @@ export interface DiagonalCount {
 }
 
 const SQRT2 = Math.SQRT2;
-/** A tile has to reach 0,5 mm into the surface to count, and may stick out 0,5 mm and still be whole. */
-const EPS_MM = 0.5;
+/**
+ * A tile has to reach 1 mm into the surface to count (a cut thinner than 1 mm is no piece), and may stick out up to
+ * 1 mm over a wall or an opening's edge and still be whole: the gap at the wall takes it.
+ */
+export const DIAGONAL_EPS_MM = 1;
+const EPS_MM = DIAGONAL_EPS_MM;
 /** «Open past the edge» for a hole at the room's edge: far beyond any room (≤ 100 m). */
 const FAR_MM = 1e7;
 

@@ -169,5 +169,44 @@ export const golden: GoldenFile<PloshchadStenInput> = {
         ref: "formula review 2026-10-21, derived by hand: 2 × 5,5 × 2 = 22 м²; окно 2,2 м на стене 2 м — 1,5 × 2 = 3 м²; 22 − 3 = 19 м²",
       },
     },
+    {
+      name: "Window on a 0.9 m sill set on the plan passes a 2.0 m wall: only its part under the top (v3)",
+      input: {
+        lengthMm: 3000,
+        widthMm: 2500,
+        heightMm: 2000,
+        openings: [
+          {
+            type: "window",
+            widthMm: 1200,
+            heightMm: 1500,
+            count: 1,
+            places: [{ wall: 0, offsetMm: 600, sillMm: 900 }],
+          },
+        ],
+      },
+      expected: {
+        summary: { wallArea: 20.68, grossWallArea: 22, openingsArea: 1.32 },
+        warnings: ["window_above_ceiling"],
+      },
+      source: {
+        kind: "manual",
+        ref: "re-review 2026-10-21, derived by hand: 2 × 5,5 × 2 = 22 м²; окно 1,5 м на подоконнике 0,9 м уходит до 2,4 м — в стене до 2,0 м только 2,0 − 0,9 = 1,1 м: 1,2 × 1,1 = 1,32 м²; 22 − 1,32 = 20,68 м² (до правки вычиталось 1,2 × 1,5 = 1,8 → 20,2). Подоконник плюс окно выше стены — предупреждение",
+      },
+    },
+    {
+      name: "Same window not placed: its sill is unknown, the whole 1.5 m is subtracted (v3)",
+      input: {
+        lengthMm: 3000,
+        widthMm: 2500,
+        heightMm: 2000,
+        openings: [window(1200, 1500)],
+      },
+      expected: { summary: { wallArea: 20.2, grossWallArea: 22, openingsArea: 1.8 }, warnings: [] },
+      source: {
+        kind: "manual",
+        ref: "re-review 2026-10-21, derived by hand: окно 1,5 м ниже стены 2,0 м, высота подоконника не задана — вычитаем всё окно: 1,2 × 1,5 = 1,8; 22 − 1,8 = 20,2 м²",
+      },
+    },
   ],
 };

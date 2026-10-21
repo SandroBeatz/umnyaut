@@ -7,7 +7,13 @@ export {
   type PlannedRoll,
   planCuts,
 } from "./cutting";
-export { type DiagonalCount, type DiagonalInput, type DiagonalRect, diagonalGrid } from "./diagonal";
+export {
+  DIAGONAL_EPS_MM,
+  type DiagonalCount,
+  type DiagonalInput,
+  type DiagonalRect,
+  diagonalGrid,
+} from "./diagonal";
 export {
   clippedOpeningsAreaM2,
   doorWidthMm,
@@ -73,5 +79,5 @@ export {
 } from "./plan";
 export { greedyRows, layRows, type RowPlan, type RowsInput, type RowsResult } from "./rows";
 export { cutStrips, type StripCut, type StripCutInput } from "./strips";
-export { type TiledSurfaceInput, tiledAreaM2 } from "./tiled";
+export { type TiledSurfaceInput, tiledAreaM2, tiledBandMm } from "./tiled";
 export { type WasteRule, wastePct, withWaste } from "./waste";

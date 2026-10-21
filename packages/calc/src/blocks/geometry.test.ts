@@ -110,4 +110,15 @@ describe("geometry", () => {
     expect(openingHeightInMm({ type: "window", heightMm: 3000 }, 2500, "height")).toBe(2500);
     expect(openingHeightInMm({ type: "door", heightMm: 2000 }, 1500, "band")).toBe(1500);
   });
+
+  it("«height» clips a window by its known sill: 1,5 m on a 0,9 m sill under a 2,0 m wall takes 1,1 m", () => {
+    expect(openingHeightInMm({ type: "window", heightMm: 1500 }, 2000, "height", 900)).toBe(1100);
+    // Unknown sill: held at the wall's height only.
+    expect(openingHeightInMm({ type: "window", heightMm: 1500 }, 2000, "height")).toBe(1500);
+    expect(openingHeightInMm({ type: "door", heightMm: 2100 }, 2000, "height", 900)).toBe(2000);
+    const window = { type: "window" as const, widthMm: 1000, heightMm: 1500, count: 2 };
+    // One placed on 0,9 m (1,1 m inside), one not placed (1,5 m): 1 × 1,1 + 1 × 1,5 = 2,6 m².
+    const placed = { ...window, places: [{ wall: 0, offsetMm: 0, sillMm: 900 }] };
+    expect(clippedOpeningsAreaM2([placed], 2000, "height")).toBeCloseTo(2.6, 10);
+  });
 });

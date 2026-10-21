@@ -63,32 +63,37 @@ export function openingsAreaM2(openings: readonly Opening[]): number {
 }
 
 /**
- * How the openings are cut by the wall: `height` — an opening taller than the wall is held at the wall's height
- * (a door 2,6 m on a 2,5 m wall takes 2,5 m of it); `band` — the wall is tiled only from the floor up to
- * `heightMm` (an apron, a half-height bathroom): a door takes what of it lies under the band's top, a window only
- * the part between its sill (`WINDOW_SILL_MM` when not placed or set) and the top.
+ * How the openings are cut by the wall: `height` — an opening is held inside the wall (a door 2,6 m on a 2,5 m wall
+ * takes 2,5 m of it; a window with a known sill takes only what lies between its sill and the wall's top: 1,5 m on
+ * a 0,9 m sill under a 2,0 m wall — 1,1 m); `band` — the wall is tiled only from the floor up to `heightMm` (an
+ * apron, a half-height bathroom): a door takes what of it lies under the band's top, a window only the part between
+ * its sill (`WINDOW_SILL_MM` when not placed or set) and the top.
  */
 export type OpeningClip = "none" | "height" | "band";
 
-/** The height of one opening inside the wall [0, `heightMm`] from the floor, mm, for a window on `sillMm`. */
+/**
+ * The height of one opening inside the wall [0, `heightMm`] from the floor, mm. `sillMm` — a window's own sill
+ * when known: `height` clips by it only then (a window of unknown sill is held at the wall's height), `band` takes
+ * the usual `WINDOW_SILL_MM` without it.
+ */
 export function openingHeightInMm(
   o: Pick<Opening, "type" | "heightMm">,
   heightMm: number,
   clip: OpeningClip,
-  sillMm = WINDOW_SILL_MM,
+  sillMm?: number,
 ): number {
   if (clip === "none") return o.heightMm;
-  if (clip === "height" || o.type === "door") return Math.min(o.heightMm, heightMm);
-  const sill = Math.max(sillMm, 0);
+  if (o.type === "door" || (clip === "height" && sillMm === undefined)) return Math.min(o.heightMm, heightMm);
+  const sill = Math.max(sillMm ?? WINDOW_SILL_MM, 0);
   return Math.max(Math.min(sill + o.heightMm, heightMm) - Math.min(sill, heightMm), 0);
 }
 
-/** Σ width × height inside the wall × count, in m²; a placed window takes its own sill, the rest the default. */
+/** Σ width × height inside the wall × count, in m²; a placed window takes its own sill (see `openingHeightInMm`). */
 export function clippedOpeningsAreaM2(openings: readonly Opening[], heightMm: number, clip: OpeningClip): number {
   let mm2 = 0;
   for (const o of openings) {
     const places = (o.places ?? []).slice(0, Math.max(o.count, 0));
-    for (const p of places) mm2 += o.widthMm * openingHeightInMm(o, heightMm, clip, p.sillMm ?? WINDOW_SILL_MM);
+    for (const p of places) mm2 += o.widthMm * openingHeightInMm(o, heightMm, clip, p.sillMm);
     mm2 += o.widthMm * openingHeightInMm(o, heightMm, clip) * Math.max(o.count - places.length, 0);
   }
   return mm2ToM2(mm2);

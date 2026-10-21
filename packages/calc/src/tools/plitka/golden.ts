@@ -160,10 +160,10 @@ export const golden: GoldenFile<PlitkaInput> = {
         layout: "diagonal",
         start: "center",
       },
-      expected: { items: { tile: { packs: 5, need: 20 } }, summary: { whole: 1, cut: 16 } },
+      expected: { items: { tile: { packs: 5, need: 20 } }, summary: { whole: 5, cut: 12 } },
       source: {
         kind: "manual",
-        ref: `formula review 2026-10-21. Середина плитки в середине комнаты: 1 целая + 16 подрезанных = 17 (перебор в blocks/diagonal.test.ts) × 1,15 → 20 / 4 → 5 коробок. ${KM}`,
+        ref: `formula review 2026-10-21, re-review (допуск 1 мм): середина плитки в середине комнаты (1100; 850), полудиагональ 600 / √2 = 424,3. Соседи вдоль осей сдвинуты на 603 / √2 = 426,4 по x и y: их вершины на 1276,4 + 424,3 = 1700,7 и 423,6 − 424,3 = −0,7 — выступают за стену на 0,7 мм, это зазор у стены, плитка целая (при допуске 0,5 мм считались подрезанными: 1 целая + 16). Целых 1 + 4 = 5, подрезанных 12 (по площади ревьюера 5 / 12), всего 17 × 1,15 = 19,55 → 20 / 4 → 5 коробок. ${KM}`,
       },
     },
     {
@@ -279,12 +279,13 @@ export const golden: GoldenFile<PlitkaInput> = {
       },
     },
     {
-      name: "Walls tiled to 1.5 m in a 3 × 2.5 m room: openings only inside the band (v6)",
+      name: "Walls tiled to 1.5 m in a 3 × 2.5 × 2.5 m room: openings only inside the band (v6)",
       input: {
         surface: "walls",
         lengthMm: 3000,
         widthMm: 2500,
-        heightMm: 1500,
+        heightMm: 2500,
+        tileHeightMm: 1500,
         openings: [
           { type: "door", widthMm: 800, heightMm: 2000, count: 1 },
           { type: "window", widthMm: 1200, heightMm: 1400, count: 1 },
@@ -296,7 +297,7 @@ export const golden: GoldenFile<PlitkaInput> = {
       },
       source: {
         kind: "manual",
-        ref: `formula review 2026-10-21, derived by hand. Стены 11 × 1,5 = 16,5 м²; дверь 0,8 × 2,0 в полосе до 1,5 м — 0,8 × 1,5 = 1,2; окно 1,2 × 1,4 на подоконнике 0,9 закрывает только 900…1500 — 1,2 × 0,6 = 0,72: 14,58 м² (v5 вычитал 3,28 → 13,22). Раскладка: высота 1500 по 303 — 4 целых ряда и 288; стена 3000 — 9 целых и 273, стена 2500 — 8 и 76: 2 × (10 + 9) × 5 = 190 кусков, целых 34 × 4 = 136. Дверь где угодно закрывает ⌊500 / 303⌋ = 1 × ⌊1503 / 303⌋ = 4 целых, окно в полосе 600 мм — ни одной: 132 + 54 = 186 × 1,1 = 204,6 → 205 / 12 → 18. Клей Ceresit CM 11 PRO (https://ceresit.ru/ru/products/tiling/tile-adhesives/cm_11_pro/) 5,4 кг/м² × 14,58 = 78,732 кг + 5 % = 82,6686 → 4 мешка`,
+        ref: `formula review 2026-10-21, derived by hand; re-review: «Высота облицовки» 1,5 м — своё поле, высота комнаты 2,5 м остаётся у обоев и краски. Стены 11 × 1,5 = 16,5 м²; дверь 0,8 × 2,0 в полосе до 1,5 м — 0,8 × 1,5 = 1,2; окно 1,2 × 1,4 на подоконнике 0,9 закрывает только 900…1500 — 1,2 × 0,6 = 0,72: 14,58 м² (v5 вычитал 3,28 → 13,22). Раскладка: высота 1500 по 303 — 4 целых ряда и 288; стена 3000 — 9 целых и 273, стена 2500 — 8 и 76: 2 × (10 + 9) × 5 = 190 кусков, целых 34 × 4 = 136. Дверь где угодно закрывает ⌊500 / 303⌋ = 1 × ⌊1503 / 303⌋ = 4 целых, окно в полосе 600 мм — ни одной: 132 + 54 = 186 × 1,1 = 204,6 → 205 / 12 → 18. Клей Ceresit CM 11 PRO (https://ceresit.ru/ru/products/tiling/tile-adhesives/cm_11_pro/) 5,4 кг/м² × 14,58 = 78,732 кг + 5 % = 82,6686 → 4 мешка`,
       },
     },
     {
@@ -305,7 +306,8 @@ export const golden: GoldenFile<PlitkaInput> = {
         surface: "walls",
         lengthMm: 3000,
         widthMm: 2500,
-        heightMm: 1500,
+        heightMm: 2500,
+        tileHeightMm: 1500,
         openings: [
           { type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 0, offsetMm: 600 }] },
           {
@@ -329,7 +331,8 @@ export const golden: GoldenFile<PlitkaInput> = {
         surface: "walls",
         lengthMm: 3000,
         widthMm: 2500,
-        heightMm: 1500,
+        heightMm: 3000,
+        tileHeightMm: 1500,
         openings: [
           {
             type: "window",
@@ -347,7 +350,130 @@ export const golden: GoldenFile<PlitkaInput> = {
       },
       source: {
         kind: "manual",
-        ref: "formula review 2026-10-21, derived by hand: подоконник 1,6 м выше полосы 1,5 м — окно не вычитаем и предупреждения «выше потолка» нет: 16,5 м², 190 кусков × 1,1 = 209 / 12 → 18",
+        ref: "formula review 2026-10-21, derived by hand: подоконник 1,6 м выше полосы облицовки 1,5 м — окно не вычитаем; окно 1,6 + 1,4 = 3,0 м не выше стен 3,0 м — предупреждения «выше потолка» нет: 16,5 м², 190 кусков × 1,1 = 209 / 12 → 18",
+      },
+    },
+    {
+      name: "Tile height 2.0 m in a 3 × 2.5 × 2.5 m room, door 0.8 × 2.0 placed (v6)",
+      input: {
+        surface: "walls",
+        lengthMm: 3000,
+        widthMm: 2500,
+        heightMm: 2500,
+        tileHeightMm: 2000,
+        openings: [{ type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 0, offsetMm: 600 }] }],
+      },
+      expected: {
+        items: { tile: { packs: 24, need: 278 } },
+        summary: { whole: 180, cut: 72, area: 20.4 },
+        warnings: [],
+      },
+      source: {
+        kind: "manual",
+        ref: `re-review 2026-10-21, derived by hand (совпало с ревьюером). ${KM}. Стены 11 × 2,0 = 22 − дверь 0,8 × 2,0 = 20,4 м². Высота облицовки 2000 по 303: 6 целых рядов и 182; стена 3000 — 9 целых столбцов и 273, стена 2500 — 8 и 76: 2 × (10 + 9) = 38 столбцов × 7 рядов = 266 кусков, целых 34 × 6 = 204. Дверь 600…1400 во всю полосу: столбцы 606 и 909 целиком внутри — 2 × 7 = 14 не кладём (12 целых, 2 подрезанных), столбцы 303 и 1212 задеты — 12 целых становятся подрезанными. Целых 204 − 12 − 12 = 180, подрезанных 62 − 2 + 12 = 72, всего 252 × 1,1 = 277,2 → 278 / 12 → 24 коробки`,
+      },
+    },
+    {
+      name: "Tile height 1.5 m, window sill exactly at 1.5 m: the window takes nothing (v6)",
+      input: {
+        surface: "walls",
+        lengthMm: 3000,
+        widthMm: 2500,
+        heightMm: 3000,
+        tileHeightMm: 1500,
+        openings: [
+          {
+            type: "window",
+            widthMm: 1200,
+            heightMm: 1400,
+            count: 1,
+            places: [{ wall: 1, offsetMm: 600, sillMm: 1500 }],
+          },
+        ],
+      },
+      expected: {
+        items: { tile: { packs: 18, need: 209 } },
+        summary: { whole: 136, cut: 54, area: 16.5 },
+        warnings: [],
+      },
+      source: {
+        kind: "manual",
+        ref: `re-review 2026-10-21, derived by hand (совпало с ревьюером). ${KM}. Окно начинается ровно на верхе облицовки 1,5 м — в полосе 0 мм, не вычитаем: 11 × 1,5 = 16,5 м²; 1500 по 303 — 4 целых ряда и 288, 38 столбцов × 5 рядов = 190 кусков (целых 34 × 4 = 136) × 1,1 = 209 / 12 → 18. Окно 1,5 + 1,4 = 2,9 м ниже стен 3,0 м — без предупреждения`,
+      },
+    },
+    {
+      name: "Tile height 1.0 m, window 1.2 × 1.4 not placed: only 900–1000 mm of it (v6)",
+      input: {
+        surface: "walls",
+        lengthMm: 3000,
+        widthMm: 2500,
+        heightMm: 2500,
+        tileHeightMm: 1000,
+        openings: [{ type: "window", widthMm: 1200, heightMm: 1400, count: 1 }],
+      },
+      expected: {
+        items: { tile: { packs: 14, need: 168, leftover: 0 } },
+        summary: { whole: 102, cut: 50, area: 10.88 },
+      },
+      source: {
+        kind: "manual",
+        ref: `re-review 2026-10-21, derived by hand (совпало с ревьюером). ${KM}. Окно без места на плане — на обычном подоконнике 0,9 м: в полосе до 1,0 м только 1,2 × 0,1 = 0,12 м², 11 − 0,12 = 10,88 м². 1000 по 303 — 3 целых ряда и 91: 38 × 4 = 152 куска (целых 34 × 3 = 102); целых плиток окно в полосе 100 мм не закрывает. 152 × 1,1 = 167,2 → 168 / 12 = 14 коробок ровно`,
+      },
+    },
+    {
+      name: "Diagonal, tile height 1.5 m, door and window placed (v6)",
+      input: {
+        surface: "walls",
+        lengthMm: 3000,
+        widthMm: 2500,
+        heightMm: 2500,
+        tileHeightMm: 1500,
+        layout: "diagonal",
+        openings: [
+          { type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 0, offsetMm: 600 }] },
+          {
+            type: "window",
+            widthMm: 1200,
+            heightMm: 1400,
+            count: 1,
+            places: [{ wall: 1, offsetMm: 600, sillMm: 900 }],
+          },
+        ],
+      },
+      expected: { items: { tile: { packs: 21, need: 244 } }, summary: { whole: 109, cut: 103, area: 14.58 } },
+      source: {
+        kind: "manual",
+        ref: `re-review 2026-10-21 (число кусков ревьюера, сверено перебором каждой плитки — blocks/diagonal.test.ts). ${KM}: на диагональ 15 %. Четыре стены высотой 1,5 м, сетка под 45°, дверь 600…1400 во всю полосу и окно 900…1500 — отверстия: 109 целых + 103 подрезанных = 212 кусков (прямая раскладка тех же стен — 174) × 1,15 = 243,8 → 244 / 12 → 21 коробка`,
+      },
+    },
+    {
+      name: "Window through the ceiling: a warning even when the tile height is lower (v6)",
+      input: {
+        surface: "walls",
+        tileHeightMm: 1500,
+        openings: [
+          {
+            type: "window",
+            widthMm: 1200,
+            heightMm: 1400,
+            count: 1,
+            places: [{ wall: 3, offsetMm: 1550, sillMm: 2000 }],
+          },
+        ],
+      },
+      expected: { warnings: ["window_above_ceiling"], summary: { area: 26.7 } },
+      source: {
+        kind: "manual",
+        ref: "re-review 2026-10-21, derived by hand: подоконник 2,0 + окно 1,4 = 3,4 м выше стен 2,7 м — ошибка ввода, предупреждаем, какой бы ни была высота облицовки; окно целиком выше полосы 1,5 м и ничего не вычитает: 17,8 × 1,5 = 26,7 м²",
+      },
+    },
+    {
+      name: "Tile height above the walls is held at the walls' height (v6)",
+      input: { surface: "walls", tileHeightMm: 5000 },
+      expected: { items: { tile: { packs: 49, need: 588 } }, summary: { whole: 406, cut: 128 } },
+      source: {
+        kind: "manual",
+        ref: "re-review 2026-10-21: высота облицовки 5 м в комнате 2,7 м — облицовка до потолка, как пустое поле: 534 куска × 1,1 = 587,4 → 588 / 12 → 49 (см. «Walls of the example room, door and window placed»)",
       },
     },
     {
@@ -405,10 +531,28 @@ export const golden: GoldenFile<PlitkaInput> = {
     {
       name: "Diagonal L-shaped floor 6 × 5 m: the cut-out is a hole in the 45° grid (v6)",
       input: { shape: "l", lengthMm: 6000, widthMm: 5000, cutLengthMm: 3000, cutWidthMm: 2000, layout: "diagonal" },
-      expected: { items: { tile: { packs: 29, need: 344 } }, summary: { whole: 234, cut: 65 } },
+      expected: { items: { tile: { packs: 28, need: 336 } }, summary: { whole: 234, cut: 58 } },
       source: {
         kind: "manual",
-        ref: `formula review 2026-10-21. ${KM}: на диагональ 15 %. Сетка под 45° без плиток внутри выреза: 234 целых + 65 подрезанных = 299 (сверено перебором каждой плитки в blocks/diagonal.test.ts) × 1,15 = 343,85 → 344 / 12 → 29 коробок; не меньше прямой (270)`,
+        ref: `formula review 2026-10-21. ${KM}: на диагональ 15 %. Сетка под 45° без плиток внутри выреза: 234 целых + 58 подрезанных = 292 (сверено перебором каждой плитки в blocks/diagonal.test.ts) × 1,15 = 335,8 → 336 / 12 → 28 коробок; не меньше прямой (270). Re-review (допуск 1 мм): 7 плиток задевали пол вершиной на 0,9 мм — это не кусок, их больше не покупаем (было 299 → 344 / 29)`,
+      },
+    },
+    {
+      name: "L-shaped floor 6 × 5 m, cut-out 3 × 2 m top right (ne) (v6)",
+      input: { shape: "l", lengthMm: 6000, widthMm: 5000, cutLengthMm: 3000, cutWidthMm: 2000, cutCorner: "ne" },
+      expected: { items: { tile: { packs: 26, need: 308 } }, summary: { whole: 234, cut: 46, area: 24 } },
+      source: {
+        kind: "manual",
+        ref: `re-review 2026-10-21, derived by hand (совпало с ревьюером). ${KM}. Сетка от левого верхнего угла: 6000 — 19 целых столбцов по 303 и 243, 5000 — 16 целых рядов и 152: 340 кусков, 304 целых. Вырез 3000…6000 × 0…2000: в нём целиком столбцы 10–19 × ряды 0–5 = 60 (54 целых, 6 подрезанных) — не кладём; столбец 9 (2727…3027) в рядах 0–5, ряд 6 (1818…2118) в столбцах 10–19 и их угол — 17 кусков по краю выреза, из них 16 были целыми. Целых 304 − 54 − 16 = 234, подрезанных 36 − 6 + 16 = 46, всего 280 × 1,1 = 308 / 12 → 26 коробок`,
+      },
+    },
+    {
+      name: "Floor 3027 × 3027: ten tiles and nine joints exactly, reserve 20 %, 10 per box (v6)",
+      input: { lengthMm: 3027, widthMm: 3027, reservePct: 20, tilesPerBox: 10 },
+      expected: { items: { tile: { packs: 12, need: 120, leftover: 0 } }, summary: { whole: 100, cut: 0 } },
+      source: {
+        kind: "manual",
+        ref: `re-review 2026-10-21, derived by hand (совпало с ревьюером). ${KM}. 10 × 300 + 9 × 3 = 3027: ⌊3030 / 303⌋ = 10 целых без подрезки; 100 × 1,2 = 120 плиток / 10 = 12 коробок ровно (граница упаковки)`,
       },
     },
     {

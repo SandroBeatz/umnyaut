@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import { type DiagonalInput, type DiagonalRect, diagonalGrid } from "./diagonal";
 
 const S = Math.SQRT2;
-const EPS = 0.5;
+/** Independent of the module: a cut thinner than 1 mm is no piece, a tile 1 mm over a wall is whole. */
+const EPS = 1;
 const FAR = 1e7;
 
 type P = [number, number];

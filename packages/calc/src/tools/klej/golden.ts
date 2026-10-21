@@ -125,7 +125,8 @@ export const golden: GoldenFile<KlejInput> = {
         surface: "walls",
         lengthMm: 3000,
         widthMm: 2500,
-        heightMm: 1500,
+        heightMm: 2500,
+        tileHeightMm: 1500,
         openings: [
           { type: "door", widthMm: 800, heightMm: 2000, count: 1 },
           { type: "window", widthMm: 1200, heightMm: 1400, count: 1 },
@@ -138,7 +139,23 @@ export const golden: GoldenFile<KlejInput> = {
       },
       source: {
         kind: "manual",
-        ref: `formula review 2026-10-21, derived by hand. Стены 2 × (3 + 2,5) × 1,5 = 16,5 м²; дверь 0,8 × 2,0 — в полосе до 1,5 м только 0,8 × 1,5 = 1,2; окно 1,2 × 1,4 на подоконнике 0,9 закрывает 900…1500 мм — 1,2 × 0,6 = 0,72: 16,5 − 1,92 = 14,58 м² (раньше вычиталось 1,6 + 1,68 = 3,28 → 13,22). ${CM11}: 5,4 кг/м² × 14,58 = 78,732 кг + 5 % = 82,6686 кг → 4 мешка`,
+        ref: `formula review 2026-10-21, derived by hand; re-review: «Высота облицовки» 1,5 м — своё поле, высота комнаты 2,5 м не меняется. Стены 2 × (3 + 2,5) × 1,5 = 16,5 м²; дверь 0,8 × 2,0 — в полосе до 1,5 м только 0,8 × 1,5 = 1,2; окно 1,2 × 1,4 на подоконнике 0,9 закрывает 900…1500 мм — 1,2 × 0,6 = 0,72: 16,5 − 1,92 = 14,58 м² (раньше вычиталось 1,6 + 1,68 = 3,28 → 13,22). ${CM11}: 5,4 кг/м² × 14,58 = 78,732 кг + 5 % = 82,6686 кг → 4 мешка`,
+      },
+    },
+    {
+      name: "Tile height 2.0 m in a 2.5 m room, door 0.8 × 2.0 (v3)",
+      input: {
+        surface: "walls",
+        lengthMm: 3000,
+        widthMm: 2500,
+        heightMm: 2500,
+        tileHeightMm: 2000,
+        openings: [{ type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 0, offsetMm: 600 }] }],
+      },
+      expected: { items: { "tile-adhesive": { packs: 5, need: 115.668 } }, summary: { area: 20.4 } },
+      source: {
+        kind: "manual",
+        ref: `re-review 2026-10-21, derived by hand: «Высота облицовки» 2,0 м — своё поле, стены комнаты 2,5 м. 11 × 2,0 = 22 − дверь 0,8 × 2,0 = 20,4 м². ${CM11}: 4,2 + 1,2 × 1 мм на тыльную сторону = 5,4 кг/м² × 20,4 = 110,16 кг + 5 % = 115,668 кг → 5 мешков по 25 кг`,
       },
     },
     {

@@ -2,6 +2,7 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { gridLine } from "../src/blocks/grid";
 import { gridCells, wallGrid } from "../src/blocks/layout-grid";
+import { WINDOW_SILL_MM } from "../src/blocks/plan";
 import { plitka } from "../src/tools/plitka";
 
 const ctx = { country: "RU" } as const;
@@ -240,9 +241,10 @@ describe("tile walls scheme", () => {
     ]);
   });
 
-  // plitka v6 (formula review 2026-10-21): the tiled height is a band from the floor — a window through its top is
-  // clipped there (it used to be moved down under it with a `window_above_ceiling` warning).
-  it("a window through the top of the tiled band is clipped at it; a door taller than the wall ends there", () => {
+  // plitka v6 (formula review 2026-10-21, re-review): the room's wall height and the tiled band («Высота облицовки»)
+  // are two fields. A window through the room's ceiling is an input error — a warning, cut at the ceiling; a window
+  // through the top of a lower band is cut there silently.
+  it("a window through the ceiling: a warning, cut at the ceiling; a door taller than the wall ends there", () => {
     const openings = [
       {
         type: "window" as const,
@@ -255,11 +257,28 @@ describe("tile walls scheme", () => {
     ];
     const result = plitka.compute({ ...walls, openings }, ctx);
     const layout = result.layout;
-    expect(result.warnings.map((w) => w.code)).not.toContain("window_above_ceiling");
-    // Sill 2000, top 3400 → only 2000…2700 is in the tiled band.
+    expect(result.warnings.find((w) => w.code === "window_above_ceiling")?.values).toEqual({ count: 1 });
+    // Sill 2000, top 3400 → only 2000…2700 is on the wall.
     expect(layout?.elevations?.[0]?.openings[0]).toMatchObject({ y: 0, h: 700 });
     expect(layout?.elevations?.[1]?.openings[0]).toMatchObject({ y: 0, h: 2700 });
     expect(layout?.guide.map((s) => s.code)).not.toContain("walls_sill");
+  });
+
+  it("a window through the top of a lower tiled band is cut at it without a warning", () => {
+    const openings = [
+      {
+        type: "window" as const,
+        widthMm: 1200,
+        heightMm: 1400,
+        count: 1,
+        places: [{ wall: 0, offsetMm: 0, sillMm: 900 }],
+      },
+    ];
+    const result = plitka.compute({ ...walls, tileHeightMm: 1500, openings }, ctx);
+    expect(result.warnings.map((w) => w.code)).not.toContain("window_above_ceiling");
+    // The walls drawn 1500 high; the window 900…2300 keeps 900…1500.
+    expect(result.layout?.elevations?.[0]).toMatchObject({ heightMm: 1500 });
+    expect(result.layout?.elevations?.[0]?.openings[0]).toMatchObject({ y: 0, h: 600 });
   });
 
   it("a window wholly above the tiled band is not on the wall at all", () => {
@@ -272,8 +291,9 @@ describe("tile walls scheme", () => {
         places: [{ wall: 0, offsetMm: 0, sillMm: 1000 }],
       },
     ];
-    const result = plitka.compute({ ...walls, heightMm: 1000, openings }, ctx);
+    const result = plitka.compute({ ...walls, tileHeightMm: 1000, openings }, ctx);
     expect(result.layout?.elevations?.[0]?.openings).toEqual([]);
+    expect(result.warnings.map((w) => w.code)).not.toContain("window_above_ceiling");
   });
 
   it("an opening wider than its wall is off the plan: the estimate and a warning", () => {
@@ -335,8 +355,15 @@ describe("tile walls scheme", () => {
           const estimate = plitka.compute({ ...base, openings: placed.map(({ places, ...o }) => o) }, ctx);
           const pieces = exact.layout?.elevations?.flatMap((e) => e.pieces) ?? [];
           const tiles = (r: typeof exact) => r.items.find((it) => it.key === "tile")?.need.value ?? 0;
+          // A window placed through the ceiling is an input error: it is cut at the ceiling, so it may leave more
+          // wall than the estimate's window on the usual sill — the result must say so instead.
+          const throughCeiling = list.some(
+            (o) => o.type === "window" && (o.sillMm ?? WINDOW_SILL_MM) + o.heightMm > heightMm,
+          );
+          const warned = exact.warnings.some((w) => w.code === "window_above_ceiling");
           return (
-            tiles(exact) <= tiles(estimate) &&
+            warned === throughCeiling &&
+            (throughCeiling || tiles(exact) <= tiles(estimate)) &&
             pieces.length === (summary(exact, "whole") ?? 0) + (summary(exact, "cut") ?? 0)
           );
         },

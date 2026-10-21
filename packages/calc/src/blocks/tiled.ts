@@ -9,15 +9,26 @@ export interface TiledSurfaceInput {
   widthMm: number;
   cutLengthMm: number;
   cutWidthMm: number;
+  /** The room's wall height (bound to “My room”). */
   heightMm: number;
+  /** «Высота облицовки»: tiled from the floor up to it; absent or 0 — up to the ceiling (`heightMm`). */
+  tileHeightMm?: number | undefined;
   openings: readonly Opening[];
 }
 
 /**
- * The tiled area, m²: floor = length × width (− the L cut-out), walls = perimeter × height − the parts of the doors
- * and windows inside the band from the floor to that height (`wallAreaM2` «band»; the walls keep the rectangle's
- * perimeter), both = their sum. Pushes the steps «Пол = …», «Стены = …», «Пол + стены = …» and the
- * warnings of a cut-out larger than the room or openings larger than the walls.
+ * The tiled band on the walls, mm: from the floor up to `tileHeightMm` when it is set (an apron, a half-height
+ * bathroom), never above the room's walls; absent or 0 — the whole wall height.
+ */
+export function tiledBandMm(i: Pick<TiledSurfaceInput, "heightMm" | "tileHeightMm">): number {
+  return i.tileHeightMm !== undefined && i.tileHeightMm > 0 ? Math.min(i.tileHeightMm, i.heightMm) : i.heightMm;
+}
+
+/**
+ * The tiled area, m²: floor = length × width (− the L cut-out), walls = perimeter × band − the parts of the doors
+ * and windows inside the band from the floor up (`tiledBandMm`, `wallAreaM2` «band»; the walls keep the rectangle's
+ * perimeter), both = their sum. Pushes the steps «Пол = …», «Облицовка до …», «Стены = …», «Пол + стены = …» and
+ * the warnings of a cut-out larger than the room or openings larger than the walls.
  */
 export function tiledAreaM2(i: TiledSurfaceInput, warnings: Warning[], steps: Step[]): number {
   let floor = 0;
@@ -46,8 +57,10 @@ export function tiledAreaM2(i: TiledSurfaceInput, warnings: Warning[], steps: St
   }
   if (i.surface !== "floor") {
     const openings = i.openings.filter((o) => o.count > 0);
-    const room: Room = { shape: "rect", lengthMm: i.lengthMm, widthMm: i.widthMm, heightMm: i.heightMm, openings };
-    // Tiled from the floor up to the height: a door or a window counts only inside that band.
+    const band = tiledBandMm(i);
+    if (band < i.heightMm) steps.push({ code: "band", values: { band: mmToM(band), height: mmToM(i.heightMm) } });
+    const room: Room = { shape: "rect", lengthMm: i.lengthMm, widthMm: i.widthMm, heightMm: band, openings };
+    // Tiled from the floor up to the band's top: a door or a window counts only inside it.
     const area = wallAreaM2(room, "band");
     walls = Math.max(area.areaM2, 0);
     if (area.openingsExceedWalls) warnings.push({ code: "openings_exceed_walls", level: "warning" });

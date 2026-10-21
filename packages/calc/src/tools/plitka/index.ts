@@ -13,6 +13,7 @@ import {
   placeOpenings,
   purchase,
   roomOutline,
+  tiledBandMm,
   WINDOW_SILL_MM,
   wallAreaM2,
   wallGrid,
@@ -49,7 +50,10 @@ const input = z.object({
   cutWidthMm: z.int().check(z.minimum(0), z.maximum(100_000)),
   /** Where the cut-out sits on the plan (floor scheme only). */
   cutCorner: cutCornerSchema,
+  /** The room's wall height (bound to “My room”). */
   heightMm: z.int().check(z.minimum(1000), z.maximum(10_000)),
+  /** «Высота облицовки»: walls tiled from the floor up to it (an apron); absent or 0 — up to the ceiling. */
+  tileHeightMm: z.optional(z.int().check(z.minimum(0), z.maximum(10_000))),
   openings: z.readonly(z.array(opening).check(z.maxLength(20))),
   /** Along the room length on the floor, horizontal on walls. */
   tileLengthMm: z.int().check(z.minimum(20), z.maximum(3000)),
@@ -224,11 +228,18 @@ function wallsScheme(
   i: PlitkaInput,
   outline: Outline,
   openings: readonly PlitkaInput["openings"][number][],
+  H: number,
   warnings: Warning[],
 ): WallsScheme {
-  const H = i.heightMm;
   const { placed, off } = placeOpenings(outline.walls, openings);
   if (off > 0) warnings.push({ code: "opening_off_wall", level: "warning", values: { count: off } });
+  // A window whose sill plus height passes the room's walls is an input error, whatever the tiled band: a window
+  // merely above a lower band is cut by it silently.
+  const aboveCeiling = placed.filter(
+    (p) => p.type === "window" && (p.sillMm ?? WINDOW_SILL_MM) + p.heightMm > i.heightMm,
+  ).length;
+  if (aboveCeiling > 0)
+    warnings.push({ code: "window_above_ceiling", level: "warning", values: { count: aboveCeiling } });
   const total = openings.reduce((n, o) => n + o.count, 0);
   const all = placed.length === total;
   const elevations: LayoutElevation[] = [];
@@ -239,7 +250,7 @@ function wallsScheme(
   let narrowest = Number.POSITIVE_INFINITY;
   let defaultSill = false;
   outline.walls.forEach((wall, k) => {
-    // Tiled from the floor up to H: a window keeps its sill and only its part under H is not tiled.
+    // Tiled from the floor up to the band H: a window keeps its sill and only its part under H is not tiled.
     const { openings: withBare, defaultSill: noSill } = wallOpenings(placed, k, H, { band: true });
     // «Под окном не клеим» is a wallpaper choice: tiles keep the wall under a window.
     const on = withBare.filter((o) => o.type !== "bare");
@@ -317,7 +328,8 @@ function wallsScheme(
  * Tile by piece count (Kerama Marazzi): a grid from a corner or from the centre over the floor or each wall;
  * every cut piece takes a tile; whole tiles inside doors and windows are left out (cut tiles around them are
  * kept — safe side). An L-shaped room: the floor grid without the tiles inside the cut-out, the six real walls.
- * Walls tiled to a height lose only the parts of doors and windows below it. Diagonal: the same count on the grid
+ * Walls tiled to «Высота облицовки» (an own field: the room's height stays the room's) lose only the parts of
+ * doors and windows below it. Diagonal: the same count on the grid
  * turned by 45° (`diagonalGrid`), never fewer pieces than straight, reserve not under 15 %. Tiles × (1 + reserve),
  * rounded up to whole tiles; boxes via `ceilPacks`. Adhesive, grout and primer over the same area come along.
  */
@@ -332,7 +344,8 @@ export const plitka: ToolModule<PlitkaInput> = {
   // 4: primer under the tile, one coat over the tiled area (Ceresit CT 17: 0,1–0,2 л/м², norm 0,15).
   // 5: «Пол и стены» with one tile: floor and walls counted each as alone, one reserve and one box count.
   // 6 (formula review 2026-10-21): diagonal counted on a 45° grid, never below straight, reserve ≥ 15 % and the
-  //   user's own above it; walls tiled to a height lose only the openings' parts inside it; an L-shaped room's
+  //   user's own above it; walls tiled to «Высота облицовки» (`tileHeightMm`, not the room's height) lose only the
+  //   openings' parts inside it; an L-shaped room's
   //   six walls; the L floor exactly as its scheme; adhesive with a 5 % reserve; a warning for grout without a joint.
   version: 6,
   input,
@@ -345,6 +358,7 @@ export const plitka: ToolModule<PlitkaInput> = {
     cutWidthMm: 1200,
     cutCorner: "se",
     heightMm: 2700,
+    tileHeightMm: 0,
     // The example plan of every floor tool: door in the bottom wall, window in the left one.
     openings: [
       { type: "door", widthMm: 800, heightMm: 2000, count: 1, places: [{ wall: 2, offsetMm: 600 }] },
@@ -421,8 +435,11 @@ export const plitka: ToolModule<PlitkaInput> = {
     }
     if (i.surface !== "floor") {
       const openings = i.openings.filter((o) => o.count > 0);
+      // «Высота облицовки» below the walls: the tiles go from the floor up to it; the room's height stays the room's.
+      const band = tiledBandMm(i);
+      if (band < i.heightMm) steps.push({ code: "band", values: { band: mmToM(band), height: mmToM(i.heightMm) } });
       // The L-shape's perimeter is its rectangle's: the area is the same, the six walls are counted below.
-      const room: Room = { shape: "rect", lengthMm: i.lengthMm, widthMm: i.widthMm, heightMm: i.heightMm, openings };
+      const room: Room = { shape: "rect", lengthMm: i.lengthMm, widthMm: i.widthMm, heightMm: band, openings };
       const walls = wallAreaM2(room, "band");
       if (walls.openingsExceedWalls || !(walls.areaM2 > 0)) {
         warnings.push({ code: "openings_exceed_walls", level: "warning" });
@@ -438,7 +455,7 @@ export const plitka: ToolModule<PlitkaInput> = {
           let wallsWhole = 0;
           let wallsCut = 0;
           const outline = outlineOf(i, real);
-          const scheme = wallsScheme(i, outline, openings, warnings);
+          const scheme = wallsScheme(i, outline, openings, band, warnings);
           if (diagonal) {
             // Each wall on the 45° grid; the placed doors and windows (inside the band) are its holes.
             for (const e of scheme.layout.elevations ?? []) turned(e.lengthMm, e.heightMm, e.openings);
@@ -475,7 +492,7 @@ export const plitka: ToolModule<PlitkaInput> = {
             }
           } else {
             for (const wall of outline.walls) {
-              const g = gridArea(wall.lengthMm, i.heightMm, i.tileLengthMm, i.tileWidthMm, i.jointMm, i.start);
+              const g = gridArea(wall.lengthMm, band, i.tileLengthMm, i.tileWidthMm, i.jointMm, i.start);
               wallsWhole += g.whole;
               wallsCut += g.cut;
               if (g.cut > 0) narrowest = Math.min(narrowest, g.narrowestMm);
@@ -486,7 +503,7 @@ export const plitka: ToolModule<PlitkaInput> = {
             const inside = (size: number, tileMm: number, pitch: number) =>
               Math.max(Math.floor((size - tileMm) / pitch), 0);
             const covered = openings.reduce((n, o) => {
-              const h = openingHeightInMm(o, i.heightMm, "band");
+              const h = openingHeightInMm(o, band, "band");
               const across = inside(o.widthMm, i.tileLengthMm, pitchX);
               const up =
                 o.type === "door" && i.start === "corner"
@@ -560,6 +577,7 @@ export const plitka: ToolModule<PlitkaInput> = {
       lengthMm: i.lengthMm,
       widthMm: i.widthMm,
       heightMm: i.heightMm,
+      tileHeightMm: i.tileHeightMm,
       openings: i.openings,
       tileLengthMm: i.tileLengthMm,
       tileWidthMm: i.tileWidthMm,

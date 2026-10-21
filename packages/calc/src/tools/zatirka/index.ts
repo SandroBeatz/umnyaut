@@ -17,6 +17,8 @@ const input = z.object({
   cutLengthMm: z.int().check(z.minimum(0), z.maximum(100_000)),
   cutWidthMm: z.int().check(z.minimum(0), z.maximum(100_000)),
   heightMm: z.int().check(z.minimum(1000), z.maximum(10_000)),
+  /** «Высота облицовки»: walls tiled from the floor up to it (an apron); absent or 0 — up to the ceiling. */
+  tileHeightMm: z.optional(z.int().check(z.minimum(0), z.maximum(10_000))),
   openings: z.readonly(z.array(opening).check(z.maxLength(20))),
   tileLengthMm: z.int().check(z.minimum(20), z.maximum(3000)),
   tileWidthMm: z.int().check(z.minimum(20), z.maximum(3000)),
@@ -70,6 +72,7 @@ export const zatirka: ToolModule<ZatirkaInput> = {
     cutLengthMm: 1500,
     cutWidthMm: 1200,
     heightMm: 2700,
+    tileHeightMm: 0,
     openings: [
       { type: "door", widthMm: 800, heightMm: 2000, count: 1 },
       { type: "window", widthMm: 1200, heightMm: 1400, count: 1 },
