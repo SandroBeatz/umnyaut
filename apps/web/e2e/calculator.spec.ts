@@ -619,3 +619,42 @@ test("tile on «Пол и стены»: one calc for both, one box count, the es
   await page.goto("/spisok/");
   await expect(page.locator("[data-calc-row]", { hasText: "Плитка" })).toContainText("пол и стены");
 });
+
+test("«Сообщить об ошибке» sends the message with the tool, its formula version and the input (P7.7)", async ({
+  page,
+}) => {
+  // Previews run without a database: the API is answered here.
+  const sent: Array<Record<string, unknown>> = [];
+  let status = 429;
+  await page.route("**/api/reports/", async (route) => {
+    sent.push(route.request().postDataJSON());
+    await route.fulfill(
+      status === 429
+        ? { status, json: { ok: false, error: { code: "rate_limited", message: "" } } }
+        : { status, json: { ok: true, data: { id: 1 } } },
+    );
+  });
+  await page.goto(WALLPAPER);
+  await page.locator("summary", { hasText: "Как посчитано" }).click();
+  await page.getByRole("button", { name: "Сообщить об ошибке" }).click();
+  const dialog = page.getByRole("dialog", { name: "Сообщить об ошибке" });
+  await expect(dialog.getByRole("button", { name: "Отправить" })).toBeDisabled();
+  await dialog.getByLabel("Что не так").fill("В магазине сказали, что нужно больше");
+
+  await dialog.getByRole("button", { name: "Отправить" }).click();
+  await expect(page.getByText(/Сообщений за час уже много/)).toBeVisible();
+  await expect(dialog).toBeVisible();
+
+  status = 201;
+  await dialog.getByRole("button", { name: "Отправить" }).click();
+  await expect(page.getByText(/Спасибо! Сообщение у нас/)).toBeVisible();
+  await expect(dialog).toBeHidden();
+  expect(sent[1]).toMatchObject({
+    tool: "oboi",
+    message: "В магазине сказали, что нужно больше",
+    pageUrl: "/steny/oboi/",
+  });
+  expect(sent[1]?.toolVersion).toEqual(expect.any(Number));
+  expect(sent[1]?.input).toEqual(expect.any(Object));
+  expect(sent[1]).not.toHaveProperty("website");
+});

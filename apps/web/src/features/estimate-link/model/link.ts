@@ -48,3 +48,22 @@ export async function shortLink(estimate: Estimate): Promise<string | undefined>
   writeStorage(LINK_KEY, JSON.stringify({ estimateId: estimate.id, id, editToken } satisfies SavedLink));
   return linkUrl(id);
 }
+
+/** Whether this device holds a short link for the estimate, so «Удалить ссылку» has something to delete. */
+export const hasShortLink = (estimateId: string): boolean => savedFor(estimateId) !== undefined;
+
+/**
+ * Deletes the estimate's short link (tech spec §16: the owner deletes by `editToken`): whoever has it gets «not
+ * found». A link already gone (404) counts as deleted. `false` when the server could not do it and the link stays.
+ */
+export async function deleteShortLink(estimateId: string): Promise<boolean> {
+  const saved = savedFor(estimateId);
+  if (!saved) return true;
+  const deleted = await callApi(`/api/projects/${saved.id}/`, {
+    method: "DELETE",
+    headers: { "x-edit-token": saved.editToken },
+  });
+  if (!deleted.ok && deleted.code !== "not_found") return false;
+  writeStorage(LINK_KEY, null);
+  return true;
+}

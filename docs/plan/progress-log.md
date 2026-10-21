@@ -1,12 +1,12 @@
 ---
-version: 1.14
+version: 1.15
 date: 2026-10-20
 category: plan
 ---
 
 # Progress Log
 
-> Version 1.14 · 2026-10-20 · [Plan](../plan/)
+> Version 1.15 · 2026-10-20 · [Plan](../plan/)
 
 ## Overview
 
@@ -40,7 +40,17 @@ Each entry:
 
 ## Log
 
+### 2026-10-21
+
+- **P7.1, P7.7** Prod DB checked through the Supabase MCP (project-scoped server for `rbawzripucjvdxmyrctn`): migrations `0001`–`0004` recorded; RLS on all five tables, zero policies; `anon`/`authenticated` have no table or function rights, `service_role` has DML and `EXECUTE`; `umnyaut-cleanup` ran at 03:17 UTC (`succeeded`). One real link `ng8V7uJX` with two returns on 2026-10-20 — `project_touch` works on prod. `packages/db/src/types.ts` now generated from prod (same tables and functions as the hand-written file, plus the `__InternalSupabase` and `Tables<>` helpers). Security advisor: `public.rls_auto_enable()` (the platform's `ensure_rls` event-trigger function, SECURITY DEFINER) was executable by `anon`/`authenticated` over `/rest/v1/rpc` → `0005_rls_auto_enable_revoke` (guarded, PGlite test with a stub). Performance advisor: only `projects_tg_user_id_idx` unused — kept for the bot (Phase 12).
+  - Where: `feature/p7-close`
+  - Notes: `0005` reaches prod with the next `develop` → `main`. Regenerate types with the MCP `generate_typescript_types` or `db:types` (local stack).
+
 ### 2026-10-20
+
+- **P7.7, P7.5** Phase 7 checked on prod and closed. Deploy #196 applied `0002`–`0004` (`supabase db push`), `/api/health/` → `db: ok`. Smoke on umnyaut.com through the API: create → `GET` 200 and `/p/<id>/` 200 (title «Список покупок: 1 комната · 1 расчёт», `noindex`) → `PUT` with a foreign token 404 → owner `PUT` 200, new name read back → `PUT` without `Origin` 403 → `DELETE` 200 → `GET` and `/p/<id>/` 404; the test row is gone. «Удалить ссылку» on `/spisok/` (toast asks once, then `DELETE` by token; 404 counts as deleted). Playwright: short link made, refreshed by token, deleted; `/p/<id>/` without a DB → 404; report sent with tool, formula version and input, «over the limit» keeps the form open.
+  - Where: `feature/p7-close` · prod (migrations via deploy #196)
+  - Notes: `POST /api/reports/` not hit on prod (no way to remove the row without DB access). `packages/db/src/types.ts` hand-written that day (generated on 2026-10-21). P7.6 waits for C07 prices.
 
 - **P0.4, P8.5 (partly)** Wordstat snapshot (08.09–07.10.2026, all regions) for the 10 live tools in [Wordstat Snapshot, October 2026](../business/wordstat-2026-10.md); titles, descriptions, `question` and FAQ of all 10 tool pages rewritten from it by `seo-content-writer`. Every FAQ number comes from the tool's `compute()` (18 m² room replaces the 12 m² example); new body sections «Площадь стен по площади пола», «Схема раскладки» (plitka), «Расход на 1 м²» (zatirka); klej h1 is now «Калькулятор плиточного клея».
   - Where: `feature/wordstat-snippets`

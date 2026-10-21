@@ -92,6 +92,12 @@ export const estimatePage = {
     linkCopied: "Ссылка скопирована — по ней список откроют на любом устройстве",
     linkTooLong: "Список слишком большой для ссылки — сохраните PDF",
     copyFailed: "Не получилось скопировать",
+    /** The owner deletes the short link (tech spec §16); asked once in a toast, since whoever got it loses it. */
+    unlink: "Удалить ссылку",
+    unlinkAsk: "Удалить ссылку? Кто её получил, больше не откроет список",
+    unlinkConfirm: "Удалить",
+    unlinked: "Ссылка удалена",
+    unlinkFailed: "Не получилось удалить ссылку — попробуйте позже",
     /** Text for messengers: «Ламинат — 10 пачек — 11 200 ₽ (пол · + подложка 2 рулона)». */
     line: "{title} — {quantity}",
     lineSum: " — {sum}",
