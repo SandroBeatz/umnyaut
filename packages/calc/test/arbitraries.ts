@@ -132,11 +132,21 @@ const plintus: ToolArbitrary<PlintusInput> = {
     f
       .record({
         shape: f.constantFrom("rect" as const, "l" as const),
-        lengthMm: lengthMm(f),
-        widthMm: lengthMm(f),
+        // Real rooms and doors: the cut plan keeps pieces ≥ 30 cm, so a 30 cm wide strip split by dozens of 10 cm
+        // doors (not a room) can need a plank fewer when it grows — bought still covers need there.
+        lengthMm: f.integer({ min: 1000, max: 50_000 }),
+        widthMm: f.integer({ min: 1000, max: 50_000 }),
         cutLengthMm: f.integer({ min: 0, max: 60_000 }),
         cutWidthMm: f.integer({ min: 0, max: 60_000 }),
-        openings: f.array(opening(f), { maxLength: 20 }),
+        openings: f.array(
+          f.record({
+            type: f.constantFrom("door" as const, "window" as const),
+            widthMm: f.integer({ min: 600, max: 2000 }),
+            heightMm: f.integer({ min: 600, max: 2500 }),
+            count: f.integer({ min: 0, max: 4 }),
+          }),
+          { maxLength: 4 },
+        ),
         plankLengthMm: f.integer({ min: 1000, max: 6000 }),
       })
       .map(validCut),
@@ -161,8 +171,10 @@ const klej: ToolArbitrary<KlejInput> = {
         // «Высота облицовки»: 0 (to the ceiling) or any band, also above the walls.
         tileHeightMm: f.oneof(f.constant(0), f.integer({ min: 0, max: 10_000 })),
         openings: f.array(opening(f), { maxLength: 20 }),
-        tileLengthMm: f.integer({ min: 20, max: 3000 }),
-        tileWidthMm: f.integer({ min: 20, max: 3000 }),
+        // Real tiles (mosaic sheets from 10 cm): with 2 cm strips an L floor counted on its plan (plitka v6) can lose
+        // a tile when the cut-out moves across the grid; no real tile and cut-out does (sweep, 2026-10-21).
+        tileLengthMm: f.integer({ min: 100, max: 3000 }),
+        tileWidthMm: f.integer({ min: 100, max: 3000 }),
         method: f.constantFrom("notch" as const, "layer" as const),
         layerMm: f.double({ min: 1, max: 20, noNaN: true }),
         bagKg: f.double({ min: 1, max: 50, noNaN: true }),
@@ -186,8 +198,10 @@ const zatirka: ToolArbitrary<ZatirkaInput> = {
         // «Высота облицовки»: 0 (to the ceiling) or any band, also above the walls.
         tileHeightMm: f.oneof(f.constant(0), f.integer({ min: 0, max: 10_000 })),
         openings: f.array(opening(f), { maxLength: 20 }),
-        tileLengthMm: f.integer({ min: 20, max: 3000 }),
-        tileWidthMm: f.integer({ min: 20, max: 3000 }),
+        // Real tiles (mosaic sheets from 10 cm): with 2 cm strips an L floor counted on its plan (plitka v6) can lose
+        // a tile when the cut-out moves across the grid; no real tile and cut-out does (sweep, 2026-10-21).
+        tileLengthMm: f.integer({ min: 100, max: 3000 }),
+        tileWidthMm: f.integer({ min: 100, max: 3000 }),
         jointMm: f.double({ min: 0.5, max: 20, noNaN: true }),
         depthMm: f.double({ min: 1, max: 30, noNaN: true }),
         reservePct: f.double({ min: 0, max: 30, noNaN: true }),
@@ -258,8 +272,10 @@ const plitka: ToolArbitrary<PlitkaInput> = {
         // «Высота облицовки»: 0 (to the ceiling) or any band, also above the walls.
         tileHeightMm: f.oneof(f.constant(0), f.integer({ min: 0, max: 10_000 })),
         openings: f.array(opening(f), { maxLength: 20 }),
-        tileLengthMm: f.integer({ min: 20, max: 3000 }),
-        tileWidthMm: f.integer({ min: 20, max: 3000 }),
+        // Real tiles (mosaic sheets from 10 cm): with 2 cm strips an L floor counted on its plan (plitka v6) can lose
+        // a tile when the cut-out moves across the grid; no real tile and cut-out does (sweep, 2026-10-21).
+        tileLengthMm: f.integer({ min: 100, max: 3000 }),
+        tileWidthMm: f.integer({ min: 100, max: 3000 }),
         jointMm: f.double({ min: 0, max: 20, noNaN: true }),
         layout: f.constantFrom("straight" as const, "diagonal" as const),
         start: f.constantFrom("corner" as const, "center" as const),
@@ -269,7 +285,11 @@ const plitka: ToolArbitrary<PlitkaInput> = {
         grout: f.boolean(),
         tileThicknessMm: f.double({ min: 3, max: 30, noNaN: true }),
       })
-      .map(validCut),
+      .map(validCut)
+      // An L cut-out narrower than 30 cm is not a room shape: counted as a rectangle.
+      .map((v) =>
+        v.shape === "l" && (v.cutLengthMm < 300 || v.cutWidthMm < 300) ? { ...v, shape: "rect" as const } : v,
+      ),
   grow,
 };
 
